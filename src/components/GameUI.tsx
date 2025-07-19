@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { User, Heart, Smartphone } from "lucide-react";
 
 export const GameUI = () => {
+  const [showWelcome, setShowWelcome] = useState(true);
   return (
     <div className="absolute inset-0 pointer-events-none">
       {/* Top UI Bar */}
@@ -37,21 +39,26 @@ export const GameUI = () => {
       </div>
       
       {/* Welcome Message */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
-        <Card className="bg-card/95 backdrop-blur-sm shadow-glow border-primary/20 animate-float">
-          <div className="p-6 text-center max-w-sm">
-            <h2 className="text-xl font-bold text-foreground mb-2">
-              Welcome to Pet Island! 🏝️
-            </h2>
-            <p className="text-muted-foreground mb-4">
-              The less you use your phone, the more adorable pets you'll discover on your island!
-            </p>
-            <Button className="bg-gradient-ocean shadow-glow">
-              Start Your Journey
-            </Button>
-          </div>
-        </Card>
-      </div>
+      {showWelcome && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
+          <Card className="bg-card/95 backdrop-blur-sm shadow-glow border-primary/20 animate-float">
+            <div className="p-6 text-center max-w-sm">
+              <h2 className="text-xl font-bold text-foreground mb-2">
+                Welcome to Pet Island! 🏝️
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                The less you use your phone, the more adorable pets you'll discover on your island!
+              </p>
+              <Button 
+                className="bg-gradient-ocean shadow-glow"
+                onClick={() => setShowWelcome(false)}
+              >
+                Start Your Journey
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
