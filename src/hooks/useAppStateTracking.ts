@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { App, AppState } from '@capacitor/app';
+import { NomoTracking } from '@/plugins/nomo-tracking';
 
 interface AppStateData {
   totalPets: number;
@@ -7,6 +8,12 @@ interface AppStateData {
   timeAwayMinutes: number;
   newPetsEarned: number;
   showRewardModal: boolean;
+  currentStreak: number;
+  todayStats: {
+    totalTime: number;
+    sessionCount: number;
+    longestSession: number;
+  };
 }
 
 const STORAGE_KEY = 'petIsland_appState';
@@ -18,7 +25,13 @@ export const useAppStateTracking = () => {
     lastActiveTime: Date.now(),
     timeAwayMinutes: 0,
     newPetsEarned: 0,
-    showRewardModal: false
+    showRewardModal: false,
+    currentStreak: 0,
+    todayStats: {
+      totalTime: 0,
+      sessionCount: 0,
+      longestSession: 0
+    }
   });
 
   // Load saved state from localStorage
@@ -126,22 +139,86 @@ export const useAppStateTracking = () => {
   };
 
   const resetProgress = () => {
-    const resetState = {
+    const resetState: AppStateData = {
       totalPets: 0,
       lastActiveTime: Date.now(),
       timeAwayMinutes: 0,
       newPetsEarned: 0,
-      showRewardModal: false
+      showRewardModal: false,
+      currentStreak: 0,
+      todayStats: {
+        totalTime: 0,
+        sessionCount: 0,
+        longestSession: 0
+      }
     };
     setAppState(resetState);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(resetState));
   };
+
+  // Native iOS tracking integration
+  useEffect(() => {
+    const setupNativeTracking = async () => {
+      try {
+        // Request permissions
+        await NomoTracking.requestPermissions();
+        
+        // Get current streak and stats
+        const { streak } = await NomoTracking.getCurrentStreak();
+        const stats = await NomoTracking.getTodayStats();
+        
+        saveState({
+          currentStreak: streak,
+          todayStats: stats
+        });
+
+        // Listen for session completions
+        await NomoTracking.addListener('sessionCompleted', (data) => {
+          const petsEarned = Math.floor(data.points / 10); // Convert points to pets
+          
+          saveState({
+            totalPets: appState.totalPets + petsEarned,
+            newPetsEarned: petsEarned,
+            timeAwayMinutes: Math.floor(data.duration / 60),
+            showRewardModal: petsEarned > 0
+          });
+        });
+
+      } catch (error) {
+        console.log('Native tracking not available, using web fallback');
+      }
+    };
+
+    setupNativeTracking();
+  }, []);
+
+  // Periodically update stats
+  useEffect(() => {
+    const updateStats = async () => {
+      try {
+        const stats = await NomoTracking.getTodayStats();
+        const { streak } = await NomoTracking.getCurrentStreak();
+        
+        saveState({
+          todayStats: stats,
+          currentStreak: streak
+        });
+      } catch (error) {
+        // Ignore errors, fallback to web tracking
+      }
+    };
+
+    const interval = setInterval(updateStats, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
 
   return {
     totalPets: appState.totalPets,
     timeAwayMinutes: appState.timeAwayMinutes,
     newPetsEarned: appState.newPetsEarned,
     showRewardModal: appState.showRewardModal,
+    currentStreak: appState.currentStreak,
+    todayStats: appState.todayStats,
     dismissRewardModal,
     resetProgress,
     minutesPerPet: MINUTES_PER_PET

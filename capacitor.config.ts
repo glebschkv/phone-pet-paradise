@@ -19,6 +19,12 @@ const config: CapacitorConfig = {
       splashFullScreen: true,
       splashImmersive: true,
     },
+    NomoTracking: {
+      ios: {
+        src: "ios",
+        path: "App/App/NomoTrackingPlugin.swift"
+      }
+    }
   },
 };
 
