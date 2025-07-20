@@ -1,6 +1,96 @@
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { Suspense } from 'react';
+import { Suspense, useRef, useState } from 'react';
+import { Group, Vector3 } from 'three';
+
+interface PandaProps {
+  totalPets: number;
+  isActive: boolean;
+}
+
+const Panda = ({ totalPets, isActive }: PandaProps) => {
+  const pandaRef = useRef<Group>(null);
+  const [angle, setAngle] = useState(0);
+  
+  // Panda moves faster when user has more pets (less phone usage)
+  const speed = Math.min(0.3 + (totalPets * 0.05), 1.0);
+  const radius = 1.8; // Keep panda on the island
+  
+  useFrame((state, delta) => {
+    if (pandaRef.current && isActive) {
+      // Move panda in a circle around the island
+      setAngle(prev => prev + delta * speed);
+      
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      
+      pandaRef.current.position.set(x, 0.2, z);
+      pandaRef.current.rotation.y = angle + Math.PI / 2; // Face movement direction
+      
+      // Add slight bobbing animation while walking
+      pandaRef.current.position.y = 0.2 + Math.sin(state.clock.elapsedTime * 8) * 0.05;
+    }
+  });
+
+  // Panda becomes more visible/active with more pets
+  const opacity = isActive ? Math.min(0.3 + (totalPets * 0.1), 1.0) : 0.2;
+  
+  return (
+    <group ref={pandaRef} position={[radius, 0.2, 0]}>
+      {/* Panda Body */}
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[0.15, 8, 6]} />
+        <meshLambertMaterial color="#f0f0f0" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Panda Head */}
+      <mesh position={[0, 0.2, 0]}>
+        <sphereGeometry args={[0.12, 8, 6]} />
+        <meshLambertMaterial color="#f0f0f0" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Panda Ears */}
+      <mesh position={[-0.08, 0.28, 0]}>
+        <sphereGeometry args={[0.04, 6, 4]} />
+        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
+      </mesh>
+      <mesh position={[0.08, 0.28, 0]}>
+        <sphereGeometry args={[0.04, 6, 4]} />
+        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Panda Eyes */}
+      <mesh position={[-0.05, 0.22, 0.08]}>
+        <sphereGeometry args={[0.025, 6, 4]} />
+        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
+      </mesh>
+      <mesh position={[0.05, 0.22, 0.08]}>
+        <sphereGeometry args={[0.025, 6, 4]} />
+        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Panda Arms */}
+      <mesh position={[-0.12, 0.05, 0]}>
+        <sphereGeometry args={[0.06, 6, 4]} />
+        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
+      </mesh>
+      <mesh position={[0.12, 0.05, 0]}>
+        <sphereGeometry args={[0.06, 6, 4]} />
+        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Panda Legs */}
+      <mesh position={[-0.08, -0.12, 0]}>
+        <sphereGeometry args={[0.06, 6, 4]} />
+        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
+      </mesh>
+      <mesh position={[0.08, -0.12, 0]}>
+        <sphereGeometry args={[0.06, 6, 4]} />
+        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
+      </mesh>
+    </group>
+  );
+};
 
 const IslandMesh = () => {
   return (
@@ -71,7 +161,12 @@ const LoadingFallback = () => (
   </div>
 );
 
-export const Island3D = () => {
+interface Island3DProps {
+  totalPets?: number;
+  isAppActive?: boolean;
+}
+
+export const Island3D = ({ totalPets = 0, isAppActive = true }: Island3DProps) => {
   return (
     <div className="w-full h-full bg-gradient-sky">
       <Canvas>
@@ -91,6 +186,9 @@ export const Island3D = () => {
           
           {/* Island */}
           <IslandMesh />
+          
+          {/* Panda */}
+          <Panda totalPets={totalPets} isActive={isAppActive} />
           
           {/* Controls */}
           <OrbitControls 
