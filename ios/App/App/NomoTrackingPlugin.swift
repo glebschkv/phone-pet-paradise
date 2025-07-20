@@ -4,6 +4,7 @@ import FamilyControls
 import UserNotifications
 import CoreData
 import Capacitor
+import CallKit
 
 // MARK: - Data Models
 struct AwaySession: Codable {

@@ -20,5 +20,5 @@ export interface NomoTrackingPlugin {
       duration: number;
       sessionType: string;
     }) => void,
-  ): Promise<void>;
+  ): Promise<{ remove: () => void }>;
 }

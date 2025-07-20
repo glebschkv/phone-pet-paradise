@@ -161,50 +161,73 @@ export const useAppStateTracking = () => {
     const setupNativeTracking = async () => {
       try {
         // Request permissions
-        await NomoTracking.requestPermissions();
+        const { granted } = await NomoTracking.requestPermissions();
+        if (!granted) {
+          console.log('Permissions not granted, using web fallback');
+          return;
+        }
         
         // Get current streak and stats
-        const { streak } = await NomoTracking.getCurrentStreak();
-        const stats = await NomoTracking.getTodayStats();
+        const [streakResult, statsResult] = await Promise.all([
+          NomoTracking.getCurrentStreak(),
+          NomoTracking.getTodayStats()
+        ]);
         
-        saveState({
-          currentStreak: streak,
-          todayStats: stats
-        });
+        setAppState(prev => ({
+          ...prev,
+          currentStreak: streakResult.streak,
+          todayStats: statsResult
+        }));
 
         // Listen for session completions
-        await NomoTracking.addListener('sessionCompleted', (data) => {
+        const listener = await NomoTracking.addListener('sessionCompleted', (data) => {
           const petsEarned = Math.floor(data.points / 10); // Convert points to pets
           
-          saveState({
-            totalPets: appState.totalPets + petsEarned,
+          setAppState(prev => ({
+            ...prev,
+            totalPets: prev.totalPets + petsEarned,
             newPetsEarned: petsEarned,
             timeAwayMinutes: Math.floor(data.duration / 60),
             showRewardModal: petsEarned > 0
-          });
+          }));
         });
+
+        return () => {
+          listener.remove();
+        };
 
       } catch (error) {
         console.log('Native tracking not available, using web fallback');
       }
     };
 
-    setupNativeTracking();
-  }, []);
+    let cleanup: (() => void) | undefined;
+    setupNativeTracking().then(cleanupFn => {
+      cleanup = cleanupFn;
+    });
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, []); // Empty dependency array is correct here
 
   // Periodically update stats
   useEffect(() => {
     const updateStats = async () => {
       try {
-        const stats = await NomoTracking.getTodayStats();
-        const { streak } = await NomoTracking.getCurrentStreak();
+        const [statsResult, streakResult] = await Promise.all([
+          NomoTracking.getTodayStats(),
+          NomoTracking.getCurrentStreak()
+        ]);
         
-        saveState({
-          todayStats: stats,
-          currentStreak: streak
-        });
+        setAppState(prev => ({
+          ...prev,
+          todayStats: statsResult,
+          currentStreak: streakResult.streak
+        }));
       } catch (error) {
         // Ignore errors, fallback to web tracking
+        console.log('Failed to update native stats:', error);
       }
     };
 
