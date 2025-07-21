@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { App, AppState } from '@capacitor/app';
 import { NomoTracking } from '@/plugins/nomo-tracking';
 
@@ -34,6 +34,10 @@ export const useAppStateTracking = () => {
     }
   });
 
+  // Use refs to track values without causing re-renders
+  const appStateRef = useRef(appState);
+  appStateRef.current = appState;
+
   // Load saved state from localStorage
   useEffect(() => {
     const savedState = localStorage.getItem(STORAGE_KEY);
@@ -47,29 +51,32 @@ export const useAppStateTracking = () => {
     }
   }, []);
 
-  // Save state to localStorage
-  const saveState = (newState: Partial<AppStateData>) => {
-    const updatedState = { ...appState, ...newState };
-    setAppState(updatedState);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedState));
-  };
+  // Save state to localStorage using functional updates
+  const saveState = useCallback((newState: Partial<AppStateData>) => {
+    setAppState(prev => {
+      const updatedState = { ...prev, ...newState };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedState));
+      return updatedState;
+    });
+  }, []);
 
   // Calculate rewards based on time away
-  const calculateRewards = (timeAwayMs: number): number => {
+  const calculateRewards = useCallback((timeAwayMs: number): number => {
     const minutesAway = Math.floor(timeAwayMs / (1000 * 60));
     return Math.floor(minutesAway / MINUTES_PER_PET);
-  };
+  }, []);
 
   // Handle app becoming active (foreground)
-  const handleAppActive = () => {
+  const handleAppActive = useCallback(() => {
+    const currentState = appStateRef.current;
     const now = Date.now();
-    const timeAway = now - appState.lastActiveTime;
+    const timeAway = now - currentState.lastActiveTime;
     const minutesAway = Math.floor(timeAway / (1000 * 60));
     const newPets = calculateRewards(timeAway);
 
     if (newPets > 0 && minutesAway >= MINUTES_PER_PET) {
       saveState({
-        totalPets: appState.totalPets + newPets,
+        totalPets: currentState.totalPets + newPets,
         newPetsEarned: newPets,
         timeAwayMinutes: minutesAway,
         showRewardModal: true,
@@ -78,19 +85,20 @@ export const useAppStateTracking = () => {
     } else {
       saveState({ lastActiveTime: now });
     }
-  };
+  }, [calculateRewards, saveState]);
 
   // Handle app going to background
-  const handleAppInactive = () => {
+  const handleAppInactive = useCallback(() => {
     saveState({ 
       lastActiveTime: Date.now(),
       showRewardModal: false 
     });
-  };
+  }, [saveState]);
 
   // Setup app state listeners
   useEffect(() => {
     let stateListener: any;
+    let visibilityCleanup: (() => void) | undefined;
 
     const setupListener = async () => {
       try {
@@ -115,7 +123,7 @@ export const useAppStateTracking = () => {
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         
-        return () => {
+        visibilityCleanup = () => {
           document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
       }
@@ -127,18 +135,21 @@ export const useAppStateTracking = () => {
       if (stateListener) {
         stateListener.remove();
       }
+      if (visibilityCleanup) {
+        visibilityCleanup();
+      }
     };
-  }, [appState.lastActiveTime, appState.totalPets]);
+  }, [handleAppActive, handleAppInactive]);
 
-  const dismissRewardModal = () => {
+  const dismissRewardModal = useCallback(() => {
     saveState({ 
       showRewardModal: false, 
       newPetsEarned: 0,
       timeAwayMinutes: 0 
     });
-  };
+  }, [saveState]);
 
-  const resetProgress = () => {
+  const resetProgress = useCallback(() => {
     const resetState: AppStateData = {
       totalPets: 0,
       lastActiveTime: Date.now(),
@@ -154,10 +165,12 @@ export const useAppStateTracking = () => {
     };
     setAppState(resetState);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(resetState));
-  };
+  }, []);
 
   // Native iOS tracking integration
   useEffect(() => {
+    let sessionListener: { remove: () => void } | undefined;
+
     const setupNativeTracking = async () => {
       try {
         // Request permissions
@@ -173,43 +186,39 @@ export const useAppStateTracking = () => {
           NomoTracking.getTodayStats()
         ]);
         
-        setAppState(prev => ({
-          ...prev,
+        saveState({
           currentStreak: streakResult.streak,
           todayStats: statsResult
-        }));
-
-        // Listen for session completions
-        const listener = await NomoTracking.addListener('sessionCompleted', (data) => {
-          const petsEarned = Math.floor(data.points / 10); // Convert points to pets
-          
-          setAppState(prev => ({
-            ...prev,
-            totalPets: prev.totalPets + petsEarned,
-            newPetsEarned: petsEarned,
-            timeAwayMinutes: Math.floor(data.duration / 60),
-            showRewardModal: petsEarned > 0
-          }));
         });
 
-        return () => {
-          listener.remove();
-        };
+        // Listen for session completions
+        sessionListener = await NomoTracking.addListener('sessionCompleted', (data) => {
+          const petsEarned = Math.floor(data.points / 10); // Convert points to pets
+          
+          if (petsEarned > 0) {
+            const currentState = appStateRef.current;
+            saveState({
+              totalPets: currentState.totalPets + petsEarned,
+              newPetsEarned: petsEarned,
+              timeAwayMinutes: Math.floor(data.duration / 60),
+              showRewardModal: true
+            });
+          }
+        });
 
       } catch (error) {
         console.log('Native tracking not available, using web fallback');
       }
     };
 
-    let cleanup: (() => void) | undefined;
-    setupNativeTracking().then(cleanupFn => {
-      cleanup = cleanupFn;
-    });
+    setupNativeTracking();
 
     return () => {
-      if (cleanup) cleanup();
+      if (sessionListener) {
+        sessionListener.remove();
+      }
     };
-  }, []); // Empty dependency array is correct here
+  }, [saveState]);
 
   // Periodically update stats
   useEffect(() => {
@@ -220,11 +229,10 @@ export const useAppStateTracking = () => {
           NomoTracking.getCurrentStreak()
         ]);
         
-        setAppState(prev => ({
-          ...prev,
+        saveState({
           todayStats: statsResult,
           currentStreak: streakResult.streak
-        }));
+        });
       } catch (error) {
         // Ignore errors, fallback to web tracking
         console.log('Failed to update native stats:', error);
@@ -233,7 +241,7 @@ export const useAppStateTracking = () => {
 
     const interval = setInterval(updateStats, 60000); // Update every minute
     return () => clearInterval(interval);
-  }, []);
+  }, [saveState]);
 
   return {
     totalPets: appState.totalPets,

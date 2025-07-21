@@ -1,5 +1,6 @@
 import { Island3D } from "@/components/Island3D";
 import { GameUI } from "@/components/GameUI";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 
 const Index = () => {
@@ -8,10 +9,14 @@ const Index = () => {
   return (
     <div className="h-screen w-full overflow-hidden bg-gradient-sky relative">
       {/* 3D Island Scene */}
-      <Island3D totalPets={totalPets} isAppActive={true} />
+      <ErrorBoundary>
+        <Island3D totalPets={totalPets} isAppActive={true} />
+      </ErrorBoundary>
       
       {/* Game UI Overlay */}
-      <GameUI />
+      <ErrorBoundary>
+        <GameUI />
+      </ErrorBoundary>
     </div>
   );
 };
