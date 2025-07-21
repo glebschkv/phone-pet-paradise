@@ -1,32 +1,48 @@
-import { Heart, Clock, Home, Users } from "lucide-react";
+import { Heart, Clock, Home, Users, Star } from "lucide-react";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
-import { RewardModal } from "@/components/RewardModal";
+import { XPRewardModal } from "@/components/XPRewardModal";
+import { LevelProgressBar } from "@/components/LevelProgressBar";
 
 export const GameUI = () => {
   const {
-    totalPets,
-    newPetsEarned,
+    currentLevel,
+    currentXP,
+    xpToNextLevel,
+    unlockedAnimals,
+    getLevelProgress,
     timeAwayMinutes,
     showRewardModal,
+    currentReward,
     dismissRewardModal,
   } = useAppStateTracking();
 
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {/* Simple Top Bar */}
+      {/* Top Bar with Level and Animals */}
       <div className="absolute top-0 left-0 right-0 p-4 pointer-events-auto">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-3">
           <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/30">
             <div className="flex items-center gap-2">
-              <Heart className="w-4 h-4 text-white" />
-              <span className="text-white font-medium">{totalPets} Pets</span>
+              <Star className="w-4 h-4 text-yellow-300" />
+              <span className="text-white font-medium">Level {currentLevel}</span>
             </div>
           </div>
           
           <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/30">
-            <span className="text-white font-medium">W1 48</span>
+            <div className="flex items-center gap-2">
+              <Heart className="w-4 h-4 text-white" />
+              <span className="text-white font-medium">{unlockedAnimals.length} Animals</span>
+            </div>
           </div>
         </div>
+        
+        {/* Level Progress Bar */}
+        <LevelProgressBar
+          currentLevel={currentLevel}
+          progress={getLevelProgress()}
+          currentXP={currentXP}
+          xpToNextLevel={xpToNextLevel}
+        />
       </div>
 
       {/* Bottom Taskbar */}
@@ -54,12 +70,13 @@ export const GameUI = () => {
         </div>
       </div>
 
-      {/* Reward Modal */}
-      <RewardModal
+      {/* XP Reward Modal */}
+      <XPRewardModal
         isOpen={showRewardModal}
         onClose={dismissRewardModal}
-        newPetsEarned={newPetsEarned}
-        timeAwayMinutes={timeAwayMinutes}
+        reward={currentReward}
+        newLevel={currentLevel}
+        levelProgress={getLevelProgress()}
       />
     </div>
   );
