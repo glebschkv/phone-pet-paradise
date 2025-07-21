@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Play, Pause, Square, Clock } from 'lucide-react';
+import { Play, Pause, Square, Clock, SkipForward } from 'lucide-react';
 import { useAppStateTracking } from '@/hooks/useAppStateTracking';
 
 export const FocusTimer = () => {
@@ -65,6 +65,16 @@ export const FocusTimer = () => {
     setTimeLeft(sessionDuration * 60);
   };
 
+  const skipTimer = () => {
+    // Award XP for the full session duration as if completed
+    const reward = awardXP(sessionDuration);
+    console.log('Timer skipped - XP awarded:', { minutes: sessionDuration, reward });
+    
+    // Reset timer
+    setIsRunning(false);
+    setTimeLeft(sessionDuration * 60);
+  };
+
   const setDuration = (minutes: number) => {
     if (!isRunning) {
       setSessionDuration(minutes);
@@ -110,6 +120,10 @@ export const FocusTimer = () => {
             <Square className="w-4 h-4 mr-2" />
             Stop
           </Button>
+          <Button onClick={skipTimer} variant="secondary" size="sm">
+            <SkipForward className="w-4 h-4 mr-2" />
+            Skip
+          </Button>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
@@ -139,8 +153,9 @@ export const FocusTimer = () => {
           </Button>
         </div>
 
-        <div className="text-xs text-muted-foreground text-center">
-          Complete 30+ minute sessions to earn XP and unlock animals!
+        <div className="text-xs text-muted-foreground text-center space-y-1">
+          <div>Complete 30+ minute sessions to earn XP and unlock animals!</div>
+          <div className="text-secondary font-medium">Use Skip button to test XP rewards</div>
         </div>
       </CardContent>
     </Card>
