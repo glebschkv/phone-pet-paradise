@@ -335,7 +335,28 @@ class NomoTrackingManager: NSObject, ObservableObject {
     // MARK: - Screen Time Integration
     private func setupDeviceActivityMonitoring() {
         guard hasScreenTimePermission else { return }
-        print("🔍 Screen Time monitoring enabled")
+        
+        // Create DeviceActivity monitoring schedule
+        let schedule = DeviceActivitySchedule(
+            intervalStart: DateComponents(hour: 0, minute: 0),
+            intervalEnd: DateComponents(hour: 23, minute: 59),
+            repeats: true
+        )
+        
+        let activity = DeviceActivityName("phoneTracking")
+        let center = DeviceActivityCenter()
+        
+        do {
+            try center.startMonitoring(activity, during: schedule)
+            print("🔍 DeviceActivity monitoring started successfully")
+        } catch {
+            print("❌ Failed to start DeviceActivity monitoring: \(error)")
+            fallbackToBasicTracking()
+        }
+    }
+    
+    private func fallbackToBasicTracking() {
+        print("📱 Using basic app lifecycle tracking as fallback")
     }
     
     // MARK: - Notifications
