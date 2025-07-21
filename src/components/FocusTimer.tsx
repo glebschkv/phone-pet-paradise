@@ -21,57 +21,72 @@ const PRESET_DURATIONS = [
 ];
 
 export const FocusTimer = ({ isOpen, onClose }: FocusTimerProps) => {
-  const { calculateXPFromDuration } = useAppStateTracking();
+  const appStateTracking = useAppStateTracking();
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
   const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number>(30 * 60); // in seconds
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Reset timer when duration changes
-  useEffect(() => {
-    if (!isRunning) {
-      setTimeLeft(selectedDuration * 60);
-    }
-  }, [selectedDuration, isRunning]);
-
-  // Timer countdown
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            handleSessionComplete(selectedDuration);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [isRunning, timeLeft, selectedDuration]);
-
+  // Handle session completion
   const handleSessionComplete = useCallback((minutes: number) => {
-    // Simulate the app state tracking session completion
-    const currentState = JSON.parse(localStorage.getItem('petIsland_appState') || '{}');
-    const now = Date.now();
-    const timeAway = minutes * 60 * 1000; // Convert to milliseconds
-    
-    // Update the last active time to simulate time away
-    const updatedState = {
-      ...currentState,
-      lastActiveTime: now - timeAway,
-    };
-    localStorage.setItem('petIsland_appState', JSON.stringify(updatedState));
-    
-    // Trigger app active to process the XP reward
-    window.dispatchEvent(new Event('focus'));
-    
-    onClose();
+    try {
+      // Get current state safely
+      const currentStateStr = localStorage.getItem('petIsland_appState');
+      const currentState = currentStateStr ? JSON.parse(currentStateStr) : {};
+      const now = Date.now();
+      const timeAway = minutes * 60 * 1000; // Convert to milliseconds
+      
+      // Update the last active time to simulate time away
+      const updatedState = {
+        ...currentState,
+        lastActiveTime: now - timeAway,
+      };
+      
+      localStorage.setItem('petIsland_appState', JSON.stringify(updatedState));
+      
+      // Use a more reliable way to trigger the app state update
+      // Force a page visibility change simulation
+      document.dispatchEvent(new Event('visibilitychange'));
+      
+      onClose();
+    } catch (error) {
+      console.error('Error completing session:', error);
+      onClose();
+    }
   }, [onClose]);
+
+  // Reset timer when duration changes or dialog closes
+  useEffect(() => {
+    if (!isRunning || !isOpen) {
+      setTimeLeft(selectedDuration * 60);
+      setIsRunning(false);
+    }
+  }, [selectedDuration, isOpen]);
+
+  // Timer countdown - fixed to prevent crashes
+  useEffect(() => {
+    if (!isRunning || timeLeft <= 0 || !isOpen) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          // Timer completed - handle outside of state update
+          setIsRunning(false);
+          setTimeout(() => {
+            handleSessionComplete(selectedDuration);
+          }, 0);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isRunning, isOpen, handleSessionComplete, selectedDuration]);
 
   const startTimer = () => {
     setIsRunning(true);
@@ -86,14 +101,21 @@ export const FocusTimer = ({ isOpen, onClose }: FocusTimerProps) => {
     setTimeLeft(selectedDuration * 60);
   };
 
-  const simulateSession = (minutes: number) => {
+  const simulateSession = useCallback((minutes: number) => {
+    if (isSimulating) return; // Prevent double-clicks
+    
     setIsSimulating(true);
-    // Immediately complete the session
+    // Use shorter timeout and better error handling
     setTimeout(() => {
-      handleSessionComplete(minutes);
-      setIsSimulating(false);
-    }, 1000);
-  };
+      try {
+        handleSessionComplete(minutes);
+      } catch (error) {
+        console.error('Error in simulate session:', error);
+      } finally {
+        setIsSimulating(false);
+      }
+    }, 500);
+  }, [handleSessionComplete, isSimulating]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -132,7 +154,7 @@ export const FocusTimer = ({ isOpen, onClose }: FocusTimerProps) => {
             <div className="flex items-center justify-center gap-2">
               <Zap className="w-4 h-4 text-primary" />
               <span className="text-sm text-muted-foreground">
-                {calculateXPFromDuration(selectedDuration)} XP when complete
+                {appStateTracking.calculateXPFromDuration(selectedDuration)} XP when complete
               </span>
             </div>
           </div>
