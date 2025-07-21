@@ -1,9 +1,13 @@
 import { Heart, Clock, Home, Users, Star } from "lucide-react";
+import { useState } from "react";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { XPRewardModal } from "@/components/XPRewardModal";
 import { LevelProgressBar } from "@/components/LevelProgressBar";
+import { FocusTimer } from "@/components/FocusTimer";
 
 export const GameUI = () => {
+  const [showTimer, setShowTimer] = useState(false);
+  
   const {
     currentLevel,
     currentXP,
@@ -49,11 +53,14 @@ export const GameUI = () => {
       <div className="absolute bottom-0 left-0 right-0 pointer-events-auto">
         <div className="bg-white/10 backdrop-blur-sm border-t border-white/20">
           <div className="flex">
-            {/* Time */}
-            <div className="flex-1 flex flex-col items-center justify-center py-4 hover:bg-white/10 transition-colors">
+            {/* Time - Now clickable */}
+            <button 
+              onClick={() => setShowTimer(true)}
+              className="flex-1 flex flex-col items-center justify-center py-4 hover:bg-white/10 transition-colors"
+            >
               <Clock className="w-6 h-6 text-white mb-1" />
               <span className="text-white text-sm font-medium">Time</span>
-            </div>
+            </button>
             
             {/* Home */}
             <div className="flex-1 flex flex-col items-center justify-center py-4 hover:bg-white/10 transition-colors bg-white/20">
@@ -69,6 +76,12 @@ export const GameUI = () => {
           </div>
         </div>
       </div>
+
+      {/* Focus Timer Modal */}
+      <FocusTimer
+        isOpen={showTimer}
+        onClose={() => setShowTimer(false)}
+      />
 
       {/* XP Reward Modal */}
       <XPRewardModal
