@@ -24,7 +24,7 @@ export const XPRewardModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+      <DialogContent className="max-w-sm mx-auto bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
             <Zap className="w-8 h-8 text-primary" />

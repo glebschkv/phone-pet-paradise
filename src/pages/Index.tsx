@@ -7,7 +7,7 @@ const Index = () => {
   const { unlockedAnimals } = useAppStateTracking();
   
   return (
-    <div className="h-screen w-full overflow-hidden bg-gradient-sky relative">
+    <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
       {/* 3D Island Scene */}
       <ErrorBoundary>
         <Island3D totalPets={unlockedAnimals.length} isAppActive={true} />

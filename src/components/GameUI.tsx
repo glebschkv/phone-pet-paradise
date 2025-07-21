@@ -2,8 +2,11 @@ import { Heart, Clock, Home, Users, Star } from "lucide-react";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { XPRewardModal } from "@/components/XPRewardModal";
 import { LevelProgressBar } from "@/components/LevelProgressBar";
+import { FocusTimer } from "@/components/FocusTimer";
+import { useState } from "react";
 
 export const GameUI = () => {
+  const [showTimer, setShowTimer] = useState(false);
   const {
     currentLevel,
     currentXP,
@@ -17,21 +20,21 @@ export const GameUI = () => {
   } = useAppStateTracking();
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {/* Top Bar with Level and Animals */}
-      <div className="absolute top-0 left-0 right-0 p-4 pointer-events-auto">
-        <div className="flex justify-between items-center mb-3">
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/30">
+      <div className="absolute top-0 left-0 right-0 p-4 pointer-events-auto max-w-full">
+        <div className="flex justify-between items-center mb-3 gap-2">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/30 flex-shrink-0">
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 text-yellow-300" />
-              <span className="text-white font-medium">Level {currentLevel}</span>
+              <span className="text-white font-medium text-sm">Level {currentLevel}</span>
             </div>
           </div>
           
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/30">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/30 flex-shrink-0">
             <div className="flex items-center gap-2">
               <Heart className="w-4 h-4 text-white" />
-              <span className="text-white font-medium">{unlockedAnimals.length} Animals</span>
+              <span className="text-white font-medium text-sm">{unlockedAnimals.length} Animals</span>
             </div>
           </div>
         </div>
@@ -46,14 +49,17 @@ export const GameUI = () => {
       </div>
 
       {/* Bottom Taskbar */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-auto">
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-auto max-w-full">
         <div className="bg-white/10 backdrop-blur-sm border-t border-white/20">
-          <div className="flex">
+          <div className="flex max-w-full">
             {/* Time */}
-            <div className="flex-1 flex flex-col items-center justify-center py-4 hover:bg-white/10 transition-colors">
+            <button 
+              onClick={() => setShowTimer(!showTimer)}
+              className="flex-1 flex flex-col items-center justify-center py-4 hover:bg-white/10 transition-colors"
+            >
               <Clock className="w-6 h-6 text-white mb-1" />
-              <span className="text-white text-sm font-medium">Time</span>
-            </div>
+              <span className="text-white text-sm font-medium">Timer</span>
+            </button>
             
             {/* Home */}
             <div className="flex-1 flex flex-col items-center justify-center py-4 hover:bg-white/10 transition-colors bg-white/20">
@@ -69,6 +75,21 @@ export const GameUI = () => {
           </div>
         </div>
       </div>
+
+      {/* Focus Timer Overlay */}
+      {showTimer && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center pointer-events-auto z-50">
+          <div className="relative">
+            <button 
+              onClick={() => setShowTimer(false)}
+              className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg z-10"
+            >
+              ×
+            </button>
+            <FocusTimer />
+          </div>
+        </div>
+      )}
 
       {/* XP Reward Modal */}
       <XPRewardModal

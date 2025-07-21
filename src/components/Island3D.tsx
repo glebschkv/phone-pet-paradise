@@ -156,8 +156,8 @@ const IslandMesh = () => {
 };
 
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-full">
-    <div className="animate-pulse text-muted-foreground">Loading island...</div>
+  <div className="absolute inset-0 flex items-center justify-center bg-gradient-sky">
+    <div className="animate-pulse text-white/80 text-sm">Loading island...</div>
   </div>
 );
 
@@ -168,9 +168,9 @@ interface Island3DProps {
 
 export const Island3D = ({ totalPets = 0, isAppActive = true }: Island3DProps) => {
   return (
-    <div className="w-full h-full bg-gradient-sky">
-      <Canvas>
-        <Suspense fallback={null}>
+    <div className="w-full h-full bg-gradient-sky overflow-hidden">
+      <Canvas gl={{ preserveDrawingBuffer: false, antialias: false }}>
+        <Suspense fallback={<LoadingFallback />}>
           <PerspectiveCamera makeDefault position={[4, 3, 4]} fov={50} />
           
           {/* Lighting */}

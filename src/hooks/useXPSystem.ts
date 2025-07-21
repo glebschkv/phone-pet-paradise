@@ -46,21 +46,30 @@ const LEVEL_REQUIREMENTS = [
   125, // Level 5 (75 + 50)
 ];
 
-// After level 5, each level requires 50 more XP than the previous increment
+// Memoized level requirement calculation
+const levelRequirementCache = new Map<number, number>();
+
 const calculateLevelRequirement = (level: number): number => {
+  if (levelRequirementCache.has(level)) {
+    return levelRequirementCache.get(level)!;
+  }
+  
+  let result: number;
   if (level <= 5) {
-    return LEVEL_REQUIREMENTS[level - 1] || 0;
+    result = LEVEL_REQUIREMENTS[level - 1] || 0;
+  } else {
+    let totalXP = LEVEL_REQUIREMENTS[4]; // XP for level 5
+    let increment = 100; // Starting increment for level 6
+    
+    for (let i = 6; i <= level; i++) {
+      totalXP += increment;
+      increment += 50; // Increase by 50 each level
+    }
+    result = totalXP;
   }
   
-  let totalXP = LEVEL_REQUIREMENTS[4]; // XP for level 5
-  let increment = 100; // Starting increment for level 6
-  
-  for (let i = 6; i <= level; i++) {
-    totalXP += increment;
-    increment += 50; // Increase by 50 each level
-  }
-  
-  return totalXP;
+  levelRequirementCache.set(level, result);
+  return result;
 };
 
 // Animal unlocks for each level
@@ -111,12 +120,13 @@ export const useXPSystem = () => {
     });
   }, []);
 
+  // Pre-sorted durations for performance
+  const sortedDurations = Object.keys(XP_REWARDS)
+    .map(Number)
+    .sort((a, b) => b - a); // Sort descending
+
   // Calculate XP gained from session duration
   const calculateXPFromDuration = useCallback((minutes: number): number => {
-    const sortedDurations = Object.keys(XP_REWARDS)
-      .map(Number)
-      .sort((a, b) => b - a); // Sort descending
-
     for (const duration of sortedDurations) {
       if (minutes >= duration) {
         return XP_REWARDS[duration as keyof typeof XP_REWARDS];
