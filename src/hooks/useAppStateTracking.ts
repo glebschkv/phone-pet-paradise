@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { App, AppState } from '@capacitor/app';
 import { NomoTracking } from '@/plugins/nomo-tracking';
-import { useXPSystem, XPReward } from '@/hooks/useXPSystem';
 
 interface AppStateData {
+  totalPets: number;
   lastActiveTime: number;
   timeAwayMinutes: number;
+  newPetsEarned: number;
   showRewardModal: boolean;
   currentStreak: number;
-  currentReward: XPReward | null;
   todayStats: {
     totalTime: number;
     sessionCount: number;
@@ -17,16 +17,16 @@ interface AppStateData {
 }
 
 const STORAGE_KEY = 'petIsland_appState';
+const MINUTES_PER_PET = 30; // Earn 1 pet every 30 minutes away
 
 export const useAppStateTracking = () => {
-  const xpSystem = useXPSystem();
-  
   const [appState, setAppState] = useState<AppStateData>({
+    totalPets: 0,
     lastActiveTime: Date.now(),
     timeAwayMinutes: 0,
+    newPetsEarned: 0,
     showRewardModal: false,
     currentStreak: 0,
-    currentReward: null,
     todayStats: {
       totalTime: 0,
       sessionCount: 0,
@@ -60,13 +60,11 @@ export const useAppStateTracking = () => {
     });
   }, []);
 
-  // Award XP based on focus session duration
-  const awardSessionXP = useCallback((minutes: number): XPReward | null => {
-    if (minutes >= 30) { // Minimum 30 minutes for XP
-      return xpSystem.awardXP(minutes);
-    }
-    return null;
-  }, [xpSystem]);
+  // Calculate rewards based on time away
+  const calculateRewards = useCallback((timeAwayMs: number): number => {
+    const minutesAway = Math.floor(timeAwayMs / (1000 * 60));
+    return Math.floor(minutesAway / MINUTES_PER_PET);
+  }, []);
 
   // Handle app becoming active (foreground)
   const handleAppActive = useCallback(() => {
@@ -74,28 +72,26 @@ export const useAppStateTracking = () => {
     const now = Date.now();
     const timeAway = now - currentState.lastActiveTime;
     const minutesAway = Math.floor(timeAway / (1000 * 60));
-    
-    // Award XP for focus session (minimum 30 minutes)
-    const reward = awardSessionXP(minutesAway);
+    const newPets = calculateRewards(timeAway);
 
-    if (reward) {
+    if (newPets > 0 && minutesAway >= MINUTES_PER_PET) {
       saveState({
+        totalPets: currentState.totalPets + newPets,
+        newPetsEarned: newPets,
         timeAwayMinutes: minutesAway,
         showRewardModal: true,
-        currentReward: reward,
         lastActiveTime: now
       });
     } else {
       saveState({ lastActiveTime: now });
     }
-  }, [awardSessionXP, saveState]);
+  }, [calculateRewards, saveState]);
 
   // Handle app going to background
   const handleAppInactive = useCallback(() => {
     saveState({ 
       lastActiveTime: Date.now(),
-      showRewardModal: false,
-      currentReward: null
+      showRewardModal: false 
     });
   }, [saveState]);
 
@@ -148,18 +144,19 @@ export const useAppStateTracking = () => {
   const dismissRewardModal = useCallback(() => {
     saveState({ 
       showRewardModal: false, 
-      currentReward: null,
+      newPetsEarned: 0,
       timeAwayMinutes: 0 
     });
   }, [saveState]);
 
   const resetProgress = useCallback(() => {
     const resetState: AppStateData = {
+      totalPets: 0,
       lastActiveTime: Date.now(),
       timeAwayMinutes: 0,
+      newPetsEarned: 0,
       showRewardModal: false,
       currentStreak: 0,
-      currentReward: null,
       todayStats: {
         totalTime: 0,
         sessionCount: 0,
@@ -168,8 +165,7 @@ export const useAppStateTracking = () => {
     };
     setAppState(resetState);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(resetState));
-    xpSystem.resetProgress();
-  }, [xpSystem]);
+  }, []);
 
   // Native iOS tracking integration
   useEffect(() => {
@@ -197,14 +193,15 @@ export const useAppStateTracking = () => {
 
         // Listen for session completions
         sessionListener = await NomoTracking.addListener('sessionCompleted', (data) => {
-          const sessionMinutes = Math.floor(data.duration / 60);
-          const reward = awardSessionXP(sessionMinutes);
+          const petsEarned = Math.floor(data.points / 10); // Convert points to pets
           
-          if (reward) {
+          if (petsEarned > 0) {
+            const currentState = appStateRef.current;
             saveState({
-              timeAwayMinutes: sessionMinutes,
-              showRewardModal: true,
-              currentReward: reward
+              totalPets: currentState.totalPets + petsEarned,
+              newPetsEarned: petsEarned,
+              timeAwayMinutes: Math.floor(data.duration / 60),
+              showRewardModal: true
             });
           }
         });
@@ -221,7 +218,7 @@ export const useAppStateTracking = () => {
         sessionListener.remove();
       }
     };
-  }, [saveState, awardSessionXP]);
+  }, [saveState]);
 
   // Periodically update stats
   useEffect(() => {
@@ -247,18 +244,14 @@ export const useAppStateTracking = () => {
   }, [saveState]);
 
   return {
-    // XP System data
-    ...xpSystem,
-    
-    // App state data
+    totalPets: appState.totalPets,
     timeAwayMinutes: appState.timeAwayMinutes,
+    newPetsEarned: appState.newPetsEarned,
     showRewardModal: appState.showRewardModal,
-    currentReward: appState.currentReward,
     currentStreak: appState.currentStreak,
     todayStats: appState.todayStats,
-    
-    // Actions
     dismissRewardModal,
     resetProgress,
+    minutesPerPet: MINUTES_PER_PET
   };
 };
