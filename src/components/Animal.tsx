@@ -1,9 +1,12 @@
 // ───────────────────────────────────────────────────────────────
-//  Animal.tsx  (drop-in replacement)
+//  Animal.tsx  (drop-in replacement with GLB support)
 // ───────────────────────────────────────────────────────────────
 import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useRef, useState } from 'react';
+import { GLBAnimal } from './GLBAnimal';
+import { ANIMAL_MODEL_CONFIG } from './AnimalModelConfig';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface AnimalProps {
   totalPets: number;
@@ -12,7 +15,7 @@ interface AnimalProps {
   index: number;
 }
 
-export const Animal = ({
+const PrimitiveAnimal = ({
   totalPets,
   isActive,
   animalType,
@@ -440,4 +443,44 @@ export const Animal = ({
         </group>
       );
   }
+};
+
+export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) => {
+  const modelConfig = ANIMAL_MODEL_CONFIG[animalType];
+  
+  // Use GLB model if configured and available
+  if (modelConfig?.type === 'glb' && modelConfig.modelPath) {
+    return (
+      <ErrorBoundary fallback={
+        modelConfig.fallbackToPrimitive ? (
+          <PrimitiveAnimal 
+            totalPets={totalPets}
+            isActive={isActive}
+            animalType={animalType}
+            index={index}
+          />
+        ) : null
+      }>
+        <GLBAnimal
+          modelPath={modelConfig.modelPath}
+          animalType={animalType}
+          totalPets={totalPets}
+          isActive={isActive}
+          index={index}
+          scale={modelConfig.scale}
+          animationName={modelConfig.animationName}
+        />
+      </ErrorBoundary>
+    );
+  }
+  
+  // Fallback to primitive animal
+  return (
+    <PrimitiveAnimal 
+      totalPets={totalPets}
+      isActive={isActive}
+      animalType={animalType}
+      index={index}
+    />
+  );
 };
