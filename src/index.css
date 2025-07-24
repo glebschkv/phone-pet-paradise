@@ -2,48 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Island Pet Game Design System - Nature & Ocean Theme */
+/* iOS-Style Pet Paradise - Cupertino Design System */
 
 @layer base {
   :root {
-    /* New minimalistic color palette */
-    --background: 220 14% 96%;  /* Porcelain White #F6F7F9 */
-    --foreground: 210 7% 14%;   /* Charcoal #232323 */
-    --card: 32 13% 94%;         /* Pale Clay #EFECE4 */
-    --card-foreground: 210 7% 14%;
-    --popover: 32 13% 94%;
-    --popover-foreground: 210 7% 14%;
-    --primary: 158 35% 31%;     /* Emerald Green #30705A */
-    --primary-foreground: 220 14% 96%;
-    --primary-glow: 143 29% 65%; /* Misty Sage #C6DFD6 */
-    --secondary: 143 29% 65%;   /* Misty Sage #C6DFD6 */
-    --secondary-foreground: 210 7% 14%;
-    --muted: 32 13% 94%;        /* Pale Clay #EFECE4 */
-    --muted-foreground: 215 12% 42%; /* Slate Gray #6C767E */
-    --accent: 44 85% 73%;       /* Muted Gold #F4D67A */
-    --accent-foreground: 210 7% 14%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 220 14% 96%;
-    --border: 143 29% 85%;
-    --input: 143 29% 85%;
-    --ring: 158 53% 24%;        /* Deep Teal #185858 */
+    /* iOS Light System Colors */
+    --background: 0 0% 100%;     /* System Background */
+    --foreground: 0 0% 0%;       /* Label */
+    --card: 0 0% 98%;           /* Secondary System Background */
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 211 100% 50%;     /* System Blue #007AFF */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 96%;     /* Secondary System Fill */
+    --secondary-foreground: 0 0% 0%;
+    --muted: 240 6% 90%;        /* Tertiary System Fill */
+    --muted-foreground: 240 4% 46%; /* Secondary Label */
+    --accent: 32 100% 50%;      /* System Orange #FF9500 */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 360 100% 45%; /* System Red #FF3B30 */
+    --destructive-foreground: 0 0% 100%;
+    --success: 120 100% 35%;    /* System Green #34C759 */
+    --success-foreground: 0 0% 100%;
+    --warning: 48 100% 50%;     /* System Yellow #FFCC00 */
+    --warning-foreground: 0 0% 0%;
+    --border: 240 6% 90%;       /* Separator */
+    --input: 240 6% 90%;
+    --ring: 211 100% 50%;
 
-    /* Elegant gradients for low-poly aesthetic */
-    --gradient-ocean: linear-gradient(135deg, hsl(143 29% 65%), hsl(158 35% 31%));
-    --gradient-island: linear-gradient(135deg, hsl(158 35% 31%), hsl(143 29% 65%));
-    --gradient-sky: linear-gradient(180deg, hsl(220 14% 96%), hsl(143 29% 85%));
-    --gradient-glass: linear-gradient(135deg, hsla(220 14% 96% / 0.25), hsla(143 29% 85% / 0.15));
+    /* iOS Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(211 100% 50%), hsl(211 100% 60%));
+    --gradient-island: linear-gradient(135deg, hsl(120 100% 35%), hsl(120 60% 50%));
+    --gradient-sky: linear-gradient(180deg, hsl(211 100% 95%), hsl(211 50% 98%));
+    --gradient-glass: linear-gradient(135deg, hsla(0 0% 100% / 0.8), hsla(240 6% 90% / 0.4));
     
-    /* Refined shadows */
-    --shadow-island: 0 8px 24px -6px hsl(158 35% 31% / 0.15);
-    --shadow-glow: 0 0 32px hsl(44 85% 73% / 0.4);
-    --shadow-floating: 0 4px 16px -4px hsl(158 35% 31% / 0.1);
+    /* iOS Shadows */
+    --shadow-xs: 0 1px 2px hsla(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px hsla(0 0% 0% / 0.1), 0 1px 2px hsla(0 0% 0% / 0.06);
+    --shadow-md: 0 4px 6px hsla(0 0% 0% / 0.07), 0 2px 4px hsla(0 0% 0% / 0.06);
+    --shadow-lg: 0 10px 15px hsla(0 0% 0% / 0.1), 0 4px 6px hsla(0 0% 0% / 0.05);
+    --shadow-xl: 0 20px 25px hsla(0 0% 0% / 0.1), 0 10px 10px hsla(0 0% 0% / 0.04);
     
-    /* Smooth transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    /* iOS Transitions */
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --transition-bounce: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    --radius: 1.125rem; /* 18px for classy rounded corners */
+    --radius: 0.75rem; /* 12px - iOS standard corner radius */
 
     --sidebar-background: 0 0% 98%;
 
@@ -63,38 +69,43 @@
   }
 
   .dark {
-    /* Dark mode with sophisticated contrast */
-    --background: 210 15% 8%;    /* Dark charcoal */
-    --foreground: 220 14% 96%;   /* Light foreground */
-    --card: 210 12% 12%;         /* Dark card background */
-    --card-foreground: 220 14% 96%;
-    --popover: 210 12% 12%;
-    --popover-foreground: 220 14% 96%;
-    --primary: 143 29% 65%;      /* Misty Sage for dark mode */
-    --primary-foreground: 210 15% 8%;
-    --primary-glow: 44 85% 73%;  /* Muted Gold glow */
-    --secondary: 210 12% 16%;    /* Darker secondary */
-    --secondary-foreground: 220 14% 96%;
-    --muted: 210 12% 16%;
-    --muted-foreground: 215 12% 60%;
-    --accent: 44 85% 73%;        /* Muted Gold accent */
-    --accent-foreground: 210 15% 8%;
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 220 14% 96%;
-    --border: 210 12% 20%;
-    --input: 210 12% 20%;
-    --ring: 44 85% 73%;
+    /* iOS Dark System Colors */
+    --background: 0 0% 0%;       /* System Background */
+    --foreground: 0 0% 100%;     /* Label */
+    --card: 240 6% 6%;          /* Secondary System Background */
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 211 100% 64%;     /* System Blue #409CFF */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 240 4% 16%;     /* Secondary System Fill */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 6% 10%;        /* Tertiary System Fill */
+    --muted-foreground: 240 4% 60%; /* Secondary Label */
+    --accent: 32 100% 64%;      /* System Orange #FF9F0A */
+    --accent-foreground: 0 0% 0%;
+    --destructive: 360 100% 58%; /* System Red #FF453A */
+    --destructive-foreground: 0 0% 0%;
+    --success: 120 100% 50%;    /* System Green #30D158 */
+    --success-foreground: 0 0% 0%;
+    --warning: 48 100% 64%;     /* System Yellow #FFD60A */
+    --warning-foreground: 0 0% 0%;
+    --border: 240 6% 20%;       /* Separator */
+    --input: 240 6% 20%;
+    --ring: 211 100% 64%;
 
-    /* Dark elegant gradients */
-    --gradient-ocean: linear-gradient(135deg, hsl(210 12% 16%), hsl(158 20% 20%));
-    --gradient-island: linear-gradient(135deg, hsl(158 20% 20%), hsl(143 20% 25%));
-    --gradient-sky: linear-gradient(180deg, hsl(210 15% 8%), hsl(210 12% 12%));
-    --gradient-glass: linear-gradient(135deg, hsla(210 15% 8% / 0.4), hsla(210 12% 16% / 0.25));
+    /* iOS Dark Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(211 100% 64%), hsl(211 100% 74%));
+    --gradient-island: linear-gradient(135deg, hsl(120 100% 50%), hsl(120 60% 60%));
+    --gradient-sky: linear-gradient(180deg, hsl(240 6% 6%), hsl(240 6% 10%));
+    --gradient-glass: linear-gradient(135deg, hsla(0 0% 0% / 0.8), hsla(240 6% 20% / 0.4));
     
-    /* Dark refined shadows */
-    --shadow-island: 0 8px 24px -6px hsl(0 0% 0% / 0.3);
-    --shadow-glow: 0 0 32px hsl(44 85% 73% / 0.3);
-    --shadow-floating: 0 4px 16px -4px hsl(0 0% 0% / 0.2);
+    /* iOS Dark Shadows */
+    --shadow-xs: 0 1px 2px hsla(0 0% 0% / 0.15);
+    --shadow-sm: 0 1px 3px hsla(0 0% 0% / 0.2), 0 1px 2px hsla(0 0% 0% / 0.16);
+    --shadow-md: 0 4px 6px hsla(0 0% 0% / 0.17), 0 2px 4px hsla(0 0% 0% / 0.16);
+    --shadow-lg: 0 10px 15px hsla(0 0% 0% / 0.2), 0 4px 6px hsla(0 0% 0% / 0.15);
+    --shadow-xl: 0 20px 25px hsla(0 0% 0% / 0.2), 0 10px 10px hsla(0 0% 0% / 0.14);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

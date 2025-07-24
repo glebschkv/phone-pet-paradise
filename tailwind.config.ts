@@ -26,8 +26,15 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))',
-					glow: 'hsl(var(--primary-glow))'
+					foreground: 'hsl(var(--primary-foreground))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -70,22 +77,26 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			backgroundImage: {
-				'gradient-ocean': 'var(--gradient-ocean)',
+				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-island': 'var(--gradient-island)',
 				'gradient-sky': 'var(--gradient-sky)',
 				'gradient-glass': 'var(--gradient-glass)'
 			},
 			boxShadow: {
-				'island': 'var(--shadow-island)',
-				'glow': 'var(--shadow-glow)',
-				'floating': 'var(--shadow-floating)'
+				'xs': 'var(--shadow-xs)',
+				'sm': 'var(--shadow-sm)', 
+				'md': 'var(--shadow-md)',
+				'lg': 'var(--shadow-lg)',
+				'xl': 'var(--shadow-xl)'
 			},
 			transitionTimingFunction: {
 				'smooth': 'var(--transition-smooth)',
+				'spring': 'var(--transition-spring)',
 				'bounce': 'var(--transition-bounce)'
 			},
 			fontFamily: {
-				'sans': ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'system-ui', 'sans-serif']
+				'sans': ['SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Inter', 'system-ui', 'sans-serif'],
+				'sf-pro': ['SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
 			},
 			keyframes: {
 				'accordion-down': {
