@@ -9,38 +9,23 @@ export interface AnimalModelConfig {
 
 export const ANIMAL_MODEL_CONFIG: Record<string, AnimalModelConfig> = {
   Rabbit: {
-    type: 'glb',
-    modelPath: '/assets/models/rabbit.glb',
-    scale: 0.3,
-    animationName: 'Idle',
+    type: 'primitive', // Changed to primitive until GLB files are added
     fallbackToPrimitive: true
   },
   Fox: {
-    type: 'glb', 
-    modelPath: '/assets/models/fox.glb',
-    scale: 0.25,
-    animationName: 'Walk',
+    type: 'primitive', // Changed to primitive until GLB files are added
     fallbackToPrimitive: true
   },
   Bear: {
-    type: 'glb',
-    modelPath: '/assets/models/bear.glb', 
-    scale: 0.4,
-    animationName: 'Idle',
+    type: 'primitive', // Changed to primitive until GLB files are added
     fallbackToPrimitive: true
   },
   Deer: {
-    type: 'glb',
-    modelPath: '/assets/models/deer.glb',
-    scale: 0.35, 
-    animationName: 'Walk',
+    type: 'primitive', // Changed to primitive until GLB files are added
     fallbackToPrimitive: true
   },
   Owl: {
-    type: 'glb',
-    modelPath: '/assets/models/owl.glb',
-    scale: 0.2,
-    animationName: 'Flying',
+    type: 'primitive', // Changed to primitive until GLB files are added
     fallbackToPrimitive: true
   }
 };
