@@ -15,7 +15,7 @@ export const ANIMAL_MODEL_CONFIG: Record<string, AnimalModelConfig> = {
   Fox: {
     type: 'glb',
     modelPath: '/assets/models/Fox.glb',
-    scale: 0.3,
+    scale: 0.2,
     fallbackToPrimitive: true
   },
   Bear: {
