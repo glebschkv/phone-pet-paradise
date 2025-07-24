@@ -42,7 +42,7 @@ export const GameUI = () => {
   };
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-40">
+    <div className="fixed inset-0 pointer-events-none z-30">
       {/* Unified Top Status Bar */}
       <TopStatusBar currentTab={currentTab} />
 
@@ -53,13 +53,11 @@ export const GameUI = () => {
         </div>
       )}
       
-      {/* iOS-style Tab Bar */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-auto">
-        <IOSTabBar 
-          activeTab={currentTab} 
-          onTabChange={setCurrentTab} 
-        />
-      </div>
+      {/* iOS-style Tab Bar - Let it handle its own positioning */}
+      <IOSTabBar 
+        activeTab={currentTab} 
+        onTabChange={setCurrentTab} 
+      />
 
       {/* XP Reward Modal */}
       <XPRewardModal
