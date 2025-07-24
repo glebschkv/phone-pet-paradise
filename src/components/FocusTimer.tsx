@@ -4,11 +4,62 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Play, Pause, Square, Clock, SkipForward } from 'lucide-react';
 import { useAppStateTracking } from '@/hooks/useAppStateTracking';
 
+const TIMER_STORAGE_KEY = 'petIsland_focusTimer';
+
+interface TimerState {
+  timeLeft: number;
+  isRunning: boolean;
+  sessionDuration: number;
+  startTime?: number;
+}
+
 export const FocusTimer = () => {
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [sessionDuration, setSessionDuration] = useState(25);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const { awardXP } = useAppStateTracking();
+
+  // Load timer state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (savedState) {
+      try {
+        const parsed: TimerState = JSON.parse(savedState);
+        
+        // If timer was running, calculate elapsed time
+        if (parsed.isRunning && parsed.startTime) {
+          const now = Date.now();
+          const elapsed = Math.floor((now - parsed.startTime) / 1000);
+          const newTimeLeft = Math.max(0, parsed.timeLeft - elapsed);
+          
+          setTimeLeft(newTimeLeft);
+          setIsRunning(newTimeLeft > 0);
+          setStartTime(newTimeLeft > 0 ? now - elapsed * 1000 : null);
+        } else {
+          setTimeLeft(parsed.timeLeft);
+          setIsRunning(false);
+          setStartTime(null);
+        }
+        
+        setSessionDuration(parsed.sessionDuration);
+      } catch (error) {
+        console.error('Failed to parse saved timer state:', error);
+      }
+    }
+  }, []);
+
+  // Save timer state to localStorage
+  const saveTimerState = useCallback((state: Partial<TimerState>) => {
+    const currentState: TimerState = {
+      timeLeft,
+      isRunning,
+      sessionDuration,
+      startTime: startTime || undefined,
+      ...state
+    };
+    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(currentState));
+  }, [timeLeft, isRunning, sessionDuration, startTime]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -26,9 +77,30 @@ export const FocusTimer = () => {
       console.log('Session completed:', { minutes: sessionMinutes, reward });
     }
     
+    const newState = {
+      isRunning: false,
+      timeLeft: sessionDuration * 60,
+      startTime: undefined
+    };
+    
     setIsRunning(false);
     setTimeLeft(sessionDuration * 60);
-  }, [sessionDuration, awardXP]);
+    setStartTime(null);
+    saveTimerState(newState);
+  }, [sessionDuration, awardXP, saveTimerState]);
+
+  // Auto-save timer state when it changes
+  useEffect(() => {
+    if (isRunning) {
+      const currentState = {
+        timeLeft,
+        isRunning,
+        sessionDuration,
+        startTime: startTime || Date.now()
+      };
+      saveTimerState(currentState);
+    }
+  }, [timeLeft, isRunning, sessionDuration, startTime, saveTimerState]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -36,11 +108,12 @@ export const FocusTimer = () => {
     if (isRunning && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft((prev) => {
-          if (prev <= 1) {
+          const newTimeLeft = prev - 1;
+          if (newTimeLeft <= 0) {
             handleComplete();
             return 0;
           }
-          return prev - 1;
+          return newTimeLeft;
         });
       }, 1000);
     }
@@ -53,16 +126,39 @@ export const FocusTimer = () => {
   }, [isRunning, timeLeft, handleComplete]);
 
   const startTimer = () => {
+    const now = Date.now();
     setIsRunning(true);
+    setStartTime(now);
+    saveTimerState({
+      isRunning: true,
+      startTime: now,
+      timeLeft,
+      sessionDuration
+    });
   };
 
   const pauseTimer = () => {
     setIsRunning(false);
+    setStartTime(null);
+    saveTimerState({
+      isRunning: false,
+      startTime: undefined,
+      timeLeft,
+      sessionDuration
+    });
   };
 
   const stopTimer = () => {
+    const newState = {
+      isRunning: false,
+      timeLeft: sessionDuration * 60,
+      startTime: undefined
+    };
+    
     setIsRunning(false);
     setTimeLeft(sessionDuration * 60);
+    setStartTime(null);
+    saveTimerState(newState);
   };
 
   const skipTimer = () => {
@@ -71,14 +167,28 @@ export const FocusTimer = () => {
     console.log('Timer skipped - XP awarded:', { minutes: sessionDuration, reward });
     
     // Reset timer
+    const newState = {
+      isRunning: false,
+      timeLeft: sessionDuration * 60,
+      startTime: undefined
+    };
+    
     setIsRunning(false);
     setTimeLeft(sessionDuration * 60);
+    setStartTime(null);
+    saveTimerState(newState);
   };
 
   const setDuration = (minutes: number) => {
     if (!isRunning) {
       setSessionDuration(minutes);
       setTimeLeft(minutes * 60);
+      saveTimerState({
+        sessionDuration: minutes,
+        timeLeft: minutes * 60,
+        isRunning: false,
+        startTime: undefined
+      });
     }
   };
 
