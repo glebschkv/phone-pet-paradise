@@ -93,7 +93,7 @@ export const useXPSystem = () => {
     currentLevel: 1,
     xpToNextLevel: 25,
     totalXPForCurrentLevel: 0,
-    unlockedAnimals: ['Fox'], // Start with first animal
+    unlockedAnimals: ['Elephant'], // Start with first animal
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
   });

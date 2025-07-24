@@ -432,6 +432,68 @@ const PrimitiveAnimal = ({
         </group>
       );
 
+    // ─── Elephant ───────────────────────────────────────────────
+    case 'Elephant':
+      return (
+        <group ref={ref} position={[radius, 0.15, 0]}>
+          {/* Body */}
+          <Mesh position={[0, 0.1, 0]}>
+            <cylinderGeometry args={[0.2, 0.18, 0.25, 8]} />
+            <meshLambertMaterial color="#A0A0A0" transparent opacity={opacity} />
+          </Mesh>
+          {/* Head */}
+          <Mesh position={[0, 0.28, 0.15]}>
+            <sphereGeometry args={[0.15, 8, 6]} />
+            <meshLambertMaterial color="#A0A0A0" transparent opacity={opacity} />
+          </Mesh>
+          {/* Trunk */}
+          <Mesh position={[0, 0.2, 0.28]}>
+            <cylinderGeometry args={[0.04, 0.06, 0.2, 8]} />
+            <meshLambertMaterial color="#A0A0A0" transparent opacity={opacity} />
+          </Mesh>
+          {/* Ears */}
+          <Mesh position={[-0.12, 0.3, 0.08]} rotation={[0, 0, 0.3]}>
+            <cylinderGeometry args={[0.08, 0.05, 0.02, 8]} />
+            <meshLambertMaterial color="#909090" transparent opacity={opacity} />
+          </Mesh>
+          <Mesh position={[0.12, 0.3, 0.08]} rotation={[0, 0, -0.3]}>
+            <cylinderGeometry args={[0.08, 0.05, 0.02, 8]} />
+            <meshLambertMaterial color="#909090" transparent opacity={opacity} />
+          </Mesh>
+          {/* Eyes */}
+          <Mesh position={[-0.06, 0.32, 0.22]}>
+            <sphereGeometry args={[0.015, 4, 4]} />
+            <meshLambertMaterial color="black" />
+          </Mesh>
+          <Mesh position={[0.06, 0.32, 0.22]}>
+            <sphereGeometry args={[0.015, 4, 4]} />
+            <meshLambertMaterial color="black" />
+          </Mesh>
+          {/* Legs */}
+          <Mesh position={[-0.1, -0.1, 0.08]}>
+            <cylinderGeometry args={[0.04, 0.04, 0.2, 8]} />
+            <meshLambertMaterial color="#A0A0A0" transparent opacity={opacity} />
+          </Mesh>
+          <Mesh position={[0.1, -0.1, 0.08]}>
+            <cylinderGeometry args={[0.04, 0.04, 0.2, 8]} />
+            <meshLambertMaterial color="#A0A0A0" transparent opacity={opacity} />
+          </Mesh>
+          <Mesh position={[-0.1, -0.1, -0.08]}>
+            <cylinderGeometry args={[0.04, 0.04, 0.2, 8]} />
+            <meshLambertMaterial color="#A0A0A0" transparent opacity={opacity} />
+          </Mesh>
+          <Mesh position={[0.1, -0.1, -0.08]}>
+            <cylinderGeometry args={[0.04, 0.04, 0.2, 8]} />
+            <meshLambertMaterial color="#A0A0A0" transparent opacity={opacity} />
+          </Mesh>
+          {/* Tail */}
+          <Mesh position={[0, 0.1, -0.2]}>
+            <cylinderGeometry args={[0.015, 0.02, 0.15, 6]} />
+            <meshLambertMaterial color="#A0A0A0" transparent opacity={opacity} />
+          </Mesh>
+        </group>
+      );
+
     // ─── Default placeholder ───────────────────────────────────
     default:
       return (

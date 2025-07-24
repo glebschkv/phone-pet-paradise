@@ -8,6 +8,12 @@ export interface AnimalModelConfig {
 }
 
 export const ANIMAL_MODEL_CONFIG: Record<string, AnimalModelConfig> = {
+  Elephant: {
+    type: 'glb',
+    modelPath: '/assets/models/Elephant.glb',
+    scale: 0.15,
+    fallbackToPrimitive: true
+  },
   Rabbit: {
     type: 'primitive', // Changed to primitive until GLB files are added
     fallbackToPrimitive: true
