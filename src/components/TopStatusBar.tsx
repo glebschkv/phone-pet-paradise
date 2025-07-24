@@ -19,8 +19,6 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
     awardXP,
   } = useAppStateTracking();
 
-  console.log('TopStatusBar - awardXP function:', typeof awardXP);
-
   // Only show on home tab
   if (currentTab !== "home") return null;
 

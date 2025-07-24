@@ -15,9 +15,7 @@ export const StatusBarActions = ({
   const { toast } = useToast();
 
   const handleTestLevelUp = () => {
-    console.log('Test Level Up button clicked');
-    const result = onTestLevelUp();
-    console.log('Test Level Up result:', result);
+    onTestLevelUp();
     toast({
       title: "🎉 Level Up Test!",
       description: `Awarded XP! Check if modal appears.`,

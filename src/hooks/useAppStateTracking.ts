@@ -49,7 +49,7 @@ export const useAppStateTracking = () => {
   // Award XP based on focus session duration
   const awardSessionXP = useCallback((minutes: number): XPReward | null => {
     if (minutes >= 30) { // Minimum 30 minutes for XP
-      const xpReward = xpSystem.awardXP(xpSystem.calculateXPFromDuration(minutes));
+      const xpReward = xpSystem.awardXP(minutes);
       const streakReward = streakSystem.recordSession();
       
       if (xpReward && streakReward) {
