@@ -2,7 +2,7 @@ import { Heart, TestTube } from "lucide-react";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { XPRewardModal } from "@/components/XPRewardModal";
 import { LevelProgressBar } from "@/components/LevelProgressBar";
-import { EnhancedFocusTimer } from "@/components/EnhancedFocusTimer";
+import { UnifiedFocusTimer } from "@/components/UnifiedFocusTimer";
 import { IOSTabBar } from "@/components/IOSTabBar";
 import { PetCollectionGrid } from "@/components/PetCollectionGrid";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ export const GameUI = () => {
       case "timer":
         return (
           <div className="p-4">
-            <EnhancedFocusTimer onComplete={awardXP} />
+            <UnifiedFocusTimer />
           </div>
         );
       case "collection":
