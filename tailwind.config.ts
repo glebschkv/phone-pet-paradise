@@ -72,14 +72,20 @@ export default {
 			backgroundImage: {
 				'gradient-ocean': 'var(--gradient-ocean)',
 				'gradient-island': 'var(--gradient-island)',
-				'gradient-sky': 'var(--gradient-sky)'
+				'gradient-sky': 'var(--gradient-sky)',
+				'gradient-glass': 'var(--gradient-glass)'
 			},
 			boxShadow: {
 				'island': 'var(--shadow-island)',
-				'glow': 'var(--shadow-glow)'
+				'glow': 'var(--shadow-glow)',
+				'floating': 'var(--shadow-floating)'
 			},
 			transitionTimingFunction: {
-				'smooth': 'var(--transition-smooth)'
+				'smooth': 'var(--transition-smooth)',
+				'bounce': 'var(--transition-bounce)'
+			},
+			fontFamily: {
+				'sans': ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'system-ui', 'sans-serif']
 			},
 			keyframes: {
 				'accordion-down': {

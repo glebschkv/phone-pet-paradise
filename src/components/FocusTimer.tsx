@@ -85,77 +85,83 @@ export const FocusTimer = () => {
   const progress = ((sessionDuration * 60 - timeLeft) / (sessionDuration * 60)) * 100;
 
   return (
-    <Card className="w-full max-w-sm mx-auto">
-      <CardContent className="p-6 space-y-4">
-        <div className="text-center space-y-2">
-          <Clock className="w-8 h-8 mx-auto text-primary" />
-          <h3 className="text-lg font-semibold">Focus Timer</h3>
-        </div>
-
-        <div className="text-center">
-          <div className="text-4xl font-mono font-bold text-primary">
+    <Card className="w-full max-w-sm mx-auto bg-gradient-glass backdrop-blur-xl border border-primary/10 shadow-floating">
+      <CardContent className="p-8 space-y-8">
+        {/* Elegant Timer Display */}
+        <div className="text-center space-y-4">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-accent/20 flex items-center justify-center mb-4">
+            <Clock className="w-10 h-10 text-accent" />
+          </div>
+          <div className="text-5xl font-bold font-mono tracking-wide text-foreground">
             {formatTime(timeLeft)}
           </div>
-          <div className="w-full bg-muted rounded-full h-2 mt-3">
+          <div className="text-sm font-medium text-muted-foreground">
+            {sessionDuration} minute focus session
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="w-full bg-muted/30 rounded-full h-1.5 mt-4">
             <div 
-              className="bg-primary h-2 rounded-full transition-all duration-1000"
+              className="bg-accent h-1.5 rounded-full transition-all duration-1000 shadow-glow"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        <div className="flex justify-center gap-2">
-          {!isRunning ? (
-            <Button onClick={startTimer} size="sm">
-              <Play className="w-4 h-4 mr-2" />
-              Start
-            </Button>
-          ) : (
-            <Button onClick={pauseTimer} variant="outline" size="sm">
-              <Pause className="w-4 h-4 mr-2" />
-              Pause
-            </Button>
-          )}
-          <Button onClick={stopTimer} variant="outline" size="sm">
-            <Square className="w-4 h-4 mr-2" />
-            Stop
+        {/* Refined Timer Controls */}
+        <div className="flex justify-center gap-3">
+          <Button
+            onClick={isRunning ? pauseTimer : startTimer}
+            variant="default"
+            size="lg"
+            className="px-8"
+          >
+            {isRunning ? (
+              <>
+                <Pause className="w-5 h-5 mr-2" />
+                Pause
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5 mr-2" />
+                Start
+              </>
+            )}
           </Button>
-          <Button onClick={skipTimer} variant="secondary" size="sm">
-            <SkipForward className="w-4 h-4 mr-2" />
-            Skip
+          
+          <Button onClick={stopTimer} variant="outline" size="lg">
+            <Square className="w-5 h-5" />
+          </Button>
+          
+          <Button onClick={skipTimer} variant="floating" size="lg">
+            <SkipForward className="w-5 h-5" />
           </Button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          <Button 
-            variant={sessionDuration === 25 ? "default" : "outline"} 
-            size="sm" 
-            onClick={() => setDuration(25)}
-            disabled={isRunning}
-          >
-            25m
-          </Button>
-          <Button 
-            variant={sessionDuration === 45 ? "default" : "outline"} 
-            size="sm" 
-            onClick={() => setDuration(45)}
-            disabled={isRunning}
-          >
-            45m
-          </Button>
-          <Button 
-            variant={sessionDuration === 60 ? "default" : "outline"} 
-            size="sm" 
-            onClick={() => setDuration(60)}
-            disabled={isRunning}
-          >
-            60m
-          </Button>
+        {/* Duration Selection Grid */}
+        <div className="grid grid-cols-3 gap-3">
+          {[25, 45, 60].map((minutes) => (
+            <Button
+              key={minutes}
+              onClick={() => setDuration(minutes)}
+              variant={sessionDuration === minutes ? "default" : "floating"}
+              size="sm"
+              disabled={isRunning}
+              className="h-12 text-sm font-semibold"
+            >
+              {minutes}m
+            </Button>
+          ))}
         </div>
 
-        <div className="text-xs text-muted-foreground text-center space-y-1">
-          <div>Complete 30+ minute sessions to earn XP and unlock animals!</div>
-          <div className="text-secondary font-medium">Use Skip button to test XP rewards</div>
+        {/* Helpful Instructions */}
+        <div className="text-center space-y-2 pt-4 border-t border-border">
+          <div className="text-xs text-muted-foreground">
+            Complete 30+ minute sessions to earn XP and unlock animals!
+          </div>
+          <div className="text-xs text-accent font-medium">
+            Use Skip button to test XP rewards
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -6,53 +6,44 @@
 
 @layer base {
   :root {
-    /* Island Theme Colors */
-    --background: 190 30% 95%;
-    --foreground: 160 15% 15%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 160 15% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 160 15% 15%;
-
-    /* Ocean Blue Primary */
-    --primary: 200 85% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 200 85% 65%;
-
-    /* Forest Green Secondary */
-    --secondary: 140 60% 40%;
-    --secondary-foreground: 0 0% 100%;
-
-    /* Soft Earth Muted */
-    --muted: 40 20% 88%;
-    --muted-foreground: 160 10% 40%;
-
-    /* Sunset Accent */
-    --accent: 25 85% 60%;
-    --accent-foreground: 0 0% 100%;
-
+    /* New minimalistic color palette */
+    --background: 220 14% 96%;  /* Porcelain White #F6F7F9 */
+    --foreground: 210 7% 14%;   /* Charcoal #232323 */
+    --card: 32 13% 94%;         /* Pale Clay #EFECE4 */
+    --card-foreground: 210 7% 14%;
+    --popover: 32 13% 94%;
+    --popover-foreground: 210 7% 14%;
+    --primary: 158 35% 31%;     /* Emerald Green #30705A */
+    --primary-foreground: 220 14% 96%;
+    --primary-glow: 143 29% 65%; /* Misty Sage #C6DFD6 */
+    --secondary: 143 29% 65%;   /* Misty Sage #C6DFD6 */
+    --secondary-foreground: 210 7% 14%;
+    --muted: 32 13% 94%;        /* Pale Clay #EFECE4 */
+    --muted-foreground: 215 12% 42%; /* Slate Gray #6C767E */
+    --accent: 44 85% 73%;       /* Muted Gold #F4D67A */
+    --accent-foreground: 210 7% 14%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 220 14% 96%;
+    --border: 143 29% 85%;
+    --input: 143 29% 85%;
+    --ring: 158 53% 24%;        /* Deep Teal #185858 */
 
-    --border: 190 20% 85%;
-    --input: 190 20% 92%;
-    --ring: 200 85% 45%;
-
-    /* Island Gradients */
-    --gradient-ocean: linear-gradient(135deg, hsl(200 85% 45%), hsl(220 70% 55%));
-    --gradient-island: linear-gradient(180deg, hsl(140 60% 45%), hsl(120 50% 35%));
-    --gradient-sky: linear-gradient(180deg, hsl(190 40% 85%), hsl(200 30% 75%));
+    /* Elegant gradients for low-poly aesthetic */
+    --gradient-ocean: linear-gradient(135deg, hsl(143 29% 65%), hsl(158 35% 31%));
+    --gradient-island: linear-gradient(135deg, hsl(158 35% 31%), hsl(143 29% 65%));
+    --gradient-sky: linear-gradient(180deg, hsl(220 14% 96%), hsl(143 29% 85%));
+    --gradient-glass: linear-gradient(135deg, hsla(220 14% 96% / 0.25), hsla(143 29% 85% / 0.15));
     
-    /* Shadows & Effects */
-    --shadow-island: 0 10px 30px -10px hsl(200 85% 45% / 0.3);
-    --shadow-glow: 0 0 40px hsl(200 85% 65% / 0.4);
+    /* Refined shadows */
+    --shadow-island: 0 8px 24px -6px hsl(158 35% 31% / 0.15);
+    --shadow-glow: 0 0 32px hsl(44 85% 73% / 0.4);
+    --shadow-floating: 0 4px 16px -4px hsl(158 35% 31% / 0.1);
     
-    /* Animation */
+    /* Smooth transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    --radius: 1rem;
+    --radius: 1.125rem; /* 18px for classy rounded corners */
 
     --sidebar-background: 0 0% 98%;
 
@@ -72,33 +63,38 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark mode with sophisticated contrast */
+    --background: 210 15% 8%;    /* Dark charcoal */
+    --foreground: 220 14% 96%;   /* Light foreground */
+    --card: 210 12% 12%;         /* Dark card background */
+    --card-foreground: 220 14% 96%;
+    --popover: 210 12% 12%;
+    --popover-foreground: 220 14% 96%;
+    --primary: 143 29% 65%;      /* Misty Sage for dark mode */
+    --primary-foreground: 210 15% 8%;
+    --primary-glow: 44 85% 73%;  /* Muted Gold glow */
+    --secondary: 210 12% 16%;    /* Darker secondary */
+    --secondary-foreground: 220 14% 96%;
+    --muted: 210 12% 16%;
+    --muted-foreground: 215 12% 60%;
+    --accent: 44 85% 73%;        /* Muted Gold accent */
+    --accent-foreground: 210 15% 8%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 220 14% 96%;
+    --border: 210 12% 20%;
+    --input: 210 12% 20%;
+    --ring: 44 85% 73%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Dark elegant gradients */
+    --gradient-ocean: linear-gradient(135deg, hsl(210 12% 16%), hsl(158 20% 20%));
+    --gradient-island: linear-gradient(135deg, hsl(158 20% 20%), hsl(143 20% 25%));
+    --gradient-sky: linear-gradient(180deg, hsl(210 15% 8%), hsl(210 12% 12%));
+    --gradient-glass: linear-gradient(135deg, hsla(210 15% 8% / 0.4), hsla(210 12% 16% / 0.25));
+    
+    /* Dark refined shadows */
+    --shadow-island: 0 8px 24px -6px hsl(0 0% 0% / 0.3);
+    --shadow-glow: 0 0 32px hsl(44 85% 73% / 0.3);
+    --shadow-floating: 0 4px 16px -4px hsl(0 0% 0% / 0.2);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
