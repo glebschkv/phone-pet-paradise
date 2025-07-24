@@ -101,12 +101,15 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           />
           <pointLight position={[-5, 5, -5]} intensity={0.3} color="#ffa500" />
           
-          {/* Island - GLB with fallback to primitive */}
+          {/* Island - Using primitive mesh (GLB temporarily disabled) */}
+          <IslandMesh />
+          {/* GLB Island temporarily disabled:
           <GLBErrorBoundary fallback={<IslandMesh />}>
             <Suspense fallback={null}>
               <GLBIsland scale={0.5} />
             </Suspense>
           </GLBErrorBoundary>
+          */}
           
           {/* Render all unlocked animals */}
           {unlockedAnimals.map((animalType, index) => (

@@ -98,6 +98,8 @@ export const GLBAnimal = ({
   );
 };
 
+// GLB preloading temporarily disabled
+/*
 // Preload GLB models only when they exist
 // Uncomment these when you add the actual GLB files:
 useGLTF.preload('/assets/models/Elephant.glb');
@@ -106,3 +108,4 @@ useGLTF.preload('/assets/models/Fox.glb');
 // useGLTF.preload('/assets/models/bear.glb');
 // useGLTF.preload('/assets/models/deer.glb');
 // useGLTF.preload('/assets/models/owl.glb');
+*/
