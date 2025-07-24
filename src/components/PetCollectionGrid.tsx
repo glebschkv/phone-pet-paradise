@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Search, 
   Filter, 
@@ -13,23 +14,26 @@ import {
   Sparkles,
   Trophy,
   Eye,
-  Gift
+  Gift,
+  Crown,
+  TreePine,
+  Waves,
+  Mountain,
+  Snowflake
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCollection } from "@/hooks/useCollection";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
+import { AnimalData, BiomeData, BIOME_DATABASE } from "@/data/AnimalDatabase";
+import { AnimalViewer3D } from "@/components/AnimalViewer3D";
 
-interface PetData {
-  id: string;
-  name: string;
-  emoji: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  unlockLevel: number;
-  isUnlocked: boolean;
-  isFavorite?: boolean;
-  description: string;
-  abilities: string[];
-  biome: string;
-}
+const BIOME_ICONS = {
+  'Meadow': TreePine,
+  'Forest': TreePine,
+  'Ocean': Waves,
+  'Mountains': Mountain,
+  'Tundra': Snowflake,
+};
 
 const RARITY_COLORS = {
   common: "text-muted-foreground border-muted",
@@ -45,104 +49,35 @@ const RARITY_BACKGROUNDS = {
   legendary: "bg-accent/20"
 };
 
-// Mock pet data - in a real app this would come from your game state
-const MOCK_PETS: PetData[] = [
-  {
-    id: 'elephant',
-    name: 'Elephant',
-    emoji: '🐘',
-    rarity: 'common',
-    unlockLevel: 1,
-    isUnlocked: true,
-    description: 'A gentle giant with incredible memory and wisdom.',
-    abilities: ['Memory Boost', 'Wisdom Share'],
-    biome: 'Savanna'
-  },
-  {
-    id: 'fox',
-    name: 'Fox',
-    emoji: '🦊',
-    rarity: 'rare',
-    unlockLevel: 3,
-    isUnlocked: true,
-    isFavorite: true,
-    description: 'Cunning and agile, perfect for focus sessions.',
-    abilities: ['Quick Thinking', 'Agility Boost'],
-    biome: 'Forest'
-  },
-  {
-    id: 'dragon',
-    name: 'Dragon',
-    emoji: '🐉',
-    rarity: 'legendary',
-    unlockLevel: 15,
-    isUnlocked: false,
-    description: 'Mythical creature that brings powerful focus energy.',
-    abilities: ['Fire Focus', 'Legendary Wisdom', 'Time Mastery'],
-    biome: 'Mountains'
-  },
-  {
-    id: 'unicorn',
-    name: 'Unicorn',
-    emoji: '🦄',
-    rarity: 'epic',
-    unlockLevel: 10,
-    isUnlocked: false,
-    description: 'Magical being that enhances creativity and inspiration.',
-    abilities: ['Creative Spark', 'Magic Focus', 'Inspiration'],
-    biome: 'Enchanted Forest'
-  },
-  {
-    id: 'turtle',
-    name: 'Turtle',
-    emoji: '🐢',
-    rarity: 'common',
-    unlockLevel: 2,
-    isUnlocked: true,
-    description: 'Slow and steady, perfect for long focus sessions.',
-    abilities: ['Endurance', 'Patience'],
-    biome: 'Ocean'
-  },
-  {
-    id: 'owl',
-    name: 'Owl',
-    emoji: '🦉',
-    rarity: 'rare',
-    unlockLevel: 5,
-    isUnlocked: false,
-    description: 'Wise night creature, excellent for evening study.',
-    abilities: ['Night Focus', 'Wisdom', 'Silent Study'],
-    biome: 'Forest'
-  }
-];
-
+// Component for enhanced collection with real data integration
 export const PetCollectionGrid = () => {
-  const { currentLevel } = useAppStateTracking();
+
+  const { 
+    currentLevel, 
+    currentBiome, 
+    availableBiomes,
+    switchBiome 
+  } = useAppStateTracking();
+  
+  const {
+    allAnimals,
+    unlockedAnimalsData,
+    currentBiomeAnimals,
+    favorites,
+    stats,
+    toggleFavorite,
+    isAnimalUnlocked,
+    isAnimalFavorite,
+    filterAnimals
+  } = useCollection();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRarity, setSelectedRarity] = useState<string>("all");
-  const [selectedPet, setSelectedPet] = useState<PetData | null>(null);
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [selectedBiome, setSelectedBiome] = useState<string>("all");
+  const [selectedPet, setSelectedPet] = useState<AnimalData | null>(null);
+  const [viewing3D, setViewing3D] = useState<AnimalData | null>(null);
 
-  const filteredPets = MOCK_PETS.filter(pet => {
-    const matchesSearch = pet.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRarity = selectedRarity === "all" || pet.rarity === selectedRarity;
-    return matchesSearch && matchesRarity;
-  });
-
-  const unlockedCount = MOCK_PETS.filter(pet => pet.isUnlocked).length;
-  const totalCount = MOCK_PETS.length;
-
-  const toggleFavorite = (petId: string) => {
-    setFavorites(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(petId)) {
-        newFavorites.delete(petId);
-      } else {
-        newFavorites.add(petId);
-      }
-      return newFavorites;
-    });
-  };
+  const filteredPets = filterAnimals(searchQuery, selectedRarity, selectedBiome);
 
   const getRarityIcon = (rarity: string) => {
     switch (rarity) {
@@ -154,135 +89,216 @@ export const PetCollectionGrid = () => {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Pet Collection</h1>
-          <p className="text-sm text-muted-foreground">
-            {unlockedCount}/{totalCount} pets discovered
-          </p>
-        </div>
-        <Badge variant="secondary" className="text-lg px-3 py-1">
-          Level {currentLevel}
-        </Badge>
-      </div>
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Crown className="w-5 h-5" />
+            Animal Collection
+          </CardTitle>
+          <CardDescription>
+            Level {currentLevel} • {stats.unlockedAnimals}/{stats.totalAnimals} animals unlocked
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="animals" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="animals">Animals</TabsTrigger>
+              <TabsTrigger value="biomes">Biomes</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="animals" className="space-y-4">
 
-      {/* Search and Filter */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Search pets..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex gap-1">
-          {["all", "common", "rare", "epic", "legendary"].map((rarity) => (
-            <Button
-              key={rarity}
-              variant={selectedRarity === rarity ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedRarity(rarity)}
-              className="capitalize"
-            >
-              {rarity === "all" ? <Filter className="w-4 h-4" /> : getRarityIcon(rarity)}
-              {rarity}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Collection Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {filteredPets.map((pet) => {
-          const isLocked = !pet.isUnlocked;
-          const canUnlock = currentLevel >= pet.unlockLevel;
-          const isFavorited = favorites.has(pet.id) || pet.isFavorite;
-          
-          return (
-            <Card
-              key={pet.id}
-              className={cn(
-                "relative p-4 transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-lg",
-                isLocked && !canUnlock && "opacity-50",
-                RARITY_BACKGROUNDS[pet.rarity],
-                RARITY_COLORS[pet.rarity]
-              )}
-              onClick={() => setSelectedPet(pet)}
-            >
-              {/* Favorite button */}
-              {pet.isUnlocked && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 w-6 h-6 p-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(pet.id);
-                  }}
-                >
-                  <Heart 
-                    className={cn(
-                      "w-4 h-4",
-                      isFavorited ? "fill-red-500 text-red-500" : "text-muted-foreground"
-                    )} 
+              {/* Search and Filter */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Search animals..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
                   />
-                </Button>
-              )}
-
-              {/* Rarity indicator */}
-              <div className="absolute top-2 left-2">
-                {getRarityIcon(pet.rarity)}
+                </div>
+                <div className="flex gap-1 flex-wrap">
+                  {["all", "common", "rare", "epic", "legendary"].map((rarity) => (
+                    <Button
+                      key={rarity}
+                      variant={selectedRarity === rarity ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedRarity(rarity)}
+                      className="capitalize"
+                    >
+                      {rarity === "all" ? <Filter className="w-4 h-4" /> : getRarityIcon(rarity)}
+                      <span className="ml-1">{rarity}</span>
+                    </Button>
+                  ))}
+                </div>
               </div>
 
-              {/* Pet content */}
-              <div className="text-center">
-                <div className="text-4xl mb-2 relative">
-                  {isLocked ? (
-                    <div className="flex items-center justify-center">
-                      <Lock className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                  ) : (
-                    pet.emoji
-                  )}
-                </div>
-                
-                <h3 className="font-semibold text-sm mb-1">
-                  {isLocked ? "???" : pet.name}
-                </h3>
-                
-                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                  {pet.rarity && (
-                    <Badge 
-                      variant="outline" 
-                      className={cn("text-xs", RARITY_COLORS[pet.rarity])}
+              {/* Collection Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {filteredPets.map((pet) => {
+                  const isLocked = !isAnimalUnlocked(pet.id);
+                  const canUnlock = currentLevel >= pet.unlockLevel;
+                  const isFavorited = isAnimalFavorite(pet.id);
+                  
+                  return (
+                    <Card
+                      key={pet.id}
+                      className={cn(
+                        "relative p-4 transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-lg",
+                        isLocked && !canUnlock && "opacity-50",
+                        RARITY_BACKGROUNDS[pet.rarity],
+                        RARITY_COLORS[pet.rarity]
+                      )}
+                      onClick={() => setSelectedPet(pet)}
                     >
-                      {pet.rarity}
-                    </Badge>
-                  )}
-                </div>
+                      {/* Favorite button */}
+                      {!isLocked && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute top-2 right-2 w-6 h-6 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(pet.id);
+                          }}
+                        >
+                          <Heart 
+                            className={cn(
+                              "w-4 h-4",
+                              isFavorited ? "fill-red-500 text-red-500" : "text-muted-foreground"
+                            )} 
+                          />
+                        </Button>
+                      )}
 
-                {/* Unlock requirement */}
-                {isLocked && (
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    {canUnlock ? (
-                      <Badge variant="secondary" className="text-xs">
-                        <Gift className="w-3 h-3 mr-1" />
-                        Ready to unlock!
-                      </Badge>
-                    ) : (
-                      <span>Level {pet.unlockLevel}</span>
-                    )}
-                  </div>
+                      {/* Rarity indicator */}
+                      <div className="absolute top-2 left-2">
+                        {getRarityIcon(pet.rarity)}
+                      </div>
+
+                      {/* Pet content */}
+                      <div className="text-center">
+                        <div className="text-4xl mb-2 relative">
+                          {isLocked ? (
+                            <div className="flex items-center justify-center">
+                              <Lock className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                          ) : (
+                            pet.emoji
+                          )}
+                        </div>
+                        
+                        <h3 className="font-semibold text-sm mb-1">
+                          {isLocked ? "???" : pet.name}
+                        </h3>
+                        
+                        <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                          {pet.rarity && (
+                            <Badge 
+                              variant="outline" 
+                              className={cn("text-xs", RARITY_COLORS[pet.rarity])}
+                            >
+                              {pet.rarity}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Unlock requirement */}
+                        {isLocked && (
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            {canUnlock ? (
+                              <Badge variant="secondary" className="text-xs">
+                                <Gift className="w-3 h-3 mr-1" />
+                                Ready to unlock!
+                              </Badge>
+                            ) : (
+                              <span>Level {pet.unlockLevel}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })}
+                
+                {/* Show next unlock preview for animals */}
+                {filteredPets.length > 0 && (
+                  <>
+                    {allAnimals
+                      .filter(animal => animal.unlockLevel === currentLevel + 1)
+                      .slice(0, 1)
+                      .map(animal => (
+                        <Card key={`preview-${animal.id}`} className="text-center p-4 border-dashed opacity-50">
+                          <div className="text-3xl mb-2">❓</div>
+                          <div className="text-sm font-medium">???</div>
+                          <Badge variant="outline" className="text-xs mt-1">
+                            Level {animal.unlockLevel}
+                          </Badge>
+                        </Card>
+                      ))}
+                  </>
                 )}
               </div>
-            </Card>
-          );
-        })}
-      </div>
+            </TabsContent>
+            
+            <TabsContent value="biomes" className="space-y-4">
+              <div className="space-y-3">
+                {BIOME_DATABASE.map((biome) => {
+                  const Icon = BIOME_ICONS[biome.name as keyof typeof BIOME_ICONS] || TreePine;
+                  const isActive = biome.name === currentBiome;
+                  const isUnlocked = biome.unlockLevel <= currentLevel;
+                  
+                  return (
+                    <Card 
+                      key={biome.name} 
+                      className={cn(
+                        "p-4 transition-all",
+                        isActive && "ring-2 ring-primary bg-primary/5",
+                        !isUnlocked && "opacity-50"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Icon className="w-6 h-6" />
+                          <div>
+                            <div className="font-medium">
+                              {isUnlocked ? biome.name : "???"}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {isUnlocked ? (
+                                isActive ? 'Currently active' : biome.description
+                              ) : (
+                                `Unlocks at Level ${biome.unlockLevel}`
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {isUnlocked && !isActive && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => switchBiome(biome.name)}
+                          >
+                            Switch
+                          </Button>
+                        )}
+                        
+                        {isActive && (
+                          <Badge>Active</Badge>
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
 
       {/* Pet Detail Modal */}
       <Dialog open={!!selectedPet} onOpenChange={() => setSelectedPet(null)}>
@@ -331,7 +347,7 @@ export const PetCollectionGrid = () => {
                   </Badge>
                 </div>
 
-                {selectedPet.isUnlocked && (
+                {isAnimalUnlocked(selectedPet.id) && (
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
@@ -340,19 +356,25 @@ export const PetCollectionGrid = () => {
                     >
                       <Heart className={cn(
                         "w-4 h-4 mr-2",
-                        favorites.has(selectedPet.id) ? "fill-red-500 text-red-500" : ""
+                        isAnimalFavorite(selectedPet.id) ? "fill-red-500 text-red-500" : ""
                       )} />
-                      {favorites.has(selectedPet.id) ? "Unfavorite" : "Favorite"}
+                      {isAnimalFavorite(selectedPet.id) ? "Unfavorite" : "Favorite"}
                     </Button>
                     
-                    <Button className="flex-1">
+                    <Button 
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedPet(null);
+                        setViewing3D(selectedPet);
+                      }}
+                    >
                       <Eye className="w-4 h-4 mr-2" />
                       View in 3D
                     </Button>
                   </div>
                 )}
 
-                {!selectedPet.isUnlocked && (
+                {!isAnimalUnlocked(selectedPet.id) && (
                   <div className="text-center p-4 bg-muted/50 rounded-lg">
                     <Lock className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
@@ -365,6 +387,16 @@ export const PetCollectionGrid = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* 3D Viewer Modal */}
+      <AnimalViewer3D
+        animal={viewing3D}
+        isOpen={!!viewing3D}
+        onClose={() => setViewing3D(null)}
+      />
     </div>
   );
 };
+
+// Export as both names for compatibility
+export const AnimalCollection = PetCollectionGrid;

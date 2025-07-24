@@ -1,4 +1,7 @@
 // Configuration for animal models - supports both GLB and primitive rendering
+// This will be migrated to the unified animal database
+import { ANIMAL_DATABASE } from '@/data/AnimalDatabase';
+
 export interface AnimalModelConfig {
   type: 'glb' | 'primitive';
   modelPath?: string; // For GLB models
@@ -7,33 +10,12 @@ export interface AnimalModelConfig {
   fallbackToPrimitive?: boolean; // Fallback to primitive if GLB fails
 }
 
-export const ANIMAL_MODEL_CONFIG: Record<string, AnimalModelConfig> = {
-  Elephant: {
-    type: 'primitive', // Temporarily disabled GLB
-    // modelPath: '/assets/models/Elephant.glb',
-    // scale: 0.15,
-    fallbackToPrimitive: true
-  },
-  Rabbit: {
+// Generate model config from animal database
+export const ANIMAL_MODEL_CONFIG: Record<string, AnimalModelConfig> = {};
+
+ANIMAL_DATABASE.forEach(animal => {
+  ANIMAL_MODEL_CONFIG[animal.name] = animal.modelConfig || {
     type: 'primitive',
     fallbackToPrimitive: true
-  },
-  Fox: {
-    type: 'primitive', // Temporarily disabled GLB
-    // modelPath: '/assets/models/Fox.glb',
-    // scale: 0.1,
-    fallbackToPrimitive: true
-  },
-  Bear: {
-    type: 'primitive',
-    fallbackToPrimitive: true
-  },
-  Deer: {
-    type: 'primitive',
-    fallbackToPrimitive: true
-  },
-  Owl: {
-    type: 'primitive',
-    fallbackToPrimitive: true
-  }
-};
+  };
+});

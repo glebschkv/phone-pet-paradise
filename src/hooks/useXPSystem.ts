@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { ANIMAL_DATABASE, BIOME_DATABASE } from '@/data/AnimalDatabase';
 
 export interface XPReward {
   xpGained: number;
@@ -72,20 +73,29 @@ const calculateLevelRequirement = (level: number): number => {
   return result;
 };
 
-// Animal unlocks for each level
-const ANIMAL_UNLOCKS: Record<number, UnlockedReward> = {
-  1: { type: 'animal', name: 'Elephant', description: 'A gentle giant companion', level: 1 },
-  2: { type: 'animal', name: 'Fox', description: 'A clever forest fox', level: 2 },
-  3: { type: 'animal', name: 'Rabbit', description: 'A gentle meadow rabbit', level: 3 },
-  4: { type: 'animal', name: 'Deer', description: 'A graceful woodland deer', level: 4 },
-  5: { type: 'animal', name: 'Owl', description: 'A wise night owl', level: 5 },
-  6: { type: 'biome', name: 'Forest Biome', description: 'Unlock the mystical forest realm', level: 6 },
-  7: { type: 'animal', name: 'Wolf', description: 'A loyal pack leader', level: 7 },
-  8: { type: 'animal', name: 'Eagle', description: 'A majestic sky hunter', level: 8 },
-  9: { type: 'animal', name: 'Turtle', description: 'An ancient wise turtle', level: 9 },
-  10: { type: 'biome', name: 'Ocean Biome', description: 'Discover the serene ocean depths', level: 10 },
-  // Continue pattern...
-};
+
+// Generate animal unlocks from the database
+const ANIMAL_UNLOCKS: Record<number, UnlockedReward> = {};
+
+// Add animal unlocks
+ANIMAL_DATABASE.forEach(animal => {
+  ANIMAL_UNLOCKS[animal.unlockLevel] = {
+    type: 'animal',
+    name: animal.name,
+    description: animal.description,
+    level: animal.unlockLevel
+  };
+});
+
+// Add biome unlocks
+BIOME_DATABASE.forEach(biome => {
+  ANIMAL_UNLOCKS[biome.unlockLevel] = {
+    type: 'biome',
+    name: biome.name,
+    description: biome.description,
+    level: biome.unlockLevel
+  };
+});
 
 export const useXPSystem = () => {
   const [xpState, setXPState] = useState<XPSystemState>({
