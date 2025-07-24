@@ -29,6 +29,17 @@ export const GLBAnimal = ({
   const { scene, animations } = useGLTF(modelPath);
   const { actions } = useAnimations(animations, groupRef);
 
+  // Log animations for debugging (especially for elephant)
+  useEffect(() => {
+    if (animalType === 'Elephant' && animations.length > 0) {
+      console.log(`${animalType} animations available:`, animations.map(anim => ({
+        name: anim.name,
+        duration: anim.duration,
+        tracks: anim.tracks.length
+      })));
+    }
+  }, [animations, animalType]);
+
   // Play animation if available
   useEffect(() => {
     if (animationName && actions[animationName]) {
