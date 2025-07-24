@@ -3,176 +3,214 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Suspense, useRef, useState } from 'react';
 import { Group, Vector3 } from 'three';
 
-interface PandaProps {
+interface AnimalProps {
   totalPets: number;
   isActive: boolean;
+  animalType: string;
+  index: number;
 }
 
-const Panda = ({ totalPets, isActive }: PandaProps) => {
-  const pandaRef = useRef<Group>(null);
-  const [angle, setAngle] = useState(0);
+const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) => {
+  const animalRef = useRef<Group>(null);
+  const [angle, setAngle] = useState((index * Math.PI * 2) / Math.max(totalPets, 1));
   
-  // Panda moves faster when user has more pets (less phone usage)
-  const speed = Math.min(0.3 + (totalPets * 0.05), 1.0);
-  const radius = 1.5; // Keep panda on the island
+  const speed = Math.min(0.2 + (totalPets * 0.03), 0.8);
+  const radius = 1.2 + (index * 0.3); // Different radius for each animal
   
   useFrame((state, delta) => {
-    if (pandaRef.current && isActive) {
-      // Move panda in a circle around the island
-      setAngle(prev => prev + delta * speed);
+    if (animalRef.current && isActive) {
+      // Each animal moves at slightly different speed and direction
+      const direction = index % 2 === 0 ? 1 : -1;
+      setAngle(prev => prev + delta * speed * direction);
       
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
       
-      pandaRef.current.position.set(x, 0.2, z);
-      pandaRef.current.rotation.y = angle + Math.PI / 2; // Face movement direction
+      animalRef.current.position.set(x, 0.15, z);
+      animalRef.current.rotation.y = angle + (Math.PI / 2) * direction;
       
-      // Add slight bobbing animation while walking
-      pandaRef.current.position.y = 0.2 + Math.sin(state.clock.elapsedTime * 8) * 0.05;
-    }
-  });
-
-  // Panda becomes more visible/active with more pets
-  const opacity = isActive ? Math.min(0.3 + (totalPets * 0.1), 1.0) : 0.2;
-  
-  return (
-    <group ref={pandaRef} position={[radius, 0.2, 0]}>
-      {/* Panda Body */}
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.15, 8, 6]} />
-        <meshLambertMaterial color="#f0f0f0" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Panda Head */}
-      <mesh position={[0, 0.2, 0]}>
-        <sphereGeometry args={[0.12, 8, 6]} />
-        <meshLambertMaterial color="#f0f0f0" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Panda Ears */}
-      <mesh position={[-0.08, 0.28, 0]}>
-        <sphereGeometry args={[0.04, 6, 4]} />
-        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
-      </mesh>
-      <mesh position={[0.08, 0.28, 0]}>
-        <sphereGeometry args={[0.04, 6, 4]} />
-        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Panda Eyes */}
-      <mesh position={[-0.05, 0.22, 0.08]}>
-        <sphereGeometry args={[0.025, 6, 4]} />
-        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
-      </mesh>
-      <mesh position={[0.05, 0.22, 0.08]}>
-        <sphereGeometry args={[0.025, 6, 4]} />
-        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Panda Arms */}
-      <mesh position={[-0.12, 0.05, 0]}>
-        <sphereGeometry args={[0.06, 6, 4]} />
-        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
-      </mesh>
-      <mesh position={[0.12, 0.05, 0]}>
-        <sphereGeometry args={[0.06, 6, 4]} />
-        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Panda Legs */}
-      <mesh position={[-0.08, -0.12, 0]}>
-        <sphereGeometry args={[0.06, 6, 4]} />
-        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
-      </mesh>
-      <mesh position={[0.08, -0.12, 0]}>
-        <sphereGeometry args={[0.06, 6, 4]} />
-        <meshLambertMaterial color="#222222" transparent opacity={opacity} />
-      </mesh>
-    </group>
-  );
-};
-
-interface CatProps {
-  totalPets: number;
-  isActive: boolean;
-}
-
-const GingerCat = ({ totalPets, isActive }: CatProps) => {
-  const catRef = useRef<Group>(null);
-  const [angle, setAngle] = useState(Math.PI); // Start at opposite side of panda
-  
-  const speed = Math.min(0.4 + (totalPets * 0.05), 1.2);
-  const radius = 1.2; // Slightly smaller radius than panda
-  
-  useFrame((state, delta) => {
-    if (catRef.current && isActive) {
-      // Move cat in opposite direction to panda
-      setAngle(prev => prev - delta * speed);
-      
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      
-      catRef.current.position.set(x, 0.15, z);
-      catRef.current.rotation.y = angle - Math.PI / 2; // Face movement direction
-      
-      // Add cat-like walking animation
-      catRef.current.position.y = 0.15 + Math.sin(state.clock.elapsedTime * 10) * 0.03;
+      // Add bouncing animation
+      animalRef.current.position.y = 0.15 + Math.sin(state.clock.elapsedTime * (6 + index)) * 0.04;
     }
   });
 
   const opacity = isActive ? Math.min(0.4 + (totalPets * 0.1), 1.0) : 0.3;
   
-  return (
-    <group ref={catRef} position={[-radius, 0.15, 0]}>
-      {/* Cat Body */}
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.12, 8, 6]} />
-        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Cat Head */}
-      <mesh position={[0, 0.18, 0]}>
-        <sphereGeometry args={[0.1, 8, 6]} />
-        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Cat Ears - pointed triangular */}
-      <mesh position={[-0.06, 0.26, 0]}>
-        <coneGeometry args={[0.03, 0.08, 4]} />
-        <meshLambertMaterial color="#B8860B" transparent opacity={opacity} />
-      </mesh>
-      <mesh position={[0.06, 0.26, 0]}>
-        <coneGeometry args={[0.03, 0.08, 4]} />
-        <meshLambertMaterial color="#B8860B" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Cat Eyes - green */}
-      <mesh position={[-0.04, 0.2, 0.07]}>
-        <sphereGeometry args={[0.015, 6, 4]} />
-        <meshLambertMaterial color="#32CD32" transparent opacity={opacity} />
-      </mesh>
-      <mesh position={[0.04, 0.2, 0.07]}>
-        <sphereGeometry args={[0.015, 6, 4]} />
-        <meshLambertMaterial color="#32CD32" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Cat Tail */}
-      <mesh position={[0, 0.05, -0.15]}>
-        <cylinderGeometry args={[0.02, 0.03, 0.3]} />
-        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
-      </mesh>
-      
-      {/* Cat Paws */}
-      <mesh position={[-0.08, -0.08, 0]}>
-        <sphereGeometry args={[0.04, 6, 4]} />
-        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
-      </mesh>
-      <mesh position={[0.08, -0.08, 0]}>
-        <sphereGeometry args={[0.04, 6, 4]} />
-        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
-      </mesh>
-    </group>
-  );
+  // Render different animals based on type
+  switch (animalType) {
+    case 'Rabbit':
+      return (
+        <group ref={animalRef} position={[radius, 0.15, 0]}>
+          {/* Rabbit Body */}
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.1, 8, 6]} />
+            <meshLambertMaterial color="#F5F5DC" transparent opacity={opacity} />
+          </mesh>
+          {/* Rabbit Head */}
+          <mesh position={[0, 0.15, 0]}>
+            <sphereGeometry args={[0.08, 8, 6]} />
+            <meshLambertMaterial color="#F5F5DC" transparent opacity={opacity} />
+          </mesh>
+          {/* Long Ears */}
+          <mesh position={[-0.04, 0.25, 0]}>
+            <sphereGeometry args={[0.02, 6, 8]} />
+            <meshLambertMaterial color="#F5F5DC" transparent opacity={opacity} />
+          </mesh>
+          <mesh position={[0.04, 0.25, 0]}>
+            <sphereGeometry args={[0.02, 6, 8]} />
+            <meshLambertMaterial color="#F5F5DC" transparent opacity={opacity} />
+          </mesh>
+          {/* Fluffy Tail */}
+          <mesh position={[0, 0.05, -0.12]}>
+            <sphereGeometry args={[0.03, 6, 6]} />
+            <meshLambertMaterial color="#FFFFFF" transparent opacity={opacity} />
+          </mesh>
+        </group>
+      );
+
+    case 'Fox':
+      return (
+        <group ref={animalRef} position={[radius, 0.15, 0]}>
+          {/* Fox Body */}
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.12, 8, 6]} />
+            <meshLambertMaterial color="#FF6347" transparent opacity={opacity} />
+          </mesh>
+          {/* Fox Head */}
+          <mesh position={[0, 0.18, 0]}>
+            <coneGeometry args={[0.08, 0.15, 8]} />
+            <meshLambertMaterial color="#FF6347" transparent opacity={opacity} />
+          </mesh>
+          {/* Pointed Ears */}
+          <mesh position={[-0.05, 0.28, 0]}>
+            <coneGeometry args={[0.025, 0.08, 4]} />
+            <meshLambertMaterial color="#B8860B" transparent opacity={opacity} />
+          </mesh>
+          <mesh position={[0.05, 0.28, 0]}>
+            <coneGeometry args={[0.025, 0.08, 4]} />
+            <meshLambertMaterial color="#B8860B" transparent opacity={opacity} />
+          </mesh>
+          {/* Bushy Tail */}
+          <mesh position={[0, 0.08, -0.18]}>
+            <sphereGeometry args={[0.06, 8, 6]} />
+            <meshLambertMaterial color="#FF6347" transparent opacity={opacity} />
+          </mesh>
+        </group>
+      );
+
+    case 'Bear':
+      return (
+        <group ref={animalRef} position={[radius, 0.15, 0]}>
+          {/* Bear Body - larger */}
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.18, 8, 6]} />
+            <meshLambertMaterial color="#8B4513" transparent opacity={opacity} />
+          </mesh>
+          {/* Bear Head */}
+          <mesh position={[0, 0.25, 0]}>
+            <sphereGeometry args={[0.14, 8, 6]} />
+            <meshLambertMaterial color="#8B4513" transparent opacity={opacity} />
+          </mesh>
+          {/* Round Ears */}
+          <mesh position={[-0.08, 0.35, 0]}>
+            <sphereGeometry args={[0.04, 6, 6]} />
+            <meshLambertMaterial color="#654321" transparent opacity={opacity} />
+          </mesh>
+          <mesh position={[0.08, 0.35, 0]}>
+            <sphereGeometry args={[0.04, 6, 6]} />
+            <meshLambertMaterial color="#654321" transparent opacity={opacity} />
+          </mesh>
+          {/* Bear Paws */}
+          <mesh position={[-0.15, -0.05, 0]}>
+            <sphereGeometry args={[0.06, 6, 6]} />
+            <meshLambertMaterial color="#8B4513" transparent opacity={opacity} />
+          </mesh>
+          <mesh position={[0.15, -0.05, 0]}>
+            <sphereGeometry args={[0.06, 6, 6]} />
+            <meshLambertMaterial color="#8B4513" transparent opacity={opacity} />
+          </mesh>
+        </group>
+      );
+
+    case 'Deer':
+      return (
+        <group ref={animalRef} position={[radius, 0.15, 0]}>
+          {/* Deer Body */}
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.11, 8, 6]} />
+            <meshLambertMaterial color="#DEB887" transparent opacity={opacity} />
+          </mesh>
+          {/* Deer Head */}
+          <mesh position={[0, 0.2, 0]}>
+            <sphereGeometry args={[0.09, 8, 6]} />
+            <meshLambertMaterial color="#DEB887" transparent opacity={opacity} />
+          </mesh>
+          {/* Antlers */}
+          <mesh position={[-0.04, 0.32, 0]}>
+            <cylinderGeometry args={[0.008, 0.008, 0.12]} />
+            <meshLambertMaterial color="#8B4513" transparent opacity={opacity} />
+          </mesh>
+          <mesh position={[0.04, 0.32, 0]}>
+            <cylinderGeometry args={[0.008, 0.008, 0.12]} />
+            <meshLambertMaterial color="#8B4513" transparent opacity={opacity} />
+          </mesh>
+          {/* Long Legs */}
+          <mesh position={[-0.08, -0.15, 0]}>
+            <cylinderGeometry args={[0.02, 0.02, 0.2]} />
+            <meshLambertMaterial color="#DEB887" transparent opacity={opacity} />
+          </mesh>
+          <mesh position={[0.08, -0.15, 0]}>
+            <cylinderGeometry args={[0.02, 0.02, 0.2]} />
+            <meshLambertMaterial color="#DEB887" transparent opacity={opacity} />
+          </mesh>
+        </group>
+      );
+
+    case 'Owl':
+      return (
+        <group ref={animalRef} position={[radius, 0.25, 0]}>
+          {/* Owl Body */}
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.1, 8, 6]} />
+            <meshLambertMaterial color="#8B7355" transparent opacity={opacity} />
+          </mesh>
+          {/* Owl Head - larger */}
+          <mesh position={[0, 0.15, 0]}>
+            <sphereGeometry args={[0.12, 8, 6]} />
+            <meshLambertMaterial color="#8B7355" transparent opacity={opacity} />
+          </mesh>
+          {/* Big Eyes */}
+          <mesh position={[-0.05, 0.18, 0.08]}>
+            <sphereGeometry args={[0.03, 6, 6]} />
+            <meshLambertMaterial color="#FFD700" transparent opacity={opacity} />
+          </mesh>
+          <mesh position={[0.05, 0.18, 0.08]}>
+            <sphereGeometry args={[0.03, 6, 6]} />
+            <meshLambertMaterial color="#FFD700" transparent opacity={opacity} />
+          </mesh>
+          {/* Wings */}
+          <mesh position={[-0.15, 0.05, 0]}>
+            <sphereGeometry args={[0.06, 6, 8]} />
+            <meshLambertMaterial color="#654321" transparent opacity={opacity} />
+          </mesh>
+          <mesh position={[0.15, 0.05, 0]}>
+            <sphereGeometry args={[0.06, 6, 8]} />
+            <meshLambertMaterial color="#654321" transparent opacity={opacity} />
+          </mesh>
+        </group>
+      );
+
+    default:
+      // Default animal (similar to original panda)
+      return (
+        <group ref={animalRef} position={[radius, 0.15, 0]}>
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.1, 8, 6]} />
+            <meshLambertMaterial color="#CCCCCC" transparent opacity={opacity} />
+          </mesh>
+        </group>
+      );
+  }
 };
 
 const IslandMesh = () => {
@@ -248,9 +286,10 @@ interface Island3DProps {
   totalPets?: number;
   isAppActive?: boolean;
   currentLevel?: number;
+  unlockedAnimals?: string[];
 }
 
-export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1 }: Island3DProps) => {
+export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, unlockedAnimals = ['Rabbit'] }: Island3DProps) => {
   return (
     <div className="w-full h-full bg-gradient-sky overflow-hidden">
       <Canvas gl={{ preserveDrawingBuffer: false, antialias: false }}>
@@ -271,13 +310,16 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1 }
           {/* Island */}
           <IslandMesh />
           
-          {/* Panda */}
-          <Panda totalPets={totalPets} isActive={isAppActive} />
-          
-          {/* Ginger Cat - appears at level 2+ */}
-          {currentLevel >= 2 && (
-            <GingerCat totalPets={totalPets} isActive={isAppActive} />
-          )}
+          {/* Render all unlocked animals */}
+          {unlockedAnimals.map((animalType, index) => (
+            <Animal 
+              key={`${animalType}-${index}`}
+              animalType={animalType}
+              totalPets={totalPets}
+              isActive={isAppActive}
+              index={index}
+            />
+          ))}
           
           {/* Controls */}
           <OrbitControls 
