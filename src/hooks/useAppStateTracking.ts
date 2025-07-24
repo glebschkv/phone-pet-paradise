@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useXPSystem, XPReward } from '@/hooks/useXPSystem';
+import { useStreakSystem } from '@/hooks/useStreakSystem';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface AppStateData {
   lastActiveTime: number;
@@ -12,6 +14,8 @@ const STORAGE_KEY = 'petIsland_appState';
 
 export const useAppStateTracking = () => {
   const xpSystem = useXPSystem();
+  const streakSystem = useStreakSystem();
+  const notifications = useNotifications();
   
   const [appState, setAppState] = useState<AppStateData>({
     lastActiveTime: Date.now(),
@@ -45,10 +49,20 @@ export const useAppStateTracking = () => {
   // Award XP based on focus session duration
   const awardSessionXP = useCallback((minutes: number): XPReward | null => {
     if (minutes >= 30) { // Minimum 30 minutes for XP
-      return xpSystem.awardXP(minutes);
+      const xpReward = xpSystem.awardXP(xpSystem.calculateXPFromDuration(minutes));
+      const streakReward = streakSystem.recordSession();
+      
+      if (xpReward && streakReward) {
+        xpReward.xpGained += streakReward.xpBonus;
+      }
+
+      // Schedule notification reminders
+      notifications.scheduleTimerReminder();
+      
+      return xpReward;
     }
     return null;
-  }, [xpSystem]);
+  }, [xpSystem, streakSystem, notifications]);
 
   // Handle app becoming active (foreground)
   const handleAppActive = useCallback(() => {
@@ -133,6 +147,12 @@ export const useAppStateTracking = () => {
   return {
     // XP System data
     ...xpSystem,
+    
+    // Streak System data
+    ...streakSystem,
+    
+    // Notifications
+    notifications,
     
     // App state data
     timeAwayMinutes: appState.timeAwayMinutes,

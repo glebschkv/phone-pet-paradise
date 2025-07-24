@@ -6,6 +6,7 @@ import { UnifiedFocusTimer } from "@/components/UnifiedFocusTimer";
 import { IOSTabBar } from "@/components/IOSTabBar";
 import { PetCollectionGrid } from "@/components/PetCollectionGrid";
 import { Settings } from "@/components/Settings";
+import { StreakDisplay } from "@/components/StreakDisplay";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -66,13 +67,14 @@ export const GameUI = () => {
     <div className="fixed inset-0 pointer-events-none z-40">
       {/* Top UI - Level Progress (only show on home) */}
       {currentTab === "home" && (
-        <div className="absolute top-4 left-4 right-4 pointer-events-auto">
+        <div className="absolute top-4 left-4 right-4 pointer-events-auto space-y-3">
           <LevelProgressBar 
             currentLevel={currentLevel}
             progress={getLevelProgress()}
             currentXP={currentXP}
             xpToNextLevel={xpToNextLevel}
           />
+          <StreakDisplay />
         </div>
       )}
       
