@@ -6,7 +6,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRef, useState } from 'react';
 import { GLBAnimal } from './GLBAnimal';
 import { ANIMAL_MODEL_CONFIG } from './AnimalModelConfig';
-import { ErrorBoundary } from './ErrorBoundary';
+import { GLBErrorBoundary } from './GLBErrorBoundary';
 
 interface AnimalProps {
   totalPets: number;
@@ -451,15 +451,13 @@ export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) 
   // Use GLB model if configured and available
   if (modelConfig?.type === 'glb' && modelConfig.modelPath) {
     return (
-      <ErrorBoundary fallback={
-        modelConfig.fallbackToPrimitive ? (
-          <PrimitiveAnimal 
-            totalPets={totalPets}
-            isActive={isActive}
-            animalType={animalType}
-            index={index}
-          />
-        ) : null
+      <GLBErrorBoundary fallback={
+        <PrimitiveAnimal 
+          totalPets={totalPets}
+          isActive={isActive}
+          animalType={animalType}
+          index={index}
+        />
       }>
         <GLBAnimal
           modelPath={modelConfig.modelPath}
@@ -470,7 +468,7 @@ export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) 
           scale={modelConfig.scale}
           animationName={modelConfig.animationName}
         />
-      </ErrorBoundary>
+      </GLBErrorBoundary>
     );
   }
   
