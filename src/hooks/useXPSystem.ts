@@ -74,12 +74,12 @@ const calculateLevelRequirement = (level: number): number => {
 
 // Animal unlocks for each level
 const ANIMAL_UNLOCKS: Record<number, UnlockedReward> = {
-  1: { type: 'animal', name: 'Fox', description: 'A clever forest fox', level: 1 },
-  2: { type: 'animal', name: 'Rabbit', description: 'A gentle meadow rabbit', level: 2 },
-  3: { type: 'animal', name: 'Deer', description: 'A graceful woodland deer', level: 3 },
-  4: { type: 'animal', name: 'Owl', description: 'A wise night owl', level: 4 },
-  5: { type: 'biome', name: 'Forest Biome', description: 'Unlock the mystical forest realm', level: 5 },
-  6: { type: 'animal', name: 'Bear', description: 'A gentle forest guardian', level: 6 },
+  1: { type: 'animal', name: 'Elephant', description: 'A gentle giant companion', level: 1 },
+  2: { type: 'animal', name: 'Fox', description: 'A clever forest fox', level: 2 },
+  3: { type: 'animal', name: 'Rabbit', description: 'A gentle meadow rabbit', level: 3 },
+  4: { type: 'animal', name: 'Deer', description: 'A graceful woodland deer', level: 4 },
+  5: { type: 'animal', name: 'Owl', description: 'A wise night owl', level: 5 },
+  6: { type: 'biome', name: 'Forest Biome', description: 'Unlock the mystical forest realm', level: 6 },
   7: { type: 'animal', name: 'Wolf', description: 'A loyal pack leader', level: 7 },
   8: { type: 'animal', name: 'Eagle', description: 'A majestic sky hunter', level: 8 },
   9: { type: 'animal', name: 'Turtle', description: 'An ancient wise turtle', level: 9 },
@@ -104,6 +104,13 @@ export const useXPSystem = () => {
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
+        console.log('Loaded XP state from localStorage:', parsed);
+        // Check if we need to reset due to old data structure
+        if (parsed.unlockedAnimals && parsed.unlockedAnimals[0] === 'Fox') {
+          console.log('Detected old Fox data, clearing localStorage and resetting to Elephant');
+          localStorage.removeItem(STORAGE_KEY);
+          return; // Don't load the old state
+        }
         setXPState(prev => ({ ...prev, ...parsed }));
       } catch (error) {
         console.error('Failed to parse saved XP state:', error);
@@ -226,7 +233,7 @@ export const useXPSystem = () => {
       currentLevel: 1,
       xpToNextLevel: 25,
       totalXPForCurrentLevel: 0,
-      unlockedAnimals: ['Fox'],
+      unlockedAnimals: ['Elephant'],
       currentBiome: 'Meadow',
       availableBiomes: ['Meadow'],
     };

@@ -14,6 +14,7 @@ const BIOME_ICONS = {
 };
 
 const ANIMAL_EMOJIS: Record<string, string> = {
+  'Elephant': '🐘',
   'Rabbit': '🐰',
   'Fox': '🦊',
   'Deer': '🦌',
