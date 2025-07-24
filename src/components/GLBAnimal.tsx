@@ -40,15 +40,39 @@ export const GLBAnimal = ({
     }
   }, [animations, animalType]);
 
-  // Play animation if available
+  // Auto-cycle through animations every 10 seconds
   useEffect(() => {
+    if (animations.length === 0) return;
+
+    let currentAnimationIndex = 0;
+    
+    const playAnimation = (index: number) => {
+      // Stop all animations first
+      Object.values(actions).forEach(action => action?.stop());
+      
+      // Play current animation
+      const animationName = animations[index].name;
+      if (actions[animationName]) {
+        actions[animationName]?.reset().play();
+        console.log(`Playing ${animalType} animation: ${animationName}`);
+      }
+    };
+
+    // Play initial animation
     if (animationName && actions[animationName]) {
       actions[animationName]?.play();
-    } else if (animations.length > 0 && actions[animations[0].name]) {
-      // Play first available animation
-      actions[animations[0].name]?.play();
+    } else {
+      playAnimation(0);
     }
-  }, [actions, animationName, animations]);
+
+    // Set up interval to cycle animations every 10 seconds
+    const interval = setInterval(() => {
+      currentAnimationIndex = (currentAnimationIndex + 1) % animations.length;
+      playAnimation(currentAnimationIndex);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [actions, animationName, animations, animalType]);
 
   // Animate position in circle
   useFrame((state, delta) => {
