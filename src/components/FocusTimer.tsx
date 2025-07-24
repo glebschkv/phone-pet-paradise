@@ -164,7 +164,11 @@ export const FocusTimer = () => {
   const skipTimer = () => {
     // Award XP for the full session duration as if completed
     const reward = awardXP(sessionDuration);
-    console.log('Timer skipped - XP awarded:', { minutes: sessionDuration, reward });
+    console.log('Timer skipped - XP awarded:', { 
+      minutes: sessionDuration, 
+      reward,
+      modalShouldShow: !!reward
+    });
     
     // Reset timer
     const newState = {
