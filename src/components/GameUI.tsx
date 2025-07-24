@@ -21,21 +21,18 @@ export const GameUI = () => {
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* Floating Top Stats */}
-      <div className="absolute top-safe left-4 right-4 pointer-events-auto flex justify-between items-start gap-3 mt-4">
-        {/* Level Badge */}
-        <div className="bg-gradient-glass backdrop-blur-md rounded-2xl px-4 py-3 border border-primary/10 shadow-floating">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-              <Star className="w-4 h-4 text-foreground" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-muted-foreground">Level</span>
-              <span className="text-sm font-bold text-foreground">{currentLevel}</span>
-            </div>
-          </div>
-        </div>
-        
+      {/* Floating Progress Card */}
+      <div className="absolute top-safe left-4 right-4 pointer-events-auto mt-4">
+        <LevelProgressBar
+          currentLevel={currentLevel}
+          progress={getLevelProgress()}
+          currentXP={currentXP}
+          xpToNextLevel={xpToNextLevel}
+        />
+      </div>
+
+      {/* Floating Pets Stats */}
+      <div className="absolute top-safe left-4 right-4 pointer-events-auto flex justify-end mt-28">
         {/* Animals Badge */}
         <div className="bg-gradient-glass backdrop-blur-md rounded-2xl px-4 py-3 border border-primary/10 shadow-floating">
           <div className="flex items-center gap-2">
@@ -48,16 +45,6 @@ export const GameUI = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Floating Progress Card */}
-      <div className="absolute top-28 left-4 right-4 pointer-events-auto">
-        <LevelProgressBar
-          currentLevel={currentLevel}
-          progress={getLevelProgress()}
-          currentXP={currentXP}
-          xpToNextLevel={xpToNextLevel}
-        />
       </div>
 
       {/* Floating Bottom Navigation */}

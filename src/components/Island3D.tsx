@@ -14,7 +14,7 @@ const Panda = ({ totalPets, isActive }: PandaProps) => {
   
   // Panda moves faster when user has more pets (less phone usage)
   const speed = Math.min(0.3 + (totalPets * 0.05), 1.0);
-  const radius = 1.8; // Keep panda on the island
+  const radius = 1.5; // Keep panda on the island
   
   useFrame((state, delta) => {
     if (pandaRef.current && isActive) {
@@ -92,6 +92,89 @@ const Panda = ({ totalPets, isActive }: PandaProps) => {
   );
 };
 
+interface CatProps {
+  totalPets: number;
+  isActive: boolean;
+}
+
+const GingerCat = ({ totalPets, isActive }: CatProps) => {
+  const catRef = useRef<Group>(null);
+  const [angle, setAngle] = useState(Math.PI); // Start at opposite side of panda
+  
+  const speed = Math.min(0.4 + (totalPets * 0.05), 1.2);
+  const radius = 1.2; // Slightly smaller radius than panda
+  
+  useFrame((state, delta) => {
+    if (catRef.current && isActive) {
+      // Move cat in opposite direction to panda
+      setAngle(prev => prev - delta * speed);
+      
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      
+      catRef.current.position.set(x, 0.15, z);
+      catRef.current.rotation.y = angle - Math.PI / 2; // Face movement direction
+      
+      // Add cat-like walking animation
+      catRef.current.position.y = 0.15 + Math.sin(state.clock.elapsedTime * 10) * 0.03;
+    }
+  });
+
+  const opacity = isActive ? Math.min(0.4 + (totalPets * 0.1), 1.0) : 0.3;
+  
+  return (
+    <group ref={catRef} position={[-radius, 0.15, 0]}>
+      {/* Cat Body */}
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[0.12, 8, 6]} />
+        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Cat Head */}
+      <mesh position={[0, 0.18, 0]}>
+        <sphereGeometry args={[0.1, 8, 6]} />
+        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Cat Ears - pointed triangular */}
+      <mesh position={[-0.06, 0.26, 0]}>
+        <coneGeometry args={[0.03, 0.08, 4]} />
+        <meshLambertMaterial color="#B8860B" transparent opacity={opacity} />
+      </mesh>
+      <mesh position={[0.06, 0.26, 0]}>
+        <coneGeometry args={[0.03, 0.08, 4]} />
+        <meshLambertMaterial color="#B8860B" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Cat Eyes - green */}
+      <mesh position={[-0.04, 0.2, 0.07]}>
+        <sphereGeometry args={[0.015, 6, 4]} />
+        <meshLambertMaterial color="#32CD32" transparent opacity={opacity} />
+      </mesh>
+      <mesh position={[0.04, 0.2, 0.07]}>
+        <sphereGeometry args={[0.015, 6, 4]} />
+        <meshLambertMaterial color="#32CD32" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Cat Tail */}
+      <mesh position={[0, 0.05, -0.15]}>
+        <cylinderGeometry args={[0.02, 0.03, 0.3]} />
+        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
+      </mesh>
+      
+      {/* Cat Paws */}
+      <mesh position={[-0.08, -0.08, 0]}>
+        <sphereGeometry args={[0.04, 6, 4]} />
+        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
+      </mesh>
+      <mesh position={[0.08, -0.08, 0]}>
+        <sphereGeometry args={[0.04, 6, 4]} />
+        <meshLambertMaterial color="#D2691E" transparent opacity={opacity} />
+      </mesh>
+    </group>
+  );
+};
+
 const IslandMesh = () => {
   return (
     <group>
@@ -164,9 +247,10 @@ const LoadingFallback = () => (
 interface Island3DProps {
   totalPets?: number;
   isAppActive?: boolean;
+  currentLevel?: number;
 }
 
-export const Island3D = ({ totalPets = 0, isAppActive = true }: Island3DProps) => {
+export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1 }: Island3DProps) => {
   return (
     <div className="w-full h-full bg-gradient-sky overflow-hidden">
       <Canvas gl={{ preserveDrawingBuffer: false, antialias: false }}>
@@ -189,6 +273,11 @@ export const Island3D = ({ totalPets = 0, isAppActive = true }: Island3DProps) =
           
           {/* Panda */}
           <Panda totalPets={totalPets} isActive={isAppActive} />
+          
+          {/* Ginger Cat - appears at level 2+ */}
+          {currentLevel >= 2 && (
+            <GingerCat totalPets={totalPets} isActive={isAppActive} />
+          )}
           
           {/* Controls */}
           <OrbitControls 
