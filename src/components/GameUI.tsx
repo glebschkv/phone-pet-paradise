@@ -5,6 +5,7 @@ import { LevelProgressBar } from "@/components/LevelProgressBar";
 import { UnifiedFocusTimer } from "@/components/UnifiedFocusTimer";
 import { IOSTabBar } from "@/components/IOSTabBar";
 import { PetCollectionGrid } from "@/components/PetCollectionGrid";
+import { Settings } from "@/components/Settings";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -55,12 +56,7 @@ export const GameUI = () => {
           </div>
         );
       case "settings":
-        return (
-          <div className="p-4 text-center">
-            <h2 className="text-2xl font-bold mb-4">Settings</h2>
-            <p className="text-muted-foreground">Coming soon!</p>
-          </div>
-        );
+        return <Settings />;
       default:
         return null;
     }
