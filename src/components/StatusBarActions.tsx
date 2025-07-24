@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface StatusBarActionsProps {
   petCount: number;
-  onTestLevelUp: () => void;
+  onTestLevelUp: () => any;
 }
 
 export const StatusBarActions = ({ 
@@ -15,7 +15,9 @@ export const StatusBarActions = ({
   const { toast } = useToast();
 
   const handleTestLevelUp = () => {
-    onTestLevelUp();
+    console.log('Test Level Up button clicked');
+    const result = onTestLevelUp();
+    console.log('Test Level Up result:', result);
     toast({
       title: "🎉 Level Up Test!",
       description: `Awarded XP! Check if modal appears.`,
