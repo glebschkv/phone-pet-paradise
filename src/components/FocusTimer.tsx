@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Play, Pause, Square, Clock, SkipForward } from 'lucide-react';
 import { useAppStateTracking } from '@/hooks/useAppStateTracking';
+import { useToast } from "@/hooks/use-toast";
 
 const TIMER_STORAGE_KEY = 'petIsland_focusTimer';
 
@@ -19,6 +20,7 @@ export const FocusTimer = () => {
   const [sessionDuration, setSessionDuration] = useState(25);
   const [startTime, setStartTime] = useState<number | null>(null);
   const { awardXP } = useAppStateTracking();
+  const { toast } = useToast();
 
   // Load timer state from localStorage on mount
   useEffect(() => {
@@ -169,6 +171,21 @@ export const FocusTimer = () => {
       reward,
       modalShouldShow: !!reward
     });
+    
+    // Show immediate toast feedback
+    if (reward && sessionDuration >= 30) {
+      toast({
+        title: "🎯 Focus Session Complete!",
+        description: `+${reward.xpGained} XP earned! ${reward.leveledUp ? '🎉 Level up!' : ''}`,
+        duration: 4000,
+      });
+    } else {
+      toast({
+        title: "⚡ Timer Skipped",
+        description: "Need 30+ minutes for XP rewards",
+        duration: 2000,
+      });
+    }
     
     // Reset timer
     const newState = {

@@ -1,12 +1,15 @@
-import { Heart, Clock, Home, Users, Star } from "lucide-react";
+import { Heart, Clock, Home, Users, Star, Zap } from "lucide-react";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { XPRewardModal } from "@/components/XPRewardModal";
 import { LevelProgressBar } from "@/components/LevelProgressBar";
 import { FocusTimer } from "@/components/FocusTimer";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
 export const GameUI = () => {
   const [showTimer, setShowTimer] = useState(false);
+  const { toast } = useToast();
   const {
     currentLevel,
     currentXP,
@@ -17,7 +20,19 @@ export const GameUI = () => {
     showRewardModal,
     currentReward,
     dismissRewardModal,
+    awardXP,
   } = useAppStateTracking();
+
+  // Test function to simulate level up
+  const testLevelUp = () => {
+    const reward = awardXP(60); // Award 60 minutes worth of XP
+    toast({
+      title: "🎉 Level Up Test!",
+      description: `Awarded XP! Check if modal appears.`,
+      duration: 3000,
+    });
+    console.log('Test Level Up triggered:', reward);
+  };
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -45,6 +60,19 @@ export const GameUI = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Test Level Up Button - Top Left for Testing */}
+      <div className="absolute top-safe left-4 pointer-events-auto mt-52">
+        <Button 
+          onClick={testLevelUp}
+          variant="outline" 
+          size="sm"
+          className="bg-gradient-glass backdrop-blur-md border border-accent/30 shadow-floating hover:bg-accent/10"
+        >
+          <Zap className="w-4 h-4 mr-2" />
+          Test Level Up
+        </Button>
       </div>
 
       {/* Floating Bottom Navigation */}
