@@ -13,7 +13,9 @@ export const ANIMAL_MODEL_CONFIG: Record<string, AnimalModelConfig> = {
     fallbackToPrimitive: true
   },
   Fox: {
-    type: 'primitive', // Changed to primitive until GLB files are added
+    type: 'glb',
+    modelPath: '/assets/models/Fox.glb',
+    scale: 0.3,
     fallbackToPrimitive: true
   },
   Bear: {

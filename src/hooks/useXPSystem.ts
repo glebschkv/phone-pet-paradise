@@ -74,8 +74,8 @@ const calculateLevelRequirement = (level: number): number => {
 
 // Animal unlocks for each level
 const ANIMAL_UNLOCKS: Record<number, UnlockedReward> = {
-  1: { type: 'animal', name: 'Rabbit', description: 'A gentle meadow rabbit', level: 1 },
-  2: { type: 'animal', name: 'Fox', description: 'A clever forest fox', level: 2 },
+  1: { type: 'animal', name: 'Fox', description: 'A clever forest fox', level: 1 },
+  2: { type: 'animal', name: 'Rabbit', description: 'A gentle meadow rabbit', level: 2 },
   3: { type: 'animal', name: 'Deer', description: 'A graceful woodland deer', level: 3 },
   4: { type: 'animal', name: 'Owl', description: 'A wise night owl', level: 4 },
   5: { type: 'biome', name: 'Forest Biome', description: 'Unlock the mystical forest realm', level: 5 },
@@ -93,7 +93,7 @@ export const useXPSystem = () => {
     currentLevel: 1,
     xpToNextLevel: 25,
     totalXPForCurrentLevel: 0,
-    unlockedAnimals: ['Rabbit'], // Start with first animal
+    unlockedAnimals: ['Fox'], // Start with first animal
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
   });
@@ -226,7 +226,7 @@ export const useXPSystem = () => {
       currentLevel: 1,
       xpToNextLevel: 25,
       totalXPForCurrentLevel: 0,
-      unlockedAnimals: ['Rabbit'],
+      unlockedAnimals: ['Fox'],
       currentBiome: 'Meadow',
       availableBiomes: ['Meadow'],
     };
