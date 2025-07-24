@@ -1,43 +1,21 @@
-import { Heart, TestTube } from "lucide-react";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { XPRewardModal } from "@/components/XPRewardModal";
-import { LevelProgressBar } from "@/components/LevelProgressBar";
+import { TopStatusBar } from "@/components/TopStatusBar";
 import { UnifiedFocusTimer } from "@/components/UnifiedFocusTimer";
 import { IOSTabBar } from "@/components/IOSTabBar";
 import { PetCollectionGrid } from "@/components/PetCollectionGrid";
 import { Settings } from "@/components/Settings";
-import { StreakDisplay } from "@/components/StreakDisplay";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
 export const GameUI = () => {
   const [currentTab, setCurrentTab] = useState("home");
-  const { toast } = useToast();
   const {
     currentLevel,
-    currentXP,
-    xpToNextLevel,
-    unlockedAnimals,
-    getLevelProgress,
-    timeAwayMinutes,
     showRewardModal,
     currentReward,
     dismissRewardModal,
-    awardXP,
+    getLevelProgress,
   } = useAppStateTracking();
-
-  // Test function to simulate level up
-  const testLevelUp = () => {
-    const reward = awardXP(60); // Award 60 minutes worth of XP
-    toast({
-      title: "🎉 Level Up Test!",
-      description: `Awarded XP! Check if modal appears.`,
-      duration: 3000,
-    });
-    console.log('Test Level Up triggered:', reward);
-  };
 
   const renderContent = () => {
     switch (currentTab) {
@@ -65,45 +43,8 @@ export const GameUI = () => {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-40">
-      {/* Top UI - Level Progress (only show on home) */}
-      {currentTab === "home" && (
-        <div className="absolute top-4 left-4 right-4 pointer-events-auto space-y-3">
-          <LevelProgressBar 
-            currentLevel={currentLevel}
-            progress={getLevelProgress()}
-            currentXP={currentXP}
-            xpToNextLevel={xpToNextLevel}
-          />
-          <StreakDisplay />
-        </div>
-      )}
-      
-      {/* Top Right - Pet Stats (only show on home) */}
-      {currentTab === "home" && (
-        <div className="absolute top-4 right-4 pointer-events-auto">
-          <Card className="p-3 bg-card/80 backdrop-blur-sm border-border/20 shadow-lg">
-            <div className="text-sm font-medium flex items-center gap-2">
-              <Heart className="w-4 h-4 text-primary" />
-              Pets: {unlockedAnimals.length}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Debug button - remove in production */}
-      {currentTab === "home" && (
-        <div className="absolute top-20 right-4 pointer-events-auto">
-          <Button 
-            onClick={testLevelUp}
-            variant="outline" 
-            size="sm"
-            className="bg-card/80 backdrop-blur-sm"
-          >
-            <TestTube className="w-4 h-4 mr-2" />
-            Test Level Up
-          </Button>
-        </div>
-      )}
+      {/* Unified Top Status Bar */}
+      <TopStatusBar currentTab={currentTab} />
 
       {/* Full Screen Content */}
       {currentTab !== "home" && (
