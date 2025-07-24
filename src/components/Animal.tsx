@@ -3,7 +3,7 @@
 // ───────────────────────────────────────────────────────────────
 import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
-import { useRef, useState } from 'react';
+import { useRef, useState, Suspense } from 'react';
 import { GLBAnimal } from './GLBAnimal';
 import { ANIMAL_MODEL_CONFIG } from './AnimalModelConfig';
 import { GLBErrorBoundary } from './GLBErrorBoundary';
@@ -451,7 +451,7 @@ export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) 
   // Use GLB model if configured and available
   if (modelConfig?.type === 'glb' && modelConfig.modelPath) {
     return (
-      <GLBErrorBoundary fallback={
+      <Suspense fallback={
         <PrimitiveAnimal 
           totalPets={totalPets}
           isActive={isActive}
@@ -459,16 +459,25 @@ export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) 
           index={index}
         />
       }>
-        <GLBAnimal
-          modelPath={modelConfig.modelPath}
-          animalType={animalType}
-          totalPets={totalPets}
-          isActive={isActive}
-          index={index}
-          scale={modelConfig.scale}
-          animationName={modelConfig.animationName}
-        />
-      </GLBErrorBoundary>
+        <GLBErrorBoundary fallback={
+          <PrimitiveAnimal 
+            totalPets={totalPets}
+            isActive={isActive}
+            animalType={animalType}
+            index={index}
+          />
+        }>
+          <GLBAnimal
+            modelPath={modelConfig.modelPath}
+            animalType={animalType}
+            totalPets={totalPets}
+            isActive={isActive}
+            index={index}
+            scale={modelConfig.scale}
+            animationName={modelConfig.animationName}
+          />
+        </GLBErrorBoundary>
+      </Suspense>
     );
   }
   
