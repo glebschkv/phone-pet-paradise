@@ -26,19 +26,19 @@ export const GLBAnimal = ({
   const [angle, setAngle] = useState((index / totalPets) * Math.PI * 2);
   
   // Load GLB model
+  console.log(`Loading GLB model: ${modelPath} for ${animalType}`);
   const { scene, animations } = useGLTF(modelPath);
   const { actions } = useAnimations(animations, groupRef);
 
-  // Log animations for debugging (especially for elephant)
+  // Log detailed information about the loaded model
   useEffect(() => {
-    if (animalType === 'Elephant' && animations.length > 0) {
-      console.log(`${animalType} animations available:`, animations.map(anim => ({
-        name: anim.name,
-        duration: anim.duration,
-        tracks: anim.tracks.length
-      })));
-    }
-  }, [animations, animalType]);
+    console.log(`${animalType} GLB loaded:`, {
+      sceneChildren: scene.children.length,
+      animationsCount: animations.length,
+      animationNames: animations.map(anim => anim.name),
+      actionsAvailable: Object.keys(actions)
+    });
+  }, [scene, animations, actions, animalType]);
 
   // Auto-cycle through animations every 10 seconds
   useEffect(() => {

@@ -20,7 +20,8 @@ export class GLBErrorBoundary extends Component<GLBErrorBoundaryProps, GLBErrorB
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    console.warn('GLB model failed to load:', error);
+    console.error('GLB model failed to load, falling back to primitive:', error.message);
+    console.error('Error details:', error);
   }
 
   render() {
