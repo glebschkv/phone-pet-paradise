@@ -450,6 +450,7 @@ export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) 
   
   // Use GLB model if configured and available
   if (modelConfig?.type === 'glb' && modelConfig.modelPath) {
+    console.log(`Animal: Using GLB for ${animalType} with config:`, modelConfig);
     return (
       <Suspense fallback={
         <PrimitiveAnimal 

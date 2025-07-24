@@ -29,6 +29,8 @@ export const GLBAnimal = ({
   const { scene, animations } = useGLTF(modelPath);
   const { actions } = useAnimations(animations, groupRef);
 
+  console.log(`GLBAnimal: ${animalType} loaded with scale ${scale}`, { scene, animations });
+
   // Play animation if available
   useEffect(() => {
     if (animationName && actions[animationName]) {
