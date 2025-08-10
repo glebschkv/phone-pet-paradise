@@ -316,14 +316,15 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
     'Celestial Isles': { baseColor: '#9aa4b2', waterColor: '#7de2ff', ambient: 0.65, sunIntensity: 1.0, warmLight: '#c7d2fe' },
   };
 
-  const theme = themes[currentBiome] || themes['Meadow'];
+  const biomeKey = Object.keys(themes).find(k => k.toLowerCase() === (currentBiome || 'Meadow').toLowerCase()) || 'Meadow';
+  const theme = themes[biomeKey];
 
   return (
     <div className="w-full h-full bg-gradient-sky overflow-hidden">
-      <Canvas key={currentBiome} gl={{ preserveDrawingBuffer: false, antialias: false }}>
+      <Canvas key={biomeKey} gl={{ preserveDrawingBuffer: false, antialias: false }}>
         <Suspense fallback={null}>
           <PerspectiveCamera makeDefault position={[4, 3, 4]} fov={50} />
-
+          <color attach="background" args={[theme.waterColor]} />
           {/* Lighting */}
           <ambientLight intensity={theme.ambient} />
           <directionalLight 
@@ -337,8 +338,8 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
 
           {/* Island */}
           <BiomeIsland 
-            key={currentBiome} 
-            biome={currentBiome} 
+            key={biomeKey} 
+            biome={biomeKey} 
             baseColor={theme.baseColor} 
             waterColor={theme.waterColor} 
           />
@@ -346,14 +347,14 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           {/* Animals */}
           {(() => {
             const allowed = new Set(
-              getAnimalsByBiome(currentBiome).flatMap(a => [a.id, a.name, a.name.toLowerCase()])
+              getAnimalsByBiome(biomeKey).flatMap(a => [a.id, a.name, a.name.toLowerCase()])
             );
             const animalsToRender = unlockedAnimals.filter(a =>
               allowed.has(a) || allowed.has(a.toLowerCase())
             );
             return animalsToRender.map((animalType, index) => (
               <Animal 
-                key={`${currentBiome}-${animalType}-${index}`}
+                key={`${biomeKey}-${animalType}-${index}`}
                 animalType={animalType}
                 totalPets={totalPets}
                 isActive={isAppActive}
