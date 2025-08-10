@@ -1,12 +1,15 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { Suspense } from 'react';
+import { Suspense, useEffect, memo } from 'react';
 import { Animal } from './Animal';
 
-const BiomeIsland = (
+const BiomeIsland = memo((
   { biome, baseColor = '#4a7c59', waterColor = '#3b82c7' }:
   { biome: string; baseColor?: string; waterColor?: string; }
 ) => {
+  useEffect(() => {
+    console.log('BiomeIsland rendering with biome:', biome);
+  }, [biome]);
   switch (biome) {
     case 'Forest':
       return (
@@ -284,8 +287,8 @@ const BiomeIsland = (
           </mesh>
         </group>
       );
-  }
-};
+   }
+});
 
 interface Island3DProps {
   totalPets?: number;
@@ -296,6 +299,9 @@ interface Island3DProps {
 }
 
 export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, unlockedAnimals = ['Rabbit'], currentBiome = 'Meadow' }: Island3DProps) => {
+  useEffect(() => {
+    console.log('Island3D received currentBiome:', currentBiome);
+  }, [currentBiome]);
   const themes: Record<string, { baseColor: string; waterColor: string; ambient: number; sunIntensity: number; warmLight: string; }> = {
     Meadow: { baseColor: '#4a7c59', waterColor: '#3b82c7', ambient: 0.4, sunIntensity: 1.0, warmLight: '#ffa500' },
     Forest: { baseColor: '#2f6e4c', waterColor: '#2c7da0', ambient: 0.35, sunIntensity: 0.9, warmLight: '#ffb347' },
@@ -330,7 +336,12 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           <pointLight position={[-5, 5, -5]} intensity={0.3} color={theme.warmLight} />
 
           {/* Island */}
-          <BiomeIsland biome={currentBiome} baseColor={theme.baseColor} waterColor={theme.waterColor} />
+          <BiomeIsland 
+            key={currentBiome} 
+            biome={currentBiome} 
+            baseColor={theme.baseColor} 
+            waterColor={theme.waterColor} 
+          />
 
           {/* Animals */}
           {unlockedAnimals.map((animalType, index) => (
