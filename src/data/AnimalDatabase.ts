@@ -211,7 +211,7 @@ export const BIOME_DATABASE: BiomeData[] = [
   },
   {
     name: 'Forest',
-    unlockLevel: 6,
+    unlockLevel: 5,
     description: 'A mystical forest realm filled with woodland creatures.',
     animals: ['bear', 'wolf', 'eagle']
   },
@@ -223,7 +223,7 @@ export const BIOME_DATABASE: BiomeData[] = [
   },
   {
     name: 'Tundra',
-    unlockLevel: 13,
+    unlockLevel: 15,
     description: 'Harsh arctic lands where the strongest companions thrive.',
     animals: ['penguin', 'arctic-fox', 'polar-bear']
   },
@@ -232,6 +232,42 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 20,
     description: 'Legendary peaks where mythical creatures dwell.',
     animals: ['dragon']
+  },
+  {
+    name: 'Desert Dunes',
+    unlockLevel: 25,
+    description: 'Golden sands and ancient ruins under blazing suns.',
+    animals: []
+  },
+  {
+    name: 'Coral Reef',
+    unlockLevel: 30,
+    description: 'Vibrant underwater gardens teeming with life.',
+    animals: []
+  },
+  {
+    name: 'Mystic Forest',
+    unlockLevel: 35,
+    description: 'Enchanted groves glowing with ethereal light.',
+    animals: []
+  },
+  {
+    name: 'Alpine Peaks',
+    unlockLevel: 40,
+    description: 'Snowy cliffs and crystal-clear skies above the clouds.',
+    animals: []
+  },
+  {
+    name: 'Crystal Caves',
+    unlockLevel: 45,
+    description: 'Shimmering caverns echoing with ancient energy.',
+    animals: []
+  },
+  {
+    name: 'Celestial Isles',
+    unlockLevel: 50,
+    description: 'Floating islands among the stars—the ultimate realm.',
+    animals: []
   }
 ];
 

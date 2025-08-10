@@ -2,6 +2,7 @@ import { CompactLevelProgress } from "@/components/CompactLevelProgress";
 import { InlineStreakCounter } from "@/components/InlineStreakCounter";
 import { StatusBarActions } from "@/components/StatusBarActions";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
+import { WorldSwitcher } from "@/components/WorldSwitcher";
 
 interface TopStatusBarProps {
   currentTab: string;
@@ -17,6 +18,9 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
     streakData,
     getStreakEmoji,
     awardXP,
+    availableBiomes,
+    currentBiome,
+    switchBiome,
   } = useAppStateTracking();
 
   // Only show on home tab
@@ -40,11 +44,18 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
             getStreakEmoji={getStreakEmoji}
           />
           
-          {/* Right Side - Actions */}
-          <StatusBarActions
-            petCount={unlockedAnimals.length}
-            onTestLevelUp={() => awardXP(60)}
-          />
+{/* Right Side - Actions + World Switcher */}
+<div className="flex items-center gap-2">
+  <WorldSwitcher 
+    currentBiome={currentBiome} 
+    availableBiomes={availableBiomes} 
+    onSwitch={switchBiome} 
+  />
+  <StatusBarActions
+    petCount={unlockedAnimals.length}
+    onTestLevelUp={() => awardXP(60)}
+  />
+</div>
         </div>
       </div>
     </div>

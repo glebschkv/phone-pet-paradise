@@ -6,7 +6,7 @@ import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useOnboarding } from "@/hooks/useOnboarding";
 
 const Index = () => {
-  const { unlockedAnimals, currentLevel } = useAppStateTracking();
+  const { unlockedAnimals, currentLevel, currentBiome } = useAppStateTracking();
   const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
   
   // Show loading state while checking onboarding status
@@ -34,12 +34,13 @@ const Index = () => {
     <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
       {/* 3D Island Scene */}
       <ErrorBoundary>
-        <Island3D 
-          totalPets={unlockedAnimals.length} 
-          isAppActive={true} 
-          currentLevel={currentLevel} 
-          unlockedAnimals={unlockedAnimals}
-        />
+<Island3D 
+  totalPets={unlockedAnimals.length} 
+  isAppActive={true} 
+  currentLevel={currentLevel} 
+  unlockedAnimals={unlockedAnimals}
+  currentBiome={currentBiome}
+/>
       </ErrorBoundary>
       
       {/* Game UI Overlay */}

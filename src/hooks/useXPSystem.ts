@@ -28,6 +28,8 @@ export interface XPSystemState {
 
 const STORAGE_KEY = 'petIsland_xpSystem';
 
+export const MAX_LEVEL = 50 as const;
+
 // XP rewards based on session duration (in minutes)
 const XP_REWARDS = {
   30: 10,   // 30 minutes = 10 XP
@@ -74,27 +76,31 @@ const calculateLevelRequirement = (level: number): number => {
 };
 
 
-// Generate animal unlocks from the database
-const ANIMAL_UNLOCKS: Record<number, UnlockedReward> = {};
+// Generate unlocks by level from the database (animals and biomes)
+const UNLOCKS_BY_LEVEL: Record<number, UnlockedReward[]> = {};
 
 // Add animal unlocks
 ANIMAL_DATABASE.forEach(animal => {
-  ANIMAL_UNLOCKS[animal.unlockLevel] = {
+  const level = animal.unlockLevel;
+  if (!UNLOCKS_BY_LEVEL[level]) UNLOCKS_BY_LEVEL[level] = [];
+  UNLOCKS_BY_LEVEL[level].push({
     type: 'animal',
     name: animal.name,
     description: animal.description,
-    level: animal.unlockLevel
-  };
+    level: level
+  });
 });
 
-// Add biome unlocks
+// Add biome unlocks (world themes every few levels)
 BIOME_DATABASE.forEach(biome => {
-  ANIMAL_UNLOCKS[biome.unlockLevel] = {
+  const level = biome.unlockLevel;
+  if (!UNLOCKS_BY_LEVEL[level]) UNLOCKS_BY_LEVEL[level] = [];
+  UNLOCKS_BY_LEVEL[level].push({
     type: 'biome',
     name: biome.name,
     description: biome.description,
-    level: biome.unlockLevel
-  };
+    level: level
+  });
 });
 
 export const useXPSystem = () => {
@@ -108,25 +114,42 @@ export const useXPSystem = () => {
     availableBiomes: ['Meadow'],
   });
 
-  // Load saved state from localStorage
-  useEffect(() => {
-    const savedState = localStorage.getItem(STORAGE_KEY);
-    if (savedState) {
-      try {
-        const parsed = JSON.parse(savedState);
-        console.log('Loaded XP state from localStorage:', parsed);
-        // Check if we need to reset due to old data structure
-        if (parsed.unlockedAnimals && parsed.unlockedAnimals[0] === 'Fox') {
-          console.log('Detected old Fox data, clearing localStorage and resetting to Elephant');
-          localStorage.removeItem(STORAGE_KEY);
-          return; // Don't load the old state
-        }
-        setXPState(prev => ({ ...prev, ...parsed }));
-      } catch (error) {
-        console.error('Failed to parse saved XP state:', error);
+// Load saved state from localStorage
+useEffect(() => {
+  const savedState = localStorage.getItem(STORAGE_KEY);
+  if (savedState) {
+    try {
+      const parsed = JSON.parse(savedState);
+      console.log('Loaded XP state from localStorage:', parsed);
+      // Check if we need to reset due to old data structure
+      if (parsed.unlockedAnimals && parsed.unlockedAnimals[0] === 'Fox') {
+        console.log('Detected old Fox data, clearing localStorage and resetting to Elephant');
+        localStorage.removeItem(STORAGE_KEY);
+        return; // Don't load the old state
       }
+
+      // Normalize state for new MAX_LEVEL and biome availability
+      const clampedLevel = Math.min(parsed.currentLevel ?? 1, MAX_LEVEL);
+      const unlockedBiomes = BIOME_DATABASE
+        .filter(b => b.unlockLevel <= clampedLevel)
+        .map(b => b.name);
+      const normalizedBiome = unlockedBiomes.includes(parsed.currentBiome)
+        ? parsed.currentBiome
+        : (unlockedBiomes[unlockedBiomes.length - 1] || 'Meadow');
+
+      const normalized = {
+        ...parsed,
+        currentLevel: clampedLevel,
+        availableBiomes: unlockedBiomes.length ? unlockedBiomes : ['Meadow'],
+        currentBiome: normalizedBiome,
+      };
+
+      setXPState(prev => ({ ...prev, ...normalized }));
+    } catch (error) {
+      console.error('Failed to parse saved XP state:', error);
     }
-  }, []);
+  }
+}, []);
 
   // Save state to localStorage
   const saveState = useCallback((newState: Partial<XPSystemState>) => {
@@ -154,13 +177,13 @@ export const useXPSystem = () => {
   }, []);
 
   // Calculate current level from total XP
-  const calculateLevel = useCallback((totalXP: number): number => {
-    let level = 1;
-    while (totalXP >= calculateLevelRequirement(level + 1)) {
-      level++;
-    }
-    return level;
-  }, []);
+const calculateLevel = useCallback((totalXP: number): number => {
+  let level = 1;
+  while (level < MAX_LEVEL && totalXP >= calculateLevelRequirement(level + 1)) {
+    level++;
+  }
+  return level;
+}, []);
 
   // Award XP and handle level ups
   const awardXP = useCallback((sessionMinutes: number): XPReward => {
@@ -170,35 +193,36 @@ export const useXPSystem = () => {
     const newLevel = calculateLevel(newTotalXP);
     const leveledUp = newLevel > oldLevel;
 
-    // Calculate XP progress for new level
-    const currentLevelXP = calculateLevelRequirement(newLevel);
-    const nextLevelXP = calculateLevelRequirement(newLevel + 1);
-    const xpToNextLevel = nextLevelXP - newTotalXP;
+// Calculate XP progress for new level
+const currentLevelXP = calculateLevelRequirement(newLevel);
+const nextLevelXP = newLevel >= MAX_LEVEL 
+  ? calculateLevelRequirement(newLevel) 
+  : calculateLevelRequirement(newLevel + 1);
+const xpToNextLevel = newLevel >= MAX_LEVEL ? 0 : nextLevelXP - newTotalXP;
 
-    // Determine unlocked rewards
-    const unlockedRewards: UnlockedReward[] = [];
-    if (leveledUp) {
-      for (let level = oldLevel + 1; level <= newLevel; level++) {
-        if (ANIMAL_UNLOCKS[level]) {
-          unlockedRewards.push(ANIMAL_UNLOCKS[level]);
-        }
-      }
+// Determine unlocked rewards
+const unlockedRewards: UnlockedReward[] = [];
+if (leveledUp) {
+  for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
+    if (UNLOCKS_BY_LEVEL[lvl]) {
+      unlockedRewards.push(...UNLOCKS_BY_LEVEL[lvl]);
     }
+  }
+}
 
     // Update state
     const newAnimals = [...xpState.unlockedAnimals];
     const newBiomes = [...xpState.availableBiomes];
     let newCurrentBiome = xpState.currentBiome;
 
-    unlockedRewards.forEach(reward => {
-      if (reward.type === 'animal' && !newAnimals.includes(reward.name)) {
-        newAnimals.push(reward.name);
-      } else if (reward.type === 'biome' && !newBiomes.includes(reward.name.replace(' Biome', ''))) {
-        const biomeName = reward.name.replace(' Biome', '');
-        newBiomes.push(biomeName);
-        newCurrentBiome = biomeName; // Auto-switch to new biome
-      }
-    });
+unlockedRewards.forEach(reward => {
+  if (reward.type === 'animal' && !newAnimals.includes(reward.name)) {
+    newAnimals.push(reward.name);
+  } else if (reward.type === 'biome' && !newBiomes.includes(reward.name)) {
+    newBiomes.push(reward.name);
+    newCurrentBiome = reward.name; // Auto-switch to new biome
+  }
+});
 
     saveState({
       currentXP: newTotalXP,
@@ -219,15 +243,16 @@ export const useXPSystem = () => {
     };
   }, [xpState, calculateXPFromDuration, calculateLevel, saveState]);
 
-  // Get progress percentage for current level
-  const getLevelProgress = useCallback((): number => {
-    const currentLevelXP = calculateLevelRequirement(xpState.currentLevel);
-    const nextLevelXP = calculateLevelRequirement(xpState.currentLevel + 1);
-    const progressXP = xpState.currentXP - currentLevelXP;
-    const totalXPNeeded = nextLevelXP - currentLevelXP;
-    
-    return Math.min(100, (progressXP / totalXPNeeded) * 100);
-  }, [xpState]);
+// Get progress percentage for current level
+const getLevelProgress = useCallback((): number => {
+  if (xpState.currentLevel >= MAX_LEVEL) return 100;
+  const currentLevelXP = calculateLevelRequirement(xpState.currentLevel);
+  const nextLevelXP = calculateLevelRequirement(xpState.currentLevel + 1);
+  const progressXP = xpState.currentXP - currentLevelXP;
+  const totalXPNeeded = Math.max(1, nextLevelXP - currentLevelXP);
+  
+  return Math.min(100, (progressXP / totalXPNeeded) * 100);
+}, [xpState]);
 
   // Switch biome
   const switchBiome = useCallback((biomeName: string) => {
