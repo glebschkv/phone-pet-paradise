@@ -128,6 +128,29 @@ useEffect(() => {
         return; // Don't load the old state
       }
 
+      // Convert old capitalized animal names to new lowercase IDs
+      const convertAnimalNames = (oldNames: string[]) => {
+        const nameMap: Record<string, string> = {
+          'Rabbit': 'rabbit',
+          'Fox': 'fox', 
+          'Deer': 'deer',
+          'Owl': 'owl',
+          'Bear': 'bear',
+          'Wolf': 'wolf',
+          'Eagle': 'eagle',
+          'Turtle': 'turtle',
+          'Elephant': 'elephant'
+        };
+        return oldNames.map(name => nameMap[name] || name.toLowerCase());
+      };
+
+      // Convert unlocked animals to new format if needed
+      let convertedAnimals = parsed.unlockedAnimals || ['elephant'];
+      if (convertedAnimals.some((name: string) => name[0] === name[0].toUpperCase())) {
+        console.log('Converting old animal names to new format');
+        convertedAnimals = convertAnimalNames(convertedAnimals);
+      }
+
       // Normalize state for new MAX_LEVEL and biome availability
       const clampedLevel = Math.min(parsed.currentLevel ?? 1, MAX_LEVEL);
       const unlockedBiomes = BIOME_DATABASE
@@ -142,8 +165,10 @@ useEffect(() => {
         currentLevel: clampedLevel,
         availableBiomes: unlockedBiomes.length ? unlockedBiomes : ['Meadow'],
         currentBiome: normalizedBiome,
+        unlockedAnimals: convertedAnimals,
       };
 
+      console.log('Normalized XP state:', normalized);
       setXPState(prev => ({ ...prev, ...normalized }));
     } catch (error) {
       console.error('Failed to parse saved XP state:', error);
@@ -155,6 +180,7 @@ useEffect(() => {
   const saveState = useCallback((newState: Partial<XPSystemState>) => {
     setXPState(prev => {
       const updatedState = { ...prev, ...newState };
+      console.log('Saving XP state:', updatedState);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedState));
       return updatedState;
     });
@@ -256,10 +282,14 @@ const getLevelProgress = useCallback((): number => {
 
   // Switch biome
   const switchBiome = useCallback((biomeName: string) => {
+    console.log('switchBiome called with:', biomeName, 'Available biomes:', xpState.availableBiomes);
     if (xpState.availableBiomes.includes(biomeName)) {
+      console.log('Switching biome from', xpState.currentBiome, 'to', biomeName);
       saveState({ currentBiome: biomeName });
+    } else {
+      console.log('Biome not available:', biomeName);
     }
-  }, [xpState.availableBiomes, saveState]);
+  }, [xpState.availableBiomes, xpState.currentBiome, saveState]);
 
   // Reset progress
   const resetProgress = useCallback(() => {
