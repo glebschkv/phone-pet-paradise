@@ -303,17 +303,17 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
     console.log('Island3D received currentBiome:', currentBiome);
   }, [currentBiome]);
   const themes: Record<string, { baseColor: string; waterColor: string; ambient: number; sunIntensity: number; warmLight: string; }> = {
-    Meadow: { baseColor: '#4a7c59', waterColor: '#3b82c7', ambient: 0.4, sunIntensity: 1.0, warmLight: '#ffa500' },
-    Forest: { baseColor: '#2f6e4c', waterColor: '#2c7da0', ambient: 0.35, sunIntensity: 0.9, warmLight: '#ffb347' },
-    Ocean: { baseColor: '#2e8b57', waterColor: '#1e90ff', ambient: 0.5, sunIntensity: 0.8, warmLight: '#87cefa' },
-    Tundra: { baseColor: '#7aa2b7', waterColor: '#7ec8e3', ambient: 0.6, sunIntensity: 0.7, warmLight: '#bfefff' },
-    Mountains: { baseColor: '#6b7280', waterColor: '#60a5fa', ambient: 0.45, sunIntensity: 1.1, warmLight: '#ffd1a1' },
-    'Desert Dunes': { baseColor: '#c2a97a', waterColor: '#6ec5ff', ambient: 0.55, sunIntensity: 1.2, warmLight: '#ffcc66' },
-    'Coral Reef': { baseColor: '#3aa69b', waterColor: '#00bcd4', ambient: 0.55, sunIntensity: 0.9, warmLight: '#a0e9ff' },
-    'Mystic Forest': { baseColor: '#3b6e57', waterColor: '#6aa0ff', ambient: 0.5, sunIntensity: 0.85, warmLight: '#b3a0ff' },
-    'Alpine Peaks': { baseColor: '#9ca3af', waterColor: '#93c5fd', ambient: 0.6, sunIntensity: 0.95, warmLight: '#e5e7eb' },
-    'Crystal Caves': { baseColor: '#6d28d9', waterColor: '#60a5fa', ambient: 0.45, sunIntensity: 0.8, warmLight: '#a78bfa' },
-    'Celestial Isles': { baseColor: '#64748b', waterColor: '#7dd3fc', ambient: 0.65, sunIntensity: 1.0, warmLight: '#c7d2fe' },
+    Meadow: { baseColor: '#5bc97a', waterColor: '#74b9ff', ambient: 0.4, sunIntensity: 1.0, warmLight: '#ffa500' },
+    Forest: { baseColor: '#2e7d32', waterColor: '#29b6f6', ambient: 0.35, sunIntensity: 0.95, warmLight: '#ffb347' },
+    Ocean: { baseColor: '#e0c18f', waterColor: '#0077be', ambient: 0.55, sunIntensity: 0.9, warmLight: '#87cefa' },
+    Tundra: { baseColor: '#b7dceb', waterColor: '#a7e3f8', ambient: 0.6, sunIntensity: 0.75, warmLight: '#bfefff' },
+    Mountains: { baseColor: '#7d7e80', waterColor: '#5dade2', ambient: 0.45, sunIntensity: 1.1, warmLight: '#ffd1a1' },
+    'Desert Dunes': { baseColor: '#e1c16e', waterColor: '#7fdbff', ambient: 0.55, sunIntensity: 1.2, warmLight: '#ffcc66' },
+    'Coral Reef': { baseColor: '#59c4b5', waterColor: '#00c2ff', ambient: 0.55, sunIntensity: 0.95, warmLight: '#a0e9ff' },
+    'Mystic Forest': { baseColor: '#355e3b', waterColor: '#7c83fd', ambient: 0.5, sunIntensity: 0.9, warmLight: '#b3a0ff' },
+    'Alpine Peaks': { baseColor: '#c0cad4', waterColor: '#8ec9ff', ambient: 0.6, sunIntensity: 0.95, warmLight: '#e5e7eb' },
+    'Crystal Caves': { baseColor: '#8a2be2', waterColor: '#5daafe', ambient: 0.45, sunIntensity: 0.85, warmLight: '#a78bfa' },
+    'Celestial Isles': { baseColor: '#9aa4b2', waterColor: '#7de2ff', ambient: 0.65, sunIntensity: 1.0, warmLight: '#c7d2fe' },
   };
 
   const theme = themes[currentBiome] || themes['Meadow'];
