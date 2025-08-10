@@ -3,7 +3,7 @@ import { InlineStreakCounter } from "@/components/InlineStreakCounter";
 import { StatusBarActions } from "@/components/StatusBarActions";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { WorldSwitcher } from "@/components/WorldSwitcher";
-
+import { useWorldTransition } from "@/context/WorldTransitionContext";
 interface TopStatusBarProps {
   currentTab: string;
 }
@@ -22,6 +22,7 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
     currentBiome,
     switchBiome,
   } = useAppStateTracking();
+  const { startWorldTransition } = useWorldTransition();
 
   // Only show on home tab
   if (currentTab !== "home") return null;
@@ -49,7 +50,7 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
   <WorldSwitcher 
     currentBiome={currentBiome} 
     availableBiomes={availableBiomes} 
-    onSwitch={switchBiome} 
+    onSwitch={(biome) => startWorldTransition(biome, () => switchBiome(biome))} 
   />
   <StatusBarActions
     petCount={unlockedAnimals.length}

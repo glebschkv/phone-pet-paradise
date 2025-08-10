@@ -4,7 +4,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useOnboarding } from "@/hooks/useOnboarding";
-
+import { WorldTransitionProvider } from "@/context/WorldTransitionContext";
+import { WorldLoadingOverlay } from "@/components/WorldLoadingOverlay";
 const Index = () => {
   const { unlockedAnimals, currentLevel, currentBiome } = useAppStateTracking();
   const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
@@ -31,23 +32,27 @@ const Index = () => {
   }
   
   return (
-    <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
-      {/* 3D Island Scene */}
-      <ErrorBoundary>
-<Island3D 
-  totalPets={unlockedAnimals.length} 
-  isAppActive={true} 
-  currentLevel={currentLevel} 
-  unlockedAnimals={unlockedAnimals}
-  currentBiome={currentBiome}
-/>
-      </ErrorBoundary>
-      
-      {/* Game UI Overlay */}
-      <ErrorBoundary>
-        <GameUI />
-      </ErrorBoundary>
-    </div>
+    <WorldTransitionProvider>
+      <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
+        <WorldLoadingOverlay />
+        {/* 3D Island Scene */}
+        <ErrorBoundary>
+          <Island3D 
+            key={currentBiome}
+            totalPets={unlockedAnimals.length} 
+            isAppActive={true} 
+            currentLevel={currentLevel} 
+            unlockedAnimals={unlockedAnimals}
+            currentBiome={currentBiome}
+          />
+        </ErrorBoundary>
+        
+        {/* Game UI Overlay */}
+        <ErrorBoundary>
+          <GameUI />
+        </ErrorBoundary>
+      </div>
+    </WorldTransitionProvider>
   );
 };
 

@@ -2,7 +2,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Suspense, useEffect, memo } from 'react';
 import { Animal } from './Animal';
-
+import { getAnimalsByBiome } from '@/data/AnimalDatabase';
 const BiomeIsland = memo((
   { biome, baseColor = '#4a7c59', waterColor = '#3b82c7' }:
   { biome: string; baseColor?: string; waterColor?: string; }
@@ -320,7 +320,7 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
 
   return (
     <div className="w-full h-full bg-gradient-sky overflow-hidden">
-      <Canvas gl={{ preserveDrawingBuffer: false, antialias: false }}>
+      <Canvas key={currentBiome} gl={{ preserveDrawingBuffer: false, antialias: false }}>
         <Suspense fallback={null}>
           <PerspectiveCamera makeDefault position={[4, 3, 4]} fov={50} />
 
@@ -344,15 +344,23 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           />
 
           {/* Animals */}
-          {unlockedAnimals.map((animalType, index) => (
-            <Animal 
-              key={`${animalType}-${index}`}
-              animalType={animalType}
-              totalPets={totalPets}
-              isActive={isAppActive}
-              index={index}
-            />
-          ))}
+          {(() => {
+            const allowed = new Set(
+              getAnimalsByBiome(currentBiome).flatMap(a => [a.id, a.name, a.name.toLowerCase()])
+            );
+            const animalsToRender = unlockedAnimals.filter(a =>
+              allowed.has(a) || allowed.has(a.toLowerCase())
+            );
+            return animalsToRender.map((animalType, index) => (
+              <Animal 
+                key={`${currentBiome}-${animalType}-${index}`}
+                animalType={animalType}
+                totalPets={totalPets}
+                isActive={isAppActive}
+                index={index}
+              />
+            ));
+          })()}
 
           {/* Controls */}
           <OrbitControls 
