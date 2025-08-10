@@ -1,9 +1,9 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { Suspense, useEffect, memo } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Animal } from './Animal';
 import { getAnimalsByBiome } from '@/data/AnimalDatabase';
-const BiomeIsland = memo((
+const BiomeIsland = (
   { biome, baseColor = '#4a7c59', waterColor = '#3b82c7' }:
   { biome: string; baseColor?: string; waterColor?: string; }
 ) => {
@@ -288,7 +288,7 @@ const BiomeIsland = memo((
         </group>
       );
    }
-});
+};
 
 interface Island3DProps {
   totalPets?: number;
@@ -299,9 +299,6 @@ interface Island3DProps {
 }
 
 export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, unlockedAnimals = ['Rabbit'], currentBiome = 'Meadow' }: Island3DProps) => {
-  useEffect(() => {
-    console.log('Island3D received currentBiome:', currentBiome);
-  }, [currentBiome]);
   const themes: Record<string, { baseColor: string; waterColor: string; ambient: number; sunIntensity: number; warmLight: string; }> = {
     Meadow: { baseColor: '#5bc97a', waterColor: '#74b9ff', ambient: 0.4, sunIntensity: 1.0, warmLight: '#ffa500' },
     Forest: { baseColor: '#2e7d32', waterColor: '#29b6f6', ambient: 0.35, sunIntensity: 0.95, warmLight: '#ffb347' },
@@ -319,22 +316,32 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
   const biomeKey = Object.keys(themes).find(k => k.toLowerCase() === (currentBiome || 'Meadow').toLowerCase()) || 'Meadow';
   const theme = themes[biomeKey];
 
+  useEffect(() => {
+    console.log('Island3D biome update', { currentBiome, biomeKey, theme });
+  }, [currentBiome, biomeKey]);
+
   return (
-    <div className="w-full h-full bg-gradient-sky overflow-hidden">
+    <div className="relative w-full h-full bg-gradient-sky overflow-hidden">
+      {/* Debug badge */}
+      <div className="pointer-events-none absolute top-2 left-2 z-50 bg-background/70 border border-primary/10 rounded-md px-2 py-1 text-[10px] text-muted-foreground">
+        Biome: {biomeKey}
+      </div>
       <Canvas key={biomeKey} gl={{ preserveDrawingBuffer: false, antialias: false }}>
         <Suspense fallback={null}>
           <PerspectiveCamera makeDefault position={[4, 3, 4]} fov={50} />
           <color attach="background" args={[theme.waterColor]} />
+          <fog attach="fog" args={[theme.waterColor, 6, 18]} />
           {/* Lighting */}
           <ambientLight intensity={theme.ambient} />
           <directionalLight 
             position={[5, 10, 5]} 
+            color="#ffffff"
             intensity={theme.sunIntensity} 
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
           />
-          <pointLight position={[-5, 5, -5]} intensity={0.3} color={theme.warmLight} />
+          <pointLight position={[-5, 5, -5]} intensity={0.15} color="#ffffff" />
 
           {/* Island */}
           <BiomeIsland 
