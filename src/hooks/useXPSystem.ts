@@ -103,6 +103,19 @@ BIOME_DATABASE.forEach(biome => {
   });
 });
 
+// Normalize animal naming across old saves and DB
+const NAME_MAP: Record<string, string> = ANIMAL_DATABASE.reduce((acc, a) => {
+  acc[a.name.toLowerCase()] = a.name;
+  acc[a.id.toLowerCase()] = a.name;
+  return acc;
+}, {} as Record<string, string>);
+
+const normalizeAnimalList = (list: string[] | undefined): string[] => {
+  const names = (list ?? ['Panda']).map((n) => NAME_MAP[n?.toLowerCase?.() || ''] || n);
+  // Deduplicate while preserving order
+  return Array.from(new Set(names));
+};
+
 export const useXPSystem = () => {
   const [xpState, setXPState] = useState<XPSystemState>({
     currentXP: 0,
@@ -142,6 +155,7 @@ useEffect(() => {
         currentLevel: clampedLevel,
         availableBiomes: unlockedBiomes.length ? unlockedBiomes : ['Meadow'],
         currentBiome: normalizedBiome,
+        unlockedAnimals: normalizeAnimalList(parsed.unlockedAnimals),
       };
 
       setXPState(prev => ({ ...prev, ...normalized }));
@@ -154,7 +168,9 @@ useEffect(() => {
   // Save state to localStorage
   const saveState = useCallback((newState: Partial<XPSystemState>) => {
     setXPState(prev => {
-      const updatedState = { ...prev, ...newState };
+      const merged = { ...prev, ...newState };
+      const normalizedAnimals = normalizeAnimalList(merged.unlockedAnimals);
+      const updatedState = { ...merged, unlockedAnimals: normalizedAnimals };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedState));
       return updatedState;
     });

@@ -496,15 +496,39 @@ const PrimitiveAnimal = ({
       );
 
     // ─── Default placeholder ───────────────────────────────────
-    default:
-      return (
-        <group ref={ref} position={[radius, 0.15, 0]}>
-          <Mesh position={[0, 0, 0]}>
-            <sphereGeometry args={[0.1, 8, 6]} />
-            <meshLambertMaterial color="#CCCCCC" transparent opacity={opacity} />
-          </Mesh>
-        </group>
-      );
+      default:
+        return (
+          <group ref={ref} position={[radius, 0.15, 0]}>
+            {/* Body */}
+            <Mesh position={[0, 0.05, 0]}>
+              <sphereGeometry args={[0.12, 8, 6]} />
+              <meshLambertMaterial color="#CCCCCC" transparent opacity={opacity} />
+            </Mesh>
+            {/* Head */}
+            <Mesh position={[0, 0.2, 0.06]}>
+              <sphereGeometry args={[0.08, 8, 6]} />
+              <meshLambertMaterial color="#DDDDDD" transparent opacity={opacity} />
+            </Mesh>
+            {/* Ears */}
+            <Mesh position={[-0.05, 0.27, 0]}>
+              <coneGeometry args={[0.03, 0.08, 6]} />
+              <meshLambertMaterial color="#BBBBBB" transparent opacity={opacity} />
+            </Mesh>
+            <Mesh position={[0.05, 0.27, 0]}>
+              <coneGeometry args={[0.03, 0.08, 6]} />
+              <meshLambertMaterial color="#BBBBBB" transparent opacity={opacity} />
+            </Mesh>
+            {/* Legs */}
+            {[-0.06, 0.06].map((x) =>
+              [0, 1].map((i) => (
+                <Mesh key={`${x}-${i}`} position={[x, -0.08, i ? 0.04 : -0.04]}>
+                  <cylinderGeometry args={[0.02, 0.02, 0.16, 6]} />
+                  <meshLambertMaterial color="#C8C8C8" transparent opacity={opacity} />
+                </Mesh>
+              ))
+            )}
+          </group>
+        );
   }
 };
 
