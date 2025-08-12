@@ -200,28 +200,36 @@ const PrimitiveAnimal = ({
         </group>
       );
 
-    // ─── Bear ──────────────────────────────────────────────────
+    // ─── Bear / Panda ────────────────────────────────────────────
     case 'Bear':
+    case 'Panda': {
+      const isPanda = animalType === 'Panda';
+      const torsoColor = isPanda ? '#FFFFFF' : '#7B4B27';
+      const limbColor = isPanda ? '#000000' : '#7B4B27';
+      const earColor = isPanda ? '#000000' : '#4D3017';
+      const muzzleColor = isPanda ? '#FFFFFF' : '#C9A27D';
+      const bellyColor = isPanda ? '#FFFFFF' : '#9C6C43';
+
       return (
         <group ref={ref} position={[radius, 0.1, 0]}>
           {/* 1 Torso */}
           <Mesh position={[0, 0, 0]}>
             <sphereGeometry args={[0.2, 10, 8]} />
-            <meshLambertMaterial color="#7B4B27" transparent opacity={opacity} />
+            <meshLambertMaterial color={torsoColor} transparent opacity={opacity} />
           </Mesh>
           {/* 2 Chest */}
           <Mesh position={[0, 0.25, 0.01]}>
             <sphereGeometry args={[0.16, 10, 8]} />
-            <meshLambertMaterial color="#7B4B27" transparent opacity={opacity} />
+            <meshLambertMaterial color={torsoColor} transparent opacity={opacity} />
           </Mesh>
           {/* 3–4 Ears */}
           <Mesh position={[-0.1, 0.4, -0.01]}>
             <sphereGeometry args={[0.05, 6, 6]} />
-            <meshLambertMaterial color="#4D3017" transparent opacity={opacity} />
+            <meshLambertMaterial color={earColor} transparent opacity={opacity} />
           </Mesh>
           <Mesh position={[0.1, 0.4, -0.01]}>
             <sphereGeometry args={[0.05, 6, 6]} />
-            <meshLambertMaterial color="#4D3017" transparent opacity={opacity} />
+            <meshLambertMaterial color={earColor} transparent opacity={opacity} />
           </Mesh>
           {/* 5–6 Eyes */}
           <Mesh position={[-0.06, 0.28, 0.11]}>
@@ -235,7 +243,7 @@ const PrimitiveAnimal = ({
           {/* 7 Snout */}
           <Mesh position={[0, 0.22, 0.12]}>
             <sphereGeometry args={[0.06, 6, 4]} />
-            <meshLambertMaterial color="#C9A27D" />
+            <meshLambertMaterial color={muzzleColor} />
           </Mesh>
           {/* 8 Nose tip */}
           <Mesh position={[0, 0.22, 0.17]}>
@@ -246,11 +254,7 @@ const PrimitiveAnimal = ({
           {[-0.18, 0.18].map((x) => (
             <Mesh key={x} position={[x, 0.12, 0]}>
               <cylinderGeometry args={[0.04, 0.05, 0.2, 8]} />
-              <meshLambertMaterial
-                color="#7B4B27"
-                transparent
-                opacity={opacity}
-              />
+              <meshLambertMaterial color={limbColor} transparent opacity={opacity} />
             </Mesh>
           ))}
           {/* 13–16 Legs */}
@@ -258,25 +262,22 @@ const PrimitiveAnimal = ({
             [0, 1].map((i) => (
               <Mesh key={`${x}-${i}`} position={[x + i * 0.08, -0.12, 0.05]}>
                 <cylinderGeometry args={[0.05, 0.06, 0.24, 8]} />
-                <meshLambertMaterial
-                  color="#7B4B27"
-                  transparent
-                  opacity={opacity}
-                />
+                <meshLambertMaterial color={limbColor} transparent opacity={opacity} />
               </Mesh>
             ))
           )}
           {/* 17–18 Belly patches */}
           <Mesh position={[0, 0.02, 0.05]}>
             <sphereGeometry args={[0.12, 8, 6]} />
-            <meshLambertMaterial color="#9C6C43" transparent opacity={opacity} />
+            <meshLambertMaterial color={bellyColor} transparent opacity={opacity} />
           </Mesh>
           <Mesh position={[0, 0.1, 0.04]}>
             <sphereGeometry args={[0.1, 8, 6]} />
-            <meshLambertMaterial color="#9C6C43" transparent opacity={opacity} />
+            <meshLambertMaterial color={bellyColor} transparent opacity={opacity} />
           </Mesh>
         </group>
       );
+    }
 
     // ─── Deer ──────────────────────────────────────────────────
     case 'Deer':

@@ -109,7 +109,7 @@ export const useXPSystem = () => {
     currentLevel: 1,
     xpToNextLevel: 25,
     totalXPForCurrentLevel: 0,
-    unlockedAnimals: ['Elephant'], // Start with first animal
+    unlockedAnimals: ['Panda'], // Start with first animal
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
   });
@@ -123,7 +123,7 @@ useEffect(() => {
       console.log('Loaded XP state from localStorage:', parsed);
       // Check if we need to reset due to old data structure
       if (parsed.unlockedAnimals && parsed.unlockedAnimals[0] === 'Fox') {
-        console.log('Detected old Fox data, clearing localStorage and resetting to Elephant');
+        console.log('Detected old Fox data, clearing localStorage and resetting to Panda');
         localStorage.removeItem(STORAGE_KEY);
         return; // Don't load the old state
       }
@@ -268,7 +268,7 @@ const getLevelProgress = useCallback((): number => {
       currentLevel: 1,
       xpToNextLevel: 25,
       totalXPForCurrentLevel: 0,
-      unlockedAnimals: ['Elephant'],
+      unlockedAnimals: ['Panda'],
       currentBiome: 'Meadow',
       availableBiomes: ['Meadow'],
     };

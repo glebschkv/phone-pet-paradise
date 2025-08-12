@@ -26,13 +26,13 @@ export interface BiomeData {
 // Unified animal database that matches the XP system
 export const ANIMAL_DATABASE: AnimalData[] = [
   {
-    id: 'elephant',
-    name: 'Elephant',
-    emoji: '🐘',
+    id: 'panda',
+    name: 'Panda',
+    emoji: '🐼',
     rarity: 'common',
     unlockLevel: 1,
-    description: 'A gentle giant companion with incredible memory and wisdom.',
-    abilities: ['Memory Boost', 'Wisdom Share'],
+    description: 'A calm bamboo-loving friend that inspires gentle focus.',
+    abilities: ['Calm Focus', 'Gentle Strength'],
     biome: 'Meadow',
     modelConfig: {
       type: 'primitive',
@@ -207,7 +207,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Meadow',
     unlockLevel: 1,
     description: 'A peaceful starting realm where your journey begins.',
-    animals: ['elephant', 'fox', 'rabbit', 'deer', 'owl']
+    animals: ['panda', 'fox', 'rabbit', 'deer', 'owl']
   },
   {
     name: 'Forest',
