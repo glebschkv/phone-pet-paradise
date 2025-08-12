@@ -508,16 +508,7 @@ const PrimitiveAnimal = ({
 };
 
 export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) => {
-  const candidates = [
-    animalType,
-    animalType?.toLowerCase?.(),
-    animalType ? animalType[0].toUpperCase() + animalType.slice(1).toLowerCase() : animalType,
-  ].filter(Boolean) as string[];
-
-  const modelConfig = candidates.map((k) => ANIMAL_MODEL_CONFIG[k]).find(Boolean);
-  const primitiveType = (animalType && typeof animalType === 'string')
-    ? animalType[0].toUpperCase() + animalType.slice(1)
-    : 'Rabbit';
+  const modelConfig = ANIMAL_MODEL_CONFIG[animalType];
   
   // Use GLB model if configured and available
   if (modelConfig?.type === 'glb' && modelConfig.modelPath) {
@@ -527,7 +518,7 @@ export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) 
         <PrimitiveAnimal 
           totalPets={totalPets}
           isActive={isActive}
-          animalType={primitiveType}
+          animalType={animalType}
           index={index}
         />
       }>
@@ -535,7 +526,7 @@ export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) 
           <PrimitiveAnimal 
             totalPets={totalPets}
             isActive={isActive}
-            animalType={primitiveType}
+            animalType={animalType}
             index={index}
           />
         }>
@@ -558,7 +549,7 @@ export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) 
     <PrimitiveAnimal 
       totalPets={totalPets}
       isActive={isActive}
-      animalType={primitiveType}
+      animalType={animalType}
       index={index}
     />
   );

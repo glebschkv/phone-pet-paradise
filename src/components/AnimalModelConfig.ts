@@ -14,12 +14,8 @@ export interface AnimalModelConfig {
 export const ANIMAL_MODEL_CONFIG: Record<string, AnimalModelConfig> = {};
 
 ANIMAL_DATABASE.forEach(animal => {
-  const config = animal.modelConfig || {
+  ANIMAL_MODEL_CONFIG[animal.name] = animal.modelConfig || {
     type: 'primitive',
     fallbackToPrimitive: true
   };
-  // Support lookups by display name, lowercase name, and id
-  ANIMAL_MODEL_CONFIG[animal.name] = config;
-  ANIMAL_MODEL_CONFIG[animal.name.toLowerCase()] = config;
-  ANIMAL_MODEL_CONFIG[animal.id] = config;
 });
