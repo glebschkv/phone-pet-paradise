@@ -32,15 +32,15 @@ export const AnimalViewer3D = ({ animal, isOpen, onClose }: AnimalViewer3DProps)
         
         <div className="flex-1 relative">
           <Canvas
-            camera={{ position: [0, 0, 5], fov: 45 }}
+            camera={{ position: [0, 0.3, 5], fov: 45 }}
             style={{ width: '100%', height: '100%' }}
           >
             {/* Lighting */}
-            <ambientLight intensity={0.4} />
-            <directionalLight position={[10, 10, 5]} intensity={1} />
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[5, 8, 5]} intensity={1.2} color={0xffffff} />
             
             {/* Environment */}
-            <Environment preset="sunset" />
+            <Environment preset="studio" />
             
             {/* Animal Model */}
             <Animal

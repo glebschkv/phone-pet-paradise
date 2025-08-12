@@ -35,7 +35,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Calm Focus', 'Gentle Strength'],
     biome: 'Meadow',
     modelConfig: {
-      type: 'primitive',
+      type: 'glb',
+      modelPath: '/assets/models/Panda.glb',
+      scale: 0.35,
+      animationName: 'Idle',
       fallbackToPrimitive: true
     }
   },

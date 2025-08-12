@@ -109,3 +109,6 @@ useGLTF.preload('/assets/models/Fox.glb');
 // useGLTF.preload('/assets/models/deer.glb');
 // useGLTF.preload('/assets/models/owl.glb');
 */
+
+// Active preloads for available models
+useGLTF.preload('/assets/models/Panda.glb');
