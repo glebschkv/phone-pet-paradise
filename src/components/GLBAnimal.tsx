@@ -1,5 +1,5 @@
 import { useGLTF, useAnimations } from '@react-three/drei';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Group, Vector3 } from 'three';
 
@@ -25,14 +25,15 @@ export const GLBAnimal = ({
   const groupRef = useRef<Group>(null);
   const [angle, setAngle] = useState((index / totalPets) * Math.PI * 2);
   
-  // Load GLB model
-  console.log(`Loading GLB model: ${modelPath} for ${animalType}`);
+  // Load GLB model - use useMemo to prevent re-loading
   const { scene, animations } = useGLTF(modelPath);
+  const sceneClone = useMemo(() => scene.clone(), [scene]);
   const { actions } = useAnimations(animations, groupRef);
 
   // Log detailed information about the loaded model
   useEffect(() => {
-    console.log(`${animalType} GLB loaded:`, {
+    console.log(`${animalType} GLB loaded successfully:`, {
+      modelPath,
       sceneChildren: scene.children.length,
       animationsCount: animations.length,
       animationNames: animations.map(anim => anim.name),
@@ -41,9 +42,11 @@ export const GLBAnimal = ({
     });
     
     if (animations.length === 0) {
-      console.warn(`No animations found in ${animalType} GLB model`);
+      console.warn(`No animations found in ${animalType} GLB model at ${modelPath}`);
+    } else {
+      console.log(`${animalType} has ${animations.length} animations:`, animations.map(a => a.name));
     }
-  }, [scene, animations, actions, animalType]);
+  }, [scene, animations, actions, animalType, modelPath]);
 
   // Handle animations
   useEffect(() => {
@@ -117,7 +120,7 @@ export const GLBAnimal = ({
 
   return (
     <group ref={groupRef} scale={[scale, scale, scale]}>
-      <primitive object={scene.clone()} />
+      <primitive object={sceneClone} />
     </group>
   );
 };
