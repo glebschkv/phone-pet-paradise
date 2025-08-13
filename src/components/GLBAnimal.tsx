@@ -100,12 +100,21 @@ export const GLBAnimal = ({
 
   // Animate position in circle around the island
   useFrame((state, delta) => {
-    if (!groupRef.current) return;
+    if (!groupRef.current) {
+      console.log(`${animalType}: groupRef not ready`);
+      return;
+    }
 
     const radius = Math.max(2.0, totalPets * 0.4); // Larger radius for better visibility
     const speed = isActive ? 0.8 : 0.3; // Faster movement
     
-    setAngle(prev => prev + delta * speed);
+    setAngle(prev => {
+      const newAngle = prev + delta * speed;
+      if (Math.floor(prev * 10) !== Math.floor(newAngle * 10)) { // Log every 0.1 radians
+        console.log(`${animalType}: Moving - angle: ${newAngle.toFixed(2)}, radius: ${radius}`);
+      }
+      return newAngle;
+    });
     
     const x = Math.cos(angle) * radius;
     const z = Math.sin(angle) * radius;
@@ -116,6 +125,11 @@ export const GLBAnimal = ({
     
     // Add slight rotation for more life
     groupRef.current.rotation.y = -angle + Math.PI / 2;
+    
+    // Debug position every few seconds
+    if (Math.floor(state.clock.elapsedTime) % 3 === 0 && Math.floor(state.clock.elapsedTime * 10) % 30 === 0) {
+      console.log(`${animalType}: Position - x: ${x.toFixed(2)}, y: ${y.toFixed(2)}, z: ${z.toFixed(2)}`);
+    }
   });
 
   return (
