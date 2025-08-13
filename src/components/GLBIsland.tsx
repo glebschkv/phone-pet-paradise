@@ -35,6 +35,8 @@ export const GLBIsland = ({
   }, [scene]);
 
   console.log(`Loading island: ${config.name} from ${config.modelPath}`);
+  console.log('Scene loaded:', !!scene);
+  console.log('SceneClone created:', !!sceneClone);
 
   return (
     <group ref={groupRef} scale={[finalScale, finalScale, finalScale]}>

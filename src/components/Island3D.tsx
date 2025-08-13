@@ -336,8 +336,15 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           />
           <pointLight position={[-5, 5, -5]} intensity={0.3} color={theme.warmLight} />
 
-          {/* GLB Island */}
-          <GLBIsland islandType="grass-lake-island" />
+          {/* GLB Island with fallback */}
+          <Suspense fallback={
+            <mesh position={[0, -0.5, 0]}>
+              <cylinderGeometry args={[2, 2.5, 0.8, 8]} />
+              <meshLambertMaterial color="#4a7c59" />
+            </mesh>
+          }>
+            <GLBIsland islandType="grass-lake-island" />
+          </Suspense>
 
           {/* Animals */}
           {unlockedAnimals.map((animalType, index) => (
