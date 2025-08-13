@@ -2,6 +2,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Suspense, useEffect, memo } from 'react';
 import { Animal } from './Animal';
+import { GLBIsland } from './GLBIsland';
 
 const BiomeIsland = memo((
   { biome, baseColor = '#4a7c59', waterColor = '#3b82c7' }:
@@ -335,13 +336,8 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           />
           <pointLight position={[-5, 5, -5]} intensity={0.3} color={theme.warmLight} />
 
-          {/* Island */}
-          <BiomeIsland 
-            key={currentBiome} 
-            biome={currentBiome} 
-            baseColor={theme.baseColor} 
-            waterColor={theme.waterColor} 
-          />
+          {/* GLB Island */}
+          <GLBIsland islandType="grass-lake-island" />
 
           {/* Animals */}
           {unlockedAnimals.map((animalType, index) => (
