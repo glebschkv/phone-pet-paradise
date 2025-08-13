@@ -36,14 +36,23 @@ export const GLBAnimal = ({
       sceneChildren: scene.children.length,
       animationsCount: animations.length,
       animationNames: animations.map(anim => anim.name),
-      actionsAvailable: Object.keys(actions)
+      actionsAvailable: Object.keys(actions),
+      hasAnimations: animations.length > 0
     });
+    
+    if (animations.length === 0) {
+      console.warn(`No animations found in ${animalType} GLB model`);
+    }
   }, [scene, animations, actions, animalType]);
 
-  // Auto-cycle through animations every 10 seconds
+  // Handle animations
   useEffect(() => {
-    if (animations.length === 0) return;
+    if (animations.length === 0) {
+      console.log(`${animalType}: No animations available, model will be static`);
+      return;
+    }
 
+    console.log(`${animalType}: Setting up animations...`);
     let currentAnimationIndex = 0;
     
     const playAnimation = (index: number) => {
@@ -52,26 +61,38 @@ export const GLBAnimal = ({
       
       // Play current animation
       const animationName = animations[index].name;
-      if (actions[animationName]) {
-        actions[animationName]?.reset().play();
-        console.log(`Playing ${animalType} animation: ${animationName}`);
+      const action = actions[animationName];
+      if (action) {
+        action.reset().play();
+        console.log(`${animalType}: Playing animation "${animationName}"`);
+      } else {
+        console.warn(`${animalType}: Action "${animationName}" not found in actions`);
       }
     };
 
     // Play initial animation
     if (animationName && actions[animationName]) {
-      actions[animationName]?.play();
-    } else {
+      console.log(`${animalType}: Starting with specified animation "${animationName}"`);
+      actions[animationName]?.reset().play();
+    } else if (animations.length > 0) {
+      console.log(`${animalType}: Starting with first available animation`);
       playAnimation(0);
     }
 
     // Set up interval to cycle animations every 10 seconds
     const interval = setInterval(() => {
-      currentAnimationIndex = (currentAnimationIndex + 1) % animations.length;
-      playAnimation(currentAnimationIndex);
+      if (animations.length > 1) {
+        currentAnimationIndex = (currentAnimationIndex + 1) % animations.length;
+        console.log(`${animalType}: Cycling to animation ${currentAnimationIndex}`);
+        playAnimation(currentAnimationIndex);
+      }
     }, 10000);
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log(`${animalType}: Cleaning up animations`);
+      clearInterval(interval);
+      Object.values(actions).forEach(action => action?.stop());
+    };
   }, [actions, animationName, animations, animalType]);
 
   // Animate position in circle
