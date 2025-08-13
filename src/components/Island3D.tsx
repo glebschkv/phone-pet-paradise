@@ -336,8 +336,8 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           />
           <pointLight position={[-5, 5, -5]} intensity={0.3} color={theme.warmLight} />
 
-          {/* GLB Island */}
-          <GLBIsland islandType="grass-lake-island" />
+          {/* Island */}
+          <BiomeIsland biome={currentBiome} baseColor={theme.baseColor} waterColor={theme.waterColor} />
 
           {/* Animals */}
           {unlockedAnimals.map((animalType, index) => (

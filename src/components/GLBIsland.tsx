@@ -25,20 +25,17 @@ export const GLBIsland = ({
   console.log(`🏝️ GLBIsland: Model path: ${config.modelPath}`);
   console.log(`🏝️ GLBIsland: Final scale: ${finalScale}`);
 
-  // Load the GLB model with error handling
-  let scene, error;
+  // Load the GLB model with proper error handling
+  let scene;
   try {
-    const gltfData = useGLTF(config.modelPath);
-    scene = gltfData.scene;
-    console.log(`🏝️ GLBIsland: Scene loaded successfully:`, !!scene);
-    if (scene) {
-      console.log(`🏝️ GLBIsland: Scene children count:`, scene.children.length);
-      console.log(`🏝️ GLBIsland: Scene boundingBox:`, scene.userData);
-    }
+    const gltfResult = useGLTF(config.modelPath);
+    scene = gltfResult.scene;
+    console.log(`🏝️ GLBIsland: GLTF loaded:`, !!gltfResult);
+    console.log(`🏝️ GLBIsland: Scene available:`, !!scene);
+    console.log(`🏝️ GLBIsland: Model path attempted:`, config.modelPath);
   } catch (err) {
-    error = err;
-    console.error(`🏝️ GLBIsland: Failed to load GLB:`, err);
-    setLoadError(err instanceof Error ? err.message : 'Unknown error');
+    console.error(`🏝️ GLBIsland: useGLTF failed:`, err);
+    scene = null;
   }
   
   // Clone the scene properly for instancing
