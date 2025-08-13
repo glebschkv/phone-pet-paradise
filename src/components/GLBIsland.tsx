@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { getIslandConfig } from './IslandConfig';
 
 interface GLBIslandProps {
   islandType: string;
@@ -10,8 +11,9 @@ interface GLBIslandProps {
 export const GLBIsland: React.FC<GLBIslandProps> = ({ islandType, scale = 3 }) => {
   const meshRef = useRef<THREE.Group>(null);
   
-  // Use the actual GLB file that exists in the project
-  const modelPath = '/assets/models/Island1.glb';
+  // Get island config and model path
+  const islandConfig = getIslandConfig(islandType);
+  const modelPath = islandConfig.modelPath;
   
   console.log('🏝️ GLBIsland: Loading', islandType);
   console.log('🏝️ GLBIsland: Path:', modelPath);
