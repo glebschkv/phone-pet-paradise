@@ -95,21 +95,24 @@ export const GLBAnimal = ({
     };
   }, [actions, animationName, animations, animalType]);
 
-  // Animate position in circle
+  // Animate position in circle around the island
   useFrame((state, delta) => {
     if (!groupRef.current) return;
 
-    const radius = Math.max(1.5, totalPets * 0.3);
-    const speed = isActive ? 0.5 : 0.1;
+    const radius = Math.max(2.0, totalPets * 0.4); // Larger radius for better visibility
+    const speed = isActive ? 0.8 : 0.3; // Faster movement
     
     setAngle(prev => prev + delta * speed);
     
     const x = Math.cos(angle) * radius;
     const z = Math.sin(angle) * radius;
-    const y = Math.sin(state.clock.elapsedTime + index) * 0.1;
+    const y = 0.2 + Math.sin(state.clock.elapsedTime * 2 + index) * 0.15; // More bobbing
     
     groupRef.current.position.set(x, y, z);
     groupRef.current.lookAt(0, groupRef.current.position.y, 0);
+    
+    // Add slight rotation for more life
+    groupRef.current.rotation.y = -angle + Math.PI / 2;
   });
 
   return (
