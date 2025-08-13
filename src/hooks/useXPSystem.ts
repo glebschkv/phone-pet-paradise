@@ -127,42 +127,19 @@ export const useXPSystem = () => {
     availableBiomes: ['Meadow'],
   });
 
-// Load saved state from localStorage
+// Load saved state from localStorage - TEMPORARILY DISABLED FOR PANDA GLB TESTING
 useEffect(() => {
-  const savedState = localStorage.getItem(STORAGE_KEY);
-  if (savedState) {
-    try {
-      const parsed = JSON.parse(savedState);
-      console.log('Loaded XP state from localStorage:', parsed);
-      // Check if we need to reset due to old data structure
-      if (parsed.unlockedAnimals && parsed.unlockedAnimals[0] === 'Fox') {
-        console.log('Detected old Fox data, clearing localStorage and resetting to Panda');
-        localStorage.removeItem(STORAGE_KEY);
-        return; // Don't load the old state
-      }
-
-      // Normalize state for new MAX_LEVEL and biome availability
-      const clampedLevel = Math.min(parsed.currentLevel ?? 1, MAX_LEVEL);
-      const unlockedBiomes = BIOME_DATABASE
-        .filter(b => b.unlockLevel <= clampedLevel)
-        .map(b => b.name);
-      const normalizedBiome = unlockedBiomes.includes(parsed.currentBiome)
-        ? parsed.currentBiome
-        : (unlockedBiomes[unlockedBiomes.length - 1] || 'Meadow');
-
-      const normalized = {
-        ...parsed,
-        currentLevel: clampedLevel,
-        availableBiomes: unlockedBiomes.length ? unlockedBiomes : ['Meadow'],
-        currentBiome: normalizedBiome,
-        unlockedAnimals: normalizeAnimalList(parsed.unlockedAnimals),
-      };
-
-      setXPState(prev => ({ ...prev, ...normalized }));
-    } catch (error) {
-      console.error('Failed to parse saved XP state:', error);
-    }
-  }
+  // Force only Panda for testing GLB model
+  console.log('TESTING MODE: Only showing Panda GLB');
+  setXPState({
+    currentXP: 0,
+    currentLevel: 1,
+    xpToNextLevel: 25,
+    totalXPForCurrentLevel: 0,
+    unlockedAnimals: ['Panda'], // Only Panda for testing
+    currentBiome: 'Meadow',
+    availableBiomes: ['Meadow'],
+  });
 }, []);
 
   // Save state to localStorage
