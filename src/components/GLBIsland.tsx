@@ -15,15 +15,18 @@ export const GLBIsland: React.FC<GLBIslandProps> = ({ islandType, scale = 3 }) =
   const islandConfig = getIslandConfig(islandType);
   const modelPath = islandConfig.modelPath;
   
-  console.log('🏝️ GLBIsland: Loading', islandType);
+  console.log('🏝️ GLBIsland: Loading', islandType, 'at', new Date().toISOString());
   console.log('🏝️ GLBIsland: Path:', modelPath);
+  
+  // Force reload by appending timestamp to bypass cache
+  const cacheBustedPath = `${modelPath}?t=${Date.now()}`;
   
   let gltf;
   let hasError = false;
   
   try {
-    gltf = useGLTF(modelPath);
-    console.log('🏝️ GLBIsland: GLB loaded successfully');
+    gltf = useGLTF(cacheBustedPath);
+    console.log('🏝️ GLBIsland: GLB loaded successfully with cache bust');
   } catch (error) {
     console.error('🏝️ GLBIsland: Error loading GLB:', error);
     hasError = true;
