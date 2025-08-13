@@ -1,11 +1,11 @@
 import { useGLTF } from '@react-three/drei';
-import { useRef, useMemo, useEffect, useState } from 'react';
-import { Group, Mesh } from 'three';
+import { useRef, useMemo } from 'react';
+import { Group } from 'three';
 import { SkeletonUtils } from 'three-stdlib';
-import { getIslandConfig, ISLAND_MODELS } from './IslandConfig';
+import { getIslandConfig } from './IslandConfig';
 
 interface GLBIslandProps {
-  islandType?: string; // Key from ISLAND_MODELS
+  islandType?: string;
   scale?: number;
 }
 
@@ -14,114 +14,62 @@ export const GLBIsland = ({
   scale 
 }: GLBIslandProps) => {
   const groupRef = useRef<Group>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   
   // Get island configuration
   const config = getIslandConfig(islandType);
-  const finalScale = scale || config.scale || 3; // Increased default scale
+  const finalScale = scale || config.scale || 1;
   
-  console.log(`🏝️ GLBIsland: Starting to load ${config.name}`);
-  console.log(`🏝️ GLBIsland: Model path: ${config.modelPath}`);
-  console.log(`🏝️ GLBIsland: Final scale: ${finalScale}`);
-
-  // Load the GLB model with proper error handling
-  let scene;
-  try {
-    const gltfResult = useGLTF(config.modelPath);
-    scene = gltfResult.scene;
-    console.log(`🏝️ GLBIsland: GLTF loaded:`, !!gltfResult);
-    console.log(`🏝️ GLBIsland: Scene available:`, !!scene);
-    console.log(`🏝️ GLBIsland: Model path attempted:`, config.modelPath);
-  } catch (err) {
-    console.error(`🏝️ GLBIsland: useGLTF failed:`, err);
-    scene = null;
-  }
+  console.log(`🏝️ GLBIsland: Loading ${config.name}`);
+  console.log(`🏝️ GLBIsland: Path: ${config.modelPath}`);
   
-  // Clone the scene properly for instancing
+  // Load the GLB model
+  const { scene } = useGLTF(config.modelPath);
+  
+  // Clone the scene for instancing
   const sceneClone = useMemo(() => {
     if (!scene) {
-      console.log(`🏝️ GLBIsland: No scene to clone`);
+      console.log(`🏝️ GLBIsland: No scene available`);
       return null;
     }
     
-    try {
-      const cloned = SkeletonUtils.clone(scene);
-      console.log(`🏝️ GLBIsland: Scene cloned successfully`);
-      
-      // Traverse and setup shadows
-      let meshCount = 0;
-      cloned.traverse((child) => {
-        if ((child as any).isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          meshCount++;
-          const mesh = child as Mesh;
-          console.log(`🏝️ GLBIsland: Mesh found:`, child.name || 'unnamed', mesh.geometry?.type);
-        }
-      });
-      
-      console.log(`🏝️ GLBIsland: Total meshes found: ${meshCount}`);
-      setIsLoaded(true);
-      return cloned;
-    } catch (err) {
-      console.error(`🏝️ GLBIsland: Error cloning scene:`, err);
-      setLoadError(err instanceof Error ? err.message : 'Clone error');
-      return null;
-    }
+    console.log(`🏝️ GLBIsland: Cloning scene with ${scene.children.length} children`);
+    const cloned = SkeletonUtils.clone(scene);
+    
+    // Set up shadows
+    cloned.traverse((child) => {
+      if ((child as any).isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+    
+    console.log(`🏝️ GLBIsland: Scene cloned successfully`);
+    return cloned;
   }, [scene]);
 
-  useEffect(() => {
-    if (sceneClone && groupRef.current) {
-      console.log(`🏝️ GLBIsland: Scene mounted to group`);
-      console.log(`🏝️ GLBIsland: Group position:`, groupRef.current.position);
-      console.log(`🏝️ GLBIsland: Group scale:`, groupRef.current.scale);
-    }
-  }, [sceneClone]);
-
-  // Render error state
-  if (loadError) {
-    console.error(`🏝️ GLBIsland: Rendering error fallback`);
-    return (
-      <group ref={groupRef} position={[0, -0.5, 0]}>
-        <mesh>
-          <cylinderGeometry args={[2, 2.5, 0.8, 8]} />
-          <meshLambertMaterial color="#ff4444" />
-        </mesh>
-        <mesh position={[0, 0.5, 0]}>
-          <boxGeometry args={[0.2, 1, 0.2]} />
-          <meshLambertMaterial color="#8B4513" />
-        </mesh>
-      </group>
-    );
-  }
-
-  // Render loading state
   if (!sceneClone) {
-    console.log(`🏝️ GLBIsland: Rendering loading fallback`);
+    console.log(`🏝️ GLBIsland: Rendering fallback - no scene clone`);
     return (
       <group ref={groupRef} position={[0, -0.5, 0]}>
         <mesh>
           <cylinderGeometry args={[2, 2.5, 0.8, 8]} />
-          <meshLambertMaterial color="#666666" />
+          <meshLambertMaterial color="#4a7c59" />
         </mesh>
       </group>
     );
   }
 
-  console.log(`🏝️ GLBIsland: Rendering GLB scene`);
+  console.log(`🏝️ GLBIsland: Rendering GLB island at scale ${finalScale}`);
   return (
     <group 
       ref={groupRef} 
       scale={[finalScale, finalScale, finalScale]}
-      position={[0, -0.5, 0]} // Match original island positioning
+      position={[0, -0.5, 0]}
     >
       <primitive object={sceneClone} />
     </group>
   );
 };
 
-// Preload all available island models
-Object.values(ISLAND_MODELS).forEach(island => {
-  useGLTF.preload(island.modelPath);
-});
+// Preload the grass-lake-island model
+useGLTF.preload('/assets/models/Island_10 (Grass with a small lake).glb');
