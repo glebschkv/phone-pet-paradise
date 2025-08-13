@@ -8,6 +8,12 @@ export interface IslandModelConfig {
 
 // Available island models - add your new GLB files here
 export const ISLAND_MODELS: Record<string, IslandModelConfig> = {
+  'grass-lake-island': {
+    name: 'Grass Island with Lake',
+    modelPath: '/assets/models/Island_10 (Grass with a small lake).glb',
+    scale: 1,
+    description: 'Beautiful grass island with a small lake'
+  },
   'small-island-fox': {
     name: 'Small Island with Fox',
     modelPath: '/assets/models/Small Island with Fox.glb',
@@ -25,5 +31,5 @@ export const ISLAND_MODELS: Record<string, IslandModelConfig> = {
 
 // Helper function to get island config
 export const getIslandConfig = (islandKey: string): IslandModelConfig => {
-  return ISLAND_MODELS[islandKey] || ISLAND_MODELS['small-island-fox'];
+  return ISLAND_MODELS[islandKey] || ISLAND_MODELS['grass-lake-island'];
 };

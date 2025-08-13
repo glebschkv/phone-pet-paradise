@@ -10,7 +10,7 @@ interface GLBIslandProps {
 }
 
 export const GLBIsland = ({ 
-  islandType = 'small-island-fox', 
+  islandType = 'grass-lake-island', 
   scale 
 }: GLBIslandProps) => {
   const groupRef = useRef<Group>(null);
