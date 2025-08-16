@@ -151,18 +151,10 @@ export const GLBAnimal = ({
     }
 
     // Set ray origin high above the position
-    tempVector.set(x, 20, z);
+    tempVector.set(x, 10, z);
     raycaster.set(tempVector, new Vector3(0, -1, 0));
     
-    // Get all meshes in the scene for intersection testing
-    const meshes: Mesh[] = [];
-    threeScene.traverse((child) => {
-      if (child instanceof Mesh && child.visible) {
-        meshes.push(child);
-      }
-    });
-    
-    // If we have an island reference, prioritize it
+    // If we have an island reference, ONLY use that
     if (islandRef?.current) {
       const islandMeshes: Mesh[] = [];
       islandRef.current.traverse((child) => {
@@ -174,30 +166,24 @@ export const GLBAnimal = ({
         const intersects = raycaster.intersectObjects(islandMeshes);
         if (intersects.length > 0) {
           setMovementState(prev => ({ ...prev, lastRaycastTime: currentTime }));
-          const surfaceY = intersects[0].point.y + 0.1; // Small offset to stand on surface
-          console.log(`${animalType}: Found island surface at Y: ${surfaceY.toFixed(2)}`);
+          const surfaceY = intersects[0].point.y + 0.1;
+          console.log(`${animalType}: Found ISLAND surface at Y: ${surfaceY.toFixed(2)}`);
           return { 
             height: surfaceY,
             normal: intersects[0].face?.normal 
           };
+        } else {
+          console.log(`${animalType}: Island has ${islandMeshes.length} meshes but no intersection found`);
         }
+      } else {
+        console.log(`${animalType}: Island ref exists but no meshes found`);
       }
+    } else {
+      console.log(`${animalType}: No island reference available`);
     }
     
-    // Fallback: test against all meshes
-    const intersects = raycaster.intersectObjects(meshes);
-    if (intersects.length > 0) {
-      setMovementState(prev => ({ ...prev, lastRaycastTime: currentTime }));
-      const surfaceY = intersects[0].point.y + 0.1; // Small offset to stand on surface
-      console.log(`${animalType}: Found general surface at Y: ${surfaceY.toFixed(2)}`);
-      return { 
-        height: surfaceY,
-        normal: intersects[0].face?.normal 
-      };
-    }
-    
-    // Fallback to safe height if no intersection found
-    console.log(`${animalType}: No surface found, using fallback height 0.2`);
+    // For now, just use a safe fixed height since raycasting is problematic
+    console.log(`${animalType}: Using fallback height 0.2`);
     return { height: 0.2 }; // Safe height above the island
   };
 
