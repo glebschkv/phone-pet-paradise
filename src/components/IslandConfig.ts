@@ -10,9 +10,9 @@ export interface IslandModelConfig {
 export const ISLAND_MODELS: Record<string, IslandModelConfig> = {
   'default-island': {
     name: 'Default Island',
-    modelPath: '/assets/models/Elephant.glb',
+    modelPath: '/assets/models/Island_10 (Grass with a small lake).glb',
     scale: 1,
-    description: 'Using Elephant model as island base'
+    description: 'Grass island with small lake'
   },
   'grass-lake-island': {
     name: 'Grass Island with Lake', 
