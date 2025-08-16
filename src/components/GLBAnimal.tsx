@@ -211,7 +211,7 @@ export const GLBAnimal = ({
     }
 
     // Set position on island surface
-    const surfaceHeight = 0.1 + Math.sin(state.clock.elapsedTime * 2 + index) * 0.05; // Subtle bobbing
+    const surfaceHeight = 0.6 + Math.sin(state.clock.elapsedTime * 2 + index) * 0.05; // Above the island surface
     groupRef.current.position.set(position.x, surfaceHeight, position.z);
     
     // Face movement direction when walking
