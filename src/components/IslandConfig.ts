@@ -6,13 +6,13 @@ export interface IslandModelConfig {
   description?: string;
 }
 
-// Available island models - using existing animal models as temporary islands
+// Available island models
 export const ISLAND_MODELS: Record<string, IslandModelConfig> = {
   'default-island': {
-    name: 'Default Island',
-    modelPath: '/assets/models/Elephant.glb',
+    name: 'Grassy Island',
+    modelPath: '/assets/models/grassyisland1.glb',
     scale: 1,
-    description: 'Using Elephant as temporary island'
+    description: 'Main grassy island with lake'
   },
   'grass-lake-island': {
     name: 'Grass Island with Lake', 
