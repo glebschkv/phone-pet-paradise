@@ -369,8 +369,8 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           {/* Controls */}
           <OrbitControls 
             enablePan={false}
-            minDistance={3}
-            maxDistance={8}
+            minDistance={2}
+            maxDistance={50}
             minPolarAngle={Math.PI / 6}
             maxPolarAngle={Math.PI / 2.2}
             autoRotate
