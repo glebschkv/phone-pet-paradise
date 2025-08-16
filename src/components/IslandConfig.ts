@@ -10,7 +10,7 @@ export interface IslandModelConfig {
 export const ISLAND_MODELS: Record<string, IslandModelConfig> = {
   'default-island': {
     name: 'Grassy Island',
-    modelPath: '/assets/models/grassyisland1.glb',
+    modelPath: '/assets/models/grassyisland1.glb?v=2',
     scale: 1,
     description: 'Main grassy island with lake'
   },
