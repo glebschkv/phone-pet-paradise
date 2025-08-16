@@ -3,6 +3,7 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Suspense, useEffect, memo } from 'react';
 import { Animal } from './Animal';
 import { GLBIsland } from './GLBIsland';
+import { GLBErrorBoundary } from './GLBErrorBoundary';
 
 const BiomeIsland = memo((
   { biome, baseColor = '#4a7c59', waterColor = '#3b82c7' }:
@@ -336,8 +337,23 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           />
           <pointLight position={[-5, 5, -5]} intensity={0.3} color={theme.warmLight} />
 
-          {/* GLB Island */}
-          <GLBIsland islandType="grass-lake-island" scale={2} />
+          {/* GLB Island with Error Boundary */}
+          <GLBErrorBoundary 
+            fallback={
+              <group scale={[2, 2, 2]} position={[0, -0.5, 0]}>
+                <mesh position={[0, -0.5, 0]} castShadow receiveShadow>
+                  <cylinderGeometry args={[2, 2.5, 0.8, 16]} />
+                  <meshLambertMaterial color="#4a7c59" />
+                </mesh>
+                <mesh position={[0, -1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                  <planeGeometry args={[10, 10]} />
+                  <meshLambertMaterial color="#3b82c7" transparent opacity={0.7} />
+                </mesh>
+              </group>
+            }
+          >
+            <GLBIsland islandType="default-island" scale={2} />
+          </GLBErrorBoundary>
 
           {/* Animals */}
           {unlockedAnimals.map((animalType, index) => (
