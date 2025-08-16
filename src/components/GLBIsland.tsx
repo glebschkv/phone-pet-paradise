@@ -10,8 +10,9 @@ interface GLBIslandProps {
 }
 
 export const GLBIsland = React.forwardRef<Group, GLBIslandProps>(({ islandType, scale = 3 }, ref) => {
-  const meshRef = useRef<THREE.Group>(null);
-  const groupRef = (ref as React.RefObject<Group>) || meshRef;
+  // Use the passed ref directly, or create a local one as fallback
+  const localRef = useRef<Group>(null);
+  const groupRef = ref || localRef;
   
   // Get island config and model path
   const islandConfig = getIslandConfig(islandType);

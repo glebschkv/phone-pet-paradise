@@ -174,8 +174,10 @@ export const GLBAnimal = ({
         const intersects = raycaster.intersectObjects(islandMeshes);
         if (intersects.length > 0) {
           setMovementState(prev => ({ ...prev, lastRaycastTime: currentTime }));
+          const surfaceY = intersects[0].point.y + 0.1; // Small offset to stand on surface
+          console.log(`${animalType}: Found island surface at Y: ${surfaceY.toFixed(2)}`);
           return { 
-            height: intersects[0].point.y + 0.1, // Small offset to stand on surface
+            height: surfaceY,
             normal: intersects[0].face?.normal 
           };
         }
@@ -186,14 +188,17 @@ export const GLBAnimal = ({
     const intersects = raycaster.intersectObjects(meshes);
     if (intersects.length > 0) {
       setMovementState(prev => ({ ...prev, lastRaycastTime: currentTime }));
+      const surfaceY = intersects[0].point.y + 0.1; // Small offset to stand on surface
+      console.log(`${animalType}: Found general surface at Y: ${surfaceY.toFixed(2)}`);
       return { 
-        height: intersects[0].point.y + 0.1, // Small offset to stand on surface
+        height: surfaceY,
         normal: intersects[0].face?.normal 
       };
     }
     
-    // Fallback to default height if no intersection found
-    return { height: 0.5 };
+    // Fallback to safe height if no intersection found
+    console.log(`${animalType}: No surface found, using fallback height 0.2`);
+    return { height: 0.2 }; // Safe height above the island
   };
 
   // Natural walking behavior on the island surface
@@ -274,7 +279,13 @@ export const GLBAnimal = ({
 
     // Get surface height using raycasting for natural terrain following
     const surfaceData = getSurfaceHeight(position.x, position.z);
-    const surfaceHeight = surfaceData.height;
+    let surfaceHeight = surfaceData.height;
+    
+    // Safety check: if surface height is unreasonable, use safe fallback
+    if (surfaceHeight > 10 || surfaceHeight < -5) {
+      console.warn(`${animalType}: Unreasonable surface height ${surfaceHeight}, using fallback`);
+      surfaceHeight = 0.2;
+    }
     
     // Update position with surface-following
     setPosition(prev => ({
