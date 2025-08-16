@@ -1,7 +1,7 @@
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { useRef, useEffect, useState, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Group, Vector3 } from 'three';
+import { useFrame, useThree } from '@react-three/fiber';
+import { Group, Vector3, Raycaster, Mesh } from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 
 interface GLBAnimalProps {
@@ -12,6 +12,7 @@ interface GLBAnimalProps {
   index: number;
   scale?: number;
   animationName?: string;
+  islandRef?: React.RefObject<Group>;
 }
 
 export const GLBAnimal = ({ 
@@ -21,9 +22,14 @@ export const GLBAnimal = ({
   isActive, 
   index, 
   scale = 0.5,
-  animationName 
+  animationName,
+  islandRef 
 }: GLBAnimalProps) => {
   const groupRef = useRef<Group>(null);
+  const { scene: threeScene } = useThree();
+  const raycaster = useMemo(() => new Raycaster(), []);
+  const tempVector = useMemo(() => new Vector3(), []);
+  
   const [position, setPosition] = useState(() => {
     // Start at random position on the island
     const angle = Math.random() * Math.PI * 2;
@@ -31,13 +37,15 @@ export const GLBAnimal = ({
     return {
       x: Math.cos(angle) * radius,
       z: Math.sin(angle) * radius,
+      y: 0,
       targetAngle: angle
     };
   });
   const [movementState, setMovementState] = useState({
     isWalking: false,
     pauseTimer: 0,
-    nextDirectionChange: Math.random() * 3 + 2 // 2-5 seconds until first direction change
+    nextDirectionChange: Math.random() * 3 + 2, // 2-5 seconds until first direction change
+    lastRaycastTime: 0
   });
   
   // Load GLB model
@@ -134,6 +142,60 @@ export const GLBAnimal = ({
 
   }, [actions, animations, animalType, mixer, movementState.isWalking]);
 
+  // Helper function to get surface height using raycasting
+  const getSurfaceHeight = (x: number, z: number): { height: number; normal?: Vector3 } => {
+    // Only raycast every few frames for performance
+    const currentTime = Date.now();
+    if (currentTime - movementState.lastRaycastTime < 100) { // Cache for 100ms
+      return { height: position.y };
+    }
+
+    // Set ray origin high above the position
+    tempVector.set(x, 20, z);
+    raycaster.set(tempVector, new Vector3(0, -1, 0));
+    
+    // Get all meshes in the scene for intersection testing
+    const meshes: Mesh[] = [];
+    threeScene.traverse((child) => {
+      if (child instanceof Mesh && child.visible) {
+        meshes.push(child);
+      }
+    });
+    
+    // If we have an island reference, prioritize it
+    if (islandRef?.current) {
+      const islandMeshes: Mesh[] = [];
+      islandRef.current.traverse((child) => {
+        if (child instanceof Mesh && child.visible) {
+          islandMeshes.push(child);
+        }
+      });
+      if (islandMeshes.length > 0) {
+        const intersects = raycaster.intersectObjects(islandMeshes);
+        if (intersects.length > 0) {
+          setMovementState(prev => ({ ...prev, lastRaycastTime: currentTime }));
+          return { 
+            height: intersects[0].point.y + 0.1, // Small offset to stand on surface
+            normal: intersects[0].face?.normal 
+          };
+        }
+      }
+    }
+    
+    // Fallback: test against all meshes
+    const intersects = raycaster.intersectObjects(meshes);
+    if (intersects.length > 0) {
+      setMovementState(prev => ({ ...prev, lastRaycastTime: currentTime }));
+      return { 
+        height: intersects[0].point.y + 0.1, // Small offset to stand on surface
+        normal: intersects[0].face?.normal 
+      };
+    }
+    
+    // Fallback to default height if no intersection found
+    return { height: 0.5 };
+  };
+
   // Natural walking behavior on the island surface
   useFrame((state, delta) => {
     if (!groupRef.current) {
@@ -210,30 +272,59 @@ export const GLBAnimal = ({
       }));
     }
 
-    // Set position on island surface
-    const surfaceHeight = 5 + Math.sin(state.clock.elapsedTime * 2 + index) * 0.05; // Above the island
+    // Get surface height using raycasting for natural terrain following
+    const surfaceData = getSurfaceHeight(position.x, position.z);
+    const surfaceHeight = surfaceData.height;
+    
+    // Update position with surface-following
+    setPosition(prev => ({
+      ...prev,
+      y: surfaceHeight
+    }));
+    
     groupRef.current.position.set(position.x, surfaceHeight, position.z);
+    
+    // Apply surface normal alignment for natural standing on slopes
+    if (surfaceData.normal && groupRef.current.parent) {
+      const worldNormal = surfaceData.normal.clone();
+      worldNormal.transformDirection(groupRef.current.parent.matrixWorld);
+      
+      // Slightly tilt the animal to match surface normal (not too extreme)
+      const tiltAmount = 0.3; // Reduce tilt for more subtle effect
+      const currentRotation = groupRef.current.rotation.clone();
+      const targetRotation = new Vector3();
+      
+      // Calculate tilt based on surface normal
+      targetRotation.x = Math.atan2(worldNormal.z, worldNormal.y) * tiltAmount;
+      targetRotation.z = -Math.atan2(worldNormal.x, worldNormal.y) * tiltAmount;
+      
+      // Smoothly interpolate rotation
+      groupRef.current.rotation.x += (targetRotation.x - currentRotation.x) * delta * 2;
+      groupRef.current.rotation.z += (targetRotation.z - currentRotation.z) * delta * 2;
+    }
     
     // Face movement direction when walking
     if (movementState.isWalking) {
-      groupRef.current.lookAt(
+      const lookTarget = tempVector.set(
         position.x + Math.cos(position.targetAngle),
         surfaceHeight,
         position.z + Math.sin(position.targetAngle)
       );
+      groupRef.current.lookAt(lookTarget);
     } else {
       // Occasional head turns when idle
       const lookAngle = position.targetAngle + Math.sin(state.clock.elapsedTime * 0.3 + index) * 0.3;
-      groupRef.current.lookAt(
+      const lookTarget = tempVector.set(
         position.x + Math.cos(lookAngle),
         surfaceHeight,
         position.z + Math.sin(lookAngle)
       );
+      groupRef.current.lookAt(lookTarget);
     }
     
     // Debug logging (reduced frequency)
     if (Math.floor(state.clock.elapsedTime) % 10 === 0 && Math.floor(state.clock.elapsedTime * 10) % 100 === 0) {
-      console.log(`${animalType}: ${movementState.isWalking ? 'Walking' : 'Paused'} at x: ${position.x.toFixed(2)}, z: ${position.z.toFixed(2)}`);
+      console.log(`${animalType}: ${movementState.isWalking ? 'Walking' : 'Paused'} at x: ${position.x.toFixed(2)}, y: ${surfaceHeight.toFixed(2)}, z: ${position.z.toFixed(2)}`);
     }
   });
 

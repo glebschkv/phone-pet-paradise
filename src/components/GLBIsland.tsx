@@ -1,15 +1,17 @@
 import React, { useRef, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { Group } from 'three';
 import { getIslandConfig } from './IslandConfig';
 
-interface GLBIslandProps {
-  islandType: string;
-  scale?: number;
+interface GLBIslandProps { 
+  islandType: string; 
+  scale?: number; 
 }
 
-export const GLBIsland: React.FC<GLBIslandProps> = ({ islandType, scale = 3 }) => {
+export const GLBIsland = React.forwardRef<Group, GLBIslandProps>(({ islandType, scale = 3 }, ref) => {
   const meshRef = useRef<THREE.Group>(null);
+  const groupRef = (ref as React.RefObject<Group>) || meshRef;
   
   // Get island config and model path
   const islandConfig = getIslandConfig(islandType);
@@ -41,7 +43,7 @@ export const GLBIsland: React.FC<GLBIslandProps> = ({ islandType, scale = 3 }) =
     console.warn('🏝️ GLBIsland: No scene in GLB, rendering fallback');
     // Render a simple fallback island
     return (
-      <group ref={meshRef} scale={[scale, scale, scale]} position={[0, -0.5, 0]}>
+      <group ref={groupRef} scale={[scale, scale, scale]} position={[0, -0.5, 0]}>
         <mesh>
           <cylinderGeometry args={[2, 2, 0.5, 16]} />
           <meshStandardMaterial color="#4ade80" />
@@ -58,8 +60,8 @@ export const GLBIsland: React.FC<GLBIslandProps> = ({ islandType, scale = 3 }) =
   console.log('🏝️ GLBIsland: Rendering cloned scene at position [0, -0.5, 0] with scale', scale);
   
   return (
-    <group ref={meshRef} scale={[scale, scale, scale]} position={[0, -0.5, 0]}>
+    <group ref={groupRef} scale={[scale, scale, scale]} position={[0, -0.5, 0]}>
       <primitive object={clonedScene} />
     </group>
   );
-};
+});

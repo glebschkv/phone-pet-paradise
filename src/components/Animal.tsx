@@ -13,6 +13,7 @@ interface AnimalProps {
   isActive: boolean;
   animalType: string;
   index: number;
+  islandRef?: React.RefObject<Group>;
 }
 
 const PrimitiveAnimal = ({
@@ -532,7 +533,7 @@ const PrimitiveAnimal = ({
   }
 };
 
-export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) => {
+export const Animal = ({ totalPets, isActive, animalType, index, islandRef }: AnimalProps) => {
   const modelConfig = ANIMAL_MODEL_CONFIG[animalType];
   
   // Use GLB model if configured and available
@@ -563,6 +564,7 @@ export const Animal = ({ totalPets, isActive, animalType, index }: AnimalProps) 
             index={index}
             scale={modelConfig.scale}
             animationName={modelConfig.animationName}
+            islandRef={islandRef}
           />
         </GLBErrorBoundary>
       </Suspense>

@@ -1,6 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { Suspense, useEffect, memo } from 'react';
+import { Suspense, useEffect, memo, useRef } from 'react';
+import { Group } from 'three';
 import { Animal } from './Animal';
 import { GLBIsland } from './GLBIsland';
 import { GLBErrorBoundary } from './GLBErrorBoundary';
@@ -301,6 +302,8 @@ interface Island3DProps {
 }
 
 export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, unlockedAnimals = ['Rabbit'], currentBiome = 'Meadow' }: Island3DProps) => {
+  const islandRef = useRef<Group>(null);
+  
   useEffect(() => {
     console.log('Island3D received currentBiome:', currentBiome);
   }, [currentBiome]);
@@ -340,7 +343,7 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
           {/* GLB Island with Error Boundary */}
           <GLBErrorBoundary 
             fallback={
-              <group scale={[2, 2, 2]} position={[0, -0.5, 0]}>
+              <group ref={islandRef} scale={[2, 2, 2]} position={[0, -0.5, 0]}>
                 <mesh position={[0, -0.5, 0]} castShadow receiveShadow>
                   <cylinderGeometry args={[2, 2.5, 0.8, 16]} />
                   <meshLambertMaterial color="#4a7c59" />
@@ -352,7 +355,7 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
               </group>
             }
           >
-            <GLBIsland islandType="default-island" scale={0.4} />
+            <GLBIsland islandType="default-island" scale={0.4} ref={islandRef} />
           </GLBErrorBoundary>
 
           {/* Animals */}
@@ -363,6 +366,7 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
               totalPets={totalPets}
               isActive={isAppActive}
               index={index}
+              islandRef={islandRef}
             />
           ))}
 
