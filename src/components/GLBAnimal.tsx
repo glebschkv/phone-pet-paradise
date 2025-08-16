@@ -292,7 +292,7 @@ export const GLBAnimal = ({
       if (distanceFromCenter > maxRadius || 
           futureSurfaceInfo.surfaceType === 'water' || 
           !futureSurfaceInfo.isValidSurface ||
-          futureSurfaceInfo.slope > Math.PI / 4) { // 45° max slope
+          futureSurfaceInfo.slope > Math.PI / 2.5) { // 72° max slope (more permissive)
         
         // Turn away from boundary/obstacle
         const avoidanceAngle = Math.atan2(-newZ, -newX) + (Math.random() - 0.5) * Math.PI;

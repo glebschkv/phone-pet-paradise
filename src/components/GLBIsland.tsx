@@ -166,7 +166,7 @@ export const GLBIsland = React.forwardRef<Group, GLBIslandProps>(({ islandType, 
           <mesh 
             key={i} 
             name={`fallback-mound-${i}`}
-            position={mound.pos} 
+            position={[mound.pos[0], mound.pos[1], mound.pos[2]]} 
             castShadow 
             receiveShadow
           >
