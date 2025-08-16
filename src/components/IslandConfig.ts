@@ -6,25 +6,25 @@ export interface IslandModelConfig {
   description?: string;
 }
 
-// Available island models - add your new GLB files here
+// Available island models - using existing animal models as temporary islands
 export const ISLAND_MODELS: Record<string, IslandModelConfig> = {
   'default-island': {
     name: 'Default Island',
-    modelPath: '/assets/models/Island1.glb',
+    modelPath: '/assets/models/Elephant.glb',
     scale: 1,
-    description: 'Default island model'
+    description: 'Using Elephant model as island base'
   },
   'grass-lake-island': {
     name: 'Grass Island with Lake', 
-    modelPath: '/assets/models/Island1.glb',
-    scale: 1,
-    description: 'Beautiful grass island with a small lake'
+    modelPath: '/assets/models/Fox.glb',
+    scale: 2,
+    description: 'Using Fox model as island'
   },
-  'small-island-fox': {
-    name: 'Small Island with Fox',
-    modelPath: '/assets/models/Island1.glb', 
-    scale: 1,
-    description: 'Default small island with fox'
+  'panda-island': {
+    name: 'Panda Island',
+    modelPath: '/assets/models/Panda.glb', 
+    scale: 3,
+    description: 'Using Panda model as island'
   }
 };
 
