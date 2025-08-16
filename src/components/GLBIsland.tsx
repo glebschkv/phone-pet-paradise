@@ -15,16 +15,20 @@ export const GLBIsland: React.FC<GLBIslandProps> = ({ islandType, scale = 3 }) =
   const islandConfig = getIslandConfig(islandType);
   const modelPath = islandConfig.modelPath;
   
-  console.log('🏝️ GLBIsland: Loading', islandType);
+  console.log('🏝️ GLBIsland: Loading', islandType, 'at scale', scale);
   console.log('🏝️ GLBIsland: Path:', modelPath);
+  console.log('🏝️ GLBIsland: Config:', islandConfig);
   
-  // Use useGLTF unconditionally - error handling via error boundaries
+  // Use useGLTF with better error handling
   let gltf;
   try {
     gltf = useGLTF(modelPath);
     console.log('🏝️ GLBIsland: GLB loaded successfully', gltf);
+    console.log('🏝️ GLBIsland: Scene object:', gltf.scene);
+    console.log('🏝️ GLBIsland: Scene children count:', gltf.scene?.children?.length);
   } catch (error) {
     console.error('🏝️ GLBIsland: Failed to load GLB:', error);
+    console.error('🏝️ GLBIsland: Error details:', error);
     throw error;
   }
   
@@ -34,11 +38,24 @@ export const GLBIsland: React.FC<GLBIslandProps> = ({ islandType, scale = 3 }) =
   
   // GLB loaded successfully - clone and render
   if (!gltf?.scene) {
-    console.warn('🏝️ GLBIsland: No scene in GLB, using fallback');
-    return null;
+    console.warn('🏝️ GLBIsland: No scene in GLB, rendering fallback');
+    // Render a simple fallback island
+    return (
+      <group ref={meshRef} scale={[scale, scale, scale]} position={[0, -0.5, 0]}>
+        <mesh>
+          <cylinderGeometry args={[2, 2, 0.5, 16]} />
+          <meshStandardMaterial color="#4ade80" />
+        </mesh>
+        <mesh position={[0, 0.26, 0]}>
+          <cylinderGeometry args={[1.8, 1.8, 0.1, 16]} />
+          <meshStandardMaterial color="#22c55e" />
+        </mesh>
+      </group>
+    );
   }
   
   const clonedScene = gltf.scene.clone();
+  console.log('🏝️ GLBIsland: Rendering cloned scene at position [0, -0.5, 0] with scale', scale);
   
   return (
     <group ref={meshRef} scale={[scale, scale, scale]} position={[0, -0.5, 0]}>
