@@ -352,7 +352,7 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
               </group>
             }
           >
-            <GLBIsland islandType="default-island" scale={0.05} />
+            <GLBIsland islandType="default-island" scale={0.2} />
           </GLBErrorBoundary>
 
           {/* Animals */}
