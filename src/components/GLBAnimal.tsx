@@ -20,11 +20,25 @@ export const GLBAnimal = ({
   totalPets, 
   isActive, 
   index, 
-  scale = 0.5, // Increased default scale for better visibility
+  scale = 0.5,
   animationName 
 }: GLBAnimalProps) => {
   const groupRef = useRef<Group>(null);
-  const [angle, setAngle] = useState((index / totalPets) * Math.PI * 2);
+  const [position, setPosition] = useState(() => {
+    // Start at random position on the island
+    const angle = Math.random() * Math.PI * 2;
+    const radius = Math.random() * 1.2; // Stay within island bounds
+    return {
+      x: Math.cos(angle) * radius,
+      z: Math.sin(angle) * radius,
+      targetAngle: angle
+    };
+  });
+  const [movementState, setMovementState] = useState({
+    isWalking: false,
+    pauseTimer: 0,
+    nextDirectionChange: Math.random() * 3 + 2 // 2-5 seconds until first direction change
+  });
   
   // Load GLB model
   const { scene, animations } = useGLTF(modelPath);
@@ -62,72 +76,65 @@ export const GLBAnimal = ({
     }
   }, [scene, animations, actions, animalType, modelPath]);
 
-  // Handle animations
+  // Handle animations based on movement state
   useEffect(() => {
     if (!mixer || animations.length === 0) {
       console.log(`${animalType}: No animations available, model will be static`);
       return;
     }
 
-    console.log(`${animalType}: Setting up animations...`);
-    let currentAnimationIndex = 0;
-    
-    const playAnimation = (index: number) => {
-      // Stop all animations first
-      Object.values(actions).forEach(action => {
-        if (action) {
-          action.stop();
-          action.reset();
-        }
-      });
+    // Play appropriate animation based on movement state
+    const playWalkingAnimation = () => {
+      // Look for walking/running animations first
+      const walkingAnim = animations.find(anim => 
+        anim.name.toLowerCase().includes('walk') || 
+        anim.name.toLowerCase().includes('run') ||
+        anim.name.toLowerCase().includes('move')
+      );
       
-      // Play current animation
-      const animationName = animations[index].name;
-      const action = actions[animationName];
-      if (action) {
+      if (walkingAnim && actions[walkingAnim.name]) {
+        Object.values(actions).forEach(action => action?.stop());
+        const action = actions[walkingAnim.name];
         action.reset();
-        action.fadeIn(0.5);
+        action.fadeIn(0.3);
         action.play();
-        console.log(`${animalType}: Playing animation "${animationName}"`);
-      } else {
-        console.warn(`${animalType}: Action "${animationName}" not found in actions`);
+        console.log(`${animalType}: Playing walking animation "${walkingAnim.name}"`);
+      } else if (animations.length > 0) {
+        // Fallback to first animation
+        const action = actions[animations[0].name];
+        action?.reset();
+        action?.fadeIn(0.3);
+        action?.play();
       }
     };
 
-    // Play initial animation
-    if (animationName && actions[animationName]) {
-      console.log(`${animalType}: Starting with specified animation "${animationName}"`);
-      const action = actions[animationName];
-      action.reset();
-      action.fadeIn(0.5);
-      action.play();
-    } else if (animations.length > 0) {
-      console.log(`${animalType}: Starting with first available animation`);
-      playAnimation(0);
-    }
-
-    // Set up interval to cycle animations every 10 seconds (only if multiple animations)
-    let interval: NodeJS.Timeout | null = null;
-    if (animations.length > 1) {
-      interval = setInterval(() => {
-        currentAnimationIndex = (currentAnimationIndex + 1) % animations.length;
-        console.log(`${animalType}: Cycling to animation ${currentAnimationIndex}`);
-        playAnimation(currentAnimationIndex);
-      }, 10000);
-    }
-
-    return () => {
-      console.log(`${animalType}: Cleaning up animations`);
-      if (interval) clearInterval(interval);
-      Object.values(actions).forEach(action => {
-        if (action) {
-          action.stop();
-        }
-      });
+    const playIdleAnimation = () => {
+      // Look for idle animations
+      const idleAnim = animations.find(anim => 
+        anim.name.toLowerCase().includes('idle') || 
+        anim.name.toLowerCase().includes('stand')
+      );
+      
+      if (idleAnim && actions[idleAnim.name]) {
+        Object.values(actions).forEach(action => action?.stop());
+        const action = actions[idleAnim.name];
+        action.reset();
+        action.fadeIn(0.3);
+        action.play();
+        console.log(`${animalType}: Playing idle animation "${idleAnim.name}"`);
+      }
     };
-  }, [actions, animationName, animations, animalType, mixer]);
 
-  // Animate position in circle around the island AND update mixer
+    // Play animation based on movement state
+    if (movementState.isWalking) {
+      playWalkingAnimation();
+    } else {
+      playIdleAnimation();
+    }
+
+  }, [actions, animations, animalType, mixer, movementState.isWalking]);
+
+  // Natural walking behavior on the island surface
   useFrame((state, delta) => {
     if (!groupRef.current) {
       return;
@@ -138,34 +145,95 @@ export const GLBAnimal = ({
       mixer.update(delta);
     }
 
-    // Calculate circular movement
-    const radius = Math.max(2.5, totalPets * 0.5); // Increased radius for better visibility
-    const speed = isActive ? 1.0 : 0.4; // Increased speed
+    // Update movement state timers
+    setMovementState(prev => ({
+      ...prev,
+      pauseTimer: Math.max(0, prev.pauseTimer - delta),
+      nextDirectionChange: prev.nextDirectionChange - delta
+    }));
+
+    // Determine if should be walking or pausing
+    const shouldWalk = movementState.pauseTimer <= 0;
     
-    // Update angle
-    const newAngle = angle + delta * speed;
-    setAngle(newAngle);
+    if (shouldWalk !== movementState.isWalking) {
+      setMovementState(prev => ({
+        ...prev,
+        isWalking: shouldWalk,
+        pauseTimer: shouldWalk ? 0 : Math.random() * 2 + 1, // Pause for 1-3 seconds
+        nextDirectionChange: shouldWalk ? Math.random() * 3 + 2 : prev.nextDirectionChange
+      }));
+    }
+
+    // Walking movement
+    if (movementState.isWalking) {
+      const walkSpeed = 0.3; // Slower, more natural speed
+      const maxRadius = 1.3; // Stay within island bounds
+      
+      // Change direction periodically
+      if (movementState.nextDirectionChange <= 0) {
+        setPosition(prev => ({
+          ...prev,
+          targetAngle: Math.random() * Math.PI * 2
+        }));
+        setMovementState(prev => ({
+          ...prev,
+          nextDirectionChange: Math.random() * 4 + 2 // Change direction every 2-6 seconds
+        }));
+      }
+      
+      // Move towards target angle
+      const dx = Math.cos(position.targetAngle) * walkSpeed * delta;
+      const dz = Math.sin(position.targetAngle) * walkSpeed * delta;
+      
+      let newX = position.x + dx;
+      let newZ = position.z + dz;
+      
+      // Keep animal on the island (boundary checking)
+      const distanceFromCenter = Math.sqrt(newX * newX + newZ * newZ);
+      if (distanceFromCenter > maxRadius) {
+        // Turn around when hitting boundary
+        const angleToCenter = Math.atan2(-newZ, -newX);
+        setPosition(prev => ({
+          ...prev,
+          targetAngle: angleToCenter + (Math.random() - 0.5) * Math.PI * 0.5
+        }));
+        // Don't move beyond boundary
+        const scale = maxRadius / distanceFromCenter;
+        newX *= scale;
+        newZ *= scale;
+      }
+      
+      setPosition(prev => ({
+        ...prev,
+        x: newX,
+        z: newZ
+      }));
+    }
+
+    // Set position on island surface
+    const surfaceHeight = 0.1 + Math.sin(state.clock.elapsedTime * 2 + index) * 0.05; // Subtle bobbing
+    groupRef.current.position.set(position.x, surfaceHeight, position.z);
     
-    // Calculate position
-    const x = Math.cos(newAngle) * radius;
-    const z = Math.sin(newAngle) * radius;
-    const y = 0.3 + Math.sin(state.clock.elapsedTime * 2 + index) * 0.2; // More visible bobbing
-    
-    // Set position
-    groupRef.current.position.set(x, y, z);
-    
-    // Make the model face the center (0, 0, 0)
-    groupRef.current.lookAt(0, groupRef.current.position.y, 0);
-    
-    // Add a small rotation offset so the model faces forward correctly
-    groupRef.current.rotation.y += Math.PI;
-    
-    // Optional: Add some idle rotation for more life
-    groupRef.current.rotation.y += Math.sin(state.clock.elapsedTime + index) * 0.01;
+    // Face movement direction when walking
+    if (movementState.isWalking) {
+      groupRef.current.lookAt(
+        position.x + Math.cos(position.targetAngle),
+        surfaceHeight,
+        position.z + Math.sin(position.targetAngle)
+      );
+    } else {
+      // Occasional head turns when idle
+      const lookAngle = position.targetAngle + Math.sin(state.clock.elapsedTime * 0.3 + index) * 0.3;
+      groupRef.current.lookAt(
+        position.x + Math.cos(lookAngle),
+        surfaceHeight,
+        position.z + Math.sin(lookAngle)
+      );
+    }
     
     // Debug logging (reduced frequency)
-    if (Math.floor(state.clock.elapsedTime) % 5 === 0 && Math.floor(state.clock.elapsedTime * 10) % 50 === 0) {
-      console.log(`${animalType}: Position - x: ${x.toFixed(2)}, y: ${y.toFixed(2)}, z: ${z.toFixed(2)}, angle: ${newAngle.toFixed(2)}`);
+    if (Math.floor(state.clock.elapsedTime) % 10 === 0 && Math.floor(state.clock.elapsedTime * 10) % 100 === 0) {
+      console.log(`${animalType}: ${movementState.isWalking ? 'Walking' : 'Paused'} at x: ${position.x.toFixed(2)}, z: ${position.z.toFixed(2)}`);
     }
   });
 
