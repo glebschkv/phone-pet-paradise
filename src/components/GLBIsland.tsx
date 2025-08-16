@@ -19,8 +19,14 @@ export const GLBIsland: React.FC<GLBIslandProps> = ({ islandType, scale = 3 }) =
   console.log('🏝️ GLBIsland: Path:', modelPath);
   
   // Use useGLTF unconditionally - error handling via error boundaries
-  const gltf = useGLTF(modelPath);
-  console.log('🏝️ GLBIsland: GLB loaded successfully');
+  let gltf;
+  try {
+    gltf = useGLTF(modelPath);
+    console.log('🏝️ GLBIsland: GLB loaded successfully', gltf);
+  } catch (error) {
+    console.error('🏝️ GLBIsland: Failed to load GLB:', error);
+    throw error;
+  }
   
   useEffect(() => {
     console.log('🏝️ GLBIsland: Component mounted with scale:', scale);
