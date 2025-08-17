@@ -51,6 +51,8 @@ export const GLBAnimal = ({
     enableLogging: false,
   });
 
+  console.log(`🐼 GLBAnimal: Starting initialization for ${animalType} with model ${modelPath}`);
+
   const groupRef = useRef<Group>(null);
   const tempVector = useMemo(() => new Vector3(), []);
   const tempVector2 = useMemo(() => new Vector3(), []);
@@ -136,10 +138,12 @@ export const GLBAnimal = ({
 
 
   // Load GLB model
+  console.log(`🎭 GLBAnimal: Loading GLB model from ${modelPath}`);
   const { scene, animations } = useGLTF(modelPath);
   
   // Clone scene with proper setup
   const sceneClone = useMemo(() => {
+    console.log(`🔄 GLBAnimal: Cloning scene for ${animalType}`, scene);
     const cloned = SkeletonUtils.clone(scene);
     cloned.traverse((child) => {
       if ((child as any).isMesh) {
@@ -147,8 +151,9 @@ export const GLBAnimal = ({
         child.receiveShadow = true;
       }
     });
+    console.log(`✅ GLBAnimal: Scene cloned successfully for ${animalType}`);
     return cloned;
-  }, [scene]);
+  }, [scene, animalType]);
   
   const { mixer } = useAnimations(animations, groupRef);
 
@@ -365,6 +370,8 @@ export const GLBAnimal = ({
       terrainNavigator.dispose();
     };
   }, [disposeObject3D, mixer, animationController, terrainNavigator]);
+
+  console.log(`🎨 GLBAnimal: Rendering ${animalType} with scene:`, sceneClone);
 
   return (
     <group ref={groupRef} scale={[scale, scale, scale]}>
