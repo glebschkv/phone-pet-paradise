@@ -1,7 +1,7 @@
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Group, Vector3 } from 'three';
+import { Group, Vector3, Raycaster, Mesh } from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 
 interface GLBAnimalProps {
@@ -20,6 +20,7 @@ interface Waypoint {
   animation: string;
   duration: number; // How long to stay at this point
   lookAt?: Vector3; // Optional look direction
+  terrainHeight?: number; // Cached terrain height at this position
 }
 
 interface PathState {
@@ -43,7 +44,30 @@ export const GLBAnimal = ({
   const tempVector = useMemo(() => new Vector3(), []);
   const startPosition = useMemo(() => new Vector3(), []);
   const endPosition = useMemo(() => new Vector3(), []);
+  const raycaster = useMemo(() => new Raycaster(), []);
+  const rayDirection = useMemo(() => new Vector3(0, -1, 0), []);
   
+  // Cache for island meshes to improve performance
+  const [islandMeshes, setIslandMeshes] = useState<Mesh[]>([]);
+  
+  // Surface height sampling function
+  const sampleTerrainHeight = (x: number, z: number): number => {
+    if (islandMeshes.length === 0) return 0.2; // Safe fallback
+    
+    const rayOrigin = tempVector.set(x, 10, z); // Start ray from above
+    raycaster.set(rayOrigin, rayDirection);
+    
+    const intersects = raycaster.intersectObjects(islandMeshes, true);
+    
+    if (intersects.length > 0) {
+      const hit = intersects[0];
+      const surfaceHeight = hit.point.y + 0.1; // Small offset above surface
+      return Math.max(surfaceHeight, 0.1); // Minimum height safety
+    }
+    
+    return 0.2; // Safe fallback height
+  };
+
   // Define the panda's path with waypoints and animations
   const waypoints = useMemo<Waypoint[]>(() => {
     const baseOffset = index * 0.3; // Offset each animal slightly
@@ -109,6 +133,32 @@ export const GLBAnimal = ({
       }
     ];
   }, [index]);
+
+  // Update island meshes when island ref changes
+  useEffect(() => {
+    if (!islandRef?.current) return;
+    
+    const meshes: Mesh[] = [];
+    islandRef.current.traverse((child) => {
+      if ((child as any).isMesh) {
+        meshes.push(child as Mesh);
+      }
+    });
+    setIslandMeshes(meshes);
+  }, [islandRef]);
+
+  // Pre-calculate terrain heights for all waypoints
+  useEffect(() => {
+    if (islandMeshes.length === 0) return;
+    
+    waypoints.forEach((waypoint) => {
+      if (waypoint.terrainHeight === undefined) {
+        waypoint.terrainHeight = sampleTerrainHeight(waypoint.position.x, waypoint.position.z);
+        // Update waypoint Y position to match terrain
+        waypoint.position.y = waypoint.terrainHeight;
+      }
+    });
+  }, [islandMeshes, waypoints, sampleTerrainHeight]);
 
   // Path state
   const [pathState, setPathState] = useState<PathState>({
@@ -251,17 +301,28 @@ export const GLBAnimal = ({
       // Moving between waypoints
       const nextWaypoint = getNextWaypoint();
       if (nextWaypoint) {
-        // Interpolate position
+        // Interpolate position with terrain-aware height
         startPosition.copy(currentWaypoint.position);
         endPosition.copy(nextWaypoint.position);
         
         const smoothProgress = pathState.progress; // Could add easing here
         tempVector.lerpVectors(startPosition, endPosition, smoothProgress);
+        
+        // Smooth height interpolation between waypoints
+        if (currentWaypoint.terrainHeight !== undefined && nextWaypoint.terrainHeight !== undefined) {
+          const heightDiff = nextWaypoint.terrainHeight - currentWaypoint.terrainHeight;
+          tempVector.y = currentWaypoint.terrainHeight + (heightDiff * smoothProgress);
+        }
+        
         groupRef.current.position.copy(tempVector);
         
-        // Look in movement direction
+        // Look in movement direction with slight upward tilt for slopes
         const direction = tempVector.copy(endPosition).sub(startPosition).normalize();
         if (direction.length() > 0) {
+          const heightDelta = (nextWaypoint.terrainHeight || 0) - (currentWaypoint.terrainHeight || 0);
+          direction.y = heightDelta * 0.5; // Slight tilt based on slope
+          direction.normalize();
+          
           const lookTarget = tempVector.copy(groupRef.current.position).add(direction);
           groupRef.current.lookAt(lookTarget);
         }
@@ -273,7 +334,14 @@ export const GLBAnimal = ({
       }
     } else {
       // Waiting at waypoint
-      groupRef.current.position.copy(currentWaypoint.position);
+      const waypointPos = tempVector.copy(currentWaypoint.position);
+      
+      // Use cached terrain height if available
+      if (currentWaypoint.terrainHeight !== undefined) {
+        waypointPos.y = currentWaypoint.terrainHeight;
+      }
+      
+      groupRef.current.position.copy(waypointPos);
       
       // Look at specified direction or do idle looking
       if (currentWaypoint.lookAt) {
@@ -281,7 +349,7 @@ export const GLBAnimal = ({
       } else {
         // Gentle idle head movement
         const idleLook = Math.sin(state.clock.elapsedTime * 0.3 + index) * 0.3;
-        const lookTarget = tempVector.copy(currentWaypoint.position);
+        const lookTarget = tempVector.copy(waypointPos);
         lookTarget.x += Math.cos(idleLook);
         lookTarget.z += Math.sin(idleLook);
         groupRef.current.lookAt(lookTarget);
@@ -293,8 +361,8 @@ export const GLBAnimal = ({
       }
     }
 
-    // Add subtle floating animation
-    const floatOffset = Math.sin(state.clock.elapsedTime * 2 + index * 0.5) * 0.02;
+    // Add subtle floating animation (reduced to work better with terrain)
+    const floatOffset = Math.sin(state.clock.elapsedTime * 2 + index * 0.5) * 0.015;
     groupRef.current.position.y += floatOffset;
 
     // Debug logging (reduced frequency)
