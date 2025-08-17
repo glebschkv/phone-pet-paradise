@@ -327,7 +327,7 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
     <div className="w-full h-full bg-gradient-sky overflow-hidden">
       <Canvas gl={{ preserveDrawingBuffer: false, antialias: false }}>
         <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[4, 3, 4]} fov={50} />
+          <PerspectiveCamera makeDefault position={[4, 6, 4]} fov={50} />
 
           {/* Lighting */}
           <ambientLight intensity={theme.ambient} />
