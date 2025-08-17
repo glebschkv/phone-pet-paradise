@@ -170,6 +170,7 @@ export const GLBAnimal = ({
 
   // Current animation state
   const [currentAnimation, setCurrentAnimation] = useState<string>('idle');
+  const [walkAnimationToggle, setWalkAnimationToggle] = useState<boolean>(false);
   
   // Load GLB model
   const { scene, animations } = useGLTF(modelPath);
@@ -198,29 +199,40 @@ export const GLBAnimal = ({
     if (!mixer || animations.length === 0) return;
 
     const findAndPlayAnimation = (targetAnim: string) => {
-      // Try to find exact match first
-      let anim = animations.find(a => a.name.toLowerCase() === targetAnim.toLowerCase());
+      let anim;
       
-      // Try partial matches
-      if (!anim) {
-        if (targetAnim === 'walk') {
-          anim = animations.find(a => 
-            a.name.toLowerCase().includes('walk') || 
-            a.name.toLowerCase().includes('run') ||
-            a.name.toLowerCase().includes('move')
-          );
-        } else if (targetAnim === 'idle') {
-          anim = animations.find(a => 
-            a.name.toLowerCase().includes('idle') || 
-            a.name.toLowerCase().includes('stand') ||
-            a.name.toLowerCase().includes('rest')
-          );
-        }
-      }
-      
-      // Fallback to first animation
-      if (!anim && animations.length > 0) {
+      // Handle specific animation requests with indices
+      if (targetAnim === 'walk1') {
+        anim = animations[1];
+      } else if (targetAnim === 'walk2') {
+        anim = animations[2];
+      } else if (targetAnim === 'idle') {
         anim = animations[0];
+      } else {
+        // Fallback to searching by name
+        anim = animations.find(a => a.name.toLowerCase() === targetAnim.toLowerCase());
+        
+        // Try partial matches
+        if (!anim) {
+          if (targetAnim === 'walk') {
+            anim = animations.find(a => 
+              a.name.toLowerCase().includes('walk') || 
+              a.name.toLowerCase().includes('run') ||
+              a.name.toLowerCase().includes('move')
+            );
+          } else if (targetAnim === 'idle') {
+            anim = animations.find(a => 
+              a.name.toLowerCase().includes('idle') || 
+              a.name.toLowerCase().includes('stand') ||
+              a.name.toLowerCase().includes('rest')
+            );
+          }
+        }
+        
+        // Fallback to first animation
+        if (!anim && animations.length > 0) {
+          anim = animations[0];
+        }
       }
       
       if (anim && actions[anim.name]) {
@@ -327,9 +339,11 @@ export const GLBAnimal = ({
           groupRef.current.lookAt(lookTarget);
         }
         
-        // Set walking animation
-        if (currentAnimation !== 'walk') {
-          setCurrentAnimation('walk');
+        // Alternate between walk animations 1 and 2
+        const targetWalkAnim = walkAnimationToggle ? 'walk1' : 'walk2';
+        if (currentAnimation !== targetWalkAnim) {
+          setCurrentAnimation(targetWalkAnim);
+          setWalkAnimationToggle(!walkAnimationToggle);
         }
       }
     } else {
@@ -355,9 +369,9 @@ export const GLBAnimal = ({
         groupRef.current.lookAt(lookTarget);
       }
       
-      // Set idle animation
-      if (currentAnimation !== currentWaypoint.animation) {
-        setCurrentAnimation(currentWaypoint.animation);
+      // Set idle animation (use animation 0)
+      if (currentAnimation !== 'idle') {
+        setCurrentAnimation('idle');
       }
     }
 
