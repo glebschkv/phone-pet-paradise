@@ -19,6 +19,7 @@ import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = 'petIsland_unifiedTimer';
+const TIMER_PERSISTENCE_KEY = 'petIsland_timerPersistence';
 
 interface TimerState {
   timeLeft: number;
@@ -28,6 +29,15 @@ interface TimerState {
   sessionType: 'pomodoro' | 'deep-work' | 'break';
   completedSessions: number;
   soundEnabled: boolean;
+}
+
+interface TimerPersistence {
+  wasRunning: boolean;
+  pausedAt: number | null;
+  originalStartTime: number | null;
+  timeLeftWhenPaused: number;
+  sessionDuration: number;
+  sessionType: 'pomodoro' | 'deep-work' | 'break';
 }
 
 interface TimerPreset {
@@ -113,33 +123,82 @@ export const UnifiedFocusTimer = () => {
 
   const [selectedPreset, setSelectedPreset] = useState<TimerPreset>(TIMER_PRESETS[0]);
 
-  // Save timer state to localStorage
+  // Save timer state to localStorage with persistence
   const saveTimerState = useCallback((state: Partial<TimerState>) => {
     const newState = { ...timerState, ...state };
+    
+    // Save basic timer state
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       ...newState,
-      isRunning: false, // Don't persist running state across sessions
+      isRunning: false, // Don't persist running state in main storage
       startTime: null
     }));
+    
+    // Save persistence data separately for running timers
+    const persistenceData: TimerPersistence = {
+      wasRunning: newState.isRunning,
+      pausedAt: newState.isRunning ? null : Date.now(),
+      originalStartTime: newState.startTime,
+      timeLeftWhenPaused: newState.timeLeft,
+      sessionDuration: newState.sessionDuration,
+      sessionType: newState.sessionType
+    };
+    
+    localStorage.setItem(TIMER_PERSISTENCE_KEY, JSON.stringify(persistenceData));
     setTimerState(newState);
   }, [timerState]);
 
-  // Load timer state from localStorage
+  // Load timer state from localStorage with persistence restoration
   useEffect(() => {
     const savedState = localStorage.getItem(STORAGE_KEY);
+    const savedPersistence = localStorage.getItem(TIMER_PERSISTENCE_KEY);
+    
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
-        // Restore state but ensure timer isn't running
-        setTimerState(prev => ({ 
-          ...prev, 
+        let finalState = { 
           ...parsed, 
           isRunning: false,
           startTime: null 
-        }));
+        };
+
+        // Check if we need to restore a running timer
+        if (savedPersistence) {
+          const persistence: TimerPersistence = JSON.parse(savedPersistence);
+          
+          if (persistence.wasRunning && persistence.originalStartTime) {
+            // Calculate how much time has actually elapsed
+            const totalElapsed = Date.now() - persistence.originalStartTime;
+            const elapsedSeconds = Math.floor(totalElapsed / 1000);
+            const newTimeLeft = Math.max(0, persistence.sessionDuration - elapsedSeconds);
+            
+            finalState = {
+              ...finalState,
+              timeLeft: newTimeLeft,
+              sessionDuration: persistence.sessionDuration,
+              sessionType: persistence.sessionType,
+              isRunning: newTimeLeft > 0, // Resume if time remaining
+              startTime: persistence.originalStartTime
+            };
+            
+            console.log(`🔄 Timer restored: ${elapsedSeconds}s elapsed, ${newTimeLeft}s remaining`);
+          } else if (persistence.pausedAt) {
+            // Timer was paused, restore paused state
+            finalState = {
+              ...finalState,
+              timeLeft: persistence.timeLeftWhenPaused,
+              sessionDuration: persistence.sessionDuration,
+              sessionType: persistence.sessionType
+            };
+            
+            console.log(`⏸️ Timer restored from pause: ${persistence.timeLeftWhenPaused}s remaining`);
+          }
+        }
+        
+        setTimerState(finalState);
         
         // Set the corresponding preset
-        const preset = TIMER_PRESETS.find(p => p.duration === parsed.sessionDuration / 60);
+        const preset = TIMER_PRESETS.find(p => p.duration === finalState.sessionDuration / 60);
         if (preset) {
           setSelectedPreset(preset);
         }
@@ -158,14 +217,18 @@ export const UnifiedFocusTimer = () => {
         setTimerState(prev => {
           const newTimeLeft = prev.timeLeft - 1;
           
-          // Auto-save every 10 seconds while running
-          if (newTimeLeft % 10 === 0) {
-            const stateToSave = { ...prev, timeLeft: newTimeLeft };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-              ...stateToSave,
-              isRunning: false,
-              startTime: null
-            }));
+          // Auto-save persistence data every 5 seconds while running
+          if (newTimeLeft % 5 === 0) {
+            const persistenceData: TimerPersistence = {
+              wasRunning: true,
+              pausedAt: null,
+              originalStartTime: prev.startTime,
+              timeLeftWhenPaused: newTimeLeft,
+              sessionDuration: prev.sessionDuration,
+              sessionType: prev.sessionType
+            };
+            localStorage.setItem(TIMER_PERSISTENCE_KEY, JSON.stringify(persistenceData));
+            console.log(`💾 Timer auto-saved: ${newTimeLeft}s remaining`);
           }
           
           return { ...prev, timeLeft: newTimeLeft };
@@ -178,8 +241,64 @@ export const UnifiedFocusTimer = () => {
     return () => clearInterval(interval);
   }, [timerState.isRunning, timerState.timeLeft]);
 
+  // Page visibility API to handle app focus/blur
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // App going to background - save current state
+        if (timerState.isRunning) {
+          const persistenceData: TimerPersistence = {
+            wasRunning: true,
+            pausedAt: null,
+            originalStartTime: timerState.startTime,
+            timeLeftWhenPaused: timerState.timeLeft,
+            sessionDuration: timerState.sessionDuration,
+            sessionType: timerState.sessionType
+          };
+          localStorage.setItem(TIMER_PERSISTENCE_KEY, JSON.stringify(persistenceData));
+          console.log(`🌙 App backgrounded with ${timerState.timeLeft}s remaining`);
+        }
+      } else {
+        // App coming to foreground - restore if needed
+        const savedPersistence = localStorage.getItem(TIMER_PERSISTENCE_KEY);
+        if (savedPersistence && timerState.isRunning && timerState.startTime) {
+          try {
+            const persistence: TimerPersistence = JSON.parse(savedPersistence);
+            if (persistence.wasRunning && persistence.originalStartTime) {
+              // Calculate actual elapsed time
+              const totalElapsed = Date.now() - persistence.originalStartTime;
+              const elapsedSeconds = Math.floor(totalElapsed / 1000);
+              const newTimeLeft = Math.max(0, persistence.sessionDuration - elapsedSeconds);
+              
+              setTimerState(prev => ({
+                ...prev,
+                timeLeft: newTimeLeft,
+                isRunning: newTimeLeft > 0
+              }));
+              
+              console.log(`☀️ App foregrounded: ${elapsedSeconds}s elapsed, ${newTimeLeft}s remaining`);
+              
+              // Auto-complete if time is up
+              if (newTimeLeft === 0) {
+                setTimeout(handleComplete, 100);
+              }
+            }
+          } catch (error) {
+            console.error('Failed to restore timer on foreground:', error);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [timerState.isRunning, timerState.startTime, timerState.timeLeft, timerState.sessionDuration, timerState.sessionType]);
+
   const handleComplete = useCallback(() => {
     const completedMinutes = timerState.sessionDuration / 60;
+    
+    // Clear persistence data when session completes
+    localStorage.removeItem(TIMER_PERSISTENCE_KEY);
     
     // Play completion sound
     if (timerState.soundEnabled) {
@@ -273,10 +392,12 @@ export const UnifiedFocusTimer = () => {
   };
 
   const startTimer = () => {
+    const startTime = Date.now();
     saveTimerState({
       isRunning: true,
-      startTime: Date.now(),
+      startTime: startTime,
     });
+    console.log(`▶️ Timer started with ${timerState.timeLeft}s remaining`);
   };
 
   const pauseTimer = () => {
@@ -284,18 +405,25 @@ export const UnifiedFocusTimer = () => {
       isRunning: false,
       startTime: null,
     });
+    console.log(`⏸️ Timer paused with ${timerState.timeLeft}s remaining`);
   };
 
   const stopTimer = () => {
+    // Clear persistence data when manually stopping
+    localStorage.removeItem(TIMER_PERSISTENCE_KEY);
     saveTimerState({
       isRunning: false,
       timeLeft: timerState.sessionDuration,
       startTime: null,
     });
+    console.log(`⏹️ Timer stopped and reset`);
   };
 
   const skipTimer = () => {
     const completedMinutes = Math.ceil((timerState.sessionDuration - timerState.timeLeft) / 60);
+    
+    // Clear persistence data when skipping
+    localStorage.removeItem(TIMER_PERSISTENCE_KEY);
     
     // Award XP if it was a meaningful session (>= 25 minutes) and not a break
     if (timerState.sessionType !== 'break' && completedMinutes >= 25) {
@@ -314,6 +442,7 @@ export const UnifiedFocusTimer = () => {
     }
     
     stopTimer();
+    console.log(`⏭️ Timer skipped after ${completedMinutes} minutes`);
   };
 
   const toggleSound = () => {
