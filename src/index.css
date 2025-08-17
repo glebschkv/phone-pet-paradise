@@ -6,6 +6,12 @@
 
 @layer base {
   :root {
+    /* iOS Safe Area Variables */
+    --safe-area-inset-top: env(safe-area-inset-top);
+    --safe-area-inset-right: env(safe-area-inset-right);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    --safe-area-inset-left: env(safe-area-inset-left);
+    
     /* iOS Light System Colors */
     --background: 0 0% 100%;     /* System Background */
     --foreground: 0 0% 0%;       /* Label */
@@ -36,18 +42,23 @@
     --gradient-island: linear-gradient(135deg, hsl(120 100% 35%), hsl(120 60% 50%));
     --gradient-sky: linear-gradient(180deg, hsl(211 100% 95%), hsl(211 50% 98%));
     --gradient-glass: linear-gradient(135deg, hsla(0 0% 100% / 0.8), hsla(240 6% 90% / 0.4));
+    --gradient-accent: linear-gradient(135deg, hsl(32 100% 50%), hsl(32 100% 60%));
     
-    /* iOS Shadows */
+    /* iOS Shadows - Mobile optimized */
     --shadow-xs: 0 1px 2px hsla(0 0% 0% / 0.05);
     --shadow-sm: 0 1px 3px hsla(0 0% 0% / 0.1), 0 1px 2px hsla(0 0% 0% / 0.06);
     --shadow-md: 0 4px 6px hsla(0 0% 0% / 0.07), 0 2px 4px hsla(0 0% 0% / 0.06);
     --shadow-lg: 0 10px 15px hsla(0 0% 0% / 0.1), 0 4px 6px hsla(0 0% 0% / 0.05);
     --shadow-xl: 0 20px 25px hsla(0 0% 0% / 0.1), 0 10px 10px hsla(0 0% 0% / 0.04);
+    --shadow-floating-soft: 0 4px 12px -2px hsla(0 0% 0% / 0.08), 0 2px 4px -1px hsla(0 0% 0% / 0.02);
+    --shadow-tab-bar: 0 -2px 20px -4px hsla(0 0% 0% / 0.1);
+    --shadow-inner: inset 0 1px 2px hsla(0 0% 0% / 0.1);
     
-    /* iOS Transitions */
+    /* iOS Transitions - Performance optimized */
     --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --transition-bounce: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-ios: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
     --radius: 0.75rem; /* 12px - iOS standard corner radius */
 
@@ -99,13 +110,17 @@
     --gradient-island: linear-gradient(135deg, hsl(120 100% 50%), hsl(120 60% 60%));
     --gradient-sky: linear-gradient(180deg, hsl(240 6% 6%), hsl(240 6% 10%));
     --gradient-glass: linear-gradient(135deg, hsla(0 0% 0% / 0.8), hsla(240 6% 20% / 0.4));
+    --gradient-accent: linear-gradient(135deg, hsl(32 100% 64%), hsl(32 100% 74%));
     
-    /* iOS Dark Shadows */
+    /* iOS Dark Shadows - Mobile optimized */
     --shadow-xs: 0 1px 2px hsla(0 0% 0% / 0.15);
     --shadow-sm: 0 1px 3px hsla(0 0% 0% / 0.2), 0 1px 2px hsla(0 0% 0% / 0.16);
     --shadow-md: 0 4px 6px hsla(0 0% 0% / 0.17), 0 2px 4px hsla(0 0% 0% / 0.16);
     --shadow-lg: 0 10px 15px hsla(0 0% 0% / 0.2), 0 4px 6px hsla(0 0% 0% / 0.15);
     --shadow-xl: 0 20px 25px hsla(0 0% 0% / 0.2), 0 10px 10px hsla(0 0% 0% / 0.14);
+    --shadow-floating-soft: 0 4px 12px -2px hsla(0 0% 0% / 0.15), 0 2px 4px -1px hsla(0 0% 0% / 0.05);
+    --shadow-tab-bar: 0 -2px 20px -4px hsla(0 0% 0% / 0.2);
+    --shadow-inner: inset 0 1px 2px hsla(0 0% 0% / 0.2);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -124,5 +139,66 @@
 
   body {
     @apply bg-background text-foreground;
+    /* iOS-style smooth font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Disable text size adjustment on mobile */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+    /* Optimize touch scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent zoom on double tap */
+    touch-action: manipulation;
+  }
+}
+
+/* iOS-specific utility classes */
+@layer utilities {
+  /* Safe area utilities */
+  .pt-safe {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .pl-safe {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+  
+  .pr-safe {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  .top-safe {
+    top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .bottom-safe {
+    bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  /* Touch optimization */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Mobile-optimized backdrop blur */
+  .backdrop-blur-ios {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  /* iOS-style button press effect */
+  .active-scale {
+    transition: transform 0.15s ease-out;
+  }
+  
+  .active-scale:active {
+    transform: scale(0.95);
   }
 }

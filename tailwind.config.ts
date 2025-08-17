@@ -80,19 +80,39 @@ export default {
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-island': 'var(--gradient-island)',
 				'gradient-sky': 'var(--gradient-sky)',
-				'gradient-glass': 'var(--gradient-glass)'
+				'gradient-glass': 'var(--gradient-glass)',
+				'gradient-accent': 'var(--gradient-accent)'
 			},
 			boxShadow: {
 				'xs': 'var(--shadow-xs)',
 				'sm': 'var(--shadow-sm)', 
 				'md': 'var(--shadow-md)',
 				'lg': 'var(--shadow-lg)',
-				'xl': 'var(--shadow-xl)'
+				'xl': 'var(--shadow-xl)',
+				'floating-soft': 'var(--shadow-floating-soft)',
+				'tab-bar': 'var(--shadow-tab-bar)',
+				'inner': 'var(--shadow-inner)'
 			},
 			transitionTimingFunction: {
 				'smooth': 'var(--transition-smooth)',
 				'spring': 'var(--transition-spring)',
-				'bounce': 'var(--transition-bounce)'
+				'bounce': 'var(--transition-bounce)',
+				'ios': 'var(--transition-ios)'
+			},
+			spacing: {
+				'safe': 'var(--safe-area-inset-top)',
+				'safe-bottom': 'var(--safe-area-inset-bottom)'
+			},
+			padding: {
+				'safe': 'var(--safe-area-inset-top)',
+				'safe-bottom': 'var(--safe-area-inset-bottom)'
+			},
+			margin: {
+				'safe': 'var(--safe-area-inset-top)',
+				'safe-bottom': 'var(--safe-area-inset-bottom)'
+			},
+			backdropBlur: {
+				'3xl': '64px'
 			},
 			fontFamily: {
 				'sans': ['SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Inter', 'system-ui', 'sans-serif'],
@@ -122,13 +142,23 @@ export default {
 				'island-glow': {
 					'0%, 100%': { boxShadow: 'var(--shadow-island)' },
 					'50%': { boxShadow: 'var(--shadow-glow)' }
+				},
+				'pulse-slow': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.8' }
+				},
+				'bounce-subtle': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-2px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'float': 'float 3s ease-in-out infinite',
-				'island-glow': 'island-glow 4s ease-in-out infinite'
+				'island-glow': 'island-glow 4s ease-in-out infinite',
+				'pulse-slow': 'pulse-slow 2s ease-in-out infinite',
+				'bounce-subtle': 'bounce-subtle 0.3s ease-in-out'
 			}
 		}
 	},

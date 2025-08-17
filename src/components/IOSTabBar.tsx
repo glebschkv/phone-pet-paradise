@@ -18,12 +18,32 @@ const tabs = [
 export const IOSTabBar = ({ activeTab, onTabChange }: TabBarProps) => {
   const [pressedTab, setPressedTab] = useState<string | null>(null);
 
+  // Simulate haptic feedback for iOS
+  const triggerHaptic = () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(1);
+    }
+  };
+
+  const handleTabPress = (tabId: string) => {
+    setPressedTab(tabId);
+    triggerHaptic();
+  };
+
+  const handleTabChange = (tabId: string) => {
+    if (tabId !== activeTab) {
+      triggerHaptic();
+      onTabChange(tabId);
+    }
+    setPressedTab(null);
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
-      {/* iOS-style blur backdrop */}
-      <div className="bg-card/80 backdrop-blur-xl border-t border-border">
-        <div className="safe-area-inset-bottom">
-          <div className="flex items-center justify-around px-2 py-1">
+      {/* iOS-style blur backdrop with enhanced glass effect */}
+      <div className="bg-card/70 backdrop-blur-3xl border-t border-border/30 shadow-tab-bar">
+        <div className="pb-safe">
+          <div className="flex items-center justify-around px-1 py-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -32,28 +52,32 @@ export const IOSTabBar = ({ activeTab, onTabChange }: TabBarProps) => {
               return (
                 <button
                   key={tab.id}
-                  onMouseDown={() => setPressedTab(tab.id)}
+                  onTouchStart={() => handleTabPress(tab.id)}
+                  onTouchEnd={() => setPressedTab(null)}
+                  onMouseDown={() => handleTabPress(tab.id)}
                   onMouseUp={() => setPressedTab(null)}
                   onMouseLeave={() => setPressedTab(null)}
-                  onClick={() => onTabChange(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={cn(
-                    "flex flex-col items-center justify-center min-w-[44px] min-h-[44px] p-1 rounded-lg transition-all duration-200",
-                    "active:scale-95 hover:bg-muted/50",
-                    isPressed && "scale-95 bg-muted/70",
-                    isActive && "text-primary"
+                    "flex flex-col items-center justify-center min-w-[56px] min-h-[52px] p-2 rounded-2xl transition-all duration-150 ease-out",
+                    "active:scale-90 touch-manipulation",
+                    isPressed && "scale-90 bg-muted/40",
+                    isActive && "bg-primary/10",
+                    !isActive && "hover:bg-muted/30"
                   )}
                 >
                   <Icon 
-                    size={24} 
+                    size={22} 
                     className={cn(
-                      "transition-all duration-200",
-                      isActive ? "text-primary" : "text-muted-foreground"
+                      "transition-all duration-150 mb-1",
+                      isActive ? "text-primary scale-110" : "text-muted-foreground",
+                      isPressed && "scale-95"
                     )} 
                   />
                   <span 
                     className={cn(
-                      "text-xs font-medium mt-1 transition-all duration-200",
-                      isActive ? "text-primary" : "text-muted-foreground"
+                      "text-[10px] font-medium leading-none transition-all duration-150",
+                      isActive ? "text-primary" : "text-muted-foreground/80"
                     )}
                   >
                     {tab.label}

@@ -27,35 +27,51 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
   if (currentTab !== "home") return null;
 
   return (
-    <div className="absolute top-4 left-4 right-4 pointer-events-auto">
-      <div className="bg-gradient-glass backdrop-blur-xl border border-primary/10 rounded-3xl p-4 shadow-floating">
-        <div className="flex items-center justify-between gap-4">
-          {/* Left Side - Level Progress */}
-          <CompactLevelProgress
-            currentLevel={currentLevel}
-            progress={getLevelProgress()}
-            currentXP={currentXP}
-            xpToNextLevel={xpToNextLevel}
-          />
+    <div className="absolute top-safe left-3 right-3 pointer-events-auto z-40">
+      <div className="bg-card/80 backdrop-blur-2xl border border-border/20 rounded-2xl shadow-floating-soft">
+        {/* Mobile Layout - Stacked for better readability */}
+        <div className="p-3 space-y-3 md:space-y-0 md:flex md:items-center md:justify-between md:gap-4">
+          {/* Top Row - Level Progress */}
+          <div className="flex items-center justify-between gap-3">
+            <CompactLevelProgress
+              currentLevel={currentLevel}
+              progress={getLevelProgress()}
+              currentXP={currentXP}
+              xpToNextLevel={xpToNextLevel}
+            />
+            
+            {/* Mobile-only Actions on same row */}
+            <div className="flex items-center gap-2 md:hidden">
+              <StatusBarActions
+                petCount={unlockedAnimals.length}
+                onTestLevelUp={() => awardXP(60)}
+              />
+            </div>
+          </div>
           
-          {/* Center - Streak Counter */}
-          <InlineStreakCounter
-            streakData={streakData}
-            getStreakEmoji={getStreakEmoji}
-          />
-          
-{/* Right Side - Actions + World Switcher */}
-<div className="flex items-center gap-2">
-  <WorldSwitcher 
-    currentBiome={currentBiome} 
-    availableBiomes={availableBiomes} 
-    onSwitch={switchBiome} 
-  />
-  <StatusBarActions
-    petCount={unlockedAnimals.length}
-    onTestLevelUp={() => awardXP(60)}
-  />
-</div>
+          {/* Bottom Row - Streak & World Switcher */}
+          <div className="flex items-center justify-between gap-3">
+            <InlineStreakCounter
+              streakData={streakData}
+              getStreakEmoji={getStreakEmoji}
+            />
+            
+            <div className="flex items-center gap-2">
+              <WorldSwitcher 
+                currentBiome={currentBiome} 
+                availableBiomes={availableBiomes} 
+                onSwitch={switchBiome} 
+              />
+              
+              {/* Desktop Actions */}
+              <div className="hidden md:flex">
+                <StatusBarActions
+                  petCount={unlockedAnimals.length}
+                  onTestLevelUp={() => awardXP(60)}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
