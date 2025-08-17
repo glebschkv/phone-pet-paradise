@@ -1,12 +1,12 @@
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Group, Vector3, Mesh } from 'three';
+import { Group, Vector3, Mesh, MathUtils } from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 import { use3DCleanup } from '@/hooks/use3DCleanup';
 import { ANIMAL_DATABASE } from '@/data/AnimalDatabase';
-import { WaypointGenerator, SmartWaypoint, AnimalBehavior } from './waypoints/WaypointGenerator';
-import { TerrainNavigator } from './waypoints/TerrainNavigator';
+import { ImprovedWaypointGenerator, SmartWaypoint, AnimalBehavior } from './waypoints/ImprovedWaypointGenerator';
+import { ImprovedTerrainNavigator } from './waypoints/ImprovedTerrainNavigator';
 import { AnimationController } from './waypoints/AnimationController';
 
 interface GLBAnimalProps {
@@ -20,13 +20,18 @@ interface GLBAnimalProps {
   islandRef?: React.RefObject<Group>;
 }
 
-interface PathState {
-  currentWaypointIndex: number;
-  progress: number; // 0 to 1 between waypoints
-  waitTimer: number; // Time remaining at current waypoint
+interface SmoothMovementState {
+  currentPosition: Vector3;
+  targetPosition: Vector3;
+  currentRotation: number;
+  targetRotation: number;
+  velocity: Vector3;
   isMoving: boolean;
   movementSpeed: number;
-  currentPath: Vector3[]; // Current path segments
+  rotationSpeed: number;
+  groundCheckTimer: number;
+  stuckTimer: number; // Timer to detect if animal is stuck
+  lastPosition: Vector3;
 }
 
 export const GLBAnimal = ({ 
@@ -48,13 +53,14 @@ export const GLBAnimal = ({
 
   const groupRef = useRef<Group>(null);
   const tempVector = useMemo(() => new Vector3(), []);
-  
-  // Cache for island meshes to improve performance
+  const tempVector2 = useMemo(() => new Vector3(), []);
+
+  // Cache for island meshes
   const [islandMeshes, setIslandMeshes] = useState<Mesh[]>([]);
-  
-  // Smart waypoint system
-  const waypointGenerator = useMemo(() => new WaypointGenerator(), []);
-  const terrainNavigator = useMemo(() => new TerrainNavigator(), []);
+
+  // Improved terrain navigator
+  const terrainNavigator = useMemo(() => new ImprovedTerrainNavigator(), []);
+  const waypointGenerator = useMemo(() => new ImprovedWaypointGenerator(), []);
   
   // Get animal data from database
   const animalData = useMemo(() => 
@@ -63,9 +69,10 @@ export const GLBAnimal = ({
     [animalType]
   );
   
-  // Generate smart waypoints
+  // Smart waypoints
   const [smartWaypoints, setSmartWaypoints] = useState<SmartWaypoint[]>([]);
-  
+  const [currentWaypointIndex, setCurrentWaypointIndex] = useState(0);
+
   // Animation controller
   const [animationController, setAnimationController] = useState<AnimationController | null>(null);
   
@@ -78,10 +85,25 @@ export const GLBAnimal = ({
     return 'medium';
   }, [animalData.name, animalType]);
 
-  // Update island meshes when island ref changes
+  // Smooth movement state
+  const [movementState, setMovementState] = useState<SmoothMovementState>(() => ({
+    currentPosition: new Vector3(0, 0, 0),
+    targetPosition: new Vector3(0, 0, 0),
+    currentRotation: 0,
+    targetRotation: 0,
+    velocity: new Vector3(0, 0, 0),
+    isMoving: false,
+    movementSpeed: 0.3 + Math.random() * 0.2, // Varied speed per animal
+    rotationSpeed: 2.0,
+    groundCheckTimer: 0,
+    stuckTimer: 0,
+    lastPosition: new Vector3(0, 0, 0)
+  }));
+
+  // Update island meshes
   useEffect(() => {
     if (!islandRef?.current) return;
-    
+
     const meshes: Mesh[] = [];
     islandRef.current.traverse((child) => {
       if ((child as any).isMesh) {
@@ -89,27 +111,29 @@ export const GLBAnimal = ({
       }
     });
     setIslandMeshes(meshes);
-  }, [islandRef]);
 
-  // Generate smart waypoints when island meshes are available
+    console.log(`🏝️ ${animalType}: Found ${meshes.length} island meshes for collision`);
+  }, [islandRef, animalType]);
+
+  // Generate waypoints
   useEffect(() => {
     if (islandMeshes.length === 0) return;
-    
+
     const waypoints = waypointGenerator.generateWaypoints(animalData, index, islandMeshes);
     setSmartWaypoints(waypoints);
-    
-    console.log(`🎯 ${animalData.name}: Generated ${waypoints.length} smart waypoints`);
+
+    if (waypoints.length > 0) {
+      setMovementState(prev => ({
+        ...prev,
+        currentPosition: waypoints[0].position.clone(),
+        targetPosition: waypoints[0].position.clone(),
+        lastPosition: waypoints[0].position.clone()
+      }));
+    }
+
+    console.log(`🎯 ${animalData.name}: Generated ${waypoints.length} waypoints`);
   }, [islandMeshes, animalData, index, waypointGenerator]);
 
-  // Path state
-  const [pathState, setPathState] = useState<PathState>({
-    currentWaypointIndex: 0,
-    progress: 0,
-    waitTimer: 2.0,
-    isMoving: false,
-    movementSpeed: 0.4,
-    currentPath: []
-  });
 
   // Load GLB model
   const { scene, animations } = useGLTF(modelPath);
@@ -146,180 +170,186 @@ export const GLBAnimal = ({
     return () => controller.dispose();
   }, [mixer, animations, animalType]);
 
-  // Initialize path when waypoints are ready
-  useEffect(() => {
-    if (smartWaypoints.length === 0) return;
-    
-    setPathState(prev => ({
-      ...prev,
-      waitTimer: smartWaypoints[0]?.duration || 2.0,
-      currentPath: []
-    }));
-  }, [smartWaypoints]);
 
-  // Get current and next waypoints
-  const getCurrentWaypoint = () => smartWaypoints[pathState.currentWaypointIndex];
-  const getNextWaypoint = () => smartWaypoints[(pathState.currentWaypointIndex + 1) % smartWaypoints.length];
-
-  // Main update loop
+  // Main update loop with improved movement
   useFrame((state, delta) => {
-    if (!groupRef.current || !isActive) return;
-    
-    // If no waypoints yet, use simple positioning
-    if (smartWaypoints.length === 0) {
-      const radius = 1.5;
-      const angle = (index * Math.PI * 2) / Math.max(totalPets, 1) + state.clock.elapsedTime * 0.2;
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      groupRef.current.position.set(x, 0.3, z);
-      groupRef.current.rotation.y = angle + Math.PI / 2;
+    if (!groupRef.current || !isActive || smartWaypoints.length === 0) {
+      // Fallback simple movement while waypoints are loading
+      if (groupRef.current && isActive) {
+        const radius = 1.5;
+        const angle = (index * Math.PI * 2) / Math.max(totalPets, 1) + state.clock.elapsedTime * 0.1;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+
+        // Use terrain navigation even for fallback positioning
+        if (islandMeshes.length > 0) {
+          const fallbackPos = new Vector3(x, 2, z); // Start high
+          const groundResult = terrainNavigator.calculateMovement(
+            fallbackPos,
+            fallbackPos,
+            islandMeshes,
+            animalSize
+          );
+
+          if (groundResult.isOnGround) {
+            groupRef.current.position.copy(groundResult.position);
+            groupRef.current.rotation.y = angle + Math.PI / 2;
+          }
+        } else {
+          groupRef.current.position.set(x, 0.3, z);
+          groupRef.current.rotation.y = angle + Math.PI / 2;
+        }
+      }
       return;
     }
-    
-    if (!animationController) return;
 
-    const currentWaypoint = getCurrentWaypoint();
-    if (!currentWaypoint) return;
-
-    // Calculate movement speed based on current state
-    let currentSpeed = 0;
-    let animationContext: 'moving' | 'idle' | 'special' = 'idle';
-
-    setPathState(prevState => {
+    setMovementState(prevState => {
       const newState = { ...prevState };
 
-      if (!newState.isMoving) {
-        // Currently waiting at waypoint
-        newState.waitTimer -= delta;
-        
-        if (newState.waitTimer <= 0) {
+      // Update ground check timer
+      newState.groundCheckTimer += delta;
+
+      // Check if animal is stuck
+      const distanceMoved = newState.currentPosition.distanceTo(newState.lastPosition);
+      if (distanceMoved < 0.01 && newState.isMoving) {
+        newState.stuckTimer += delta;
+
+        // If stuck for too long, find new waypoint
+        if (newState.stuckTimer > 2.0) {
+          console.log(`🐾 ${animalType}: Animal stuck, finding new path`);
+          setCurrentWaypointIndex((prev) => (prev + 1) % smartWaypoints.length);
+          newState.stuckTimer = 0;
+        }
+      } else {
+        newState.stuckTimer = 0;
+        newState.lastPosition.copy(newState.currentPosition);
+      }
+
+      const currentWaypoint = smartWaypoints[currentWaypointIndex];
+      if (!currentWaypoint) return newState;
+
+      // Check if reached current waypoint
+      const distanceToWaypoint = newState.currentPosition.distanceTo(currentWaypoint.position);
+
+      if (distanceToWaypoint < 0.3) {
+        // Reached waypoint, move to next one
+        if (!newState.isMoving) {
           // Start moving to next waypoint
-          const nextWaypoint = getNextWaypoint();
+          const nextIndex = (currentWaypointIndex + 1) % smartWaypoints.length;
+          const nextWaypoint = smartWaypoints[nextIndex];
+
           if (nextWaypoint) {
+            newState.targetPosition.copy(nextWaypoint.position);
             newState.isMoving = true;
-            newState.progress = 0;
-            
-            // Generate path using terrain navigator
-            const path = terrainNavigator.findPath(
-              currentWaypoint.position,
-              nextWaypoint.position,
-              islandMeshes,
-              animalSize
+
+            // Calculate target rotation
+            const direction = tempVector2.subVectors(nextWaypoint.position, newState.currentPosition);
+            if (direction.length() > 0) {
+              newState.targetRotation = Math.atan2(direction.x, direction.z);
+            }
+
+            console.log(`🎯 ${animalType}: Moving to waypoint ${nextIndex}`);
+          }
+        }
+      } else if (!newState.isMoving) {
+        // Not moving and not at waypoint, start moving towards current waypoint
+        newState.targetPosition.copy(currentWaypoint.position);
+        newState.isMoving = true;
+
+        const direction = tempVector2.subVectors(currentWaypoint.position, newState.currentPosition);
+        if (direction.length() > 0) {
+          newState.targetRotation = Math.atan2(direction.x, direction.z);
+        }
+      }
+
+      // Smooth movement towards target
+      if (newState.isMoving) {
+        // Calculate movement direction
+        const moveDirection = tempVector.subVectors(newState.targetPosition, newState.currentPosition);
+
+        if (moveDirection.length() < 0.1) {
+          // Very close to target, stop moving
+          newState.isMoving = false;
+          setCurrentWaypointIndex((prev) => (prev + 1) % smartWaypoints.length);
+        } else {
+          moveDirection.normalize();
+
+          // Use terrain navigator for movement
+          const targetPos = tempVector2
+            .copy(newState.currentPosition)
+            .add(moveDirection.multiplyScalar(newState.movementSpeed * delta));
+
+          const navResult = terrainNavigator.calculateMovement(
+            newState.currentPosition,
+            targetPos,
+            islandMeshes,
+            animalSize
+          );
+
+          if (navResult.canMove && navResult.isOnGround) {
+            newState.currentPosition.copy(navResult.position);
+
+            // Smooth rotation
+            newState.currentRotation = MathUtils.lerp(
+              newState.currentRotation,
+              newState.targetRotation,
+              newState.rotationSpeed * delta
             );
-            newState.currentPath = path;
-            
-            console.log(`🎯 ${animalType}: Moving to waypoint ${(newState.currentWaypointIndex + 1) % smartWaypoints.length}`);
+          } else {
+            // Can't move, try different direction or stop
+            newState.isMoving = false;
+            newState.stuckTimer += delta;
           }
         }
       } else {
-        // Currently moving between waypoints
-        const nextWaypoint = getNextWaypoint();
-        if (!nextWaypoint || newState.currentPath.length === 0) return newState;
+        // Not moving, perform ground check periodically
+        if (newState.groundCheckTimer > 0.5) {
+          newState.groundCheckTimer = 0;
 
-        // Update progress based on animal's movement speed
-        newState.progress += delta * newState.movementSpeed;
+          const navResult = terrainNavigator.calculateMovement(
+            newState.currentPosition,
+            newState.currentPosition,
+            islandMeshes,
+            animalSize
+          );
 
-        if (newState.progress >= 1.0) {
-          // Reached next waypoint
-          newState.currentWaypointIndex = (newState.currentWaypointIndex + 1) % smartWaypoints.length;
-          newState.progress = 0;
-          newState.isMoving = false;
-          newState.waitTimer = nextWaypoint.duration;
-          newState.currentPath = [];
-          
-          console.log(`🎯 ${animalType}: Reached waypoint ${newState.currentWaypointIndex}`);
+          if (navResult.isOnGround) {
+            // Smoothly adjust to ground
+            newState.currentPosition.lerp(navResult.position, 0.1);
+          }
         }
       }
 
       return newState;
     });
 
-    // Update position using advanced terrain navigation
-    if (pathState.isMoving && pathState.currentPath.length > 1) {
-      animationContext = 'moving';
-      currentSpeed = pathState.movementSpeed;
-      
-      // Interpolate along current path
-      const pathIndex = Math.floor(pathState.progress * (pathState.currentPath.length - 1));
-      const pathProgress = (pathState.progress * (pathState.currentPath.length - 1)) % 1;
-      
-      const startPos = pathState.currentPath[pathIndex];
-      const endPos = pathState.currentPath[Math.min(pathIndex + 1, pathState.currentPath.length - 1)];
-      
-      if (startPos && endPos) {
-        // Use terrain navigator for accurate positioning
-        const navResult = terrainNavigator.calculateMovement(startPos, endPos, islandMeshes, animalSize);
-        
-        if (navResult.canMove) {
-          // Smooth interpolation with terrain awareness
-          tempVector.lerpVectors(startPos, navResult.position, pathProgress);
-          groupRef.current.position.copy(tempVector);
-          
-          // Natural rotation based on movement direction and slope
-          const moveDirection = new Vector3().subVectors(endPos, startPos).normalize();
-          if (moveDirection.length() > 0) {
-            // Adjust rotation for slope
-            const rotation = Math.atan2(moveDirection.x, moveDirection.z);
-            groupRef.current.rotation.y = rotation;
-            
-            // Tilt animal based on surface normal
-            const tiltAmount = 0.1;
-            groupRef.current.rotation.x = navResult.surfaceNormal.x * tiltAmount;
-            groupRef.current.rotation.z = navResult.surfaceNormal.z * tiltAmount;
-          }
-        }
-      }
-    } else {
-      // Stationary at waypoint
-      animationContext = currentWaypoint.type === 'lookout' ? 'special' : 'idle';
-      currentSpeed = 0;
-      
-      const waypointPos = currentWaypoint.position.clone();
-      groupRef.current.position.copy(waypointPos);
-      
-      // Look behavior at waypoints
-      if (currentWaypoint.lookAt) {
-        groupRef.current.lookAt(currentWaypoint.lookAt);
-      } else {
-        // Natural idle looking around
-        const idleLook = Math.sin(state.clock.elapsedTime * 0.2 + index) * 0.5;
-        const lookDirection = new Vector3(
-          Math.cos(idleLook + groupRef.current.rotation.y),
-          0,
-          Math.sin(idleLook + groupRef.current.rotation.y)
-        );
-        const lookTarget = waypointPos.clone().add(lookDirection);
-        groupRef.current.lookAt(lookTarget);
-      }
+    // Apply movement to actual mesh
+    if (groupRef.current) {
+      // Smooth position interpolation
+      groupRef.current.position.lerp(movementState.currentPosition, 0.1);
+
+      // Smooth rotation
+      groupRef.current.rotation.y = MathUtils.lerp(
+        groupRef.current.rotation.y,
+        movementState.currentRotation,
+        5 * delta
+      );
+
+      // Subtle floating animation
+      const floatOffset = Math.sin(state.clock.elapsedTime * 2 + index) * 0.005;
+      groupRef.current.position.y += floatOffset;
     }
 
-    // Update animations using smart controller (only if available)
+    // Update animations
     if (animationController) {
-      animationController.updateAnimation(currentSpeed, animationContext, delta);
+      const speed = movementState.isMoving ? movementState.movementSpeed : 0;
+      const context = movementState.isMoving ? 'moving' : 'idle';
+      animationController.updateAnimation(speed, context, delta);
     }
-
-    // Subtle floating effect (reduced for realism)
-    const floatOffset = Math.sin(state.clock.elapsedTime * 1.5 + index * 0.7) * 0.01;
-    groupRef.current.position.y += floatOffset;
   });
 
-  // Set initial position - fallback to simple position if no waypoints
-  useEffect(() => {
-    if (groupRef.current) {
-      if (smartWaypoints.length > 0) {
-        groupRef.current.position.copy(smartWaypoints[0].position);
-      } else {
-        // Fallback positioning while waypoints are loading
-        const radius = 1.5;
-        const angle = (index * Math.PI * 2) / Math.max(totalPets, 1);
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        groupRef.current.position.set(x, 0.3, z);
-      }
-    }
-  }, [smartWaypoints, index, totalPets]);
 
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
     return () => {
       if (groupRef.current) {
@@ -332,12 +362,23 @@ export const GLBAnimal = ({
         mixer.stopAllAction();
         mixer.uncacheRoot(groupRef.current!);
       }
+      terrainNavigator.dispose();
     };
-  }, [disposeObject3D, mixer, animationController]);
+  }, [disposeObject3D, mixer, animationController, terrainNavigator]);
 
   return (
     <group ref={groupRef} scale={[scale, scale, scale]}>
       <primitive object={sceneClone} />
+      {/* Debug helper in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <mesh visible={false}>
+          <sphereGeometry args={[0.05]} />
+          <meshBasicMaterial color="#ff0000" />
+        </mesh>
+      )}
     </group>
   );
 };
+
+// Preload the component
+GLBAnimal.displayName = 'ImprovedGLBAnimal';
