@@ -329,16 +329,25 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
         <Suspense fallback={null}>
           <PerspectiveCamera makeDefault position={[4, 3, 4]} fov={50} />
 
-          {/* Lighting */}
-          <ambientLight intensity={theme.ambient} />
+          {/* Enhanced Lighting for Brighter Animals */}
+          <ambientLight intensity={theme.ambient + 0.2} />
           <directionalLight 
             position={[5, 10, 5]} 
-            intensity={theme.sunIntensity} 
+            intensity={theme.sunIntensity + 0.3} 
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
           />
-          <pointLight position={[-5, 5, -5]} intensity={0.3} color={theme.warmLight} />
+          <pointLight position={[-5, 5, -5]} intensity={0.5} color={theme.warmLight} />
+          {/* Additional fill light for animals */}
+          <pointLight position={[0, 3, 0]} intensity={0.4} color="#ffffff" />
+          <spotLight 
+            position={[3, 4, 3]} 
+            intensity={0.6} 
+            angle={Math.PI / 3}
+            penumbra={0.1}
+            color="#fff5e6"
+          />
 
           {/* GLB Island with Error Boundary */}
           <GLBErrorBoundary 
