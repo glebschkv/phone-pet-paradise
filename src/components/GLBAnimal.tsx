@@ -358,9 +358,9 @@ export const GLBAnimal = ({
       if (animationController) {
         animationController.dispose();
       }
-      if (mixer) {
+      if (mixer && groupRef.current) {
         mixer.stopAllAction();
-        mixer.uncacheRoot(groupRef.current!);
+        mixer.uncacheRoot(groupRef.current);
       }
       terrainNavigator.dispose();
     };
