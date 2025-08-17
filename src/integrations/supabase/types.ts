@@ -14,7 +14,210 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      achievements: {
+        Row: {
+          achievement_type: string
+          description: string | null
+          id: string
+          reward_xp: number
+          title: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_type: string
+          description?: string | null
+          id?: string
+          reward_xp?: number
+          title: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_type?: string
+          description?: string | null
+          id?: string
+          reward_xp?: number
+          title?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      focus_sessions: {
+        Row: {
+          completed_at: string
+          duration_minutes: number
+          id: string
+          session_type: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          completed_at?: string
+          duration_minutes: number
+          id?: string
+          session_type?: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          completed_at?: string
+          duration_minutes?: number
+          id?: string
+          session_type?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
+      pets: {
+        Row: {
+          bond_level: number
+          created_at: string
+          experience: number
+          id: string
+          is_favorite: boolean
+          mood: number
+          name: string
+          pet_type: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          bond_level?: number
+          created_at?: string
+          experience?: number
+          id?: string
+          is_favorite?: boolean
+          mood?: number
+          name: string
+          pet_type: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          bond_level?: number
+          created_at?: string
+          experience?: number
+          id?: string
+          is_favorite?: boolean
+          mood?: number
+          name?: string
+          pet_type?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_progress: number
+          description: string | null
+          id: string
+          quest_type: string
+          reward_xp: number
+          target_value: number
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          description?: string | null
+          id?: string
+          quest_type: string
+          reward_xp?: number
+          target_value: number
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          description?: string | null
+          id?: string
+          quest_type?: string
+          reward_xp?: number
+          target_value?: number
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_progress: {
+        Row: {
+          created_at: string
+          current_level: number
+          current_streak: number
+          id: string
+          last_session_date: string | null
+          longest_streak: number
+          streak_freeze_count: number
+          total_sessions: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_level?: number
+          current_streak?: number
+          id?: string
+          last_session_date?: string | null
+          longest_streak?: number
+          streak_freeze_count?: number
+          total_sessions?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_level?: number
+          current_streak?: number
+          id?: string
+          last_session_date?: string | null
+          longest_streak?: number
+          streak_freeze_count?: number
+          total_sessions?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
