@@ -19,11 +19,15 @@ const config: CapacitorConfig = {
       splashFullScreen: true,
       splashImmersive: true,
     },
-    NomoTracking: {
+    DeviceActivity: {
       ios: {
         src: "ios",
-        path: "App/App/NomoTrackingPlugin.swift"
+        path: "App/App/Sources/DeviceActivityPlugin.swift"
       }
+    },
+    BackgroundTask: {
+      label: "app.lovable.354c50c576064f429b59577c9adb3ef7.background-tracking",
+      description: "Tracks app usage and awards points for time away from device"
     }
   },
 };
