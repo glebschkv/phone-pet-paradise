@@ -71,11 +71,12 @@ export const GLBAnimal = ({
   
   // Get animal size for navigation
   const animalSize = useMemo(() => {
+    console.log(`🐼 GLBAnimal: Initializing ${animalType} with animal data:`, animalData.name);
     const name = animalData.name.toLowerCase();
     if (['rabbit', 'squirrel', 'rat', 'fish', 'crab'].some(s => name.includes(s))) return 'small';
     if (['elephant', 'whale', 'bear', 'lion', 'tiger', 'giraffe'].some(l => name.includes(l))) return 'large';
     return 'medium';
-  }, [animalData.name]);
+  }, [animalData.name, animalType]);
 
   // Update island meshes when island ref changes
   useEffect(() => {
@@ -162,7 +163,20 @@ export const GLBAnimal = ({
 
   // Main update loop
   useFrame((state, delta) => {
-    if (!groupRef.current || !isActive || !animationController || smartWaypoints.length === 0) return;
+    if (!groupRef.current || !isActive) return;
+    
+    // If no waypoints yet, use simple positioning
+    if (smartWaypoints.length === 0) {
+      const radius = 1.5;
+      const angle = (index * Math.PI * 2) / Math.max(totalPets, 1) + state.clock.elapsedTime * 0.2;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      groupRef.current.position.set(x, 0.3, z);
+      groupRef.current.rotation.y = angle + Math.PI / 2;
+      return;
+    }
+    
+    if (!animationController) return;
 
     const currentWaypoint = getCurrentWaypoint();
     if (!currentWaypoint) return;
@@ -279,20 +293,31 @@ export const GLBAnimal = ({
       }
     }
 
-    // Update animations using smart controller
-    animationController.updateAnimation(currentSpeed, animationContext, delta);
+    // Update animations using smart controller (only if available)
+    if (animationController) {
+      animationController.updateAnimation(currentSpeed, animationContext, delta);
+    }
 
     // Subtle floating effect (reduced for realism)
     const floatOffset = Math.sin(state.clock.elapsedTime * 1.5 + index * 0.7) * 0.01;
     groupRef.current.position.y += floatOffset;
   });
 
-  // Set initial position
+  // Set initial position - fallback to simple position if no waypoints
   useEffect(() => {
-    if (groupRef.current && smartWaypoints.length > 0) {
-      groupRef.current.position.copy(smartWaypoints[0].position);
+    if (groupRef.current) {
+      if (smartWaypoints.length > 0) {
+        groupRef.current.position.copy(smartWaypoints[0].position);
+      } else {
+        // Fallback positioning while waypoints are loading
+        const radius = 1.5;
+        const angle = (index * Math.PI * 2) / Math.max(totalPets, 1);
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+        groupRef.current.position.set(x, 0.3, z);
+      }
     }
-  }, [smartWaypoints]);
+  }, [smartWaypoints, index, totalPets]);
 
   // Cleanup on unmount
   useEffect(() => {
