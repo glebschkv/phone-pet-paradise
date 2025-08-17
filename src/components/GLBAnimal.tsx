@@ -50,94 +50,86 @@ export const GLBAnimal = ({
   // Cache for island meshes to improve performance
   const [islandMeshes, setIslandMeshes] = useState<Mesh[]>([]);
   
-  // Surface height sampling function accounting for island transform
+  // Surface height sampling function
   const sampleTerrainHeight = (x: number, z: number): number => {
-    if (islandMeshes.length === 0) return -0.3; // Island's base height at scale 0.4
+    if (islandMeshes.length === 0) return 0.2; // Safe fallback
     
-    // Account for island's transform: scale=0.4, position=[0,-0.5,0]
-    // Transform coordinates to island's local space
-    const localX = x / 0.4; // Inverse scale
-    const localZ = z / 0.4; // Inverse scale
-    
-    // Start ray from well above the island's scaled bounds
-    const rayOrigin = tempVector.set(localX, 15, localZ);
+    const rayOrigin = tempVector.set(x, 10, z); // Start ray from above
     raycaster.set(rayOrigin, rayDirection);
     
     const intersects = raycaster.intersectObjects(islandMeshes, true);
     
     if (intersects.length > 0) {
       const hit = intersects[0];
-      // Transform hit point back to world space accounting for island's position and scale
-      const worldHeight = (hit.point.y * 0.4) - 0.5 + 0.05; // Scale down, account for island offset, add small clearance
-      return Math.max(worldHeight, -0.4); // Minimum height safety
+      const surfaceHeight = hit.point.y + 0.1; // Small offset above surface
+      return Math.max(surfaceHeight, 0.1); // Minimum height safety
     }
     
-    // Fallback height based on island's actual position and scale
-    return -0.3; // Island surface level after transform
+    return 0.2; // Safe fallback height
   };
 
   // Define the panda's path with waypoints and animations
   const waypoints = useMemo<Waypoint[]>(() => {
-    const baseOffset = index * 0.2; // Reduced offset to keep within island bounds
+    const baseOffset = index * 0.3; // Offset each animal slightly
     return [
       // Start near center
       {
-        position: new Vector3(0.1 + baseOffset, -0.3, 0.05 + baseOffset),
+        position: new Vector3(0.2 + baseOffset, 0.3, 0.1 + baseOffset),
         animation: 'idle',
         duration: 2.0,
-        lookAt: new Vector3(0.5, -0.3, 0)
+        lookAt: new Vector3(1, 0.3, 0)
       },
       // Move to right side
       {
-        position: new Vector3(0.4 + baseOffset, -0.3, 0.15 + baseOffset),
+        position: new Vector3(0.8 + baseOffset, 0.4, 0.3 + baseOffset),
         animation: 'walk',
         duration: 1.5,
       },
       // Pause and look around
       {
-        position: new Vector3(0.4 + baseOffset, -0.3, 0.15 + baseOffset),
+        position: new Vector3(0.8 + baseOffset, 0.4, 0.3 + baseOffset),
         animation: 'idle',
         duration: 3.0,
-        lookAt: new Vector3(-0.5, -0.3, 0.5)
+        lookAt: new Vector3(-1, 0.4, 1)
       },
       // Move to back of island
       {
-        position: new Vector3(0.1 + baseOffset, -0.3, -0.4 + baseOffset),
+        position: new Vector3(0.2 + baseOffset, 0.5, -0.8 + baseOffset),
         animation: 'walk',
         duration: 2.0,
       },
       // Rest at back
       {
-        position: new Vector3(0.1 + baseOffset, -0.3, -0.4 + baseOffset),
+        position: new Vector3(0.2 + baseOffset, 0.5, -0.8 + baseOffset),
         animation: 'idle',
         duration: 2.5,
-        lookAt: new Vector3(0, -0.3, 0.5)
+        lookAt: new Vector3(0, 0.5, 1)
       },
       // Move to left side
       {
-        position: new Vector3(-0.3 + baseOffset, -0.3, 0.1 + baseOffset),
+        position: new Vector3(-0.6 + baseOffset, 0.35, 0.2 + baseOffset),
         animation: 'walk',
         duration: 1.8,
       },
       // Pause on left
       {
-        position: new Vector3(-0.3 + baseOffset, -0.3, 0.1 + baseOffset),
+        position: new Vector3(-0.6 + baseOffset, 0.35, 0.2 + baseOffset),
         animation: 'idle',
         duration: 2.0,
-        lookAt: new Vector3(0.5, -0.3, -0.5)
+        lookAt: new Vector3(1, 0.35, -1)
       },
       // Move to front
       {
-        position: new Vector3(0.05 + baseOffset, -0.3, 0.45 + baseOffset),
+        position: new Vector3(0.1 + baseOffset, 0.3, 0.9 + baseOffset),
         animation: 'walk',
         duration: 1.5,
       },
       // Final pause before loop
       {
-        position: new Vector3(0.05 + baseOffset, -0.3, 0.45 + baseOffset),
+        position: new Vector3(0.1 + baseOffset, 0.3, 0.9 + baseOffset),
         animation: 'idle',
         duration: 1.8,
-        lookAt: new Vector3(0, -0.3, -0.5)
+        lookAt: new Vector3(0, 0.3, -1)
       }
     ];
   }, [index]);
@@ -159,20 +151,13 @@ export const GLBAnimal = ({
   useEffect(() => {
     if (islandMeshes.length === 0) return;
     
-    // Add small delay to ensure island meshes are fully loaded
-    const timer = setTimeout(() => {
-      waypoints.forEach((waypoint) => {
-        if (waypoint.terrainHeight === undefined) {
-          const terrainHeight = sampleTerrainHeight(waypoint.position.x, waypoint.position.z);
-          waypoint.terrainHeight = terrainHeight;
-          // Update waypoint Y position to match terrain
-          waypoint.position.y = terrainHeight;
-          console.log(`🌍 Waypoint at (${waypoint.position.x.toFixed(2)}, ${waypoint.position.z.toFixed(2)}) terrain height: ${terrainHeight.toFixed(3)}`);
-        }
-      });
-    }, 100);
-    
-    return () => clearTimeout(timer);
+    waypoints.forEach((waypoint) => {
+      if (waypoint.terrainHeight === undefined) {
+        waypoint.terrainHeight = sampleTerrainHeight(waypoint.position.x, waypoint.position.z);
+        // Update waypoint Y position to match terrain
+        waypoint.position.y = waypoint.terrainHeight;
+      }
+    });
   }, [islandMeshes, waypoints, sampleTerrainHeight]);
 
   // Path state
@@ -185,8 +170,6 @@ export const GLBAnimal = ({
 
   // Current animation state
   const [currentAnimation, setCurrentAnimation] = useState<string>('idle');
-  const [walkAnimationToggle, setWalkAnimationToggle] = useState<boolean>(false);
-  const [lastWaypointIndex, setLastWaypointIndex] = useState<number>(-1);
   
   // Load GLB model
   const { scene, animations } = useGLTF(modelPath);
@@ -215,40 +198,29 @@ export const GLBAnimal = ({
     if (!mixer || animations.length === 0) return;
 
     const findAndPlayAnimation = (targetAnim: string) => {
-      let anim;
+      // Try to find exact match first
+      let anim = animations.find(a => a.name.toLowerCase() === targetAnim.toLowerCase());
       
-      // Handle specific animation requests with indices
-      if (targetAnim === 'walk1') {
-        anim = animations[1];
-      } else if (targetAnim === 'walk2') {
-        anim = animations[2];
-      } else if (targetAnim === 'idle') {
+      // Try partial matches
+      if (!anim) {
+        if (targetAnim === 'walk') {
+          anim = animations.find(a => 
+            a.name.toLowerCase().includes('walk') || 
+            a.name.toLowerCase().includes('run') ||
+            a.name.toLowerCase().includes('move')
+          );
+        } else if (targetAnim === 'idle') {
+          anim = animations.find(a => 
+            a.name.toLowerCase().includes('idle') || 
+            a.name.toLowerCase().includes('stand') ||
+            a.name.toLowerCase().includes('rest')
+          );
+        }
+      }
+      
+      // Fallback to first animation
+      if (!anim && animations.length > 0) {
         anim = animations[0];
-      } else {
-        // Fallback to searching by name
-        anim = animations.find(a => a.name.toLowerCase() === targetAnim.toLowerCase());
-        
-        // Try partial matches
-        if (!anim) {
-          if (targetAnim === 'walk') {
-            anim = animations.find(a => 
-              a.name.toLowerCase().includes('walk') || 
-              a.name.toLowerCase().includes('run') ||
-              a.name.toLowerCase().includes('move')
-            );
-          } else if (targetAnim === 'idle') {
-            anim = animations.find(a => 
-              a.name.toLowerCase().includes('idle') || 
-              a.name.toLowerCase().includes('stand') ||
-              a.name.toLowerCase().includes('rest')
-            );
-          }
-        }
-        
-        // Fallback to first animation
-        if (!anim && animations.length > 0) {
-          anim = animations[0];
-        }
       }
       
       if (anim && actions[anim.name]) {
@@ -355,14 +327,9 @@ export const GLBAnimal = ({
           groupRef.current.lookAt(lookTarget);
         }
         
-        // Only change walk animation when starting a new waypoint transition
-        if (pathState.currentWaypointIndex !== lastWaypointIndex) {
-          setLastWaypointIndex(pathState.currentWaypointIndex);
-          const targetWalkAnim = walkAnimationToggle ? 'walk1' : 'walk2';
-          if (currentAnimation !== targetWalkAnim) {
-            setCurrentAnimation(targetWalkAnim);
-            setWalkAnimationToggle(!walkAnimationToggle);
-          }
+        // Set walking animation
+        if (currentAnimation !== 'walk') {
+          setCurrentAnimation('walk');
         }
       }
     } else {
@@ -388,14 +355,14 @@ export const GLBAnimal = ({
         groupRef.current.lookAt(lookTarget);
       }
       
-      // Set idle animation (use animation 0)
-      if (currentAnimation !== 'idle') {
-        setCurrentAnimation('idle');
+      // Set idle animation
+      if (currentAnimation !== currentWaypoint.animation) {
+        setCurrentAnimation(currentWaypoint.animation);
       }
     }
 
-    // Add very subtle floating animation that doesn't interfere with terrain collision
-    const floatOffset = Math.sin(state.clock.elapsedTime * 1.5 + index * 0.5) * 0.008;
+    // Add subtle floating animation (reduced to work better with terrain)
+    const floatOffset = Math.sin(state.clock.elapsedTime * 2 + index * 0.5) * 0.015;
     groupRef.current.position.y += floatOffset;
 
     // Debug logging (reduced frequency)
