@@ -3,6 +3,7 @@ import { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Group, Vector3, Raycaster, Mesh } from 'three';
 import { SkeletonUtils } from 'three-stdlib';
+import { use3DCleanup } from '@/hooks/use3DCleanup';
 
 interface GLBAnimalProps {
   modelPath: string;
@@ -40,6 +41,12 @@ export const GLBAnimal = ({
   animationName,
   islandRef 
 }: GLBAnimalProps) => {
+  // Initialize 3D cleanup system
+  const { disposeObject3D } = use3DCleanup({
+    autoCleanup: true,
+    cleanupInterval: 60000, // Clean every minute
+    enableLogging: false,
+  });
   const groupRef = useRef<Group>(null);
   const tempVector = useMemo(() => new Vector3(), []);
   const startPosition = useMemo(() => new Vector3(), []);
@@ -377,6 +384,19 @@ export const GLBAnimal = ({
       groupRef.current.position.copy(waypoints[0].position);
     }
   }, [waypoints]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (groupRef.current) {
+        disposeObject3D(groupRef.current);
+      }
+      if (mixer) {
+        mixer.stopAllAction();
+        mixer.uncacheRoot(groupRef.current!);
+      }
+    };
+  }, [disposeObject3D, mixer]);
 
   return (
     <group ref={groupRef} scale={[scale, scale, scale]}>

@@ -1,13 +1,24 @@
 import { Island3D } from "@/components/Island3D";
 import { GameUI } from "@/components/GameUI";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Enhanced3DErrorBoundary } from "@/components/Enhanced3DErrorBoundary";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
+import { useDataBackup } from "@/hooks/useDataBackup";
+import { useEffect } from "react";
 
 const Index = () => {
   const { unlockedAnimals, currentLevel, currentBiome } = useAppStateTracking();
   const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
+  const { performanceLevel } = usePerformanceMonitor();
+  const { autoBackup } = useDataBackup();
+
+  // Auto backup on app start
+  useEffect(() => {
+    autoBackup();
+  }, [autoBackup]);
   
   // Show loading state while checking onboarding status
   if (hasCompletedOnboarding === null) {
@@ -33,15 +44,15 @@ const Index = () => {
   return (
     <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
       {/* 3D Island Scene */}
-      <ErrorBoundary>
-<Island3D 
-  totalPets={unlockedAnimals.length} 
-  isAppActive={true} 
-  currentLevel={currentLevel} 
-  unlockedAnimals={unlockedAnimals}
-  currentBiome={currentBiome}
-/>
-      </ErrorBoundary>
+      <Enhanced3DErrorBoundary enableDiagnostics={true}>
+        <Island3D 
+          totalPets={unlockedAnimals.length} 
+          isAppActive={true} 
+          currentLevel={currentLevel} 
+          unlockedAnimals={unlockedAnimals}
+          currentBiome={currentBiome}
+        />
+      </Enhanced3DErrorBoundary>
       
       {/* Game UI Overlay */}
       <ErrorBoundary>
