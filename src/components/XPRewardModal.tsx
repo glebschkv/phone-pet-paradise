@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { XPReward } from "@/hooks/useXPSystem";
+import { XPReward } from "@/hooks/useBackendXPSystem";
 import { Star, Gift, Zap, Crown } from "lucide-react";
 
 interface XPRewardModalProps {

@@ -15,7 +15,7 @@ import {
   VolumeX
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAppStateTracking } from "@/hooks/useAppStateTracking";
+import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = 'petIsland_unifiedTimer';
@@ -109,7 +109,7 @@ const TIMER_PRESETS: TimerPreset[] = [
 
 export const UnifiedFocusTimer = () => {
   const { toast } = useToast();
-  const { awardXP } = useAppStateTracking();
+  const { awardXP } = useBackendAppState();
   
   const [timerState, setTimerState] = useState<TimerState>({
     timeLeft: 25 * 60,
@@ -294,7 +294,7 @@ export const UnifiedFocusTimer = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [timerState.isRunning, timerState.startTime, timerState.timeLeft, timerState.sessionDuration, timerState.sessionType]);
 
-  const handleComplete = useCallback(() => {
+  const handleComplete = useCallback(async () => {
     const completedMinutes = timerState.sessionDuration / 60;
     
     // Clear persistence data when session completes
@@ -308,7 +308,11 @@ export const UnifiedFocusTimer = () => {
     // Award XP for work sessions (minimum 25 minutes)
     let reward = null;
     if (timerState.sessionType !== 'break' && completedMinutes >= 25) {
-      reward = awardXP(completedMinutes);
+      try {
+        reward = await awardXP(completedMinutes);
+      } catch (error) {
+        console.error('Failed to award XP:', error);
+      }
     }
 
     // Show completion notification
@@ -419,7 +423,7 @@ export const UnifiedFocusTimer = () => {
     console.log(`⏹️ Timer stopped and reset`);
   };
 
-  const skipTimer = () => {
+  const skipTimer = async () => {
     const completedMinutes = Math.ceil((timerState.sessionDuration - timerState.timeLeft) / 60);
     
     // Clear persistence data when skipping
@@ -427,12 +431,20 @@ export const UnifiedFocusTimer = () => {
     
     // Award XP if it was a meaningful session (>= 25 minutes) and not a break
     if (timerState.sessionType !== 'break' && completedMinutes >= 25) {
-      const reward = awardXP(completedMinutes);
-      toast({
-        title: "🎯 Session Skipped",
-        description: `+${reward?.xpGained || 0} XP for ${completedMinutes} minutes of focus!`,
-        duration: 3000,
-      });
+      try {
+        const reward = await awardXP(completedMinutes);
+        toast({
+          title: "🎯 Session Skipped",
+          description: `+${reward?.xpGained || 0} XP for ${completedMinutes} minutes of focus!`,
+          duration: 3000,
+        });
+      } catch (error) {
+        toast({
+          title: "⚡ Timer Skipped",
+          description: "Session saved locally, will sync when online",
+          duration: 2000,
+        });
+      }
     } else {
       toast({
         title: "⚡ Timer Skipped",

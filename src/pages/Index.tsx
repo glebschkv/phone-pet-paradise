@@ -3,7 +3,7 @@ import { GameUI } from "@/components/GameUI";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Enhanced3DErrorBoundary } from "@/components/Enhanced3DErrorBoundary";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
-import { useAppStateTracking } from "@/hooks/useAppStateTracking";
+import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useDataBackup } from "@/hooks/useDataBackup";
@@ -17,7 +17,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
   const { profile, progress, pets } = useSupabaseData();
-  const { unlockedAnimals, currentLevel, currentBiome } = useAppStateTracking();
+  const { unlockedAnimals, currentLevel, currentBiome } = useBackendAppState();
   const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
   const { performanceLevel } = usePerformanceMonitor();
   const { autoBackup } = useDataBackup();
