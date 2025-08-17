@@ -186,6 +186,7 @@ export const GLBAnimal = ({
   // Current animation state
   const [currentAnimation, setCurrentAnimation] = useState<string>('idle');
   const [walkAnimationToggle, setWalkAnimationToggle] = useState<boolean>(false);
+  const [lastWaypointIndex, setLastWaypointIndex] = useState<number>(-1);
   
   // Load GLB model
   const { scene, animations } = useGLTF(modelPath);
@@ -354,8 +355,9 @@ export const GLBAnimal = ({
           groupRef.current.lookAt(lookTarget);
         }
         
-        // Only change walk animation at waypoint transitions, not every frame
-        if (pathState.progress < 0.1) { // Only at start of movement
+        // Only change walk animation when starting a new waypoint transition
+        if (pathState.currentWaypointIndex !== lastWaypointIndex) {
+          setLastWaypointIndex(pathState.currentWaypointIndex);
           const targetWalkAnim = walkAnimationToggle ? 'walk1' : 'walk2';
           if (currentAnimation !== targetWalkAnim) {
             setCurrentAnimation(targetWalkAnim);
