@@ -548,14 +548,17 @@ export const Animal = ({ totalPets, isActive, animalType, index, islandRef }: An
           index={index}
         />
       }>
-        <GLBErrorBoundary fallback={
-          <PrimitiveAnimal 
-            totalPets={totalPets}
-            isActive={isActive}
-            animalType={animalType}
-            index={index}
-          />
-        }>
+        <GLBErrorBoundary 
+          modelPath={modelConfig.modelPath}
+          fallback={
+            <PrimitiveAnimal 
+              totalPets={totalPets}
+              isActive={isActive}
+              animalType={animalType}
+              index={index}
+            />
+          }
+        >
           <GLBAnimal
             modelPath={modelConfig.modelPath}
             animalType={animalType}

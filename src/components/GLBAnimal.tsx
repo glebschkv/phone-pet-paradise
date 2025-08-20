@@ -71,7 +71,10 @@ export const GLBAnimal = ({
     [animalType]
   );
   
-  // Smart waypoints
+  // Model loading state
+  const [modelLoaded, setModelLoaded] = useState(false);
+  
+  // Smart waypoints (only initialize when model is loaded)
   const [smartWaypoints, setSmartWaypoints] = useState<SmartWaypoint[]>([]);
   const [currentWaypointIndex, setCurrentWaypointIndex] = useState(0);
 
@@ -117,10 +120,14 @@ export const GLBAnimal = ({
     console.log(`🏝️ ${animalType}: Found ${meshes.length} island meshes for collision`);
   }, [islandRef, animalType]);
 
-  // Generate waypoints
+  // Generate waypoints (only when model is loaded successfully)
   useEffect(() => {
-    if (islandMeshes.length === 0) return;
+    if (!modelLoaded || islandMeshes.length === 0) {
+      console.log(`⏳ ${animalType}: Waiting for model (loaded: ${modelLoaded}) and island meshes (${islandMeshes.length}) before generating waypoints`);
+      return;
+    }
 
+    console.log(`🎯 ${animalType}: Model loaded successfully, generating waypoints...`);
     const waypoints = waypointGenerator.generateWaypoints(animalData, index, islandMeshes);
     setSmartWaypoints(waypoints);
 
@@ -131,10 +138,11 @@ export const GLBAnimal = ({
         targetPosition: waypoints[0].position.clone(),
         lastPosition: waypoints[0].position.clone()
       }));
+      console.log(`✅ ${animalData.name}: Generated ${waypoints.length} waypoints and initialized movement`);
+    } else {
+      console.warn(`⚠️ ${animalData.name}: No waypoints generated!`);
     }
-
-    console.log(`🎯 ${animalData.name}: Generated ${waypoints.length} waypoints`);
-  }, [islandMeshes, animalData, index, waypointGenerator]);
+  }, [modelLoaded, islandMeshes, animalData, index, waypointGenerator, animalType]);
 
 
   // Load GLB model
@@ -143,43 +151,73 @@ export const GLBAnimal = ({
   
   // Clone scene with proper setup and validation
   const sceneClone = useMemo(() => {
-    console.log(`🔄 GLBAnimal: Original scene for ${animalType}:`, scene);
-    console.log(`📊 GLBAnimal: Original scene children count: ${scene.children.length}`);
+    console.log(`🔄 GLBAnimal: Validating GLB scene for ${animalType} from ${modelPath}`);
+    console.log(`📊 GLBAnimal: Scene info:`, {
+      children: scene.children.length,
+      type: scene.type,
+      name: scene.name,
+      uuid: scene.uuid
+    });
     
-    // Check if GLB scene is valid (has actual 3D content)
+    // More detailed scene structure logging
+    if (scene.children.length > 0) {
+      console.log(`🔍 GLBAnimal: Scene children:`, scene.children.map(child => ({
+        name: child.name,
+        type: child.type,
+        childrenCount: child.children.length
+      })));
+    }
+    
+    // Validate scene structure
     if (scene.children.length === 0) {
-      console.error(`❌ GLBAnimal: GLB model ${modelPath} loaded but has no children! Triggering fallback to primitive.`);
+      console.error(`❌ GLBAnimal: GLB model ${modelPath} loaded but scene has no children!`);
+      setModelLoaded(false);
       throw new Error(`GLB model ${modelPath} is empty - no 3D content found`);
     }
     
-    // Validate that there are actual meshes in the scene
-    let hasMeshes = false;
+    // Deep traverse to find meshes
+    let meshCount = 0;
+    let totalNodes = 0;
     scene.traverse((child) => {
+      totalNodes++;
       if ((child as any).isMesh) {
-        hasMeshes = true;
+        meshCount++;
+        console.log(`🎯 GLBAnimal: Found mesh:`, {
+          name: child.name,
+          type: child.type,
+          geometry: (child as any).geometry?.type
+        });
       }
     });
     
-    if (!hasMeshes) {
-      console.error(`❌ GLBAnimal: GLB model ${modelPath} has no meshes! Triggering fallback to primitive.`);
+    console.log(`📈 GLBAnimal: Scene analysis - Total nodes: ${totalNodes}, Meshes: ${meshCount}`);
+    
+    if (meshCount === 0) {
+      console.error(`❌ GLBAnimal: GLB model ${modelPath} has no meshes (${totalNodes} total nodes)!`);
+      setModelLoaded(false);
       throw new Error(`GLB model ${modelPath} contains no meshes - invalid 3D model`);
     }
     
     try {
       const cloned = SkeletonUtils.clone(scene);
-      console.log(`📊 GLBAnimal: Cloned scene children count: ${cloned.children.length}`);
+      console.log(`📊 GLBAnimal: Successfully cloned scene - Children: ${cloned.children.length}`);
       
+      // Configure shadows on cloned meshes
+      let configuredMeshes = 0;
       cloned.traverse((child) => {
         if ((child as any).isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
+          configuredMeshes++;
         }
       });
       
-      console.log(`✅ GLBAnimal: Scene cloned successfully for ${animalType}`);
+      console.log(`✅ GLBAnimal: Model loaded successfully! Configured ${configuredMeshes} meshes for ${animalType}`);
+      setModelLoaded(true);
       return cloned;
     } catch (error) {
       console.error(`❌ GLBAnimal: Failed to clone scene for ${animalType}:`, error);
+      setModelLoaded(false);
       throw new Error(`Failed to clone GLB model ${modelPath}: ${error}`);
     }
   }, [scene, animalType, modelPath]);
@@ -207,8 +245,11 @@ export const GLBAnimal = ({
 
   // Main update loop with improved movement
   useFrame((state, delta) => {
-    if (!groupRef.current || !isActive || smartWaypoints.length === 0) {
-      // Fallback simple movement while waypoints are loading
+    if (!groupRef.current || !isActive) return;
+    
+    // Only use waypoint system if model is loaded and waypoints exist
+    if (!modelLoaded || smartWaypoints.length === 0) {
+      // Fallback simple movement while model loads or waypoints are being generated
       if (groupRef.current && isActive) {
         const radius = 1.5;
         const angle = (index * Math.PI * 2) / Math.max(totalPets, 1) + state.clock.elapsedTime * 0.1;
