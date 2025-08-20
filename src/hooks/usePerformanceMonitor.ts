@@ -37,6 +37,7 @@ export const usePerformanceMonitor = () => {
   const [metrics, setMetrics] = useState<PerformanceMetrics>(defaultMetrics);
   const [settings, setSettings] = useState<PerformanceSettings>(defaultSettings);
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [lastOptimizationTime, setLastOptimizationTime] = useState(0);
   
   const frameCount = useRef(0);
   const lastTime = useRef(performance.now());
@@ -88,11 +89,17 @@ export const usePerformanceMonitor = () => {
     }
   }, [settings.maxMemoryMB, toast]);
 
-  // Auto-optimization
+  // Auto-optimization with cooldown
   const optimizePerformance = useCallback(async () => {
-    if (!settings.autoOptimize || isOptimizing) return;
+    const now = Date.now();
+    const OPTIMIZATION_COOLDOWN = 30000; // 30 seconds cooldown
+    
+    if (!settings.autoOptimize || isOptimizing || (now - lastOptimizationTime < OPTIMIZATION_COOLDOWN)) {
+      return;
+    }
     
     setIsOptimizing(true);
+    setLastOptimizationTime(now);
     
     try {
       // Force garbage collection if available
@@ -112,16 +119,14 @@ export const usePerformanceMonitor = () => {
         );
       }
       
-      toast({
-        title: "Performance Optimized",
-        description: "Memory cleared and caches cleaned",
-      });
+      // Don't show toast for auto-optimizations to prevent spam
+      console.log('Performance optimization completed automatically');
     } catch (error) {
       console.error('Performance optimization failed:', error);
     } finally {
       setIsOptimizing(false);
     }
-  }, [settings.autoOptimize, isOptimizing, toast]);
+  }, [settings.autoOptimize, isOptimizing, lastOptimizationTime, toast]);
 
   // Start monitoring
   useEffect(() => {
@@ -179,13 +184,49 @@ export const usePerformanceMonitor = () => {
     return 'low';
   }, [metrics.fps, metrics.memoryUsage, settings.targetFPS, settings.maxMemoryMB]);
 
+  // Manual optimization (with toast)
+  const manualOptimizePerformance = useCallback(async () => {
+    if (isOptimizing) return;
+    
+    setIsOptimizing(true);
+    setLastOptimizationTime(Date.now());
+    
+    try {
+      // Force garbage collection if available
+      if ('gc' in window) {
+        (window as any).gc();
+      }
+      
+      // Clear any large caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(name => 
+            name.includes('three') || name.includes('models') 
+              ? caches.delete(name) 
+              : Promise.resolve()
+          )
+        );
+      }
+      
+      toast({
+        title: "Performance Optimized",
+        description: "Memory cleared and caches cleaned",
+      });
+    } catch (error) {
+      console.error('Performance optimization failed:', error);
+    } finally {
+      setIsOptimizing(false);
+    }
+  }, [isOptimizing, toast]);
+
   return {
     metrics,
     settings,
     isOptimizing,
     performanceLevel: getPerformanceLevel(),
     updateSettings,
-    optimizePerformance,
+    optimizePerformance: manualOptimizePerformance,
     measureMemory,
   };
 };
