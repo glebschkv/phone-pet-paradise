@@ -141,14 +141,28 @@ export const GLBAnimal = ({
   console.log(`🎭 GLBAnimal: Loading GLB model from ${modelPath}`);
   const { scene, animations } = useGLTF(modelPath);
   
-  // Clone scene with proper setup
+  // Clone scene with proper setup and validation
   const sceneClone = useMemo(() => {
     console.log(`🔄 GLBAnimal: Original scene for ${animalType}:`, scene);
     console.log(`📊 GLBAnimal: Original scene children count: ${scene.children.length}`);
     
+    // Check if GLB scene is valid (has actual 3D content)
     if (scene.children.length === 0) {
-      console.error(`❌ GLBAnimal: Original scene has no children for ${animalType}!`);
-      return scene; // Return original if no children to clone
+      console.error(`❌ GLBAnimal: GLB model ${modelPath} loaded but has no children! Triggering fallback to primitive.`);
+      throw new Error(`GLB model ${modelPath} is empty - no 3D content found`);
+    }
+    
+    // Validate that there are actual meshes in the scene
+    let hasMeshes = false;
+    scene.traverse((child) => {
+      if ((child as any).isMesh) {
+        hasMeshes = true;
+      }
+    });
+    
+    if (!hasMeshes) {
+      console.error(`❌ GLBAnimal: GLB model ${modelPath} has no meshes! Triggering fallback to primitive.`);
+      throw new Error(`GLB model ${modelPath} contains no meshes - invalid 3D model`);
     }
     
     try {
@@ -166,9 +180,9 @@ export const GLBAnimal = ({
       return cloned;
     } catch (error) {
       console.error(`❌ GLBAnimal: Failed to clone scene for ${animalType}:`, error);
-      return scene; // Fallback to original scene
+      throw new Error(`Failed to clone GLB model ${modelPath}: ${error}`);
     }
-  }, [scene, animalType]);
+  }, [scene, animalType, modelPath]);
   
   const { mixer } = useAnimations(animations, groupRef);
 
