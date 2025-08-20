@@ -1,12 +1,10 @@
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Group, Vector3, Mesh, MathUtils } from 'three';
+import { Group, Vector3, Mesh, MathUtils, Raycaster, Box3 } from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 import { use3DCleanup } from '@/hooks/use3DCleanup';
 import { ANIMAL_DATABASE } from '@/data/AnimalDatabase';
-import { ImprovedWaypointGenerator, SmartWaypoint, AnimalBehavior } from './waypoints/ImprovedWaypointGenerator';
-import { ImprovedTerrainNavigator } from './waypoints/ImprovedTerrainNavigator';
 import { AnimationController } from './waypoints/AnimationController';
 
 interface GLBAnimalProps {
@@ -20,18 +18,20 @@ interface GLBAnimalProps {
   islandRef?: React.RefObject<Group>;
 }
 
-interface SmoothMovementState {
-  currentPosition: Vector3;
-  targetPosition: Vector3;
-  currentRotation: number;
-  targetRotation: number;
+interface MovementState {
+  position: Vector3;
   velocity: Vector3;
+  rotation: number;
+  targetRotation: number;
   isMoving: boolean;
-  movementSpeed: number;
-  rotationSpeed: number;
-  groundCheckTimer: number;
-  stuckTimer: number; // Timer to detect if animal is stuck
-  lastPosition: Vector3;
+  currentSpeed: number;
+  targetPoint: Vector3;
+  pathPoints: Vector3[];
+  currentPathIndex: number;
+  idleTimer: number;
+  moveTimer: number;
+  lastValidPosition: Vector3;
+  stuckCounter: number;
 }
 
 export const GLBAnimal = ({ 
@@ -44,71 +44,135 @@ export const GLBAnimal = ({
   animationName,
   islandRef 
 }: GLBAnimalProps) => {
-  // Initialize 3D cleanup system
   const { disposeObject3D } = use3DCleanup({
     autoCleanup: true,
-    cleanupInterval: 60000, // Clean every minute
+    cleanupInterval: 60000,
     enableLogging: false,
   });
 
-  console.log(`🐼 GLBAnimal: Starting initialization for ${animalType} with model ${modelPath}`);
-
   const groupRef = useRef<Group>(null);
-  const tempVector = useMemo(() => new Vector3(), []);
-  const tempVector2 = useMemo(() => new Vector3(), []);
-
-  // Cache for island meshes
   const [islandMeshes, setIslandMeshes] = useState<Mesh[]>([]);
-
-  // Improved terrain navigator
-  const terrainNavigator = useMemo(() => new ImprovedTerrainNavigator(), []);
-  const waypointGenerator = useMemo(() => new ImprovedWaypointGenerator(), []);
+  const [modelError, setModelError] = useState(false);
+  const [animationController, setAnimationController] = useState<AnimationController | null>(null);
   
-  // Get animal data from database
+  // Raycaster for ground detection
+  const raycaster = useMemo(() => new Raycaster(), []);
+  const downVector = useMemo(() => new Vector3(0, -1, 0), []);
+  const upVector = useMemo(() => new Vector3(0, 1, 0), []);
+  
+  // Get animal data
   const animalData = useMemo(() => 
     ANIMAL_DATABASE.find(animal => animal.name.toLowerCase() === animalType.toLowerCase()) ||
-    ANIMAL_DATABASE[0], // Fallback to first animal
+    ANIMAL_DATABASE[0],
     [animalType]
   );
   
-  // Model loading state
-  const [modelLoaded, setModelLoaded] = useState(false);
-  
-  // Smart waypoints (only initialize when model is loaded)
-  const [smartWaypoints, setSmartWaypoints] = useState<SmartWaypoint[]>([]);
-  const [currentWaypointIndex, setCurrentWaypointIndex] = useState(0);
-
-  // Animation controller
-  const [animationController, setAnimationController] = useState<AnimationController | null>(null);
-  
-  // Get animal size for navigation
-  const animalSize = useMemo(() => {
-    console.log(`🐼 GLBAnimal: Initializing ${animalType} with animal data:`, animalData.name);
+  // Animal size configuration
+  const animalConfig = useMemo(() => {
     const name = animalData.name.toLowerCase();
-    if (['rabbit', 'squirrel', 'rat', 'fish', 'crab'].some(s => name.includes(s))) return 'small';
-    if (['elephant', 'whale', 'bear', 'lion', 'tiger', 'giraffe'].some(l => name.includes(l))) return 'large';
-    return 'medium';
-  }, [animalData.name, animalType]);
+    let size = 'medium';
+    let speed = 0.5;
+    let turnSpeed = 2.0;
+    
+    if (['rabbit', 'squirrel', 'rat', 'mouse', 'hamster'].some(s => name.includes(s))) {
+      size = 'small';
+      speed = 0.8;
+      turnSpeed = 3.0;
+    } else if (['elephant', 'bear', 'lion', 'tiger', 'giraffe', 'rhino'].some(l => name.includes(l))) {
+      size = 'large';
+      speed = 0.3;
+      turnSpeed = 1.5;
+    }
+    
+    return {
+      size,
+      speed: speed + (Math.random() - 0.5) * 0.2, // Add variation
+      turnSpeed,
+      groundOffset: size === 'small' ? 0.1 : size === 'large' ? 0.3 : 0.2,
+      raycastDistance: size === 'small' ? 2 : size === 'large' ? 5 : 3,
+    };
+  }, [animalData]);
 
-  // Smooth movement state
-  const [movementState, setMovementState] = useState<SmoothMovementState>(() => ({
-    currentPosition: new Vector3(0, 0, 0),
-    targetPosition: new Vector3(0, 0, 0),
-    currentRotation: 0,
-    targetRotation: 0,
-    velocity: new Vector3(0, 0, 0),
-    isMoving: false,
-    movementSpeed: 0.3 + Math.random() * 0.2, // Varied speed per animal
-    rotationSpeed: 2.0,
-    groundCheckTimer: 0,
-    stuckTimer: 0,
-    lastPosition: new Vector3(0, 0, 0)
-  }));
+  // Movement state
+  const [movement] = useState<MovementState>(() => {
+    // Start at a random position around the island
+    const angle = (index / Math.max(totalPets, 1)) * Math.PI * 2 + Math.random() * 0.5;
+    const radius = 2 + Math.random() * 3;
+    return {
+      position: new Vector3(
+        Math.cos(angle) * radius,
+        2, // Start high and drop to ground
+        Math.sin(angle) * radius
+      ),
+      velocity: new Vector3(0, 0, 0),
+      rotation: angle,
+      targetRotation: angle,
+      isMoving: false,
+      currentSpeed: 0,
+      targetPoint: new Vector3(),
+      pathPoints: [],
+      currentPathIndex: 0,
+      idleTimer: Math.random() * 3,
+      moveTimer: 0,
+      lastValidPosition: new Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius),
+      stuckCounter: 0
+    };
+  });
+
+  // Load and setup model
+  let scene, animations, mixer;
+  try {
+    const gltf = useGLTF(modelPath);
+    scene = gltf.scene;
+    animations = gltf.animations;
+    
+    // Clone scene safely
+    const sceneClone = useMemo(() => {
+      if (!scene) {
+        console.error(`❌ No scene loaded for ${animalType}`);
+        return null;
+      }
+      
+      try {
+        // Check if scene has content
+        let hasMeshes = false;
+        scene.traverse((child) => {
+          if ((child as any).isMesh) hasMeshes = true;
+        });
+        
+        if (!hasMeshes) {
+          console.error(`❌ No meshes found in ${modelPath}`);
+          setModelError(true);
+          return null;
+        }
+        
+        const cloned = SkeletonUtils.clone(scene);
+        cloned.traverse((child) => {
+          if ((child as any).isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+        
+        return cloned;
+      } catch (error) {
+        console.error(`❌ Failed to clone scene for ${animalType}:`, error);
+        setModelError(true);
+        return null;
+      }
+    }, [scene]);
+    
+    const animationResult = useAnimations(animations || [], groupRef);
+    mixer = animationResult.mixer;
+  } catch (error) {
+    console.error(`❌ Failed to load model ${modelPath}:`, error);
+    setModelError(true);
+  }
 
   // Update island meshes
   useEffect(() => {
     if (!islandRef?.current) return;
-
+    
     const meshes: Mesh[] = [];
     islandRef.current.traverse((child) => {
       if ((child as any).isMesh) {
@@ -116,313 +180,197 @@ export const GLBAnimal = ({
       }
     });
     setIslandMeshes(meshes);
-
-    console.log(`🏝️ ${animalType}: Found ${meshes.length} island meshes for collision`);
-  }, [islandRef, animalType]);
-
-  // Generate waypoints (only when model is loaded successfully)
-  useEffect(() => {
-    if (!modelLoaded || islandMeshes.length === 0) {
-      console.log(`⏳ ${animalType}: Waiting for model (loaded: ${modelLoaded}) and island meshes (${islandMeshes.length}) before generating waypoints`);
-      return;
-    }
-
-    console.log(`🎯 ${animalType}: Model loaded successfully, generating waypoints...`);
-    const waypoints = waypointGenerator.generateWaypoints(animalData, index, islandMeshes);
-    setSmartWaypoints(waypoints);
-
-    if (waypoints.length > 0) {
-      setMovementState(prev => ({
-        ...prev,
-        currentPosition: waypoints[0].position.clone(),
-        targetPosition: waypoints[0].position.clone(),
-        lastPosition: waypoints[0].position.clone()
-      }));
-      console.log(`✅ ${animalData.name}: Generated ${waypoints.length} waypoints and initialized movement`);
-    } else {
-      console.warn(`⚠️ ${animalData.name}: No waypoints generated!`);
-    }
-  }, [modelLoaded, islandMeshes, animalData, index, waypointGenerator, animalType]);
-
-
-  // Load GLB model
-  console.log(`🎭 GLBAnimal: Loading GLB model from ${modelPath}`);
-  const { scene, animations } = useGLTF(modelPath);
-  
-  // Clone scene with proper setup and validation
-  const sceneClone = useMemo(() => {
-    console.log(`🔄 GLBAnimal: Validating GLB scene for ${animalType} from ${modelPath}`);
-    console.log(`📊 GLBAnimal: Scene info:`, {
-      children: scene.children.length,
-      type: scene.type,
-      name: scene.name,
-      uuid: scene.uuid
-    });
-    
-    // More detailed scene structure logging
-    if (scene.children.length > 0) {
-      console.log(`🔍 GLBAnimal: Scene children:`, scene.children.map(child => ({
-        name: child.name,
-        type: child.type,
-        childrenCount: child.children.length
-      })));
-    }
-    
-    // Validate scene structure
-    if (scene.children.length === 0) {
-      console.error(`❌ GLBAnimal: GLB model ${modelPath} loaded but scene has no children!`);
-      setModelLoaded(false);
-      throw new Error(`GLB model ${modelPath} is empty - no 3D content found`);
-    }
-    
-    // Deep traverse to find meshes
-    let meshCount = 0;
-    let totalNodes = 0;
-    scene.traverse((child) => {
-      totalNodes++;
-      if ((child as any).isMesh) {
-        meshCount++;
-        console.log(`🎯 GLBAnimal: Found mesh:`, {
-          name: child.name,
-          type: child.type,
-          geometry: (child as any).geometry?.type
-        });
-      }
-    });
-    
-    console.log(`📈 GLBAnimal: Scene analysis - Total nodes: ${totalNodes}, Meshes: ${meshCount}`);
-    
-    if (meshCount === 0) {
-      console.error(`❌ GLBAnimal: GLB model ${modelPath} has no meshes (${totalNodes} total nodes)!`);
-      setModelLoaded(false);
-      throw new Error(`GLB model ${modelPath} contains no meshes - invalid 3D model`);
-    }
-    
-    try {
-      const cloned = SkeletonUtils.clone(scene);
-      console.log(`📊 GLBAnimal: Successfully cloned scene - Children: ${cloned.children.length}`);
-      
-      // Configure shadows on cloned meshes
-      let configuredMeshes = 0;
-      cloned.traverse((child) => {
-        if ((child as any).isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          configuredMeshes++;
-        }
-      });
-      
-      console.log(`✅ GLBAnimal: Model loaded successfully! Configured ${configuredMeshes} meshes for ${animalType}`);
-      setModelLoaded(true);
-      return cloned;
-    } catch (error) {
-      console.error(`❌ GLBAnimal: Failed to clone scene for ${animalType}:`, error);
-      setModelLoaded(false);
-      throw new Error(`Failed to clone GLB model ${modelPath}: ${error}`);
-    }
-  }, [scene, animalType, modelPath]);
-  
-  const { mixer } = useAnimations(animations, groupRef);
+  }, [islandRef]);
 
   // Initialize animation controller
   useEffect(() => {
-    if (!mixer || animations.length === 0) return;
+    if (!mixer || !animations || animations.length === 0) return;
     
     const animationMap = {
-      walk: ['walk', 'walking', 'run', 'running', 'move'],
-      idle: ['idle', 'stand', 'rest', 'breathing', 'default'],
+      walk: ['walk', 'walking', 'run', 'running', 'move', 'locomotion'],
+      idle: ['idle', 'stand', 'rest', 'breathing', 'default', 'survey'],
       special: ['eating', 'drinking', 'sitting', 'lying', 'stretching']
     };
     
     const controller = new AnimationController(mixer, animations, animationMap);
     setAnimationController(controller);
     
-    console.log(`🎬 ${animalType}: Animation controller initialized with ${animations.length} animations`);
-    
     return () => controller.dispose();
-  }, [mixer, animations, animalType]);
+  }, [mixer, animations]);
 
-
-  // Main update loop with improved movement
-  useFrame((state, delta) => {
-    if (!groupRef.current || !isActive) return;
+  // Helper function to get ground height at position
+  const getGroundHeight = (position: Vector3): number | null => {
+    if (islandMeshes.length === 0) return null;
     
-    // Only use waypoint system if model is loaded and waypoints exist
-    if (!modelLoaded || smartWaypoints.length === 0) {
-      // Fallback simple movement while model loads or waypoints are being generated
-      if (groupRef.current && isActive) {
-        const radius = 1.5;
-        const angle = (index * Math.PI * 2) / Math.max(totalPets, 1) + state.clock.elapsedTime * 0.1;
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-
-        // Use terrain navigation even for fallback positioning
-        if (islandMeshes.length > 0) {
-          const fallbackPos = new Vector3(x, 2, z); // Start high
-          const groundResult = terrainNavigator.calculateMovement(
-            fallbackPos,
-            fallbackPos,
-            islandMeshes,
-            animalSize
-          );
-
-          if (groundResult.isOnGround) {
-            groupRef.current.position.copy(groundResult.position);
-            groupRef.current.rotation.y = angle + Math.PI / 2;
-          }
-        } else {
-          groupRef.current.position.set(x, 0.3, z);
-          groupRef.current.rotation.y = angle + Math.PI / 2;
-        }
-      }
-      return;
+    // Cast ray from above position downward
+    const rayOrigin = new Vector3(position.x, position.y + animalConfig.raycastDistance, position.z);
+    raycaster.set(rayOrigin, downVector);
+    
+    const intersects = raycaster.intersectObjects(islandMeshes, true);
+    
+    if (intersects.length > 0) {
+      // Return the highest point (first intersection from above)
+      return intersects[0].point.y + animalConfig.groundOffset;
     }
+    
+    // Try casting from below as backup
+    rayOrigin.y = position.y - animalConfig.raycastDistance;
+    raycaster.set(rayOrigin, upVector);
+    const intersectsUp = raycaster.intersectObjects(islandMeshes, true);
+    
+    if (intersectsUp.length > 0) {
+      return intersectsUp[0].point.y + animalConfig.groundOffset;
+    }
+    
+    return null;
+  };
 
-    setMovementState(prevState => {
-      const newState = { ...prevState };
+  // Helper function to check if position is valid (not inside geometry)
+  const isValidPosition = (position: Vector3): boolean => {
+    if (islandMeshes.length === 0) return true;
+    
+    // Check if we can find ground at this position
+    const groundHeight = getGroundHeight(position);
+    if (groundHeight === null) return false;
+    
+    // Check if the height difference is reasonable (not inside a cliff)
+    const heightDiff = Math.abs(position.y - groundHeight);
+    return heightDiff < 2.0; // Allow some vertical tolerance
+  };
 
-      // Update ground check timer
-      newState.groundCheckTimer += delta;
+  // Generate a new random target point
+  const generateNewTarget = (): Vector3 => {
+    const angleOffset = (Math.random() - 0.5) * Math.PI;
+    const distance = 2 + Math.random() * 3;
+    
+    const newAngle = movement.rotation + angleOffset;
+    const target = new Vector3(
+      movement.position.x + Math.cos(newAngle) * distance,
+      movement.position.y,
+      movement.position.z + Math.sin(newAngle) * distance
+    );
+    
+    // Clamp to reasonable bounds
+    const maxDist = 8;
+    if (target.length() > maxDist) {
+      target.normalize().multiplyScalar(maxDist);
+    }
+    
+    return target;
+  };
 
-      // Check if animal is stuck
-      const distanceMoved = newState.currentPosition.distanceTo(newState.lastPosition);
-      if (distanceMoved < 0.01 && newState.isMoving) {
-        newState.stuckTimer += delta;
-
-        // If stuck for too long, find new waypoint
-        if (newState.stuckTimer > 2.0) {
-          console.log(`🐾 ${animalType}: Animal stuck, finding new path`);
-          setCurrentWaypointIndex((prev) => (prev + 1) % smartWaypoints.length);
-          newState.stuckTimer = 0;
-        }
+  // Main update loop
+  useFrame((state, delta) => {
+    if (!groupRef.current || !isActive || modelError) return;
+    
+    // Clamp delta to prevent huge jumps
+    delta = Math.min(delta, 0.1);
+    
+    // Update timers
+    if (movement.isMoving) {
+      movement.moveTimer += delta;
+    } else {
+      movement.idleTimer -= delta;
+    }
+    
+    // Decide on behavior
+    if (!movement.isMoving && movement.idleTimer <= 0) {
+      // Start moving to a new target
+      movement.targetPoint = generateNewTarget();
+      movement.isMoving = true;
+      movement.moveTimer = 0;
+      movement.currentSpeed = 0;
+      
+      // Calculate target rotation
+      const direction = movement.targetPoint.clone().sub(movement.position);
+      if (direction.length() > 0.1) {
+        movement.targetRotation = Math.atan2(direction.x, direction.z);
+      }
+    }
+    
+    if (movement.isMoving) {
+      // Check if we've been moving too long or reached target
+      const distToTarget = movement.position.distanceTo(movement.targetPoint);
+      
+      if (distToTarget < 0.5 || movement.moveTimer > 5 + Math.random() * 5) {
+        // Stop and idle
+        movement.isMoving = false;
+        movement.idleTimer = 2 + Math.random() * 3;
+        movement.currentSpeed = 0;
       } else {
-        newState.stuckTimer = 0;
-        newState.lastPosition.copy(newState.currentPosition);
-      }
-
-      const currentWaypoint = smartWaypoints[currentWaypointIndex];
-      if (!currentWaypoint) return newState;
-
-      // Check if reached current waypoint
-      const distanceToWaypoint = newState.currentPosition.distanceTo(currentWaypoint.position);
-
-      if (distanceToWaypoint < 0.3) {
-        // Reached waypoint, move to next one
-        if (!newState.isMoving) {
-          // Start moving to next waypoint
-          const nextIndex = (currentWaypointIndex + 1) % smartWaypoints.length;
-          const nextWaypoint = smartWaypoints[nextIndex];
-
-          if (nextWaypoint) {
-            newState.targetPosition.copy(nextWaypoint.position);
-            newState.isMoving = true;
-
-            // Calculate target rotation
-            const direction = tempVector2.subVectors(nextWaypoint.position, newState.currentPosition);
-            if (direction.length() > 0) {
-              newState.targetRotation = Math.atan2(direction.x, direction.z);
-            }
-
-            console.log(`🎯 ${animalType}: Moving to waypoint ${nextIndex}`);
-          }
-        }
-      } else if (!newState.isMoving) {
-        // Not moving and not at waypoint, start moving towards current waypoint
-        newState.targetPosition.copy(currentWaypoint.position);
-        newState.isMoving = true;
-
-        const direction = tempVector2.subVectors(currentWaypoint.position, newState.currentPosition);
-        if (direction.length() > 0) {
-          newState.targetRotation = Math.atan2(direction.x, direction.z);
-        }
-      }
-
-      // Smooth movement towards target
-      if (newState.isMoving) {
-        // Calculate movement direction
-        const moveDirection = tempVector.subVectors(newState.targetPosition, newState.currentPosition);
-
-        if (moveDirection.length() < 0.1) {
-          // Very close to target, stop moving
-          newState.isMoving = false;
-          setCurrentWaypointIndex((prev) => (prev + 1) % smartWaypoints.length);
-        } else {
-          moveDirection.normalize();
-
-          // Use terrain navigator for movement
-          const targetPos = tempVector2
-            .copy(newState.currentPosition)
-            .add(moveDirection.multiplyScalar(newState.movementSpeed * delta));
-
-          const navResult = terrainNavigator.calculateMovement(
-            newState.currentPosition,
-            targetPos,
-            islandMeshes,
-            animalSize
-          );
-
-          if (navResult.canMove && navResult.isOnGround) {
-            newState.currentPosition.copy(navResult.position);
-
-            // Smooth rotation
-            newState.currentRotation = MathUtils.lerp(
-              newState.currentRotation,
-              newState.targetRotation,
-              newState.rotationSpeed * delta
-            );
+        // Move towards target
+        const direction = new Vector3().subVectors(movement.targetPoint, movement.position);
+        direction.y = 0; // Keep movement horizontal
+        direction.normalize();
+        
+        // Accelerate/decelerate smoothly
+        const targetSpeed = animalConfig.speed;
+        movement.currentSpeed = MathUtils.lerp(movement.currentSpeed, targetSpeed, delta * 2);
+        
+        // Calculate next position
+        const nextPos = movement.position.clone().add(
+          direction.multiplyScalar(movement.currentSpeed * delta)
+        );
+        
+        // Get ground height at next position
+        const groundHeight = getGroundHeight(nextPos);
+        
+        if (groundHeight !== null) {
+          // Smoothly adjust to ground height
+          nextPos.y = MathUtils.lerp(movement.position.y, groundHeight, delta * 5);
+          
+          // Check if position is valid
+          if (isValidPosition(nextPos)) {
+            movement.position.copy(nextPos);
+            movement.lastValidPosition.copy(nextPos);
+            movement.stuckCounter = 0;
           } else {
-            // Can't move, try different direction or stop
-            newState.isMoving = false;
-            newState.stuckTimer += delta;
+            // Position invalid, try to recover
+            movement.stuckCounter++;
+            if (movement.stuckCounter > 10) {
+              // We're stuck, generate new target
+              movement.targetPoint = generateNewTarget();
+              movement.stuckCounter = 0;
+            }
           }
-        }
-      } else {
-        // Not moving, perform ground check periodically
-        if (newState.groundCheckTimer > 0.5) {
-          newState.groundCheckTimer = 0;
-
-          const navResult = terrainNavigator.calculateMovement(
-            newState.currentPosition,
-            newState.currentPosition,
-            islandMeshes,
-            animalSize
-          );
-
-          if (navResult.isOnGround) {
-            // Smoothly adjust to ground
-            newState.currentPosition.lerp(navResult.position, 0.1);
-          }
+        } else {
+          // No ground found, stay at last valid position
+          movement.position.copy(movement.lastValidPosition);
+          // Generate new target
+          movement.targetPoint = generateNewTarget();
         }
       }
-
-      return newState;
-    });
-
-    // Apply movement to actual mesh
-    if (groupRef.current) {
-      // Smooth position interpolation
-      groupRef.current.position.lerp(movementState.currentPosition, 0.1);
-
-      // Smooth rotation
-      groupRef.current.rotation.y = MathUtils.lerp(
-        groupRef.current.rotation.y,
-        movementState.currentRotation,
-        5 * delta
-      );
-
-      // Subtle floating animation
-      const floatOffset = Math.sin(state.clock.elapsedTime * 2 + index) * 0.005;
-      groupRef.current.position.y += floatOffset;
+    } else {
+      // Idle - just maintain ground contact
+      const groundHeight = getGroundHeight(movement.position);
+      if (groundHeight !== null) {
+        movement.position.y = MathUtils.lerp(movement.position.y, groundHeight, delta * 3);
+      }
     }
-
+    
+    // Smooth rotation
+    movement.rotation = MathUtils.lerp(
+      movement.rotation,
+      movement.targetRotation,
+      delta * animalConfig.turnSpeed
+    );
+    
+    // Apply to group
+    groupRef.current.position.copy(movement.position);
+    groupRef.current.rotation.y = movement.rotation;
+    
+    // Add subtle idle animation
+    if (!movement.isMoving) {
+      const breathe = Math.sin(state.clock.elapsedTime * 2 + index) * 0.01;
+      groupRef.current.position.y += breathe;
+    }
+    
     // Update animations
     if (animationController) {
-      const speed = movementState.isMoving ? movementState.movementSpeed : 0;
-      const context = movementState.isMoving ? 'moving' : 'idle';
-      animationController.updateAnimation(speed, context, delta);
+      const context = movement.isMoving ? 'moving' : 'idle';
+      animationController.updateAnimation(movement.currentSpeed, context, delta);
     }
   });
-
 
   // Cleanup
   useEffect(() => {
@@ -437,25 +385,25 @@ export const GLBAnimal = ({
         mixer.stopAllAction();
         mixer.uncacheRoot(groupRef.current);
       }
-      terrainNavigator.dispose();
     };
-  }, [disposeObject3D, mixer, animationController, terrainNavigator]);
+  }, [disposeObject3D, mixer, animationController]);
 
-  console.log(`🎨 GLBAnimal: Rendering ${animalType} with scene:`, sceneClone);
+  // Handle model error
+  if (modelError) {
+    console.error(`Failed to load ${animalType} model`);
+    return null;
+  }
+
+  // Don't render if no scene
+  if (!scene) {
+    return null;
+  }
 
   return (
     <group ref={groupRef} scale={[scale, scale, scale]}>
-      <primitive object={sceneClone} />
-      {/* Debug helper in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <mesh visible={false}>
-          <sphereGeometry args={[0.05]} />
-          <meshBasicMaterial color="#ff0000" />
-        </mesh>
-      )}
+      {scene && <primitive object={scene} />}
     </group>
   );
 };
 
-// Preload the component
-GLBAnimal.displayName = 'ImprovedGLBAnimal';
+GLBAnimal.displayName = 'GLBAnimal';
