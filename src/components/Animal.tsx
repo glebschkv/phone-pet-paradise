@@ -536,43 +536,8 @@ const PrimitiveAnimal = ({
 export const Animal = ({ totalPets, isActive, animalType, index, islandRef }: AnimalProps) => {
   const modelConfig = ANIMAL_MODEL_CONFIG[animalType];
   
-  // Use GLB model if configured and available
-  if (modelConfig?.type === 'glb' && modelConfig.modelPath) {
-    console.log(`Animal: Using GLB for ${animalType} with config:`, modelConfig);
-    return (
-      <Suspense fallback={
-        <PrimitiveAnimal 
-          totalPets={totalPets}
-          isActive={isActive}
-          animalType={animalType}
-          index={index}
-        />
-      }>
-        <GLBErrorBoundary 
-          modelPath={modelConfig.modelPath}
-          fallback={
-            <PrimitiveAnimal 
-              totalPets={totalPets}
-              isActive={isActive}
-              animalType={animalType}
-              index={index}
-            />
-          }
-        >
-          <GLBAnimal
-            modelPath={modelConfig.modelPath}
-            animalType={animalType}
-            totalPets={totalPets}
-            isActive={isActive}
-            index={index}
-            scale={modelConfig.scale}
-            animationName={modelConfig.animationName}
-            islandRef={islandRef}
-          />
-        </GLBErrorBoundary>
-      </Suspense>
-    );
-  }
+  // Temporarily force primitive rendering to fix panda issue
+  console.log(`🎭 Animal: Forcing primitive rendering for ${animalType} to debug GLB issue`);
   
   // Fallback to primitive animal
   return (
