@@ -143,31 +143,16 @@ export const GLBAnimal = ({
   
   // Clone scene with proper setup
   const sceneClone = useMemo(() => {
-    console.log(`🔄 GLBAnimal: Original scene for ${animalType}:`, scene);
-    console.log(`📊 GLBAnimal: Original scene children count: ${scene.children.length}`);
-    
-    if (scene.children.length === 0) {
-      console.error(`❌ GLBAnimal: Original scene has no children for ${animalType}!`);
-      return scene; // Return original if no children to clone
-    }
-    
-    try {
-      const cloned = SkeletonUtils.clone(scene);
-      console.log(`📊 GLBAnimal: Cloned scene children count: ${cloned.children.length}`);
-      
-      cloned.traverse((child) => {
-        if ((child as any).isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
-      
-      console.log(`✅ GLBAnimal: Scene cloned successfully for ${animalType}`);
-      return cloned;
-    } catch (error) {
-      console.error(`❌ GLBAnimal: Failed to clone scene for ${animalType}:`, error);
-      return scene; // Fallback to original scene
-    }
+    console.log(`🔄 GLBAnimal: Cloning scene for ${animalType}`, scene);
+    const cloned = SkeletonUtils.clone(scene);
+    cloned.traverse((child) => {
+      if ((child as any).isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+    console.log(`✅ GLBAnimal: Scene cloned successfully for ${animalType}`);
+    return cloned;
   }, [scene, animalType]);
   
   const { mixer } = useAnimations(animations, groupRef);
