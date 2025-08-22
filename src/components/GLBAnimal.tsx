@@ -120,7 +120,10 @@ export const GLBAnimal = ({
   });
 
   // Load and setup model
-  let scene, animations, mixer;
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [mixer, setMixer] = useState<any>(null);
+  let scene, animations;
+  
   try {
     const gltf = useGLTF(modelPath);
     scene = gltf.scene;
@@ -154,6 +157,7 @@ export const GLBAnimal = ({
           }
         });
         
+        setModelLoaded(true);
         return cloned;
       } catch (error) {
         console.error(`❌ Failed to clone scene for ${animalType}:`, error);
@@ -164,27 +168,59 @@ export const GLBAnimal = ({
     
     const animationResult = useAnimations(animations || [], groupRef);
     const { actions } = animationResult;
-    mixer = animationResult.mixer;
-
-    // Ensure only Walk/Idle clips play
-    const walk = actions['Walk'] || actions['Walking'] || actions['walk'];
-    const idle = actions['Idle'] || actions['idle'];
-
-    Object.entries(actions).forEach(([name, a]) => {
-      if (!a) return;
-      if (name !== 'Walk' && name !== 'Walking' && name !== 'walk' && name !== 'Idle' && name !== 'idle') a.stop();
-    });
-
-    const play = (name: string) => {
-      const next = name.toLowerCase().includes('walk') ? walk : idle;
-      if (!next) return;
-      if (!next.isRunning()) next.reset().fadeIn(0.25).play();
-      Object.values(actions).forEach(a => { if (a && a !== next) a.fadeOut(0.2); });
-    };
-
+    
+    // Set mixer when available
     useEffect(() => {
+      if (animationResult.mixer) {
+        setMixer(animationResult.mixer);
+      }
+    }, [animationResult.mixer]);
+
+    // Ensure only Walk/Idle clips play and stop unwanted animations
+    useEffect(() => {
+      if (!actions || Object.keys(actions).length === 0) return;
+
+      const walk = actions['Walk'] || actions['Walking'] || actions['walk'];
+      const idle = actions['Idle'] || actions['idle'];
+
+      // Stop all non-Walk/Idle animations
+      Object.entries(actions).forEach(([name, action]) => {
+        if (!action) return;
+        const isWalk = ['Walk', 'Walking', 'walk'].includes(name);
+        const isIdle = ['Idle', 'idle'].includes(name);
+        const isUnwanted = ['Sleep', 'StandUp', 'sleep', 'standup', 'sitting', 'lying'].includes(name);
+        
+        if (isUnwanted) {
+          action.stop();
+          console.log(`🚫 Stopped unwanted animation: ${name} for ${animalType}`);
+        }
+      });
+
+      // Play appropriate animation
+      const play = (targetAnimation: string) => {
+        const isWalkAnimation = targetAnimation.toLowerCase().includes('walk');
+        const targetAction = isWalkAnimation ? walk : idle;
+        
+        if (!targetAction) {
+          console.warn(`⚠️ Animation ${targetAnimation} not found for ${animalType}, using fallback`);
+          return;
+        }
+        
+        if (!targetAction.isRunning()) {
+          targetAction.reset().fadeIn(0.25).play();
+          console.log(`🎬 Playing ${isWalkAnimation ? 'Walk' : 'Idle'} animation for ${animalType}`);
+        }
+        
+        // Fade out other actions
+        Object.values(actions).forEach(action => {
+          if (action && action !== targetAction && action.isRunning()) {
+            action.fadeOut(0.2);
+          }
+        });
+      };
+
       play(animationName || 'Walk');
-    }, [animationName]);
+    }, [animationName, actions]);
     
   } catch (error) {
     console.error(`❌ Failed to load model ${modelPath}:`, error);
@@ -281,117 +317,71 @@ export const GLBAnimal = ({
     return target;
   };
 
-  // Main update loop
+  // Wandering movement state for GLB animals
+  const [heading] = useState(() => {
+    const h = new Vector3(Math.cos(index * 1.7), 0, Math.sin(index * 2.3));
+    return h.normalize();
+  });
+  const [turnTimer, setTurnTimer] = useState(0);
+  const [wanderPosition] = useState(() => new Vector3(0, 0, 0));
+
+  const walkSpeed = 0.6;
+  const TURN_EVERY = 2.5;
+  const TURN_AMOUNT = Math.PI * 0.45;
+  const baseY = 0.15;
+
+  // Main update loop - combines wandering + GLB model
   useFrame((state, delta) => {
-    if (!groupRef.current || !isActive || modelError) return;
+    if (!groupRef.current || !isActive || modelError || !modelLoaded) return;
     
     // Clamp delta to prevent huge jumps
     delta = Math.min(delta, 0.1);
     
-    // Update timers
-    if (movement.isMoving) {
-      movement.moveTimer += delta;
+    // Random-walk wandering logic for GLB animals
+    const t = turnTimer + delta;
+    if (t > TURN_EVERY) {
+      const ang = (Math.random() - 0.5) * TURN_AMOUNT;
+      heading.applyAxisAngle(new Vector3(0, 1, 0), ang).normalize();
+      setTurnTimer(0);
     } else {
-      movement.idleTimer -= delta;
+      setTurnTimer(t);
     }
-    
-    // Decide on behavior
-    if (!movement.isMoving && movement.idleTimer <= 0) {
-      // Start moving to a new target
-      movement.targetPoint = generateNewTarget();
-      movement.isMoving = true;
-      movement.moveTimer = 0;
-      movement.currentSpeed = 0;
-      
-      // Calculate target rotation
-      const direction = movement.targetPoint.clone().sub(movement.position);
-      if (direction.length() > 0.1) {
-        movement.targetRotation = Math.atan2(direction.x, direction.z);
+
+    // Move forward
+    wanderPosition.addScaledVector(heading, walkSpeed * delta);
+
+    // Keep inside island bounds
+    const island = islandRef?.current;
+    if (island) {
+      const box = new Box3().setFromObject(island);
+      const margin = 0.6;
+      const min = box.min.clone().addScalar(margin);
+      const max = box.max.clone().addScalar(-margin);
+      const p = wanderPosition;
+      if (p.x < min.x || p.x > max.x || p.z < min.z || p.z > max.z) {
+        p.x = MathUtils.clamp(p.x, min.x, max.x);
+        p.z = MathUtils.clamp(p.z, min.z, max.z);
+        heading.applyAxisAngle(new Vector3(0, 1, 0), Math.PI * 0.6);
       }
     }
-    
-    if (movement.isMoving) {
-      // Check if we've been moving too long or reached target
-      const distToTarget = movement.position.distanceTo(movement.targetPoint);
-      
-      if (distToTarget < 0.5 || movement.moveTimer > 5 + Math.random() * 5) {
-        // Stop and idle
-        movement.isMoving = false;
-        movement.idleTimer = 2 + Math.random() * 3;
-        movement.currentSpeed = 0;
-      } else {
-        // Move towards target
-        const direction = new Vector3().subVectors(movement.targetPoint, movement.position);
-        direction.y = 0; // Keep movement horizontal
-        direction.normalize();
-        
-        // Accelerate/decelerate smoothly
-        const targetSpeed = animalConfig.speed;
-        movement.currentSpeed = MathUtils.lerp(movement.currentSpeed, targetSpeed, delta * 2);
-        
-        // Calculate next position
-        const nextPos = movement.position.clone().add(
-          direction.multiplyScalar(movement.currentSpeed * delta)
-        );
-        
-        // Get ground height at next position
-        const groundHeight = getGroundHeight(nextPos);
-        
-        if (groundHeight !== null) {
-          // Smoothly adjust to ground height
-          nextPos.y = MathUtils.lerp(movement.position.y, groundHeight, delta * 5);
-          
-          // Check if position is valid
-          if (isValidPosition(nextPos)) {
-            movement.position.copy(nextPos);
-            movement.lastValidPosition.copy(nextPos);
-            movement.stuckCounter = 0;
-          } else {
-            // Position invalid, try to recover
-            movement.stuckCounter++;
-            if (movement.stuckCounter > 10) {
-              // We're stuck, generate new target
-              movement.targetPoint = generateNewTarget();
-              movement.stuckCounter = 0;
-            }
-          }
-        } else {
-          // No ground found, stay at last valid position
-          movement.position.copy(movement.lastValidPosition);
-          // Generate new target
-          movement.targetPoint = generateNewTarget();
-        }
-      }
+
+    // Get ground height and apply to position
+    const groundHeight = getGroundHeight(wanderPosition);
+    if (groundHeight !== null) {
+      wanderPosition.y = MathUtils.lerp(wanderPosition.y, groundHeight, delta * 5);
     } else {
-      // Idle - just maintain ground contact
-      const groundHeight = getGroundHeight(movement.position);
-      if (groundHeight !== null) {
-        movement.position.y = MathUtils.lerp(movement.position.y, groundHeight, delta * 3);
-      }
+      wanderPosition.y = baseY;
     }
-    
-    // Smooth rotation
-    movement.rotation = MathUtils.lerp(
-      movement.rotation,
-      movement.targetRotation,
-      delta * animalConfig.turnSpeed
-    );
-    
-    // Apply to group
-    groupRef.current.position.copy(movement.position);
-    groupRef.current.rotation.y = movement.rotation;
-    
-    // Add subtle idle animation
-    if (!movement.isMoving) {
-      const breathe = Math.sin(state.clock.elapsedTime * 2 + index) * 0.01;
-      groupRef.current.position.y += breathe;
-    }
-    
-    // Update animations
-    if (animationController) {
-      const context = movement.isMoving ? 'moving' : 'idle';
-      animationController.updateAnimation(movement.currentSpeed, context, delta);
-    }
+
+    // Face travel direction
+    const lookTarget = wanderPosition.clone().add(heading);
+    groupRef.current.lookAt(lookTarget);
+
+    // Apply wandering position to group
+    groupRef.current.position.copy(wanderPosition);
+
+    // Subtle bob
+    groupRef.current.position.y += Math.sin(state.clock.elapsedTime * (4 + (index % 3))) * 0.04;
   });
 
   // Cleanup

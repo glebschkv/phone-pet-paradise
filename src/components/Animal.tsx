@@ -237,15 +237,13 @@ const PrimitiveAnimal = ({
         </group>
       );
 
-    // ─── Bear / Panda ────────────────────────────────────────────
-    case 'Bear':
-    case 'Panda': {
-      const isPanda = animalType === 'Panda';
-      const torsoColor = isPanda ? '#FFFFFF' : '#7B4B27';
-      const limbColor = isPanda ? '#000000' : '#7B4B27';
-      const earColor = isPanda ? '#000000' : '#4D3017';
-      const muzzleColor = isPanda ? '#FFFFFF' : '#C9A27D';
-      const bellyColor = isPanda ? '#FFFFFF' : '#9C6C43';
+    // ─── Bear (only primitive, Panda uses GLB) ─────────────────────
+    case 'Bear': {
+      const torsoColor = '#7B4B27';
+      const limbColor = '#7B4B27';
+      const earColor = '#4D3017';
+      const muzzleColor = '#C9A27D';
+      const bellyColor = '#9C6C43';
 
       return (
         <group ref={ref} position={[0, baseY, 0]}>

@@ -35,7 +35,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A calm bamboo-loving friend that inspires gentle focus.',
     abilities: ['Calm Focus', 'Gentle Strength'],
     biome: 'Meadow',
-    modelConfig: { type: 'glb', modelPath: '/assets/models/Panda.glb', scale: 0.35, animationName: 'Idle' }
+    modelConfig: { type: 'glb', modelPath: '/assets/models/Panda.glb', scale: 0.9, animationName: 'Walk' }
   },
   {
     id: 'fox',
