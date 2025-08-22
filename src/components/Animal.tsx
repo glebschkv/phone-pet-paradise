@@ -1,6 +1,7 @@
 // ───────────────────────────────────────────────────────────────
 //  Animal.tsx  (drop-in replacement with GLB support)
 // ───────────────────────────────────────────────────────────────
+import * as THREE from 'three';
 import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useRef, useState, Suspense } from 'react';
@@ -21,25 +22,60 @@ const PrimitiveAnimal = ({
   isActive,
   animalType,
   index,
+  islandRef,
 }: AnimalProps) => {
   const ref = useRef<Group>(null);
-  const [angle, setAngle] = useState(
-    (index * Math.PI * 2) / Math.max(totalPets, 1)
-  );
-  const speed = Math.min(0.2 + totalPets * 0.03, 0.8);
-  const radius = 1.2 + index * 0.3;
+
+  // random-walk state
+  const [heading] = useState(() => {
+    const h = new THREE.Vector3(Math.cos(index * 1.7), 0, Math.sin(index * 2.3));
+    return h.normalize();
+  });
+  const [turnTimer, setTurnTimer] = useState(0);
+
+  const walkSpeed = 0.6;                 // world units / second
+  const TURN_EVERY = 2.5;                // seconds
+  const TURN_AMOUNT = Math.PI * 0.45;    // ± ~45°
+  const baseY = 0.15;
   const opacity = isActive ? Math.min(0.4 + totalPets * 0.1, 1) : 0.3;
 
   useFrame((state, dt) => {
     if (!ref.current || !isActive) return;
-    const dir = index % 2 === 0 ? 1 : -1;
-    setAngle((prev) => prev + dt * speed * dir);
-    const x = Math.cos(angle) * radius;
-    const z = Math.sin(angle) * radius;
-    ref.current.position.set(x, 0.15, z);
-    ref.current.rotation.y = angle + (Math.PI / 2) * dir;
-    ref.current.position.y =
-      0.15 + Math.sin(state.clock.elapsedTime * (6 + index)) * 0.04;
+
+    // occasionally turn a little
+    const t = turnTimer + dt;
+    if (t > TURN_EVERY) {
+      const ang = (Math.random() - 0.5) * TURN_AMOUNT;
+      heading.applyAxisAngle(new THREE.Vector3(0, 1, 0), ang).normalize();
+      setTurnTimer(0);
+    } else {
+      setTurnTimer(t);
+    }
+
+    // move forward
+    ref.current.position.addScaledVector(heading, walkSpeed * dt);
+
+    // keep inside island bounds
+    const island = islandRef?.current;
+    if (island) {
+      const box = new THREE.Box3().setFromObject(island);
+      const margin = 0.6;
+      const min = box.min.clone().addScalar(margin);
+      const max = box.max.clone().addScalar(-margin);
+      const p = ref.current.position;
+      if (p.x < min.x || p.x > max.x || p.z < min.z || p.z > max.z) {
+        p.x = THREE.MathUtils.clamp(p.x, min.x, max.x);
+        p.z = THREE.MathUtils.clamp(p.z, min.z, max.z);
+        heading.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.6);
+      }
+    }
+
+    // face travel direction
+    const lookTarget = ref.current.position.clone().add(heading);
+    ref.current.lookAt(lookTarget);
+
+    // subtle bob
+    ref.current.position.y = baseY + Math.sin(state.clock.elapsedTime * (4 + (index % 3))) * 0.04;
   });
 
   /* Helper to shorten repetitive mesh declarations */
@@ -49,7 +85,7 @@ const PrimitiveAnimal = ({
     // ─── Rabbit ────────────────────────────────────────────────
     case 'Rabbit':
       return (
-        <group ref={ref} position={[radius, 0.15, 0]}>
+        <group ref={ref} position={[0, baseY, 0]}>
           {/* 1–3 Body */}
           <Mesh position={[0, 0.05, 0]}>
             <sphereGeometry args={[0.13, 8, 6]} />
@@ -120,7 +156,7 @@ const PrimitiveAnimal = ({
     // ─── Fox ───────────────────────────────────────────────────
     case 'Fox':
       return (
-        <group ref={ref} position={[radius, 0.12, 0]}>
+        <group ref={ref} position={[0, baseY, 0]}>
           {/* 1–2 Torso + chest */}
           <Mesh position={[0, 0.03, 0]}>
             <sphereGeometry args={[0.15, 8, 6]} />
@@ -212,7 +248,7 @@ const PrimitiveAnimal = ({
       const bellyColor = isPanda ? '#FFFFFF' : '#9C6C43';
 
       return (
-        <group ref={ref} position={[radius, 0.1, 0]}>
+        <group ref={ref} position={[0, baseY, 0]}>
           {/* 1 Torso */}
           <Mesh position={[0, 0, 0]}>
             <sphereGeometry args={[0.2, 10, 8]} />
@@ -283,7 +319,7 @@ const PrimitiveAnimal = ({
     // ─── Deer ──────────────────────────────────────────────────
     case 'Deer':
       return (
-        <group ref={ref} position={[radius, 0.15, 0]}>
+        <group ref={ref} position={[0, baseY, 0]}>
           {/* 1–2 Body + chest */}
           <Mesh position={[0, 0, 0]}>
             <sphereGeometry args={[0.13, 8, 6]} />
@@ -356,7 +392,7 @@ const PrimitiveAnimal = ({
     // ─── Owl (larger wingspan, ~18 primitives) ──────────────────
     case 'Owl':
       return (
-        <group ref={ref} position={[radius, 0.25, 0]}>
+        <group ref={ref} position={[0, baseY, 0]}>
           {/* 1–2 Body + head */}
           <Mesh position={[0, 0, 0]}>
             <sphereGeometry args={[0.12, 8, 6]} />
@@ -437,7 +473,7 @@ const PrimitiveAnimal = ({
     // ─── Elephant ───────────────────────────────────────────────
     case 'Elephant':
       return (
-        <group ref={ref} position={[radius, 0.15, 0]}>
+        <group ref={ref} position={[0, baseY, 0]}>
           {/* Body */}
           <Mesh position={[0, 0.1, 0]}>
             <cylinderGeometry args={[0.2, 0.18, 0.25, 8]} />
@@ -499,7 +535,7 @@ const PrimitiveAnimal = ({
     // ─── Default placeholder ───────────────────────────────────
       default:
         return (
-          <group ref={ref} position={[radius, 0.15, 0]}>
+          <group ref={ref} position={[0, baseY, 0]}>
             {/* Body */}
             <Mesh position={[0, 0.05, 0]}>
               <sphereGeometry args={[0.12, 8, 6]} />
@@ -535,17 +571,40 @@ const PrimitiveAnimal = ({
 
 export const Animal = ({ totalPets, isActive, animalType, index, islandRef }: AnimalProps) => {
   const modelConfig = ANIMAL_MODEL_CONFIG[animalType];
-  
-  // Temporarily force primitive rendering to fix panda issue
-  console.log(`🎭 Animal: Forcing primitive rendering for ${animalType} to debug GLB issue`);
-  
-  // Fallback to primitive animal
+
+  if (modelConfig?.type === 'glb' && modelConfig.modelPath) {
+    return (
+      <Suspense fallback={
+        <PrimitiveAnimal totalPets={totalPets} isActive={isActive} animalType={animalType} index={index} islandRef={islandRef} />
+      }>
+        <GLBErrorBoundary
+          modelPath={modelConfig.modelPath}
+          fallback={
+            <PrimitiveAnimal totalPets={totalPets} isActive={isActive} animalType={animalType} index={index} islandRef={islandRef} />
+          }
+        >
+          <GLBAnimal
+            modelPath={modelConfig.modelPath}
+            animalType={animalType}
+            totalPets={totalPets}
+            isActive={isActive}
+            index={index}
+            scale={modelConfig.scale}
+            animationName={isActive ? (modelConfig.animationName ?? 'Walk') : 'Idle'}
+            islandRef={islandRef}
+          />
+        </GLBErrorBoundary>
+      </Suspense>
+    );
+  }
+
   return (
-    <PrimitiveAnimal 
+    <PrimitiveAnimal
       totalPets={totalPets}
       isActive={isActive}
       animalType={animalType}
       index={index}
+      islandRef={islandRef}
     />
   );
 };

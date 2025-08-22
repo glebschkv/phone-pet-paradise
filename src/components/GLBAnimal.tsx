@@ -163,7 +163,29 @@ export const GLBAnimal = ({
     }, [scene]);
     
     const animationResult = useAnimations(animations || [], groupRef);
+    const { actions } = animationResult;
     mixer = animationResult.mixer;
+
+    // Ensure only Walk/Idle clips play
+    const walk = actions['Walk'] || actions['Walking'] || actions['walk'];
+    const idle = actions['Idle'] || actions['idle'];
+
+    Object.entries(actions).forEach(([name, a]) => {
+      if (!a) return;
+      if (name !== 'Walk' && name !== 'Walking' && name !== 'walk' && name !== 'Idle' && name !== 'idle') a.stop();
+    });
+
+    const play = (name: string) => {
+      const next = name.toLowerCase().includes('walk') ? walk : idle;
+      if (!next) return;
+      if (!next.isRunning()) next.reset().fadeIn(0.25).play();
+      Object.values(actions).forEach(a => { if (a && a !== next) a.fadeOut(0.2); });
+    };
+
+    useEffect(() => {
+      play(animationName || 'Walk');
+    }, [animationName]);
+    
   } catch (error) {
     console.error(`❌ Failed to load model ${modelPath}:`, error);
     setModelError(true);

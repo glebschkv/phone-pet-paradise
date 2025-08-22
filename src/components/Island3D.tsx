@@ -327,7 +327,7 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
     <div className="w-full h-full bg-gradient-sky overflow-hidden">
       <Canvas gl={{ preserveDrawingBuffer: false, antialias: false }}>
         <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[4, 4.5, 4]} fov={50} />
+          <PerspectiveCamera makeDefault position={[35, 28, 35]} fov={45} />
 
           {/* Lighting */}
           <ambientLight intensity={theme.ambient} />
@@ -372,12 +372,15 @@ export const Island3D = ({ totalPets = 0, isAppActive = true, currentLevel = 1, 
 
           {/* Controls */}
           <OrbitControls 
+            enableDamping
+            dampingFactor={0.07}
+            target={[0, 6, 0]}
+            minDistance={18}
+            maxDistance={85}
+            minPolarAngle={Math.PI * 0.12}
+            maxPolarAngle={Math.PI * 0.45}
             enablePan={false}
-            minDistance={2}
-            maxDistance={50}
-            minPolarAngle={Math.PI / 6}
-            maxPolarAngle={Math.PI / 2.2}
-            autoRotate
+            autoRotate={false}
             autoRotateSpeed={0.5}
           />
         </Suspense>
