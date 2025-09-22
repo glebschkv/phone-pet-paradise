@@ -13,7 +13,6 @@ import {
   Lock, 
   Sparkles,
   Trophy,
-  Eye,
   Gift,
   Crown,
   TreePine,
@@ -25,7 +24,6 @@ import { cn } from "@/lib/utils";
 import { useCollection } from "@/hooks/useCollection";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { AnimalData, BiomeData, BIOME_DATABASE } from "@/data/AnimalDatabase";
-import { AnimalViewer3D } from "@/components/AnimalViewer3D";
 
 const BIOME_ICONS = {
   'Meadow': TreePine,
@@ -75,7 +73,6 @@ export const PetCollectionGrid = () => {
   const [selectedRarity, setSelectedRarity] = useState<string>("all");
   const [selectedBiome, setSelectedBiome] = useState<string>("all");
   const [selectedPet, setSelectedPet] = useState<AnimalData | null>(null);
-  const [viewing3D, setViewing3D] = useState<AnimalData | null>(null);
 
   const filteredPets = filterAnimals(searchQuery, selectedRarity, selectedBiome);
 
@@ -351,25 +348,14 @@ export const PetCollectionGrid = () => {
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
-                      className="flex-1"
+                      className="w-full"
                       onClick={() => toggleFavorite(selectedPet.id)}
                     >
                       <Heart className={cn(
                         "w-4 h-4 mr-2",
                         isAnimalFavorite(selectedPet.id) ? "fill-red-500 text-red-500" : ""
                       )} />
-                      {isAnimalFavorite(selectedPet.id) ? "Unfavorite" : "Favorite"}
-                    </Button>
-                    
-                    <Button 
-                      className="flex-1"
-                      onClick={() => {
-                        setSelectedPet(null);
-                        setViewing3D(selectedPet);
-                      }}
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      View in 3D
+                      {isAnimalFavorite(selectedPet.id) ? "Remove from Favorites" : "Add to Favorites"}
                     </Button>
                   </div>
                 )}
@@ -387,13 +373,6 @@ export const PetCollectionGrid = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* 3D Viewer Modal */}
-      <AnimalViewer3D
-        animal={viewing3D}
-        isOpen={!!viewing3D}
-        onClose={() => setViewing3D(null)}
-      />
     </div>
   );
 };

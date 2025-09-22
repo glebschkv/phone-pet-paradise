@@ -673,6 +673,14 @@ export const getAnimalById = (id: string): AnimalData | undefined => {
   return ANIMAL_DATABASE.find(animal => animal.id === id);
 };
 
+export const getAnimalByName = (name: string): AnimalData | undefined => {
+  return ANIMAL_DATABASE.find(animal => animal.name === name);
+};
+
+export const getAnimalByIdOrName = (identifier: string): AnimalData | undefined => {
+  return ANIMAL_DATABASE.find(animal => animal.id === identifier || animal.name === identifier);
+};
+
 export const getAnimalsByBiome = (biomeName: string): AnimalData[] => {
   return ANIMAL_DATABASE.filter(animal => animal.biome === biomeName);
 };

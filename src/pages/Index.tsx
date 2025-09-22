@@ -1,7 +1,6 @@
-import { Island3D } from "@/components/Island3D";
+import { RetroPixelPlatform } from "@/components/retro/RetroPixelPlatform";
 import { GameUI } from "@/components/GameUI";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Enhanced3DErrorBoundary } from "@/components/Enhanced3DErrorBoundary";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -82,16 +81,13 @@ const Index = () => {
   
   return (
     <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
-      {/* 3D Island Scene */}
-      <Enhanced3DErrorBoundary enableDiagnostics={true}>
-        <Island3D 
-          totalPets={unlockedAnimals.length} 
-          isAppActive={true} 
-          currentLevel={currentLevel} 
+      {/* Retro Pixel Platform Scene */}
+      <ErrorBoundary>
+        <RetroPixelPlatform 
           unlockedAnimals={unlockedAnimals}
-          currentBiome={currentBiome}
+          currentLevel={currentLevel} 
         />
-      </Enhanced3DErrorBoundary>
+      </ErrorBoundary>
       
       {/* Game UI Overlay */}
       <ErrorBoundary>
