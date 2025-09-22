@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSupabaseData } from './useSupabaseData';
 import { useAuth } from './useAuth';
-import { ANIMAL_DATABASE, BIOME_DATABASE } from '@/data/AnimalDatabase';
+import { ANIMAL_DATABASE, BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { toast } from 'sonner';
 
 export interface XPReward {
@@ -112,7 +112,7 @@ export const useBackendXPSystem = () => {
     currentLevel: 1,
     xpToNextLevel: 25,
     totalXPForCurrentLevel: 0,
-    unlockedAnimals: ['Panda'],
+    unlockedAnimals: getUnlockedAnimals(1).map(a => a.name),
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
   });
@@ -129,7 +129,7 @@ export const useBackendXPSystem = () => {
       const xpToNextLevel = currentLevel >= MAX_LEVEL ? 0 : nextLevelXP - currentXP;
 
       // Calculate unlocked animals and biomes based on level
-      const unlockedAnimals = ['Panda'];
+      const unlockedAnimals = getUnlockedAnimals(currentLevel).map(a => a.name);
       const availableBiomes = ['Meadow'];
       let currentBiome = 'Meadow';
 

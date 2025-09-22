@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ANIMAL_DATABASE, BIOME_DATABASE } from '@/data/AnimalDatabase';
+import { ANIMAL_DATABASE, BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
 
 export interface XPReward {
   xpGained: number;
@@ -111,32 +111,39 @@ const NAME_MAP: Record<string, string> = ANIMAL_DATABASE.reduce((acc, a) => {
 }, {} as Record<string, string>);
 
 const normalizeAnimalList = (list: string[] | undefined): string[] => {
-  const names = (list ?? ['Panda']).map((n) => NAME_MAP[n?.toLowerCase?.() || ''] || n);
+  // If no list provided, get animals unlocked at level 1 (starting level)
+  const defaultAnimals = list ?? getUnlockedAnimals(1).map(a => a.name);
+  const names = defaultAnimals.map((n) => NAME_MAP[n?.toLowerCase?.() || ''] || n);
   // Deduplicate while preserving order
   return Array.from(new Set(names));
 };
 
 export const useXPSystem = () => {
+  // Get proper starting animals (level 0 and 1)
+  const startingAnimals = getUnlockedAnimals(1).map(a => a.name);
+  
   const [xpState, setXPState] = useState<XPSystemState>({
     currentXP: 0,
     currentLevel: 1,
     xpToNextLevel: 25,
     totalXPForCurrentLevel: 0,
-    unlockedAnimals: ['Panda'], // Start with first animal
+    unlockedAnimals: startingAnimals,
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
   });
 
-// Load saved state from localStorage - TEMPORARILY DISABLED FOR PANDA GLB TESTING
+// Load saved state from localStorage
 useEffect(() => {
-  // Force only Panda for testing GLB model
-  console.log('TESTING MODE: Only showing Panda GLB');
+  // Get proper starting animals for level 1
+  const startingAnimals = getUnlockedAnimals(1).map(a => a.name);
+  console.log('Starting animals for level 1:', startingAnimals);
+  
   setXPState({
     currentXP: 0,
     currentLevel: 1,
     xpToNextLevel: 25,
     totalXPForCurrentLevel: 0,
-    unlockedAnimals: ['Panda'], // Only Panda for testing
+    unlockedAnimals: startingAnimals,
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
   });
@@ -256,12 +263,13 @@ const getLevelProgress = useCallback((): number => {
 
   // Reset progress
   const resetProgress = useCallback(() => {
+    const startingAnimals = getUnlockedAnimals(1).map(a => a.name);
     const resetState: XPSystemState = {
       currentXP: 0,
       currentLevel: 1,
       xpToNextLevel: 25,
       totalXPForCurrentLevel: 0,
-      unlockedAnimals: ['Panda'],
+      unlockedAnimals: startingAnimals,
       currentBiome: 'Meadow',
       availableBiomes: ['Meadow'],
     };
