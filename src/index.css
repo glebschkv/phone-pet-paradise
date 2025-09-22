@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Sprite Animation Keyframes */
+@keyframes sprite-walk-6 {
+  0% { background-position-x: 0%; }
+  16.66% { background-position-x: -16.66%; }
+  33.33% { background-position-x: -33.33%; }
+  50% { background-position-x: -50%; }
+  66.66% { background-position-x: -66.66%; }
+  83.33% { background-position-x: -83.33%; }
+  100% { background-position-x: 0%; }
+}
+
+/* Sprite Animation Classes */
+.animate-sprite-walk-6 {
+  animation: sprite-walk-6 0.8s steps(6) infinite;
+}
+
 /* iOS-Style Pet Paradise - Cupertino Design System */
 
 @layer base {

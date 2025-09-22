@@ -14,9 +14,17 @@ export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel }: Retro
   const animalData = useMemo(() => {
     const hardcodedAnimals = ['Black Dog', 'Panda'];
     console.log('Hardcoded animals:', hardcodedAnimals);
-    return hardcodedAnimals
-      .map(name => getAnimalByIdOrName(name))
+    
+    const foundAnimals = hardcodedAnimals
+      .map(name => {
+        const animal = getAnimalByIdOrName(name);
+        console.log(`Looking for ${name}:`, animal);
+        return animal;
+      })
       .filter((animal): animal is AnimalData => animal !== undefined);
+    
+    console.log('Final animal data for RetroPixelPlatform:', foundAnimals);
+    return foundAnimals;
   }, []);
 
   return (
