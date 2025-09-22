@@ -7,19 +7,48 @@ interface AnimalParadeProps {
 }
 
 export const AnimalParade = memo(({ unlockedAnimals }: AnimalParadeProps) => {
-  // Generate parade data with staggered positions and speeds
+  // TEMPORARY: Force both black dog and panda to appear
   const paradeAnimals = useMemo(() => {
-    if (!unlockedAnimals.length) return [];
+    const blackDogData: AnimalData = {
+      id: 'black-dog',
+      name: 'Black Dog',
+      emoji: '🐕‍⬛',
+      rarity: 'common' as const,
+      unlockLevel: 0,
+      description: 'Your first loyal companion that brings comfort and motivation to your focus sessions.',
+      abilities: ['Loyal Support', 'Energy Boost'],
+      biome: 'Meadow',
+      spriteConfig: {
+        spritePath: '/assets/sprites/Walk.png',
+        frameCount: 6,
+        frameWidth: 32,
+        frameHeight: 32,
+        animationSpeed: 0.8
+      }
+    };
     
-    return unlockedAnimals.map((animal, index) => ({
+    const pandaData: AnimalData = {
+      id: 'panda',
+      name: 'Panda',
+      emoji: '🐼',
+      rarity: 'common' as const,
+      unlockLevel: 1,
+      description: 'A calm bamboo-loving friend that inspires gentle focus.',
+      abilities: ['Calm Focus', 'Gentle Strength'],
+      biome: 'Meadow',
+      modelConfig: { type: 'glb', modelPath: '/assets/models/Panda.glb', scale: 0.9, animationName: 'Walk' }
+    };
+    
+    const hardcodedAnimals = [blackDogData, pandaData];
+    console.log('AnimalParade: hardcoded animals', hardcodedAnimals);
+    
+    return hardcodedAnimals.map((animal, index) => ({
       animal,
-      // Stagger starting positions across the screen
-      position: (index * 0.2) % 1.2 - 0.2, // Some start off-screen left
-      // Vary speeds slightly for natural movement
-      speed: 30 + (index % 3) * 10, // 30-50 pixels per second
+      position: (index * 0.4) - 0.2, // Spread them out more
+      speed: 30 + (index * 15), // Different speeds
       key: `${animal.id}-${index}`
     }));
-  }, [unlockedAnimals]);
+  }, []);
   
   return (
     <div className="absolute inset-0 pointer-events-none">
