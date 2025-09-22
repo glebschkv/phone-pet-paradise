@@ -10,12 +10,14 @@ interface RetroPixelPlatformProps {
 }
 
 export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel }: RetroPixelPlatformProps) => {
-  // Convert animal names to AnimalData objects
+  // TEMPORARY: Hardcode both panda and black dog for testing
   const animalData = useMemo(() => {
-    return unlockedAnimals
+    const hardcodedAnimals = ['Black Dog', 'Panda'];
+    console.log('Hardcoded animals:', hardcodedAnimals);
+    return hardcodedAnimals
       .map(name => getAnimalByIdOrName(name))
       .filter((animal): animal is AnimalData => animal !== undefined);
-  }, [unlockedAnimals]);
+  }, []);
 
   return (
     <div className="absolute inset-0 overflow-hidden">
