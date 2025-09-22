@@ -14,6 +14,13 @@ export interface AnimalData {
     animationName?: string;
     fallbackToPrimitive?: boolean;
   };
+  spriteConfig?: {
+    spritePath: string;
+    frameCount: number;
+    frameWidth: number;
+    frameHeight: number;
+    animationSpeed?: number;
+  };
 }
 
 export interface BiomeData {
@@ -47,6 +54,23 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Quick Thinking', 'Agility Boost'],
     biome: 'Meadow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Fox.glb', scale: 0.4, animationName: 'Idle' }
+  },
+  {
+    id: 'black-dog',
+    name: 'Black Dog',
+    emoji: '🐕‍⬛',
+    rarity: 'common',
+    unlockLevel: 1,
+    description: 'A loyal companion that brings comfort and motivation to your focus sessions.',
+    abilities: ['Loyal Support', 'Energy Boost'],
+    biome: 'Meadow',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Walk.png',
+      frameCount: 6,
+      frameWidth: 32,
+      frameHeight: 32,
+      animationSpeed: 0.8
+    }
   },
   {
     id: 'rabbit',
@@ -604,7 +628,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Meadow',
     unlockLevel: 1,
     description: 'A peaceful starting realm where your journey begins.',
-    animals: ['panda', 'fox', 'rabbit', 'deer', 'squirrel']
+    animals: ['panda', 'black-dog', 'fox', 'rabbit', 'deer', 'squirrel']
   },
   {
     name: 'Forest',

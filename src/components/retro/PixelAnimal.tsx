@@ -1,5 +1,6 @@
 import { memo, useEffect, useState } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
+import { SpriteAnimal } from './SpriteAnimal';
 
 interface PixelAnimalProps {
   animal: AnimalData;
@@ -8,6 +9,18 @@ interface PixelAnimalProps {
 }
 
 export const PixelAnimal = memo(({ animal, position, speed }: PixelAnimalProps) => {
+  // Route to sprite-based animals if they have sprite config
+  if (animal.spriteConfig) {
+    return (
+      <SpriteAnimal
+        animal={animal}
+        position={position}
+        speed={speed}
+      />
+    );
+  }
+
+  // Original CSS-based pixel animal logic
   const [currentPosition, setCurrentPosition] = useState(position);
   const [isWalking, setIsWalking] = useState(true);
   
