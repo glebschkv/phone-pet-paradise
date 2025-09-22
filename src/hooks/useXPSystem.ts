@@ -119,12 +119,13 @@ const normalizeAnimalList = (list: string[] | undefined): string[] => {
 };
 
 export const useXPSystem = () => {
-  // Get proper starting animals (level 0 and 1)
-  const startingAnimals = getUnlockedAnimals(1).map(a => a.name);
+  // Get proper starting animals (level 0 and 1) - Start at level 0 to ensure Black Dog is included
+  const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
+  console.log('Starting animals for level 0:', startingAnimals);
   
   const [xpState, setXPState] = useState<XPSystemState>({
     currentXP: 0,
-    currentLevel: 1,
+    currentLevel: 0, // Start at level 0 to include Black Dog
     xpToNextLevel: 25,
     totalXPForCurrentLevel: 0,
     unlockedAnimals: startingAnimals,
@@ -134,13 +135,13 @@ export const useXPSystem = () => {
 
 // Load saved state from localStorage
 useEffect(() => {
-  // Get proper starting animals for level 1
-  const startingAnimals = getUnlockedAnimals(1).map(a => a.name);
-  console.log('Starting animals for level 1:', startingAnimals);
+  // Get proper starting animals for level 0 (includes Black Dog)
+  const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
+  console.log('Starting animals for level 0:', startingAnimals);
   
   setXPState({
     currentXP: 0,
-    currentLevel: 1,
+    currentLevel: 0, // Start at level 0
     xpToNextLevel: 25,
     totalXPForCurrentLevel: 0,
     unlockedAnimals: startingAnimals,
@@ -263,10 +264,10 @@ const getLevelProgress = useCallback((): number => {
 
   // Reset progress
   const resetProgress = useCallback(() => {
-    const startingAnimals = getUnlockedAnimals(1).map(a => a.name);
+    const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
     const resetState: XPSystemState = {
       currentXP: 0,
-      currentLevel: 1,
+      currentLevel: 0, // Start at level 0
       xpToNextLevel: 25,
       totalXPForCurrentLevel: 0,
       unlockedAnimals: startingAnimals,

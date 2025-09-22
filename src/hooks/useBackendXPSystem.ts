@@ -109,10 +109,10 @@ export const useBackendXPSystem = () => {
   
   const [xpState, setXPState] = useState<XPSystemState>({
     currentXP: 0,
-    currentLevel: 1,
+    currentLevel: 0, // Start at level 0 to include Black Dog
     xpToNextLevel: 25,
     totalXPForCurrentLevel: 0,
-    unlockedAnimals: getUnlockedAnimals(1).map(a => a.name),
+    unlockedAnimals: getUnlockedAnimals(0).map(a => a.name),
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
   });
@@ -130,6 +130,7 @@ export const useBackendXPSystem = () => {
 
       // Calculate unlocked animals and biomes based on level
       const unlockedAnimals = getUnlockedAnimals(currentLevel).map(a => a.name);
+      console.log(`Backend XP: Level ${currentLevel}, unlocked animals:`, unlockedAnimals);
       const availableBiomes = ['Meadow'];
       let currentBiome = 'Meadow';
 
