@@ -15,7 +15,7 @@
 
 /* Sprite Animation Classes */
 .animate-sprite-walk-6 {
-  animation: sprite-walk-6 0.8s steps(6) infinite;
+  animation: sprite-walk-6 1.5s steps(6) infinite;
 }
 
 /* iOS-Style Pet Paradise - Cupertino Design System */

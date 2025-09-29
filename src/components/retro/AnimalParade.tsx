@@ -45,7 +45,7 @@ export const AnimalParade = memo(({ unlockedAnimals }: AnimalParadeProps) => {
     return hardcodedAnimals.map((animal, index) => ({
       animal,
       position: (index * 0.4) - 0.2, // Spread them out more
-      speed: 30 + (index * 15), // Different speeds
+      speed: 15 + (index * 10), // Slower walking speed
       key: `${animal.id}-${index}`
     }));
   }, []);
