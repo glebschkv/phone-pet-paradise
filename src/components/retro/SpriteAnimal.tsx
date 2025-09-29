@@ -42,14 +42,20 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
 
   const { spritePath, frameCount, frameWidth, frameHeight } = spriteConfig;
 
+  // Scale up the sprite for better visibility
+  const scale = 3;
+  const scaledWidth = frameWidth * scale;
+  const scaledHeight = frameHeight * scale;
+
   return (
     <div
-      className="absolute bottom-0 transition-transform duration-100"
+      className="absolute bottom-[40%] transition-transform duration-100"
       style={{
         left: `${currentPosition * 100}%`,
-        width: `${frameWidth}px`,
-        height: `${frameHeight}px`,
-        zIndex: 10
+        width: `${scaledWidth}px`,
+        height: `${scaledHeight}px`,
+        zIndex: 10,
+        border: '2px solid red' // DEBUG: Remove this later
       }}
     >
       <div
