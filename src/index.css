@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 /* Sprite Animation Keyframes */
+@keyframes sprite-walk-3 {
+  from { background-position-x: 0%; }
+  to { background-position-x: -200%; }
+}
+
 @keyframes sprite-walk-6 {
   0% { background-position-x: 0%; }
   16.66% { background-position-x: -16.66%; }
@@ -14,6 +19,10 @@
 }
 
 /* Sprite Animation Classes */
+.animate-sprite-walk-3 {
+  animation: sprite-walk-3 0.9s steps(3) infinite;
+}
+
 .animate-sprite-walk-6 {
   animation: sprite-walk-6 1.5s steps(6) infinite;
 }
