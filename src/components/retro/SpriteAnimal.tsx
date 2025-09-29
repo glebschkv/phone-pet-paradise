@@ -59,7 +59,7 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
       }}
     >
       <div
-        className="w-full h-full animate-sprite-walk-3"
+        className="w-full h-full animate-sprite-walk-6"
         style={{
           backgroundImage: `url(${spritePath})`,
           backgroundSize: `${frameCount * 100}% 100%`,
