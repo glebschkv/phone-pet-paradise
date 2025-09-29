@@ -10,7 +10,7 @@
 
 @keyframes sprite-walk-6 {
   from { background-position-x: 0%; }
-  to { background-position-x: -500%; }
+  to { background-position-x: -600%; }
 }
 
 /* Sprite Animation Classes */
