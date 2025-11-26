@@ -37,9 +37,6 @@ export const GameUI = () => {
     }
   };
 
-  // Focus page has its own background, others need solid background
-  const needsSolidBackground = currentTab !== "home" && currentTab !== "timer";
-
   return (
     <div className="fixed inset-0 pointer-events-none z-40">
       {/* Unified Top Status Bar */}
@@ -47,7 +44,7 @@ export const GameUI = () => {
 
       {/* Full Screen Content */}
       {currentTab !== "home" && (
-        <div className={`absolute inset-0 pointer-events-auto overflow-auto pb-20 ${needsSolidBackground ? 'bg-background' : ''}`}>
+        <div className="absolute inset-0 bg-background pointer-events-auto overflow-auto pb-20">
           {renderContent()}
         </div>
       )}
