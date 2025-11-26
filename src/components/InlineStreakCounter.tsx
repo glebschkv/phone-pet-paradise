@@ -1,5 +1,4 @@
 import { Flame } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 interface StreakData {
   currentStreak: number;
@@ -14,25 +13,27 @@ interface InlineStreakCounterProps {
   getStreakEmoji: (streak: number) => string;
 }
 
-export const InlineStreakCounter = ({ 
-  streakData, 
-  getStreakEmoji 
+export const InlineStreakCounter = ({
+  streakData,
+  getStreakEmoji
 }: InlineStreakCounterProps) => {
+  const hasStreak = streakData.currentStreak >= 3;
+
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-background/20 rounded-2xl">
-      <Flame className="w-4 h-4 text-orange-500" />
+    <div className="retro-stat-pill flex items-center gap-2 px-3 py-1.5">
+      <Flame className={`w-4 h-4 text-orange-500 ${hasStreak ? 'streak-glow' : ''}`} />
       <div className="flex items-center gap-1.5">
-        <span className="text-sm font-semibold text-foreground">
+        <span className="text-sm font-bold text-foreground tabular-nums">
           {streakData.currentStreak}
         </span>
-        <span className="text-lg leading-none">
-          {getStreakEmoji(streakData.currentStreak)}
+        <span className="text-xs text-muted-foreground font-medium">
+          day{streakData.currentStreak !== 1 ? 's' : ''}
         </span>
       </div>
-      {streakData.currentStreak >= 3 && (
-        <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5">
-          Streak!
-        </Badge>
+      {hasStreak && (
+        <span className="text-base leading-none">
+          {getStreakEmoji(streakData.currentStreak)}
+        </span>
       )}
     </div>
   );

@@ -1,9 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { XPReward } from "@/hooks/useBackendXPSystem";
-import { Star, Gift, Zap, Crown } from "lucide-react";
+import { Star, Gift, Zap, Sparkles, Trophy } from "lucide-react";
 
 interface XPRewardModalProps {
   isOpen: boolean;
@@ -13,64 +12,85 @@ interface XPRewardModalProps {
   levelProgress: number;
 }
 
-export const XPRewardModal = ({ 
-  isOpen, 
-  onClose, 
-  reward, 
+export const XPRewardModal = ({
+  isOpen,
+  onClose,
+  reward,
   newLevel,
-  levelProgress 
+  levelProgress
 }: XPRewardModalProps) => {
   if (!reward) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm mx-auto bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-            <Zap className="w-8 h-8 text-primary" />
+      <DialogContent className="max-w-sm mx-auto retro-card border-2 border-border max-h-[90vh] overflow-y-auto p-0">
+        {/* Header */}
+        <div className="bg-gradient-to-b from-primary/20 to-transparent p-6 text-center">
+          <div className="mx-auto w-14 h-14 retro-level-badge rounded-xl flex items-center justify-center mb-4">
+            <Zap className="w-7 h-7" />
           </div>
-          
-          <DialogTitle className="text-2xl font-bold">
-            Focus Session Complete!
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-6 py-4">
-          {/* XP Gained */}
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-2">
+
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              Session Complete!
+            </DialogTitle>
+          </DialogHeader>
+        </div>
+
+        <div className="px-5 pb-5 space-y-5">
+          {/* XP Gained - Big emphasis */}
+          <div className="retro-stat-pill p-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-1">
               <Star className="w-5 h-5 text-yellow-500" />
-              <span className="text-lg font-semibold">
-                +{reward.xpGained} XP
+              <span className="text-2xl font-bold tabular-nums">
+                +{reward.xpGained}
               </span>
+              <span className="text-sm font-semibold text-muted-foreground">XP</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Great job staying focused!
+            <p className="text-xs text-muted-foreground">
+              Great focus session!
             </p>
           </div>
 
-          {/* Level Progress */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Level {newLevel}</span>
-              <span className="text-sm text-muted-foreground">
+          {/* Level Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <div className="retro-level-badge px-2 py-0.5 text-xs">
+                  <span className="font-bold">LV.{newLevel}</span>
+                </div>
+              </div>
+              <span className="text-xs font-mono text-muted-foreground">
                 {Math.round(levelProgress)}%
               </span>
             </div>
-            <Progress value={levelProgress} className="h-2" />
+            <div className="retro-xp-bar">
+              <div
+                className="retro-xp-fill"
+                style={{ width: `${Math.max(2, levelProgress)}%` }}
+              >
+                <div className="shine" />
+              </div>
+            </div>
           </div>
 
           {/* Level Up Celebration */}
           {reward.leveledUp && (
-            <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-400/30 rounded-lg p-4 text-center space-y-3">
-              <div className="flex items-center justify-center gap-2">
-                <Crown className="w-6 h-6 text-yellow-600" />
-                <span className="text-lg font-bold text-yellow-700">
-                  Level Up!
+            <div className="relative overflow-hidden rounded-lg p-4 text-center"
+              style={{
+                background: 'linear-gradient(180deg, hsl(45 100% 60%) 0%, hsl(40 90% 50%) 100%)',
+                border: '2px solid hsl(35 80% 40%)',
+                boxShadow: '0 3px 0 hsl(35 70% 30%), inset 0 1px 0 hsl(50 100% 80% / 0.5)'
+              }}
+            >
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <Trophy className="w-6 h-6 text-amber-900" />
+                <span className="text-lg font-bold text-amber-900">
+                  LEVEL UP!
                 </span>
               </div>
-              <p className="text-sm">
-                You've reached Level {reward.newLevel}!
+              <p className="text-sm text-amber-800 font-medium">
+                You reached Level {reward.newLevel}!
               </p>
             </div>
           )}
@@ -79,23 +99,30 @@ export const XPRewardModal = ({
           {reward.unlockedRewards.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-primary" />
-                <span className="font-semibold">New Unlocks!</span>
+                <Gift className="w-4 h-4 text-primary" />
+                <span className="text-sm font-bold">New Unlocks</span>
               </div>
-              
+
               <div className="space-y-2">
                 {reward.unlockedRewards.map((unlock, index) => (
-                  <div 
+                  <div
                     key={index}
-                    className="bg-background/80 border border-primary/20 rounded-lg p-3 space-y-1"
+                    className="retro-stat-pill p-3"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{unlock.name}</span>
-                      <Badge variant={unlock.type === 'biome' ? 'default' : 'secondary'}>
-                        {unlock.type === 'biome' ? 'New Biome' : 'New Animal'}
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-semibold text-sm">{unlock.name}</span>
+                      <Badge
+                        className={`text-[10px] px-2 py-0.5 ${
+                          unlock.type === 'biome'
+                            ? 'bg-primary/20 text-primary border-primary/30'
+                            : 'bg-pink-500/20 text-pink-600 border-pink-500/30'
+                        }`}
+                        variant="outline"
+                      >
+                        {unlock.type === 'biome' ? 'World' : 'Pet'}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {unlock.description}
                     </p>
                   </div>
@@ -103,12 +130,21 @@ export const XPRewardModal = ({
               </div>
             </div>
           )}
-        </div>
 
-        <div className="flex justify-center pt-4">
-          <Button onClick={onClose} className="px-8">
+          {/* Continue Button */}
+          <button
+            onClick={onClose}
+            className="w-full py-3 px-6 font-bold text-sm rounded-lg transition-all active:scale-95 touch-manipulation"
+            style={{
+              background: 'linear-gradient(180deg, hsl(260 60% 60%) 0%, hsl(260 60% 50%) 100%)',
+              border: '2px solid hsl(260 50% 40%)',
+              boxShadow: '0 3px 0 hsl(260 50% 35%), inset 0 1px 0 hsl(260 70% 75% / 0.4)',
+              color: 'white',
+              textShadow: '0 1px 0 hsl(260 50% 30% / 0.3)'
+            }}
+          >
             Continue
-          </Button>
+          </button>
         </div>
       </DialogContent>
     </Dialog>
