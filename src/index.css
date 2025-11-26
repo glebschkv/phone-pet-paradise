@@ -346,6 +346,11 @@
     100% { transform: translateX(200%); }
   }
 
+  @keyframes twinkle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
   .retro-xp-fill .shine {
     position: absolute;
     top: 0;
