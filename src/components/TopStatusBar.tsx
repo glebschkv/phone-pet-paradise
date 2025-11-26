@@ -17,7 +17,7 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
     getLevelProgress,
     streakData,
     getStreakEmoji,
-    awardXP,
+    testLevelUp,
     availableBiomes,
     currentBiome,
     switchBiome,
@@ -42,7 +42,7 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
           <div className="flex items-center gap-2 shrink-0">
             <StatusBarActions
               petCount={unlockedAnimals.length}
-              onTestLevelUp={() => awardXP(60)}
+              onTestLevelUp={testLevelUp}
             />
           </div>
         </div>

@@ -144,6 +144,21 @@ export const useAppStateTracking = () => {
     return reward;
   }, [awardSessionXP, saveState]);
 
+  // Test function to award exactly one level up
+  const testLevelUp = useCallback((): XPReward | null => {
+    // Award 300 minutes (5 hours) which gives 210 XP - enough for most level ups
+    // The XP system will handle the actual level calculation
+    const reward = xpSystem.awardXP(300);
+    if (reward) {
+      saveState({
+        timeAwayMinutes: 300,
+        showRewardModal: true,
+        currentReward: reward
+      });
+    }
+    return reward;
+  }, [xpSystem, saveState]);
+
   return {
     // XP System data
     ...xpSystem,
@@ -163,5 +178,6 @@ export const useAppStateTracking = () => {
     dismissRewardModal,
     resetProgress,
     awardXP: manualAwardXP,
+    testLevelUp,
   };
 };
