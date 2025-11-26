@@ -33,21 +33,25 @@ export const MAX_LEVEL = 50 as const;
 
 // XP rewards based on session duration (in minutes)
 const XP_REWARDS = {
+  25: 8,    // 25 minutes = 8 XP (minimum focus session)
   30: 10,   // 30 minutes = 10 XP
+  45: 15,   // 45 minutes = 15 XP
   60: 25,   // 1 hour = 25 XP
+  90: 40,   // 90 minutes (deep work) = 40 XP
   120: 60,  // 2 hours = 60 XP
   180: 100, // 3 hours = 100 XP
   240: 150, // 4 hours = 150 XP
   300: 210, // 5 hours = 210 XP
 };
 
-// Level progression: how much XP needed to reach each level
+// Level progression: how much total XP needed to reach each level
+// Level 0 is the starting level (0 XP), level 1 requires 25 XP, etc.
 const LEVEL_REQUIREMENTS = [
-  0,   // Level 1 (starting level)
-  25,  // Level 2
-  50,  // Level 3 (25 + 25)
-  75,  // Level 4 (50 + 25)
-  125, // Level 5 (75 + 50)
+  0,   // Level 0 (starting level - included implicitly)
+  25,  // Level 1
+  50,  // Level 2 (25 + 25)
+  75,  // Level 3 (50 + 25)
+  125, // Level 4 (75 + 50)
 ];
 
 // Memoized level requirement calculation
@@ -172,12 +176,12 @@ export const useBackendXPSystem = () => {
       }
     }
     
-    return 0; // No XP for sessions less than 30 minutes
+    return 0; // No XP for sessions less than 25 minutes
   }, []);
 
-  // Calculate current level from total XP
+  // Calculate current level from total XP (starts at level 0)
   const calculateLevel = useCallback((totalXP: number): number => {
-    let level = 1;
+    let level = 0;
     while (level < MAX_LEVEL && totalXP >= calculateLevelRequirement(level + 1)) {
       level++;
     }

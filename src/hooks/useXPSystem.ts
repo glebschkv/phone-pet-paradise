@@ -32,21 +32,25 @@ export const MAX_LEVEL = 50 as const;
 
 // XP rewards based on session duration (in minutes)
 const XP_REWARDS = {
+  25: 8,    // 25 minutes = 8 XP (minimum focus session)
   30: 10,   // 30 minutes = 10 XP
+  45: 15,   // 45 minutes = 15 XP
   60: 25,   // 1 hour = 25 XP
+  90: 40,   // 90 minutes (deep work) = 40 XP
   120: 60,  // 2 hours = 60 XP
   180: 100, // 3 hours = 100 XP
   240: 150, // 4 hours = 150 XP
   300: 210, // 5 hours = 210 XP
 };
 
-// Level progression: how much XP needed to reach each level
+// Level progression: how much total XP needed to reach each level
+// Level 0 is the starting level (0 XP), level 1 requires 25 XP, etc.
 const LEVEL_REQUIREMENTS = [
-  0,   // Level 1 (starting level)
-  25,  // Level 2
-  50,  // Level 3 (25 + 25)
-  75,  // Level 4 (50 + 25)
-  125, // Level 5 (75 + 50)
+  0,   // Level 0 (starting level - included implicitly)
+  25,  // Level 1
+  50,  // Level 2 (25 + 25)
+  75,  // Level 3 (50 + 25)
+  125, // Level 4 (75 + 50)
 ];
 
 // Memoized level requirement calculation
@@ -135,19 +139,70 @@ export const useXPSystem = () => {
 
 // Load saved state from localStorage
 useEffect(() => {
-  // Get proper starting animals for level 0 (includes Black Dog)
-  const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
-  console.log('Starting animals for level 0:', startingAnimals);
-  
-  setXPState({
-    currentXP: 0,
-    currentLevel: 0, // Start at level 0
-    xpToNextLevel: 25,
-    totalXPForCurrentLevel: 0,
-    unlockedAnimals: startingAnimals,
-    currentBiome: 'Meadow',
-    availableBiomes: ['Meadow'],
-  });
+  const savedData = localStorage.getItem(STORAGE_KEY);
+
+  if (savedData) {
+    try {
+      const parsed = JSON.parse(savedData);
+      console.log('Loading saved XP state:', parsed);
+
+      // Normalize animal names and ensure starting animals are included
+      const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
+      const savedAnimals = normalizeAnimalList(parsed.unlockedAnimals || []);
+      const allAnimals = Array.from(new Set([...startingAnimals, ...savedAnimals]));
+
+      // Recalculate level from saved XP to ensure consistency
+      let level = 0;
+      while (level < MAX_LEVEL && parsed.currentXP >= calculateLevelRequirement(level + 1)) {
+        level++;
+      }
+
+      // Calculate XP to next level
+      const currentLevelXP = calculateLevelRequirement(level);
+      const nextLevelXP = level >= MAX_LEVEL
+        ? calculateLevelRequirement(level)
+        : calculateLevelRequirement(level + 1);
+      const xpToNextLevel = level >= MAX_LEVEL ? 0 : nextLevelXP - parsed.currentXP;
+
+      setXPState({
+        currentXP: parsed.currentXP || 0,
+        currentLevel: level,
+        xpToNextLevel: Math.max(0, xpToNextLevel),
+        totalXPForCurrentLevel: currentLevelXP,
+        unlockedAnimals: allAnimals,
+        currentBiome: parsed.currentBiome || 'Meadow',
+        availableBiomes: parsed.availableBiomes || ['Meadow'],
+      });
+
+      console.log(`Restored XP state: Level ${level}, ${parsed.currentXP} XP, ${allAnimals.length} animals`);
+    } catch (error) {
+      console.error('Failed to load saved XP state:', error);
+      // Fall back to defaults
+      const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
+      setXPState({
+        currentXP: 0,
+        currentLevel: 0,
+        xpToNextLevel: 25,
+        totalXPForCurrentLevel: 0,
+        unlockedAnimals: startingAnimals,
+        currentBiome: 'Meadow',
+        availableBiomes: ['Meadow'],
+      });
+    }
+  } else {
+    // No saved data - initialize with defaults
+    const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
+    console.log('No saved XP state, starting fresh with animals:', startingAnimals);
+    setXPState({
+      currentXP: 0,
+      currentLevel: 0,
+      xpToNextLevel: 25,
+      totalXPForCurrentLevel: 0,
+      unlockedAnimals: startingAnimals,
+      currentBiome: 'Meadow',
+      availableBiomes: ['Meadow'],
+    });
+  }
 }, []);
 
   // Save state to localStorage
@@ -174,12 +229,12 @@ useEffect(() => {
       }
     }
     
-    return 0; // No XP for sessions less than 30 minutes
+    return 0; // No XP for sessions less than 25 minutes
   }, []);
 
-  // Calculate current level from total XP
+  // Calculate current level from total XP (starts at level 0)
 const calculateLevel = useCallback((totalXP: number): number => {
-  let level = 1;
+  let level = 0;
   while (level < MAX_LEVEL && totalXP >= calculateLevelRequirement(level + 1)) {
     level++;
   }
