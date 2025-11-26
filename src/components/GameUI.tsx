@@ -20,11 +20,7 @@ export const GameUI = () => {
   const renderContent = () => {
     switch (currentTab) {
       case "timer":
-        return (
-          <div className="p-4">
-            <UnifiedFocusTimer />
-          </div>
-        );
+        return <UnifiedFocusTimer />;
       case "collection":
         return <PetCollectionGrid />;
       case "friends":
@@ -41,6 +37,9 @@ export const GameUI = () => {
     }
   };
 
+  // Focus page has its own background, others need solid background
+  const needsSolidBackground = currentTab !== "home" && currentTab !== "timer";
+
   return (
     <div className="fixed inset-0 pointer-events-none z-40">
       {/* Unified Top Status Bar */}
@@ -48,7 +47,7 @@ export const GameUI = () => {
 
       {/* Full Screen Content */}
       {currentTab !== "home" && (
-        <div className="absolute inset-0 bg-background pointer-events-auto overflow-auto pb-20">
+        <div className={`absolute inset-0 pointer-events-auto overflow-auto pb-20 ${needsSolidBackground ? 'bg-background' : ''}`}>
           {renderContent()}
         </div>
       )}
