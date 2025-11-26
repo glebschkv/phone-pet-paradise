@@ -734,22 +734,21 @@ export const UnifiedFocusTimer = () => {
 };
 
 // Dynamic Background Component for Focus Page
-const FocusBackground = memo(({ theme }: { theme: string }) => {
+const FocusBackground = ({ theme }: { theme: string }) => {
+  // Use key to force React to properly unmount/remount when switching
   switch (theme) {
     case 'sunset':
-      return <SunsetBackground />;
+      return <SunsetBackground key="sunset" />;
     case 'night':
-      return <NightBackground />;
+      return <NightBackground key="night" />;
     case 'ocean':
-      return <OceanBackground />;
+      return <OceanBackground key="ocean" />;
     case 'forest':
-      return <ForestBackground />;
+      return <ForestBackground key="forest" />;
     default:
-      return <SkyBackground />;
+      return <SkyBackground key="sky" />;
   }
-});
-
-FocusBackground.displayName = 'FocusBackground';
+};
 
 // Sky Background (Default - Day)
 const SkyBackground = memo(() => (
