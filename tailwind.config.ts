@@ -165,15 +165,6 @@ export default {
 				'parallax-slow': {
 					'0%': { transform: 'translateX(-50px)' },
 					'100%': { transform: 'translateX(calc(100vw + 50px))' }
-				},
-				'sprite-walk-6': {
-					'0%': { backgroundPosition: '0 0' },
-					'16.67%': { backgroundPosition: '-16.67% 0' },
-					'33.33%': { backgroundPosition: '-33.33% 0' },
-					'50%': { backgroundPosition: '-50% 0' },
-					'66.67%': { backgroundPosition: '-66.67% 0' },
-					'83.33%': { backgroundPosition: '-83.33% 0' },
-					'100%': { backgroundPosition: '0 0' }
 				}
 			},
 			animation: {
@@ -185,8 +176,7 @@ export default {
 				'bounce-subtle': 'bounce-subtle 0.3s ease-in-out',
 				'pixel-walk': 'pixel-walk 0.6s ease-in-out infinite',
 				'drift-clouds': 'drift-clouds 20s linear infinite',
-				'parallax-slow': 'parallax-slow 30s linear infinite',
-				'sprite-walk-6': 'sprite-walk-6 0.8s steps(6) infinite'
+				'parallax-slow': 'parallax-slow 30s linear infinite'
 			}
 		}
 	},

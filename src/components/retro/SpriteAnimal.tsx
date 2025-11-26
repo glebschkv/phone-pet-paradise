@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
 
 interface SpriteAnimalProps {
@@ -10,34 +10,55 @@ interface SpriteAnimalProps {
 export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps) => {
   const [currentPosition, setCurrentPosition] = useState(position);
   const [direction, setDirection] = useState<'right' | 'left'>('right');
+  const [currentFrame, setCurrentFrame] = useState(0);
+
+  // Refs for animation state
+  const frameTimeRef = useRef(0);
+  const directionRef = useRef<'right' | 'left'>('right');
 
   const spriteConfig = animal.spriteConfig;
   if (!spriteConfig) return null;
 
-  const { spritePath, frameCount } = spriteConfig;
+  const { spritePath, frameCount, frameWidth, frameHeight, animationSpeed = 10 } = spriteConfig;
 
-  // Animate position and handle direction changes
+  // Calculate frame duration in milliseconds (animationSpeed is FPS)
+  const frameDuration = 1000 / animationSpeed;
+
+  // Keep direction ref in sync
+  useEffect(() => {
+    directionRef.current = direction;
+  }, [direction]);
+
+  // Combined animation loop for both position and sprite frames
   useEffect(() => {
     let animationFrame: number;
     let lastTime = performance.now();
 
     const animate = (currentTime: number) => {
-      const deltaTime = (currentTime - lastTime) / 1000;
+      const deltaTime = currentTime - lastTime;
       lastTime = currentTime;
 
+      // Update sprite frame based on time
+      frameTimeRef.current += deltaTime;
+      if (frameTimeRef.current >= frameDuration) {
+        setCurrentFrame(prev => (prev + 1) % frameCount);
+        frameTimeRef.current = 0;
+      }
+
+      // Update position
       setCurrentPosition(prev => {
-        const movement = (speed * deltaTime) / window.innerWidth;
-        const newPosition = prev + (direction === 'right' ? movement : -movement);
-        
+        const movement = (speed * (deltaTime / 1000)) / window.innerWidth;
+        const newPosition = prev + (directionRef.current === 'right' ? movement : -movement);
+
         // Bounce back when reaching edges
-        if (newPosition > 0.9) {
+        if (newPosition > 0.85) {
           setDirection('left');
-          return 0.9;
+          return 0.85;
         } else if (newPosition < 0.1) {
           setDirection('right');
           return 0.1;
         }
-        
+
         return newPosition;
       });
 
@@ -51,14 +72,15 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
         cancelAnimationFrame(animationFrame);
       }
     };
-  }, [speed, direction]);
+  }, [speed, frameDuration, frameCount]);
 
-  // Scale up the sprite for better visibility
-  const scale = 3;
-  const frameWidth = spriteConfig.frameWidth || 32;
-  const frameHeight = spriteConfig.frameHeight || 32;
+  // Scale up the sprite for better visibility (2x for crisp pixels)
+  const scale = 2;
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
+
+  // Calculate pixel-perfect background position
+  const backgroundPositionX = -(currentFrame * frameWidth * scale);
 
   return (
     <div
@@ -69,16 +91,23 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
         height: `${scaledHeight}px`,
         zIndex: 10,
         transform: direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)',
-        transition: 'transform 0.3s ease'
+        // GPU acceleration for smooth movement
+        willChange: 'transform, left',
       }}
     >
       <div
-        className="w-full h-full animate-sprite-walk-6"
         style={{
+          width: `${scaledWidth}px`,
+          height: `${scaledHeight}px`,
           backgroundImage: `url(${spritePath})`,
-          backgroundSize: `${frameCount * 100}% 100%`,
+          // Use exact pixel dimensions for the sprite sheet
+          backgroundSize: `${frameCount * scaledWidth}px ${scaledHeight}px`,
+          backgroundPosition: `${backgroundPositionX}px 0px`,
           backgroundRepeat: 'no-repeat',
-          imageRendering: 'pixelated'
+          // Critical for pixel art - no blurring
+          imageRendering: 'pixelated',
+          // Prevent any smoothing
+          WebkitFontSmoothing: 'none',
         }}
       />
 
