@@ -45,18 +45,18 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
         frameTimeRef.current = 0;
       }
 
-      // Update position
+      // Update position - walk in a more centered area
       setCurrentPosition(prev => {
         const movement = (speed * (deltaTime / 1000)) / window.innerWidth;
         const newPosition = prev + (directionRef.current === 'right' ? movement : -movement);
 
-        // Bounce back when reaching edges
-        if (newPosition > 0.85) {
+        // Bounce back when reaching edges - keep more centered
+        if (newPosition > 0.75) {
           setDirection('left');
-          return 0.85;
-        } else if (newPosition < 0.1) {
+          return 0.75;
+        } else if (newPosition < 0.25) {
           setDirection('right');
-          return 0.1;
+          return 0.25;
         }
 
         return newPosition;
@@ -74,8 +74,8 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
     };
   }, [speed, frameDuration, frameCount]);
 
-  // Scale up the sprite for better visibility (2x for crisp pixels)
-  const scale = 2;
+  // Scale up the sprite for better visibility (2.5x for crisp pixels)
+  const scale = 2.5;
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
 
@@ -84,13 +84,15 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
 
   return (
     <div
-      className="absolute bottom-[40%]"
+      className="absolute"
       style={{
+        // Position the dog on top of the grass platform
+        bottom: '22%',
         left: `${currentPosition * 100}%`,
         width: `${scaledWidth}px`,
         height: `${scaledHeight}px`,
         zIndex: 10,
-        transform: direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)',
+        transform: `translateX(-50%) ${direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)'}`,
         // GPU acceleration for smooth movement
         willChange: 'transform, left',
       }}
@@ -110,13 +112,6 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
           WebkitFontSmoothing: 'none',
         }}
       />
-
-      {/* Animal name tooltip on hover */}
-      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-        <div className="bg-card/90 backdrop-blur-sm rounded px-2 py-1 text-xs font-medium whitespace-nowrap border border-border">
-          {animal.name}
-        </div>
-      </div>
     </div>
   );
 });
