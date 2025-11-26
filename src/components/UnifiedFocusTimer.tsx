@@ -474,14 +474,7 @@ export const UnifiedFocusTimer = () => {
       <FocusBackground />
 
       {/* Main Content */}
-      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-20 pb-32">
-        {/* Session Badge */}
-        <div className="retro-stat-pill px-4 py-2 mb-6">
-          <span className="text-sm font-semibold text-foreground">
-            Session {timerState.completedSessions + 1}
-          </span>
-        </div>
-
+      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-16 pb-32">
         {/* Timer Card - Central Focus */}
         <div className="retro-card p-6 w-full max-w-sm mb-6">
           {/* Current Mode Header */}
