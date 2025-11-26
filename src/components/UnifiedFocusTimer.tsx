@@ -9,7 +9,12 @@ import {
   Brain,
   Clock,
   Volume2,
-  VolumeX
+  VolumeX,
+  Sun,
+  Sunset,
+  Moon,
+  Waves,
+  TreePine
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
@@ -17,6 +22,22 @@ import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = 'petIsland_unifiedTimer';
 const TIMER_PERSISTENCE_KEY = 'petIsland_timerPersistence';
+const BACKGROUND_THEME_KEY = 'petIsland_focusBackground';
+
+// Background theme definitions
+interface BackgroundTheme {
+  id: string;
+  name: string;
+  icon: any;
+}
+
+const BACKGROUND_THEMES: BackgroundTheme[] = [
+  { id: 'sky', name: 'Day', icon: Sun },
+  { id: 'sunset', name: 'Sunset', icon: Sunset },
+  { id: 'night', name: 'Night', icon: Moon },
+  { id: 'ocean', name: 'Ocean', icon: Waves },
+  { id: 'forest', name: 'Forest', icon: TreePine },
+];
 
 interface TimerState {
   timeLeft: number;
@@ -119,6 +140,21 @@ export const UnifiedFocusTimer = () => {
   });
 
   const [selectedPreset, setSelectedPreset] = useState<TimerPreset>(TIMER_PRESETS[0]);
+  const [backgroundTheme, setBackgroundTheme] = useState<string>('sky');
+
+  // Load background theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem(BACKGROUND_THEME_KEY);
+    if (savedTheme && BACKGROUND_THEMES.some(t => t.id === savedTheme)) {
+      setBackgroundTheme(savedTheme);
+    }
+  }, []);
+
+  // Save background theme to localStorage
+  const changeBackgroundTheme = (themeId: string) => {
+    setBackgroundTheme(themeId);
+    localStorage.setItem(BACKGROUND_THEME_KEY, themeId);
+  };
 
   // Save timer state to localStorage with persistence
   const saveTimerState = useCallback((state: Partial<TimerState>) => {
@@ -470,11 +506,48 @@ export const UnifiedFocusTimer = () => {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
-      {/* Retro Sky Background */}
-      <FocusBackground />
+      {/* Dynamic Background */}
+      <FocusBackground theme={backgroundTheme} />
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-16 pb-32">
+        {/* Background Theme Switcher */}
+        <div className="w-full max-w-sm mb-4">
+          <div className="flex justify-center gap-2">
+            {BACKGROUND_THEMES.map((theme) => {
+              const Icon = theme.icon;
+              const isSelected = backgroundTheme === theme.id;
+              return (
+                <button
+                  key={theme.id}
+                  onClick={() => changeBackgroundTheme(theme.id)}
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95",
+                    isSelected
+                      ? "ring-2 ring-white ring-offset-2 ring-offset-transparent"
+                      : "opacity-60 hover:opacity-100"
+                  )}
+                  style={{
+                    background: isSelected
+                      ? 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.9) 100%)'
+                      : 'hsl(var(--card) / 0.6)',
+                    border: '2px solid hsl(var(--border))',
+                    boxShadow: isSelected
+                      ? '0 2px 0 hsl(var(--border) / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+                      : 'none'
+                  }}
+                  title={theme.name}
+                >
+                  <Icon className={cn(
+                    "w-4 h-4",
+                    isSelected ? "text-foreground" : "text-muted-foreground"
+                  )} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Timer Card - Central Focus */}
         <div className="retro-card p-6 w-full max-w-sm mb-6">
           {/* Current Mode Header */}
@@ -660,53 +733,259 @@ export const UnifiedFocusTimer = () => {
   );
 };
 
-// Retro Background Component for Focus Page
-const FocusBackground = memo(() => {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      {/* Sky Gradient - Same as home but slightly softer */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(180deg, hsl(200 65% 82%) 0%, hsl(200 45% 90%) 50%, hsl(40 50% 92%) 100%)'
-        }}
-      />
-
-      {/* Subtle sun glow */}
-      <div
-        className="absolute top-[10%] right-[12%] w-28 h-28 rounded-full opacity-50"
-        style={{
-          background: 'radial-gradient(circle, hsl(45 100% 88%) 0%, transparent 70%)'
-        }}
-      />
-
-      {/* Soft floating clouds */}
-      <div className="absolute top-[15%] left-[8%] w-24 h-10 rounded-full bg-white/35 blur-sm" />
-      <div className="absolute top-[10%] left-[30%] w-18 h-7 rounded-full bg-white/25 blur-sm" />
-      <div className="absolute top-[20%] right-[15%] w-28 h-10 rounded-full bg-white/30 blur-sm" />
-      <div className="absolute top-[12%] right-[35%] w-16 h-6 rounded-full bg-white/20 blur-sm" />
-
-      {/* Very subtle distant hills - lower opacity for focus */}
-      <div className="absolute bottom-0 w-full h-48">
-        <svg
-          viewBox="0 0 1200 200"
-          className="w-full h-full"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="focusHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="hsl(140 30% 70%)" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="hsl(140 35% 60%)" stopOpacity="0.5" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M0,200 L0,120 Q150,80 300,100 Q450,120 600,90 Q750,60 900,80 Q1050,100 1200,70 L1200,200 Z"
-            fill="url(#focusHillGradient)"
-          />
-        </svg>
-      </div>
-    </div>
-  );
+// Dynamic Background Component for Focus Page
+const FocusBackground = memo(({ theme }: { theme: string }) => {
+  switch (theme) {
+    case 'sunset':
+      return <SunsetBackground />;
+    case 'night':
+      return <NightBackground />;
+    case 'ocean':
+      return <OceanBackground />;
+    case 'forest':
+      return <ForestBackground />;
+    default:
+      return <SkyBackground />;
+  }
 });
 
 FocusBackground.displayName = 'FocusBackground';
+
+// Sky Background (Default - Day)
+const SkyBackground = memo(() => (
+  <div className="absolute inset-0 overflow-hidden">
+    <div
+      className="absolute inset-0"
+      style={{
+        background: 'linear-gradient(180deg, hsl(200 65% 82%) 0%, hsl(200 45% 90%) 50%, hsl(40 50% 92%) 100%)'
+      }}
+    />
+    <div
+      className="absolute top-[10%] right-[12%] w-28 h-28 rounded-full opacity-50"
+      style={{
+        background: 'radial-gradient(circle, hsl(45 100% 88%) 0%, transparent 70%)'
+      }}
+    />
+    <div className="absolute top-[15%] left-[8%] w-24 h-10 rounded-full bg-white/35 blur-sm" />
+    <div className="absolute top-[10%] left-[30%] w-18 h-7 rounded-full bg-white/25 blur-sm" />
+    <div className="absolute top-[20%] right-[15%] w-28 h-10 rounded-full bg-white/30 blur-sm" />
+    <div className="absolute top-[12%] right-[35%] w-16 h-6 rounded-full bg-white/20 blur-sm" />
+    <div className="absolute bottom-0 w-full h-48">
+      <svg viewBox="0 0 1200 200" className="w-full h-full" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="skyHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(140 30% 70%)" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="hsl(140 35% 60%)" stopOpacity="0.5" />
+          </linearGradient>
+        </defs>
+        <path d="M0,200 L0,120 Q150,80 300,100 Q450,120 600,90 Q750,60 900,80 Q1050,100 1200,70 L1200,200 Z" fill="url(#skyHillGradient)" />
+      </svg>
+    </div>
+  </div>
+));
+SkyBackground.displayName = 'SkyBackground';
+
+// Sunset Background
+const SunsetBackground = memo(() => (
+  <div className="absolute inset-0 overflow-hidden">
+    <div
+      className="absolute inset-0"
+      style={{
+        background: 'linear-gradient(180deg, hsl(280 40% 45%) 0%, hsl(350 60% 55%) 30%, hsl(30 80% 65%) 60%, hsl(45 90% 75%) 100%)'
+      }}
+    />
+    {/* Setting sun */}
+    <div
+      className="absolute bottom-[25%] left-1/2 -translate-x-1/2 w-32 h-32 rounded-full"
+      style={{
+        background: 'radial-gradient(circle, hsl(40 100% 70%) 0%, hsl(30 90% 60%) 40%, transparent 70%)'
+      }}
+    />
+    {/* Sun reflection glow */}
+    <div
+      className="absolute bottom-[20%] left-1/2 -translate-x-1/2 w-48 h-24 rounded-full opacity-40"
+      style={{
+        background: 'radial-gradient(ellipse, hsl(35 100% 75%) 0%, transparent 70%)'
+      }}
+    />
+    {/* Wispy clouds with sunset colors */}
+    <div className="absolute top-[12%] left-[5%] w-28 h-8 rounded-full bg-orange-200/40 blur-sm" />
+    <div className="absolute top-[8%] left-[25%] w-20 h-6 rounded-full bg-pink-200/30 blur-sm" />
+    <div className="absolute top-[15%] right-[10%] w-32 h-10 rounded-full bg-purple-200/35 blur-sm" />
+    <div className="absolute top-[10%] right-[30%] w-18 h-5 rounded-full bg-orange-100/25 blur-sm" />
+    {/* Dark silhouette hills */}
+    <div className="absolute bottom-0 w-full h-48">
+      <svg viewBox="0 0 1200 200" className="w-full h-full" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="sunsetHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(280 30% 25%)" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="hsl(280 35% 15%)" stopOpacity="0.9" />
+          </linearGradient>
+        </defs>
+        <path d="M0,200 L0,100 Q100,60 200,90 Q350,130 500,80 Q650,30 800,70 Q950,110 1100,60 L1200,80 L1200,200 Z" fill="url(#sunsetHillGradient)" />
+      </svg>
+    </div>
+  </div>
+));
+SunsetBackground.displayName = 'SunsetBackground';
+
+// Night Background
+const NightBackground = memo(() => (
+  <div className="absolute inset-0 overflow-hidden">
+    <div
+      className="absolute inset-0"
+      style={{
+        background: 'linear-gradient(180deg, hsl(230 50% 12%) 0%, hsl(240 45% 18%) 40%, hsl(250 35% 25%) 100%)'
+      }}
+    />
+    {/* Moon */}
+    <div
+      className="absolute top-[8%] right-[15%] w-16 h-16 rounded-full"
+      style={{
+        background: 'radial-gradient(circle at 30% 30%, hsl(45 20% 95%) 0%, hsl(45 15% 85%) 50%, hsl(45 10% 75%) 100%)',
+        boxShadow: '0 0 40px hsl(45 30% 80% / 0.4), 0 0 80px hsl(45 30% 80% / 0.2)'
+      }}
+    />
+    {/* Stars */}
+    {[
+      { top: '5%', left: '10%', size: 2 },
+      { top: '12%', left: '25%', size: 1.5 },
+      { top: '8%', left: '40%', size: 2.5 },
+      { top: '15%', left: '55%', size: 1 },
+      { top: '6%', left: '70%', size: 2 },
+      { top: '18%', left: '85%', size: 1.5 },
+      { top: '22%', left: '15%', size: 1 },
+      { top: '25%', left: '35%', size: 2 },
+      { top: '20%', left: '60%', size: 1.5 },
+      { top: '28%', left: '75%', size: 1 },
+      { top: '10%', left: '5%', size: 1 },
+      { top: '30%', left: '90%', size: 2 },
+    ].map((star, i) => (
+      <div
+        key={i}
+        className="absolute rounded-full bg-white"
+        style={{
+          top: star.top,
+          left: star.left,
+          width: `${star.size}px`,
+          height: `${star.size}px`,
+          boxShadow: `0 0 ${star.size * 2}px hsl(0 0% 100% / 0.8)`,
+          animation: `twinkle ${2 + i * 0.3}s ease-in-out infinite`
+        }}
+      />
+    ))}
+    {/* Dark hills with subtle glow */}
+    <div className="absolute bottom-0 w-full h-48">
+      <svg viewBox="0 0 1200 200" className="w-full h-full" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="nightHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(240 30% 18%)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="hsl(240 35% 10%)" stopOpacity="1" />
+          </linearGradient>
+        </defs>
+        <path d="M0,200 L0,130 Q150,90 300,110 Q450,130 600,100 Q750,70 900,90 Q1050,110 1200,80 L1200,200 Z" fill="url(#nightHillGradient)" />
+      </svg>
+    </div>
+  </div>
+));
+NightBackground.displayName = 'NightBackground';
+
+// Ocean Background
+const OceanBackground = memo(() => (
+  <div className="absolute inset-0 overflow-hidden">
+    <div
+      className="absolute inset-0"
+      style={{
+        background: 'linear-gradient(180deg, hsl(195 70% 75%) 0%, hsl(200 60% 65%) 30%, hsl(205 55% 50%) 60%, hsl(210 50% 40%) 100%)'
+      }}
+    />
+    {/* Sun reflection on water */}
+    <div
+      className="absolute top-[8%] right-[20%] w-24 h-24 rounded-full opacity-60"
+      style={{
+        background: 'radial-gradient(circle, hsl(45 100% 90%) 0%, transparent 70%)'
+      }}
+    />
+    {/* Soft clouds */}
+    <div className="absolute top-[10%] left-[5%] w-28 h-10 rounded-full bg-white/40 blur-sm" />
+    <div className="absolute top-[5%] left-[30%] w-20 h-7 rounded-full bg-white/30 blur-sm" />
+    <div className="absolute top-[12%] right-[25%] w-24 h-8 rounded-full bg-white/35 blur-sm" />
+    {/* Ocean waves */}
+    <div className="absolute bottom-0 w-full h-56">
+      <svg viewBox="0 0 1200 250" className="w-full h-full" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="oceanGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(200 65% 55%)" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="hsl(205 60% 45%)" stopOpacity="0.9" />
+          </linearGradient>
+          <linearGradient id="oceanGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(205 55% 45%)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="hsl(210 50% 35%)" stopOpacity="1" />
+          </linearGradient>
+        </defs>
+        {/* Back wave */}
+        <path d="M0,250 L0,80 Q100,60 200,80 Q300,100 400,70 Q500,40 600,70 Q700,100 800,60 Q900,20 1000,50 Q1100,80 1200,40 L1200,250 Z" fill="url(#oceanGradient1)" />
+        {/* Front wave */}
+        <path d="M0,250 L0,120 Q150,100 300,130 Q450,160 600,120 Q750,80 900,120 Q1050,160 1200,100 L1200,250 Z" fill="url(#oceanGradient2)" />
+        {/* Wave foam highlights */}
+        <path d="M0,125 Q150,105 300,135 Q450,165 600,125 Q750,85 900,125 Q1050,165 1200,105" fill="none" stroke="hsl(0 0% 100% / 0.3)" strokeWidth="3" />
+      </svg>
+    </div>
+  </div>
+));
+OceanBackground.displayName = 'OceanBackground';
+
+// Forest Background
+const ForestBackground = memo(() => (
+  <div className="absolute inset-0 overflow-hidden">
+    <div
+      className="absolute inset-0"
+      style={{
+        background: 'linear-gradient(180deg, hsl(180 40% 75%) 0%, hsl(160 45% 70%) 40%, hsl(140 40% 60%) 100%)'
+      }}
+    />
+    {/* Soft light rays */}
+    <div
+      className="absolute top-0 left-[30%] w-32 h-[60%] opacity-20"
+      style={{
+        background: 'linear-gradient(180deg, hsl(45 80% 90%) 0%, transparent 100%)',
+        clipPath: 'polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)'
+      }}
+    />
+    <div
+      className="absolute top-0 right-[25%] w-24 h-[50%] opacity-15"
+      style={{
+        background: 'linear-gradient(180deg, hsl(45 80% 90%) 0%, transparent 100%)',
+        clipPath: 'polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)'
+      }}
+    />
+    {/* Misty layer */}
+    <div className="absolute top-[40%] left-0 right-0 h-24 bg-white/10 blur-xl" />
+    {/* Layered forest trees */}
+    <div className="absolute bottom-0 w-full h-64">
+      <svg viewBox="0 0 1200 280" className="w-full h-full" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="forestBack" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(150 35% 45%)" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="hsl(150 40% 35%)" stopOpacity="0.7" />
+          </linearGradient>
+          <linearGradient id="forestMid" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(145 40% 38%)" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="hsl(145 45% 28%)" stopOpacity="0.9" />
+          </linearGradient>
+          <linearGradient id="forestFront" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(140 45% 30%)" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="hsl(140 50% 20%)" stopOpacity="1" />
+          </linearGradient>
+        </defs>
+        {/* Back trees */}
+        <path d="M0,280 L0,140 L50,100 L100,140 L120,90 L180,140 L200,110 L260,150 L280,100 L340,150 L380,80 L440,140 L480,100 L540,150 L580,90 L640,140 L700,70 L760,130 L800,100 L860,150 L920,80 L980,140 L1020,100 L1080,150 L1140,90 L1200,140 L1200,280 Z" fill="url(#forestBack)" />
+        {/* Mid trees */}
+        <path d="M0,280 L0,160 L40,120 L80,160 L110,100 L160,160 L190,130 L240,170 L280,110 L340,170 L400,90 L460,160 L520,120 L580,170 L640,100 L700,160 L760,130 L820,180 L880,110 L940,170 L1000,120 L1060,180 L1120,100 L1200,160 L1200,280 Z" fill="url(#forestMid)" />
+        {/* Front trees */}
+        <path d="M0,280 L0,180 L30,140 L70,180 L100,120 L150,180 L180,150 L230,190 L270,130 L330,190 L390,110 L450,180 L510,140 L570,200 L630,120 L690,180 L750,150 L810,200 L870,130 L930,190 L990,140 L1050,200 L1110,120 L1170,180 L1200,160 L1200,280 Z" fill="url(#forestFront)" />
+      </svg>
+    </div>
+  </div>
+));
+ForestBackground.displayName = 'ForestBackground';
