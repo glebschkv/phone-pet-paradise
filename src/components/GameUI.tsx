@@ -20,11 +20,7 @@ export const GameUI = () => {
   const renderContent = () => {
     switch (currentTab) {
       case "timer":
-        return (
-          <div className="p-4">
-            <UnifiedFocusTimer />
-          </div>
-        );
+        return <UnifiedFocusTimer />;
       case "collection":
         return <PetCollectionGrid />;
       case "friends":

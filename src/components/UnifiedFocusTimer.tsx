@@ -1,14 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Play, 
-  Pause, 
-  Square, 
-  SkipForward, 
-  Coffee, 
+import {
+  Play,
+  Pause,
+  Square,
+  SkipForward,
+  Coffee,
   Brain,
   Clock,
   Volume2,
@@ -472,133 +469,244 @@ export const UnifiedFocusTimer = () => {
   const progress = ((timerState.sessionDuration - timerState.timeLeft) / timerState.sessionDuration) * 100;
 
   return (
-    <Card className="w-full max-w-lg mx-auto bg-gradient-glass backdrop-blur-xl border border-primary/10 shadow-floating">
-      <CardContent className="p-8 space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-accent/20 flex items-center justify-center">
-              <selectedPreset.icon className={cn("w-6 h-6", selectedPreset.color)} />
+    <div className="min-h-screen w-full relative overflow-hidden">
+      {/* Retro Sky Background */}
+      <FocusBackground />
+
+      {/* Main Content */}
+      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-16 pb-32">
+        {/* Timer Card - Central Focus */}
+        <div className="retro-card p-6 w-full max-w-sm mb-6">
+          {/* Current Mode Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(180deg, hsl(260 60% 70%) 0%, hsl(260 60% 55%) 100%)',
+                  boxShadow: '0 2px 0 hsl(260 60% 40%), inset 0 1px 0 hsl(0 0% 100% / 0.3)'
+                }}
+              >
+                <selectedPreset.icon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-foreground">{selectedPreset.name}</h2>
+                <p className="text-xs text-muted-foreground">{selectedPreset.duration} minutes</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">{selectedPreset.name}</h2>
-              <p className="text-sm text-muted-foreground">{selectedPreset.description}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={toggleSound}
-              className="w-8 h-8 p-0"
+              className="w-9 h-9 rounded-lg flex items-center justify-center active-scale retro-stat-pill"
             >
               {timerState.soundEnabled ? (
-                <Volume2 className="w-4 h-4" />
+                <Volume2 className="w-4 h-4 text-foreground" />
               ) : (
-                <VolumeX className="w-4 h-4" />
+                <VolumeX className="w-4 h-4 text-muted-foreground" />
               )}
-            </Button>
+            </button>
           </div>
-        </div>
 
-        {/* Timer Display */}
-        <div className="text-center space-y-4">
-          <div className="text-6xl font-bold font-mono tracking-wide text-foreground">
-            {formatTime(timerState.timeLeft)}
-          </div>
-          <Progress 
-            value={progress} 
-            className="h-3 bg-muted/30" 
-          />
-          <p className="text-sm font-medium text-muted-foreground">
-            {timerState.isRunning ? 'Focus time' : 'Ready to focus'}
-          </p>
-        </div>
-
-        {/* Controls */}
-        <div className="flex justify-center gap-4">
-          {!timerState.isRunning ? (
-            <Button
-              onClick={startTimer}
-              size="lg"
-              className="px-8 h-12"
+          {/* Large Timer Display */}
+          <div className="text-center mb-6">
+            <div
+              className="text-6xl font-bold font-mono tracking-wider mb-4"
+              style={{
+                color: 'hsl(220 25% 15%)',
+                textShadow: '0 2px 0 hsl(0 0% 100% / 0.5), 0 -1px 0 hsl(0 0% 0% / 0.1)'
+              }}
             >
-              <Play className="w-5 h-5 mr-2" />
-              Start
-            </Button>
-          ) : (
-            <Button
-              onClick={pauseTimer}
-              size="lg"
-              variant="secondary"
-              className="px-8 h-12"
-            >
-              <Pause className="w-5 h-5 mr-2" />
-              Pause
-            </Button>
-          )}
-          
-          <Button
-            onClick={stopTimer}
-            size="lg"
-            variant="outline"
-            className="h-12"
-          >
-            <Square className="w-5 h-5" />
-          </Button>
-          
-          <Button
-            onClick={skipTimer}
-            size="lg"
-            variant="floating"
-            className="h-12"
-          >
-            <SkipForward className="w-5 h-5" />
-          </Button>
-        </div>
+              {formatTime(timerState.timeLeft)}
+            </div>
 
-        {/* Preset Selection Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {TIMER_PRESETS.map((preset) => {
-            const Icon = preset.icon;
-            const isSelected = selectedPreset.id === preset.id;
-            
-            return (
-              <Button
-                key={preset.id}
-                variant={isSelected ? "default" : "outline"}
-                onClick={() => setPreset(preset)}
-                disabled={timerState.isRunning}
-                className="h-16 p-3 justify-start gap-3"
+            {/* Progress Bar */}
+            <div className="retro-xp-bar w-full">
+              <div
+                className="retro-xp-fill"
+                style={{ width: `${progress}%` }}
               >
-                <Icon className={cn("w-5 h-5", preset.color)} />
-                <div className="text-left">
-                  <div className="text-sm font-medium">{preset.name}</div>
-                  <div className="text-xs text-muted-foreground">{preset.duration}m</div>
-                </div>
-              </Button>
-            );
-          })}
+                <div className="shine" />
+              </div>
+            </div>
+
+            <p className="text-sm font-medium text-muted-foreground mt-3">
+              {timerState.isRunning ? '🎯 Focus time...' : '✨ Ready to focus'}
+            </p>
+          </div>
+
+          {/* Control Buttons */}
+          <div className="flex justify-center gap-3">
+            {!timerState.isRunning ? (
+              <button
+                onClick={startTimer}
+                className="flex items-center gap-2 px-8 py-3 rounded-lg font-bold text-white active-scale"
+                style={{
+                  background: 'linear-gradient(180deg, hsl(140 50% 55%) 0%, hsl(140 50% 45%) 100%)',
+                  border: '2px solid hsl(140 50% 35%)',
+                  boxShadow: '0 3px 0 hsl(140 50% 30%), inset 0 1px 0 hsl(0 0% 100% / 0.3)'
+                }}
+              >
+                <Play className="w-5 h-5" />
+                Start
+              </button>
+            ) : (
+              <button
+                onClick={pauseTimer}
+                className="flex items-center gap-2 px-8 py-3 rounded-lg font-bold text-white active-scale"
+                style={{
+                  background: 'linear-gradient(180deg, hsl(40 80% 55%) 0%, hsl(35 80% 45%) 100%)',
+                  border: '2px solid hsl(35 70% 35%)',
+                  boxShadow: '0 3px 0 hsl(35 70% 30%), inset 0 1px 0 hsl(0 0% 100% / 0.3)'
+                }}
+              >
+                <Pause className="w-5 h-5" />
+                Pause
+              </button>
+            )}
+
+            <button
+              onClick={stopTimer}
+              className="w-12 h-12 rounded-lg flex items-center justify-center active-scale"
+              style={{
+                background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.5) 100%)',
+                border: '2px solid hsl(var(--border))',
+                boxShadow: '0 2px 0 hsl(var(--border) / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+              }}
+            >
+              <Square className="w-5 h-5 text-foreground" />
+            </button>
+
+            <button
+              onClick={skipTimer}
+              className="w-12 h-12 rounded-lg flex items-center justify-center active-scale"
+              style={{
+                background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.5) 100%)',
+                border: '2px solid hsl(var(--border))',
+                boxShadow: '0 2px 0 hsl(var(--border) / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+              }}
+            >
+              <SkipForward className="w-5 h-5 text-foreground" />
+            </button>
+          </div>
         </div>
 
-        {/* Stats & Instructions */}
-        <div className="space-y-3 pt-4 border-t border-border">
-          <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-            <span className="text-sm text-muted-foreground">Sessions completed today:</span>
-            <span className="text-sm font-semibold text-foreground">{timerState.completedSessions}</span>
-          </div>
-          
-          <div className="text-center space-y-1">
-            <div className="text-xs text-muted-foreground">
-              Complete 25+ minute sessions to earn XP and unlock animals!
-            </div>
-            <div className="text-xs text-accent font-medium">
-              Use Skip button to test XP rewards
-            </div>
+        {/* Preset Selection */}
+        <div className="w-full max-w-sm">
+          <p className="text-xs text-center text-muted-foreground mb-3 font-medium">Choose Focus Mode</p>
+          <div className="grid grid-cols-3 gap-2">
+            {TIMER_PRESETS.map((preset) => {
+              const Icon = preset.icon;
+              const isSelected = selectedPreset.id === preset.id;
+              const isBreak = preset.type === 'break';
+
+              return (
+                <button
+                  key={preset.id}
+                  onClick={() => setPreset(preset)}
+                  disabled={timerState.isRunning}
+                  className={cn(
+                    "p-3 rounded-lg text-center active-scale transition-all",
+                    timerState.isRunning && "opacity-50 cursor-not-allowed"
+                  )}
+                  style={{
+                    background: isSelected
+                      ? 'linear-gradient(180deg, hsl(260 60% 70%) 0%, hsl(260 60% 55%) 100%)'
+                      : 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.9) 100%)',
+                    border: isSelected
+                      ? '2px solid hsl(260 60% 45%)'
+                      : '2px solid hsl(var(--border))',
+                    boxShadow: isSelected
+                      ? '0 3px 0 hsl(260 60% 40%), inset 0 1px 0 hsl(0 0% 100% / 0.3)'
+                      : '0 2px 0 hsl(var(--border) / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.15)'
+                  }}
+                >
+                  <Icon className={cn(
+                    "w-5 h-5 mx-auto mb-1",
+                    isSelected ? "text-white" : isBreak ? "text-warning" : "text-primary"
+                  )} />
+                  <div className={cn(
+                    "text-xs font-semibold",
+                    isSelected ? "text-white" : "text-foreground"
+                  )}>
+                    {preset.duration}m
+                  </div>
+                  <div className={cn(
+                    "text-[10px]",
+                    isSelected ? "text-white/80" : "text-muted-foreground"
+                  )}>
+                    {preset.name}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Stats Footer */}
+        <div className="w-full max-w-sm mt-6">
+          <div className="retro-card p-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Sessions today</span>
+              <span className="retro-level-badge px-3 py-1 text-sm">
+                {timerState.completedSessions}
+              </span>
+            </div>
+            <p className="text-xs text-center text-muted-foreground mt-3">
+              Complete 25+ min sessions to earn XP! 🌟
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
+
+// Retro Background Component for Focus Page
+const FocusBackground = memo(() => {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {/* Sky Gradient - Same as home but slightly softer */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, hsl(200 65% 82%) 0%, hsl(200 45% 90%) 50%, hsl(40 50% 92%) 100%)'
+        }}
+      />
+
+      {/* Subtle sun glow */}
+      <div
+        className="absolute top-[10%] right-[12%] w-28 h-28 rounded-full opacity-50"
+        style={{
+          background: 'radial-gradient(circle, hsl(45 100% 88%) 0%, transparent 70%)'
+        }}
+      />
+
+      {/* Soft floating clouds */}
+      <div className="absolute top-[15%] left-[8%] w-24 h-10 rounded-full bg-white/35 blur-sm" />
+      <div className="absolute top-[10%] left-[30%] w-18 h-7 rounded-full bg-white/25 blur-sm" />
+      <div className="absolute top-[20%] right-[15%] w-28 h-10 rounded-full bg-white/30 blur-sm" />
+      <div className="absolute top-[12%] right-[35%] w-16 h-6 rounded-full bg-white/20 blur-sm" />
+
+      {/* Very subtle distant hills - lower opacity for focus */}
+      <div className="absolute bottom-0 w-full h-48">
+        <svg
+          viewBox="0 0 1200 200"
+          className="w-full h-full"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="focusHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="hsl(140 30% 70%)" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="hsl(140 35% 60%)" stopOpacity="0.5" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0,200 L0,120 Q150,80 300,100 Q450,120 600,90 Q750,60 900,80 Q1050,100 1200,70 L1200,200 Z"
+            fill="url(#focusHillGradient)"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+});
+
+FocusBackground.displayName = 'FocusBackground';
