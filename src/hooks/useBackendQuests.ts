@@ -3,6 +3,8 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const QUESTS_STORAGE_KEY = 'pet_paradise_quests';
+
 export interface Quest {
   id: string;
   type: 'daily' | 'weekly' | 'story';
@@ -118,15 +120,43 @@ const STORY_QUESTS = [
 ];
 
 export const useBackendQuests = (): QuestSystemReturn => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isGuestMode } = useAuth();
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load quests from backend
+  // localStorage helpers
+  const saveQuestsToStorage = useCallback((questsData: Quest[]) => {
+    try {
+      localStorage.setItem(QUESTS_STORAGE_KEY, JSON.stringify(questsData));
+    } catch (error) {
+      console.error('Error saving quests to localStorage:', error);
+    }
+  }, []);
+
+  const loadQuestsFromStorage = useCallback((): Quest[] => {
+    try {
+      const data = localStorage.getItem(QUESTS_STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      console.error('Error loading quests from localStorage:', error);
+      return [];
+    }
+  }, []);
+
+  // Load quests from backend or localStorage
   const loadQuests = useCallback(async () => {
     if (!isAuthenticated || !user) return;
 
     setIsLoading(true);
+
+    // For guest mode, use localStorage
+    if (isGuestMode) {
+      const savedQuests = loadQuestsFromStorage();
+      setQuests(savedQuests);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data: backendQuests, error } = await supabase
         .from('quests')
@@ -162,10 +192,13 @@ export const useBackendQuests = (): QuestSystemReturn => {
       setQuests(convertedQuests);
     } catch (error) {
       console.error('Error loading quests:', error);
+      // Fall back to localStorage on error
+      const savedQuests = loadQuestsFromStorage();
+      setQuests(savedQuests);
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, isGuestMode, loadQuestsFromStorage]);
 
   // Generate unique quest ID
   const generateQuestId = useCallback((type: string): string => {
@@ -175,6 +208,30 @@ export const useBackendQuests = (): QuestSystemReturn => {
   // Create quest from template
   const createQuestFromTemplate = useCallback(async (template: any, type: 'daily' | 'weekly'): Promise<Quest | null> => {
     if (!user) return null;
+
+    const newQuest: Quest = {
+      id: generateQuestId(type),
+      type,
+      title: template.title,
+      description: template.description,
+      objectives: template.objectives.map((obj: any) => ({
+        id: generateQuestId('objective'),
+        description: obj.description,
+        target: obj.target,
+        current: 0,
+        type: obj.type
+      })),
+      rewards: template.rewards,
+      isCompleted: false,
+      progress: {},
+      unlockLevel: 1,
+      expiresAt: undefined
+    };
+
+    // For guest mode, just create locally
+    if (isGuestMode) {
+      return newQuest;
+    }
 
     try {
       const questData = {
@@ -196,28 +253,15 @@ export const useBackendQuests = (): QuestSystemReturn => {
       if (error) throw error;
 
       return {
-        id: data.id,
-        type,
-        title: template.title,
-        description: template.description,
-        objectives: template.objectives.map((obj: any) => ({
-          id: generateQuestId('objective'),
-          description: obj.description,
-          target: obj.target,
-          current: 0,
-          type: obj.type
-        })),
-        rewards: template.rewards,
-        isCompleted: false,
-        progress: {},
-        unlockLevel: 1,
-        expiresAt: undefined
+        ...newQuest,
+        id: data.id
       };
     } catch (error) {
       console.error('Error creating quest:', error);
-      return null;
+      // Return local quest on error
+      return newQuest;
     }
-  }, [user, generateQuestId]);
+  }, [user, isGuestMode, generateQuestId]);
 
   // Generate daily quests
   const generateDailyQuests = useCallback(async () => {
@@ -228,14 +272,25 @@ export const useBackendQuests = (): QuestSystemReturn => {
         .sort(() => Math.random() - 0.5)
         .slice(0, 3 - existingDaily.length);
 
+      const newQuests: Quest[] = [];
       for (const template of selectedTemplates) {
         const newQuest = await createQuestFromTemplate(template, 'daily');
         if (newQuest) {
-          setQuests(prev => [...prev, newQuest]);
+          newQuests.push(newQuest);
         }
       }
+
+      if (newQuests.length > 0) {
+        setQuests(prev => {
+          const updated = [...prev, ...newQuests];
+          if (isGuestMode) {
+            saveQuestsToStorage(updated);
+          }
+          return updated;
+        });
+      }
     }
-  }, [quests, createQuestFromTemplate]);
+  }, [quests, createQuestFromTemplate, isGuestMode, saveQuestsToStorage]);
 
   // Generate weekly quests
   const generateWeeklyQuests = useCallback(async () => {
@@ -248,23 +303,62 @@ export const useBackendQuests = (): QuestSystemReturn => {
 
       const newQuest = await createQuestFromTemplate(selectedTemplate, 'weekly');
       if (newQuest) {
-        setQuests(prev => [...prev, newQuest]);
+        setQuests(prev => {
+          const updated = [...prev, newQuest];
+          if (isGuestMode) {
+            saveQuestsToStorage(updated);
+          }
+          return updated;
+        });
       }
     }
-  }, [quests, createQuestFromTemplate]);
+  }, [quests, createQuestFromTemplate, isGuestMode, saveQuestsToStorage]);
 
   // Update quest progress
   const updateQuestProgress = useCallback(async (type: string, amount: number, metadata?: any) => {
     if (!user) return;
 
     const activeQuests = quests.filter(q => !q.isCompleted);
-    
+
     for (const quest of activeQuests) {
       const relevantObjective = quest.objectives.find(obj => obj.type === type);
       if (!relevantObjective) continue;
 
       const newProgress = Math.min(relevantObjective.target, relevantObjective.current + amount);
       const isCompleted = newProgress >= relevantObjective.target;
+
+      // Update local state first
+      const updateLocalState = () => {
+        setQuests(prev => {
+          const updated = prev.map(q =>
+            q.id === quest.id
+              ? {
+                  ...q,
+                  objectives: q.objectives.map(obj =>
+                    obj.type === type ? { ...obj, current: newProgress } : obj
+                  ),
+                  isCompleted
+                }
+              : q
+          );
+          if (isGuestMode) {
+            saveQuestsToStorage(updated);
+          }
+          return updated;
+        });
+
+        if (isCompleted) {
+          toast.success("Quest Complete!", {
+            description: `${quest.title} completed! ${quest.rewards[0]?.description}`
+          });
+        }
+      };
+
+      // For guest mode, just update locally
+      if (isGuestMode) {
+        updateLocalState();
+        continue;
+      }
 
       try {
         const { error } = await supabase
@@ -277,34 +371,41 @@ export const useBackendQuests = (): QuestSystemReturn => {
 
         if (error) throw error;
 
-        // Update local state
-        setQuests(prev => prev.map(q => 
-          q.id === quest.id 
-            ? {
-                ...q,
-                objectives: q.objectives.map(obj => 
-                  obj.type === type ? { ...obj, current: newProgress } : obj
-                ),
-                isCompleted
-              }
-            : q
-        ));
-
-        if (isCompleted) {
-          toast.success("Quest Complete!", {
-            description: `${quest.title} completed! ${quest.rewards[0]?.description}`
-          });
-        }
+        updateLocalState();
       } catch (error) {
         console.error('Error updating quest progress:', error);
+        // Fall back to local update on error
+        updateLocalState();
       }
     }
-  }, [user, quests]);
+  }, [user, quests, isGuestMode, saveQuestsToStorage]);
 
   // Complete quest and claim rewards
   const completeQuest = useCallback(async (questId: string) => {
     const quest = quests.find(q => q.id === questId);
     if (!quest || quest.isCompleted) return;
+
+    const markComplete = () => {
+      setQuests(prev => {
+        const updated = prev.map(q =>
+          q.id === questId ? { ...q, isCompleted: true } : q
+        );
+        if (isGuestMode) {
+          saveQuestsToStorage(updated);
+        }
+        return updated;
+      });
+
+      toast.success("Quest Complete!", {
+        description: `${quest.title} completed! ${quest.rewards[0]?.description}`
+      });
+    };
+
+    // For guest mode, just update locally
+    if (isGuestMode) {
+      markComplete();
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -314,17 +415,13 @@ export const useBackendQuests = (): QuestSystemReturn => {
 
       if (error) throw error;
 
-      setQuests(prev => prev.map(q => 
-        q.id === questId ? { ...q, isCompleted: true } : q
-      ));
-
-      toast.success("Quest Complete!", {
-        description: `${quest.title} completed! ${quest.rewards[0]?.description}`
-      });
+      markComplete();
     } catch (error) {
       console.error('Error completing quest:', error);
+      // Fall back to local update on error
+      markComplete();
     }
-  }, [quests]);
+  }, [quests, isGuestMode, saveQuestsToStorage]);
 
   // Get quest by ID
   const getQuestById = useCallback((questId: string): Quest | undefined => {
