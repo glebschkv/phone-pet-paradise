@@ -24,12 +24,22 @@ const Index = () => {
   const { autoBackup } = useDataBackup();
   const [backgroundTheme, setBackgroundTheme] = useState<string>('day');
 
-  // Load background theme from localStorage (set by Collection page)
+  // Load background theme from localStorage and listen for changes
   useEffect(() => {
     const savedTheme = localStorage.getItem(HOME_BACKGROUND_KEY);
     if (savedTheme) {
       setBackgroundTheme(savedTheme);
     }
+
+    // Listen for background theme changes from Collection page
+    const handleThemeChange = (event: CustomEvent<string>) => {
+      setBackgroundTheme(event.detail);
+    };
+
+    window.addEventListener('homeBackgroundChange', handleThemeChange as EventListener);
+    return () => {
+      window.removeEventListener('homeBackgroundChange', handleThemeChange as EventListener);
+    };
   }, []);
 
   // Redirect to auth if not authenticated

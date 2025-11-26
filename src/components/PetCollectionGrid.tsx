@@ -80,6 +80,8 @@ export const PetCollectionGrid = () => {
     if (theme && theme.unlockLevel <= currentLevel) {
       setBackgroundTheme(themeId);
       localStorage.setItem(HOME_BACKGROUND_KEY, themeId);
+      // Dispatch custom event to notify other components of theme change
+      window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: themeId }));
     }
   };
 
