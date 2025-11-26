@@ -3,6 +3,8 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const ACHIEVEMENTS_STORAGE_KEY = 'pet_paradise_achievements';
+
 export interface Achievement {
   id: string;
   title: string;
@@ -157,9 +159,28 @@ const TIER_POINTS = {
 };
 
 export const useBackendAchievements = (): AchievementSystemReturn => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isGuestMode } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // localStorage helpers
+  const saveAchievementsToStorage = useCallback((achievementsData: Achievement[]) => {
+    try {
+      localStorage.setItem(ACHIEVEMENTS_STORAGE_KEY, JSON.stringify(achievementsData));
+    } catch (error) {
+      console.error('Error saving achievements to localStorage:', error);
+    }
+  }, []);
+
+  const loadAchievementsFromStorage = useCallback((): Achievement[] | null => {
+    try {
+      const data = localStorage.getItem(ACHIEVEMENTS_STORAGE_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error loading achievements from localStorage:', error);
+      return null;
+    }
+  }, []);
 
   // Initialize achievements from definitions
   const initializeAchievements = useCallback(() => {
@@ -170,11 +191,26 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
     }));
   }, []);
 
-  // Load achievements from backend
+  // Load achievements from backend or localStorage
   const loadAchievements = useCallback(async () => {
     if (!isAuthenticated || !user) return;
 
     setIsLoading(true);
+
+    // For guest mode, use localStorage
+    if (isGuestMode) {
+      const savedAchievements = loadAchievementsFromStorage();
+      if (savedAchievements && savedAchievements.length > 0) {
+        setAchievements(savedAchievements);
+      } else {
+        const initialized = initializeAchievements();
+        setAchievements(initialized);
+        saveAchievementsToStorage(initialized);
+      }
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data: backendAchievements, error } = await supabase
         .from('achievements')
@@ -186,7 +222,7 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
       // Merge with definitions
       const merged = ACHIEVEMENT_DEFINITIONS.map(def => {
         const backendAchievement = backendAchievements?.find(a => a.title === def.title);
-        
+
         return {
           ...def,
           progress: 0, // Will be calculated from backend data
@@ -198,11 +234,17 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
       setAchievements(merged);
     } catch (error) {
       console.error('Error loading achievements:', error);
-      setAchievements(initializeAchievements());
+      // Fall back to localStorage on error
+      const savedAchievements = loadAchievementsFromStorage();
+      if (savedAchievements && savedAchievements.length > 0) {
+        setAchievements(savedAchievements);
+      } else {
+        setAchievements(initializeAchievements());
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, user, initializeAchievements]);
+  }, [isAuthenticated, user, isGuestMode, initializeAchievements, loadAchievementsFromStorage, saveAchievementsToStorage]);
 
   // Update progress for specific achievement
   const updateProgress = useCallback(async (achievementId: string, progress: number) => {
@@ -215,11 +257,34 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
     const shouldUnlock = newProgress >= achievement.target;
 
     // Update local state immediately
-    setAchievements(prev => prev.map(a => 
-      a.id === achievementId 
-        ? { ...a, progress: newProgress, isUnlocked: shouldUnlock, unlockedAt: shouldUnlock ? Date.now() : a.unlockedAt }
-        : a
-    ));
+    const updateLocalState = (unlock: boolean) => {
+      setAchievements(prev => {
+        const updated = prev.map(a =>
+          a.id === achievementId
+            ? { ...a, progress: newProgress, isUnlocked: unlock, unlockedAt: unlock ? Date.now() : a.unlockedAt }
+            : a
+        );
+        if (isGuestMode) {
+          saveAchievementsToStorage(updated);
+        }
+        return updated;
+      });
+
+      if (unlock) {
+        toast.success("Achievement Unlocked!", {
+          description: `${achievement.title} - ${achievement.description}`,
+        });
+      }
+    };
+
+    // For guest mode, just update locally
+    if (isGuestMode) {
+      updateLocalState(shouldUnlock);
+      return;
+    }
+
+    // Update local state first
+    updateLocalState(shouldUnlock);
 
     // If unlocked, save to backend
     if (shouldUnlock) {
@@ -235,21 +300,19 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
           });
 
         if (error) throw error;
-
-        toast.success("Achievement Unlocked!", {
-          description: `${achievement.title} - ${achievement.description}`,
-        });
       } catch (error) {
         console.error('Error saving achievement:', error);
-        // Revert local state on error
-        setAchievements(prev => prev.map(a => 
-          a.id === achievementId 
-            ? { ...a, isUnlocked: false, unlockedAt: undefined }
-            : a
-        ));
+        // For non-guest mode, revert on error
+        if (!isGuestMode) {
+          setAchievements(prev => prev.map(a =>
+            a.id === achievementId
+              ? { ...a, isUnlocked: false, unlockedAt: undefined }
+              : a
+          ));
+        }
       }
     }
-  }, [isAuthenticated, user, achievements]);
+  }, [isAuthenticated, user, achievements, isGuestMode, saveAchievementsToStorage]);
 
   // Check and unlock achievements based on activity
   const checkAndUnlockAchievements = useCallback(async (type: string, value: number): Promise<Achievement[]> => {

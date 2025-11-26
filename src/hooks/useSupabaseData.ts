@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -48,27 +48,131 @@ export interface FocusSession {
   completed_at: string;
 }
 
+// localStorage keys for guest mode
+const STORAGE_KEYS = {
+  profile: 'pet_paradise_profile',
+  progress: 'pet_paradise_progress',
+  pets: 'pet_paradise_pets',
+  focusSessions: 'pet_paradise_focus_sessions'
+};
+
+// Default data for new users/guests
+const createDefaultProfile = (userId: string): UserProfile => ({
+  id: `profile-${userId}`,
+  user_id: userId,
+  display_name: 'Pet Paradise Player',
+  avatar_url: null,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+});
+
+const createDefaultProgress = (userId: string): UserProgress => ({
+  id: `progress-${userId}`,
+  user_id: userId,
+  total_xp: 0,
+  current_level: 1,
+  current_streak: 0,
+  longest_streak: 0,
+  total_sessions: 0,
+  last_session_date: null,
+  streak_freeze_count: 0,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+});
+
+const createDefaultPet = (userId: string): Pet => ({
+  id: `pet-${Date.now()}`,
+  user_id: userId,
+  pet_type: 'panda',
+  name: 'Bamboo',
+  bond_level: 1,
+  experience: 0,
+  mood: 100,
+  unlocked_at: new Date().toISOString(),
+  is_favorite: true,
+  created_at: new Date().toISOString()
+});
+
 export const useSupabaseData = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isGuestMode } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load user data when authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      loadUserData();
-    } else {
-      setProfile(null);
-      setProgress(null);
-      setPets([]);
+  // Save data to localStorage (for guest mode)
+  const saveToLocalStorage = useCallback((key: string, data: any) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
     }
-  }, [isAuthenticated, user]);
+  }, []);
 
-  const loadUserData = async () => {
+  // Load data from localStorage (for guest mode)
+  const loadFromLocalStorage = useCallback(<T>(key: string): T | null => {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+      return null;
+    }
+  }, []);
+
+  // Load user data for guest mode (localStorage)
+  const loadGuestData = useCallback(() => {
     if (!user) return;
-    
+
+    setIsLoading(true);
+    try {
+      // Load or create profile
+      let savedProfile = loadFromLocalStorage<UserProfile>(STORAGE_KEYS.profile);
+      if (!savedProfile || savedProfile.user_id !== user.id) {
+        savedProfile = createDefaultProfile(user.id);
+        saveToLocalStorage(STORAGE_KEYS.profile, savedProfile);
+      }
+
+      // Load or create progress
+      let savedProgress = loadFromLocalStorage<UserProgress>(STORAGE_KEYS.progress);
+      if (!savedProgress || savedProgress.user_id !== user.id) {
+        savedProgress = createDefaultProgress(user.id);
+        saveToLocalStorage(STORAGE_KEYS.progress, savedProgress);
+      }
+
+      // Load or create pets
+      let savedPets = loadFromLocalStorage<Pet[]>(STORAGE_KEYS.pets);
+      if (!savedPets || savedPets.length === 0) {
+        savedPets = [createDefaultPet(user.id)];
+        saveToLocalStorage(STORAGE_KEYS.pets, savedPets);
+      }
+
+      setProfile(savedProfile);
+      setProgress(savedProgress);
+      setPets(savedPets);
+    } catch (error) {
+      console.error('Error loading guest data:', error);
+      // Create defaults if loading fails
+      const defaultProfile = createDefaultProfile(user.id);
+      const defaultProgress = createDefaultProgress(user.id);
+      const defaultPets = [createDefaultPet(user.id)];
+
+      setProfile(defaultProfile);
+      setProgress(defaultProgress);
+      setPets(defaultPets);
+
+      saveToLocalStorage(STORAGE_KEYS.profile, defaultProfile);
+      saveToLocalStorage(STORAGE_KEYS.progress, defaultProgress);
+      saveToLocalStorage(STORAGE_KEYS.pets, defaultPets);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, loadFromLocalStorage, saveToLocalStorage]);
+
+  // Load user data from Supabase (for authenticated users)
+  const loadSupabaseData = useCallback(async () => {
+    if (!user) return;
+
     setIsLoading(true);
     try {
       // Load profile
@@ -101,19 +205,53 @@ export const useSupabaseData = () => {
 
       if (petsError) throw petsError;
 
-      setProfile(profileData);
-      setProgress(progressData);
-      setPets(petsData || []);
+      // Use data from Supabase, or create defaults if not found
+      setProfile(profileData || createDefaultProfile(user.id));
+      setProgress(progressData || createDefaultProgress(user.id));
+      setPets(petsData && petsData.length > 0 ? petsData : [createDefaultPet(user.id)]);
     } catch (error: any) {
-      console.error('Error loading user data:', error);
-      toast.error('Failed to load user data');
+      console.error('Error loading user data from Supabase:', error);
+      // Fall back to localStorage on error
+      loadGuestData();
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, loadGuestData]);
+
+  // Main data loading function
+  const loadUserData = useCallback(async () => {
+    if (!user) return;
+
+    if (isGuestMode) {
+      loadGuestData();
+    } else {
+      await loadSupabaseData();
+    }
+  }, [user, isGuestMode, loadGuestData, loadSupabaseData]);
+
+  // Load user data when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      loadUserData();
+    } else {
+      setProfile(null);
+      setProgress(null);
+      setPets([]);
+    }
+  }, [isAuthenticated, user, loadUserData]);
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!user) return;
+    if (!user || !profile) return;
+
+    const updatedProfile = { ...profile, ...updates, updated_at: new Date().toISOString() };
+
+    if (isGuestMode) {
+      // Save to localStorage for guest users
+      setProfile(updatedProfile);
+      saveToLocalStorage(STORAGE_KEYS.profile, updatedProfile);
+      toast.success('Profile updated');
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -124,17 +262,29 @@ export const useSupabaseData = () => {
         .single();
 
       if (error) throw error;
-      
+
       setProfile(data);
       toast.success('Profile updated');
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      // Fall back to local update on error
+      setProfile(updatedProfile);
+      saveToLocalStorage(STORAGE_KEYS.profile, updatedProfile);
+      toast.success('Profile updated locally');
     }
   };
 
   const updateProgress = async (updates: Partial<UserProgress>) => {
-    if (!user) return;
+    if (!user || !progress) return;
+
+    const updatedProgress = { ...progress, ...updates, updated_at: new Date().toISOString() };
+
+    if (isGuestMode) {
+      // Save to localStorage for guest users
+      setProgress(updatedProgress);
+      saveToLocalStorage(STORAGE_KEYS.progress, updatedProgress);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -145,16 +295,44 @@ export const useSupabaseData = () => {
         .single();
 
       if (error) throw error;
-      
+
       setProgress(data);
     } catch (error: any) {
       console.error('Error updating progress:', error);
-      toast.error('Failed to update progress');
+      // Fall back to local update on error
+      setProgress(updatedProgress);
+      saveToLocalStorage(STORAGE_KEYS.progress, updatedProgress);
     }
   };
 
   const addFocusSession = async (durationMinutes: number, xpEarned: number) => {
     if (!user) return;
+
+    const newSession: FocusSession = {
+      id: `session-${Date.now()}`,
+      user_id: user.id,
+      duration_minutes: durationMinutes,
+      xp_earned: xpEarned,
+      session_type: 'focus',
+      completed_at: new Date().toISOString()
+    };
+
+    if (isGuestMode) {
+      // Save to localStorage for guest users
+      const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions) || [];
+      savedSessions.push(newSession);
+      saveToLocalStorage(STORAGE_KEYS.focusSessions, savedSessions);
+
+      // Update progress
+      if (progress) {
+        await updateProgress({
+          total_xp: progress.total_xp + xpEarned,
+          total_sessions: progress.total_sessions + 1,
+          last_session_date: new Date().toISOString().split('T')[0]
+        });
+      }
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -178,12 +356,48 @@ export const useSupabaseData = () => {
       }
     } catch (error: any) {
       console.error('Error adding focus session:', error);
-      toast.error('Failed to save session');
+      // Fall back to local storage on error
+      const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions) || [];
+      savedSessions.push(newSession);
+      saveToLocalStorage(STORAGE_KEYS.focusSessions, savedSessions);
+
+      if (progress) {
+        const updatedProgress = {
+          ...progress,
+          total_xp: progress.total_xp + xpEarned,
+          total_sessions: progress.total_sessions + 1,
+          last_session_date: new Date().toISOString().split('T')[0]
+        };
+        setProgress(updatedProgress);
+        saveToLocalStorage(STORAGE_KEYS.progress, updatedProgress);
+      }
     }
   };
 
   const addPet = async (petType: string, name: string) => {
     if (!user) return;
+
+    const newPet: Pet = {
+      id: `pet-${Date.now()}`,
+      user_id: user.id,
+      pet_type: petType,
+      name: name,
+      bond_level: 1,
+      experience: 0,
+      mood: 100,
+      unlocked_at: new Date().toISOString(),
+      is_favorite: false,
+      created_at: new Date().toISOString()
+    };
+
+    if (isGuestMode) {
+      // Save to localStorage for guest users
+      const updatedPets = [...pets, newPet];
+      setPets(updatedPets);
+      saveToLocalStorage(STORAGE_KEYS.pets, updatedPets);
+      toast.success(`${name} joined your island!`);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -197,17 +411,31 @@ export const useSupabaseData = () => {
         .single();
 
       if (error) throw error;
-      
+
       setPets(prev => [...prev, data]);
       toast.success(`${name} joined your island!`);
     } catch (error: any) {
       console.error('Error adding pet:', error);
-      toast.error('Failed to add pet');
+      // Fall back to local storage on error
+      const updatedPets = [...pets, newPet];
+      setPets(updatedPets);
+      saveToLocalStorage(STORAGE_KEYS.pets, updatedPets);
+      toast.success(`${name} joined your island!`);
     }
   };
 
   const updatePet = async (petId: string, updates: Partial<Pet>) => {
     if (!user) return;
+
+    if (isGuestMode) {
+      // Update in localStorage for guest users
+      const updatedPets = pets.map(pet =>
+        pet.id === petId ? { ...pet, ...updates } : pet
+      );
+      setPets(updatedPets);
+      saveToLocalStorage(STORAGE_KEYS.pets, updatedPets);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -219,11 +447,16 @@ export const useSupabaseData = () => {
         .single();
 
       if (error) throw error;
-      
+
       setPets(prev => prev.map(pet => pet.id === petId ? data : pet));
     } catch (error: any) {
       console.error('Error updating pet:', error);
-      toast.error('Failed to update pet');
+      // Fall back to local storage on error
+      const updatedPets = pets.map(pet =>
+        pet.id === petId ? { ...pet, ...updates } : pet
+      );
+      setPets(updatedPets);
+      saveToLocalStorage(STORAGE_KEYS.pets, updatedPets);
     }
   };
 
@@ -232,6 +465,7 @@ export const useSupabaseData = () => {
     progress,
     pets,
     isLoading,
+    isGuestMode,
     loadUserData,
     updateProfile,
     updateProgress,
