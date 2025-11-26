@@ -45,9 +45,9 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     spriteConfig: {
       spritePath: '/assets/sprites/Walk.png',
       frameCount: 6,
-      frameWidth: 32,
-      frameHeight: 32,
-      animationSpeed: 0.8
+      frameWidth: 48,
+      frameHeight: 48,
+      animationSpeed: 10 // Frames per second (vintage RPG style: 8-12 FPS)
     }
   },
   {
