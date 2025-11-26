@@ -5,7 +5,6 @@ import {
   Search,
   Heart,
   Lock,
-  Crown,
   TreePine,
   Waves,
   Mountain,
@@ -55,46 +54,49 @@ export const PetCollectionGrid = () => {
   const filteredPets = filterAnimals(searchQuery, "all", "all");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-100 to-sky-50 pb-24">
-      {/* Header Tabs */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen pb-24" style={{
+      background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
+    }}>
+      {/* Header */}
+      <div className="retro-card mx-3 mt-3 overflow-hidden">
+        {/* Tabs */}
         <div className="flex">
           <button
             onClick={() => setActiveTab("pets")}
             className={cn(
-              "flex-1 py-4 text-center font-semibold text-sm transition-all",
+              "flex-1 py-3 text-center font-bold text-sm transition-all",
               activeTab === "pets"
-                ? "text-primary border-b-2 border-primary"
-                : "text-gray-400"
+                ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 border-b-2 border-amber-500"
+                : "text-muted-foreground hover:bg-muted/30"
             )}
           >
             <div>PETS</div>
-            <div className="text-xs font-normal">{stats.unlockedAnimals}/{stats.totalAnimals}</div>
+            <div className="text-xs font-medium opacity-80">{stats.unlockedAnimals}/{stats.totalAnimals}</div>
           </button>
           <button
             onClick={() => setActiveTab("worlds")}
             className={cn(
-              "flex-1 py-4 text-center font-semibold text-sm transition-all",
+              "flex-1 py-3 text-center font-bold text-sm transition-all",
               activeTab === "worlds"
-                ? "text-primary border-b-2 border-primary"
-                : "text-gray-400"
+                ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 border-b-2 border-amber-500"
+                : "text-muted-foreground hover:bg-muted/30"
             )}
           >
             <div>WORLDS</div>
-            <div className="text-xs font-normal">{BIOME_DATABASE.filter(b => b.unlockLevel <= currentLevel).length}/{BIOME_DATABASE.length}</div>
+            <div className="text-xs font-medium opacity-80">{BIOME_DATABASE.filter(b => b.unlockLevel <= currentLevel).length}/{BIOME_DATABASE.length}</div>
           </button>
         </div>
 
         {/* Search */}
         {activeTab === "pets" && (
-          <div className="px-4 py-3">
+          <div className="p-3 border-t border-border/50">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search"
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-10 bg-gray-100 border-0 rounded-full text-sm"
+                className="pl-10 h-10 bg-background/50 border-2 border-border rounded-lg text-sm"
               />
             </div>
           </div>
@@ -102,9 +104,9 @@ export const PetCollectionGrid = () => {
       </div>
 
       {activeTab === "pets" && (
-        <div className="px-2 pt-2">
+        <div className="px-3 pt-3">
           {/* Grid */}
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-3 gap-2">
             {filteredPets.map((pet) => {
               const isLocked = !isAnimalUnlocked(pet.id);
               const isFavorited = isAnimalFavorite(pet.id);
@@ -115,31 +117,37 @@ export const PetCollectionGrid = () => {
                   key={pet.id}
                   onClick={() => setSelectedPet(pet)}
                   className={cn(
-                    "bg-white rounded-lg p-3 flex flex-col items-center relative transition-all active:scale-95",
-                    isLocked && "bg-gray-100"
+                    "rounded-lg p-3 flex flex-col items-center relative transition-all active:scale-95",
+                    isLocked ? "bg-muted/50" : "bg-card"
                   )}
+                  style={{
+                    border: '2px solid hsl(var(--border))',
+                    boxShadow: isLocked
+                      ? 'none'
+                      : '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+                  }}
                 >
                   {/* Favorite heart */}
                   {!isLocked && isFavorited && (
-                    <div className="absolute top-2 left-2">
+                    <div className="absolute top-1.5 left-1.5">
                       <Heart className="w-4 h-4 fill-red-500 text-red-500" />
                     </div>
                   )}
 
                   {/* Level badge for locked */}
                   {isLocked && (
-                    <div className="absolute top-2 right-2 bg-gray-200 rounded-full px-2 py-0.5">
-                      <span className="text-[10px] font-semibold text-gray-500">Lv.{pet.unlockLevel}</span>
+                    <div className="absolute top-1.5 right-1.5 retro-stat-pill px-1.5 py-0.5">
+                      <span className="text-[9px] font-bold">Lv.{pet.unlockLevel}</span>
                     </div>
                   )}
 
                   {/* Emoji or Lock */}
                   <div className={cn(
-                    "text-4xl mb-2 h-12 flex items-center justify-center",
-                    isLocked && "opacity-30"
+                    "text-4xl mb-1.5 h-11 flex items-center justify-center",
+                    isLocked && "opacity-30 grayscale"
                   )}>
                     {isLocked ? (
-                      <Lock className="w-8 h-8 text-gray-400" />
+                      <Lock className="w-7 h-7 text-muted-foreground" />
                     ) : (
                       pet.emoji
                     )}
@@ -153,7 +161,7 @@ export const PetCollectionGrid = () => {
                         className={cn(
                           "w-3 h-3",
                           isLocked
-                            ? "text-gray-300"
+                            ? "text-muted-foreground/40"
                             : "text-amber-400 fill-amber-400"
                         )}
                       />
@@ -162,8 +170,8 @@ export const PetCollectionGrid = () => {
 
                   {/* Name */}
                   <span className={cn(
-                    "text-xs font-medium truncate w-full text-center",
-                    isLocked ? "text-gray-400" : "text-gray-700"
+                    "text-[11px] font-semibold truncate w-full text-center",
+                    isLocked ? "text-muted-foreground" : "text-foreground"
                   )}>
                     {isLocked ? "???" : pet.name}
                   </span>
@@ -175,7 +183,7 @@ export const PetCollectionGrid = () => {
       )}
 
       {activeTab === "worlds" && (
-        <div className="px-4 pt-4 space-y-3">
+        <div className="px-3 pt-3 space-y-2">
           {BIOME_DATABASE.map((biome) => {
             const Icon = BIOME_ICONS[biome.name as keyof typeof BIOME_ICONS] || TreePine;
             const isActive = biome.name === currentBiome;
@@ -185,7 +193,7 @@ export const PetCollectionGrid = () => {
               <div
                 key={biome.name}
                 className={cn(
-                  "bg-white rounded-xl p-4 transition-all",
+                  "retro-card p-4 transition-all",
                   isActive && "ring-2 ring-primary",
                   !isUnlocked && "opacity-50"
                 )}
@@ -193,20 +201,20 @@ export const PetCollectionGrid = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center",
-                      isActive ? "bg-primary/20 text-primary" : "bg-gray-100 text-gray-500"
+                      "w-11 h-11 rounded-lg flex items-center justify-center",
+                      isActive ? "retro-level-badge" : "retro-stat-pill"
                     )}>
-                      <Icon className="w-6 h-6" />
+                      <Icon className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="font-semibold">
+                      <div className="font-bold text-sm">
                         {isUnlocked ? biome.name : "???"}
                       </div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         {isUnlocked ? (
-                          isActive ? 'Currently here' : biome.description
+                          isActive ? 'Currently here' : `Level ${biome.unlockLevel}+`
                         ) : (
-                          `Unlock at Level ${biome.unlockLevel}`
+                          `Unlock at Lv.${biome.unlockLevel}`
                         )}
                       </div>
                     </div>
@@ -215,14 +223,14 @@ export const PetCollectionGrid = () => {
                   {isUnlocked && !isActive && (
                     <button
                       onClick={() => switchBiome(biome.name)}
-                      className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold active:scale-95 transition-all"
+                      className="retro-stat-pill px-4 py-2 text-sm font-semibold active:scale-95 transition-all"
                     >
                       Visit
                     </button>
                   )}
 
                   {isActive && (
-                    <div className="bg-primary text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1">
+                    <div className="retro-level-badge px-3 py-1.5 text-xs font-bold flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
                       Here
                     </div>
@@ -236,12 +244,14 @@ export const PetCollectionGrid = () => {
 
       {/* Pet Detail Modal */}
       <Dialog open={!!selectedPet} onOpenChange={() => setSelectedPet(null)}>
-        <DialogContent className="max-w-xs bg-white rounded-2xl border-0 p-0 overflow-hidden">
+        <DialogContent className="max-w-xs retro-card border-2 border-border p-0 overflow-hidden">
           {selectedPet && (
             <>
               {/* Header */}
-              <div className="bg-gradient-to-b from-sky-100 to-white p-8 text-center">
-                <div className="text-6xl mb-4">
+              <div className="p-6 text-center" style={{
+                background: 'linear-gradient(180deg, hsl(45 80% 90%) 0%, hsl(var(--card)) 100%)'
+              }}>
+                <div className="text-5xl mb-3">
                   {isAnimalUnlocked(selectedPet.id) ? selectedPet.emoji : "❓"}
                 </div>
 
@@ -256,30 +266,35 @@ export const PetCollectionGrid = () => {
                 </div>
 
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-bold text-gray-800">
+                  <DialogTitle className="text-lg font-bold">
                     {isAnimalUnlocked(selectedPet.id) ? selectedPet.name : "???"}
                   </DialogTitle>
                 </DialogHeader>
 
-                <span className="text-xs text-gray-400 capitalize">
-                  {selectedPet.rarity} • {selectedPet.biome}
-                </span>
+                <div className="flex items-center justify-center gap-2 mt-1">
+                  <span className="retro-stat-pill px-2 py-0.5 text-[10px] font-semibold capitalize">
+                    {selectedPet.rarity}
+                  </span>
+                  <span className="retro-stat-pill px-2 py-0.5 text-[10px] font-semibold">
+                    {selectedPet.biome}
+                  </span>
+                </div>
               </div>
 
-              <div className="p-5 space-y-4">
+              <div className="p-4 space-y-4">
                 {isAnimalUnlocked(selectedPet.id) ? (
                   <>
-                    <p className="text-sm text-gray-500 text-center">
+                    <p className="text-sm text-muted-foreground text-center">
                       {selectedPet.description}
                     </p>
 
                     <button
                       onClick={() => toggleFavorite(selectedPet.id)}
                       className={cn(
-                        "w-full py-3 rounded-full font-semibold text-sm transition-all active:scale-95",
+                        "w-full py-3 rounded-lg font-bold text-sm transition-all active:scale-95",
                         isAnimalFavorite(selectedPet.id)
-                          ? "bg-red-50 text-red-500"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-red-100 text-red-600 border-2 border-red-200"
+                          : "retro-stat-pill"
                       )}
                     >
                       <Heart className={cn(
@@ -291,11 +306,13 @@ export const PetCollectionGrid = () => {
                   </>
                 ) : (
                   <div className="text-center py-4">
-                    <Lock className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                    <p className="text-sm text-gray-400 mb-4">
+                    <div className="w-14 h-14 mx-auto mb-3 retro-stat-pill rounded-full flex items-center justify-center">
+                      <Lock className="w-7 h-7 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
                       This pet is locked
                     </p>
-                    <div className="inline-block bg-primary text-white px-5 py-2 rounded-full text-sm font-semibold">
+                    <div className="retro-level-badge inline-block px-4 py-2 text-sm font-bold">
                       Reach Level {selectedPet.unlockLevel}
                     </div>
                   </div>
