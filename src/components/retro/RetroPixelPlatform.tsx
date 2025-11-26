@@ -10,45 +10,25 @@ interface RetroPixelPlatformProps {
 }
 
 export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel }: RetroPixelPlatformProps) => {
-  // TEMPORARY: Hardcode both panda and black dog for testing
+  // Convert animal names to animal data
   const animalData = useMemo(() => {
-    const hardcodedAnimals = ['Black Dog', 'Panda'];
-    console.log('Hardcoded animals:', hardcodedAnimals);
-    
-    const foundAnimals = hardcodedAnimals
-      .map(name => {
-        const animal = getAnimalByIdOrName(name);
-        console.log(`Looking for ${name}:`, animal);
-        return animal;
-      })
+    const foundAnimals = unlockedAnimals
+      .map(name => getAnimalByIdOrName(name))
       .filter((animal): animal is AnimalData => animal !== undefined);
-    
-    console.log('Final animal data for RetroPixelPlatform:', foundAnimals);
+
     return foundAnimals;
-  }, []);
+  }, [unlockedAnimals]);
 
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Layered Background */}
       <RetroBackground />
-      
+
       {/* Platform Structure */}
       <PixelPlatform />
-      
+
       {/* Walking Animals */}
       <AnimalParade unlockedAnimals={animalData} />
-      
-      {/* Level indicator overlay */}
-      <div className="absolute top-4 right-4 pointer-events-none">
-        <div className="bg-card/90 backdrop-blur-sm rounded-lg px-3 py-2 border border-border">
-          <p className="text-sm font-medium text-muted-foreground">
-            Level {currentLevel}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {animalData.length} animal{animalData.length !== 1 ? 's' : ''} unlocked
-          </p>
-        </div>
-      </div>
     </div>
   );
 });

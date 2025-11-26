@@ -3,45 +3,65 @@ import { memo } from 'react';
 export const RetroBackground = memo(() => {
   return (
     <div className="absolute inset-0 overflow-hidden">
-      {/* Sky Gradient */}
-      <div className="absolute inset-0 bg-gradient-sky" />
-      
-      {/* Animated Clouds */}
-      <div className="absolute top-[10%] w-full h-32">
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute animate-drift-clouds"
-            style={{
-              animationDelay: `${i * 7}s`,
-              top: `${i * 15}px`,
-              left: `-100px`
-            }}
-          >
-            <div className="pixel-cloud" />
-          </div>
-        ))}
-      </div>
-      
-      {/* Distant Mountains */}
-      <div className="absolute bottom-[30%] w-full h-32">
-        <svg 
-          viewBox="0 0 1200 120" 
-          className="w-full h-full fill-muted/60"
+      {/* Sky Gradient - Warm pastel */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, hsl(200 70% 80%) 0%, hsl(200 50% 88%) 40%, hsl(35 60% 90%) 100%)'
+        }}
+      />
+
+      {/* Sun glow */}
+      <div
+        className="absolute top-[15%] right-[15%] w-24 h-24 rounded-full opacity-60"
+        style={{
+          background: 'radial-gradient(circle, hsl(45 100% 85%) 0%, transparent 70%)'
+        }}
+      />
+
+      {/* Soft floating clouds */}
+      <div className="absolute top-[12%] left-[10%] w-20 h-8 rounded-full bg-white/40 blur-sm" />
+      <div className="absolute top-[8%] left-[25%] w-16 h-6 rounded-full bg-white/30 blur-sm" />
+      <div className="absolute top-[18%] left-[60%] w-24 h-8 rounded-full bg-white/35 blur-sm" />
+      <div className="absolute top-[10%] right-[20%] w-14 h-5 rounded-full bg-white/25 blur-sm" />
+
+      {/* Distant mountains - soft purple/blue */}
+      <div className="absolute bottom-[28%] w-full h-40">
+        <svg
+          viewBox="0 0 1200 160"
+          className="w-full h-full"
           preserveAspectRatio="none"
         >
-          <path d="M0,120 L0,80 L200,20 L400,60 L600,10 L800,40 L1000,30 L1200,50 L1200,120 Z" />
+          <defs>
+            <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="hsl(250 30% 75%)" />
+              <stop offset="100%" stopColor="hsl(250 25% 80%)" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0,160 L0,100 L100,60 L250,90 L400,40 L550,70 L700,30 L850,60 L1000,45 L1100,70 L1200,55 L1200,160 Z"
+            fill="url(#mountainGradient)"
+          />
         </svg>
       </div>
-      
-      {/* Mid-ground Hills */}
-      <div className="absolute bottom-[20%] w-full h-24">
-        <svg 
-          viewBox="0 0 1200 80" 
-          className="w-full h-full fill-secondary/80"
+
+      {/* Mid-ground hills - soft green */}
+      <div className="absolute bottom-[18%] w-full h-32">
+        <svg
+          viewBox="0 0 1200 130"
+          className="w-full h-full"
           preserveAspectRatio="none"
         >
-          <path d="M0,80 L0,60 L150,30 L350,50 L550,20 L750,45 L950,25 L1200,40 L1200,80 Z" />
+          <defs>
+            <linearGradient id="hillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="hsl(140 35% 65%)" />
+              <stop offset="100%" stopColor="hsl(140 40% 55%)" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0,130 L0,80 L80,50 L200,70 L350,35 L500,60 L650,30 L800,55 L950,40 L1100,60 L1200,50 L1200,130 Z"
+            fill="url(#hillGradient)"
+          />
         </svg>
       </div>
     </div>
