@@ -27,6 +27,7 @@ export interface XPSystemState {
 }
 
 const STORAGE_KEY = 'petIsland_xpSystem';
+const XP_UPDATE_EVENT = 'petIsland_xpUpdate';
 
 export const MAX_LEVEL = 50 as const;
 
@@ -205,13 +206,48 @@ useEffect(() => {
   }
 }, []);
 
-  // Save state to localStorage
+  // Listen for XP updates from other hook instances (cross-component sync)
+  useEffect(() => {
+    const handleXPUpdate = (event: CustomEvent<XPSystemState>) => {
+      console.log('XP state updated from another component:', event.detail);
+      setXPState(event.detail);
+    };
+
+    // Listen for custom events from same window (other hook instances)
+    window.addEventListener(XP_UPDATE_EVENT, handleXPUpdate as EventListener);
+
+    // Listen for storage events from other tabs/windows
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEY && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          console.log('XP state updated from storage event:', parsed);
+          setXPState(parsed);
+        } catch (error) {
+          console.error('Failed to parse XP state from storage event:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener(XP_UPDATE_EVENT, handleXPUpdate as EventListener);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Save state to localStorage and notify other instances
   const saveState = useCallback((newState: Partial<XPSystemState>) => {
     setXPState(prev => {
       const merged = { ...prev, ...newState };
       const normalizedAnimals = normalizeAnimalList(merged.unlockedAnimals);
       const updatedState = { ...merged, unlockedAnimals: normalizedAnimals };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedState));
+
+      // Dispatch custom event to notify other hook instances in the same window
+      window.dispatchEvent(new CustomEvent(XP_UPDATE_EVENT, { detail: updatedState }));
+
       return updatedState;
     });
   }, []);

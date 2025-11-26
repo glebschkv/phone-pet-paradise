@@ -10,6 +10,10 @@ import { useCollection } from './useCollection';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getUnlockedAnimals } from '@/data/AnimalDatabase';
+
+// Event name for cross-component XP sync
+const XP_UPDATE_EVENT = 'petIsland_xpUpdate';
 
 export const useBackendAppState = () => {
   const { isAuthenticated } = useAuth();
@@ -136,6 +140,26 @@ export const useBackendAppState = () => {
         bondSystem.interactWithPet(pet.pet_type, 'focus_session');
       }
 
+      // Dispatch custom event to sync other hook instances with new XP state
+      // This ensures TopStatusBar and other components using useXPSystem get updated
+      const newLevel = xpResult.newLevel;
+      const newTotalXP = xpResult.totalXP; // Edge function returns totalXP
+      const unlockedAnimals = getUnlockedAnimals(newLevel).map(a => a.name);
+
+      const xpStateUpdate = {
+        currentXP: newTotalXP,
+        currentLevel: newLevel,
+        xpToNextLevel: xpResult.xpToNextLevel,
+        totalXPForCurrentLevel: xpResult.currentLevelXP,
+        unlockedAnimals,
+        currentBiome: backendXPSystem.currentBiome,
+        availableBiomes: backendXPSystem.availableBiomes,
+      };
+
+      // Dispatch event to notify other hook instances
+      window.dispatchEvent(new CustomEvent(XP_UPDATE_EVENT, { detail: xpStateUpdate }));
+      console.log('Dispatched XP update event for authenticated user:', xpStateUpdate);
+
       return {
         xpGained: xpResult.xpGained,
         oldLevel: xpResult.oldLevel,
@@ -152,7 +176,7 @@ export const useBackendAppState = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, localXPSystem, streaks, quests, bondSystem, supabaseData.pets]);
+  }, [isAuthenticated, localXPSystem, streaks, quests, bondSystem, supabaseData.pets, backendXPSystem]);
 
   // Get pet interaction handler
   const interactWithPet = useCallback(async (petType: string, interactionType: string = 'play') => {
