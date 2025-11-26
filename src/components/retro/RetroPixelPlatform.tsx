@@ -7,9 +7,10 @@ import { AnimalData, getAnimalByIdOrName } from '@/data/AnimalDatabase';
 interface RetroPixelPlatformProps {
   unlockedAnimals: string[]; // Animal names from XP system
   currentLevel: number;
+  backgroundTheme?: string;
 }
 
-export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel }: RetroPixelPlatformProps) => {
+export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel, backgroundTheme = 'day' }: RetroPixelPlatformProps) => {
   // Convert animal names to animal data
   const animalData = useMemo(() => {
     const foundAnimals = unlockedAnimals
@@ -22,7 +23,7 @@ export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel }: Retro
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Layered Background */}
-      <RetroBackground />
+      <RetroBackground theme={backgroundTheme} />
 
       {/* Platform Structure */}
       <PixelPlatform />

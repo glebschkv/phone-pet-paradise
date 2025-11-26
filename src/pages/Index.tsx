@@ -8,9 +8,21 @@ import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useDataBackup } from "@/hooks/useDataBackup";
 import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Sun, Sunset, Moon, Waves, TreePine } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
+
+const HOME_BACKGROUNDS = [
+  { id: 'day', name: 'Day', icon: Sun },
+  { id: 'sunset', name: 'Sunset', icon: Sunset },
+  { id: 'night', name: 'Night', icon: Moon },
+  { id: 'ocean', name: 'Ocean', icon: Waves },
+  { id: 'forest', name: 'Forest', icon: TreePine },
+];
 
 const Index = () => {
   const navigate = useNavigate();
@@ -20,6 +32,21 @@ const Index = () => {
   const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
   const { performanceLevel } = usePerformanceMonitor();
   const { autoBackup } = useDataBackup();
+  const [backgroundTheme, setBackgroundTheme] = useState<string>('day');
+
+  // Load background theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem(HOME_BACKGROUND_KEY);
+    if (savedTheme && HOME_BACKGROUNDS.some(t => t.id === savedTheme)) {
+      setBackgroundTheme(savedTheme);
+    }
+  }, []);
+
+  // Save background theme to localStorage
+  const changeBackgroundTheme = (themeId: string) => {
+    setBackgroundTheme(themeId);
+    localStorage.setItem(HOME_BACKGROUND_KEY, themeId);
+  };
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -83,12 +110,50 @@ const Index = () => {
     <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
       {/* Retro Pixel Platform Scene */}
       <ErrorBoundary>
-        <RetroPixelPlatform 
+        <RetroPixelPlatform
           unlockedAnimals={unlockedAnimals}
-          currentLevel={currentLevel} 
+          currentLevel={currentLevel}
+          backgroundTheme={backgroundTheme}
         />
       </ErrorBoundary>
-      
+
+      {/* Background Theme Switcher - Bottom left above taskbar */}
+      <div className="absolute bottom-24 left-3 z-20">
+        <div className="flex flex-col gap-1.5">
+          {HOME_BACKGROUNDS.map((theme) => {
+            const Icon = theme.icon;
+            const isSelected = backgroundTheme === theme.id;
+            return (
+              <button
+                key={theme.id}
+                onClick={() => changeBackgroundTheme(theme.id)}
+                className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95",
+                  isSelected
+                    ? "ring-2 ring-white/80 ring-offset-1 ring-offset-transparent"
+                    : "opacity-50 hover:opacity-80"
+                )}
+                style={{
+                  background: isSelected
+                    ? 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.95) 100%)'
+                    : 'hsl(var(--card) / 0.5)',
+                  border: '2px solid hsl(var(--border) / 0.8)',
+                  boxShadow: isSelected
+                    ? '0 2px 0 hsl(var(--border) / 0.4), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+                    : '0 1px 0 hsl(var(--border) / 0.3)'
+                }}
+                title={theme.name}
+              >
+                <Icon className={cn(
+                  "w-4 h-4",
+                  isSelected ? "text-foreground" : "text-muted-foreground"
+                )} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Game UI Overlay */}
       <ErrorBoundary>
         <GameUI />
