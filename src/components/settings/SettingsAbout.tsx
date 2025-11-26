@@ -1,7 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, ExternalLink, Github, MessageCircle, Star } from "lucide-react";
+import { Heart, ExternalLink, Github, MessageCircle, Star, Sparkles, Clock, Grid3X3, Trophy } from "lucide-react";
 
 export const SettingsAbout = () => {
   const appVersion = "1.0.0";
@@ -11,149 +9,147 @@ export const SettingsAbout = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const features = [
+    { icon: Sparkles, title: "3D Pet Island", description: "Beautiful 3D environment" },
+    { icon: Clock, title: "Focus Timer", description: "Pomodoro-style productivity" },
+    { icon: Grid3X3, title: "Pet Collection", description: "Unlock new companions" },
+    { icon: Trophy, title: "XP System", description: "Level up and earn rewards" },
+  ];
+
+  const techStack = [
+    { label: "Framework", value: "React + TypeScript" },
+    { label: "Styling", value: "Tailwind CSS" },
+    { label: "3D Engine", value: "Three.js" },
+    { label: "Mobile", value: "Capacitor" },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Heart className="w-5 h-5" />
-          About
-        </h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Information about Phone Pet Paradise
+    <div className="space-y-3">
+      {/* App Info */}
+      <div className="retro-card p-4 overflow-hidden">
+        <div className="text-center py-4" style={{
+          background: 'linear-gradient(180deg, hsl(45 80% 90%) 0%, transparent 100%)',
+          margin: '-1rem -1rem 1rem -1rem',
+          padding: '1.5rem 1rem'
+        }}>
+          <div className="text-5xl mb-3">🐾</div>
+          <h2 className="text-lg font-bold">Phone Pet Paradise</h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Focus timer with virtual pet companions
+          </p>
+          <div className="flex items-center justify-center gap-2 mt-3">
+            <Badge className="retro-stat-pill text-[10px] font-bold px-2 py-1">
+              v{appVersion}
+            </Badge>
+            <Badge variant="outline" className="text-[10px] font-medium px-2 py-1">
+              {buildDate}
+            </Badge>
+          </div>
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center">
+          Transform your productivity journey into an engaging pet-raising adventure.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Phone Pet Paradise</CardTitle>
-          <CardDescription>
-            A focus timer app that helps you build healthy habits while raising virtual pets
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">Version {appVersion}</Badge>
-            <Badge variant="outline">Built on {buildDate}</Badge>
-          </div>
-          
-          <div className="text-sm text-muted-foreground space-y-2">
-            <p>
-              Transform your productivity journey into an engaging pet-raising adventure. 
-              Every focused minute you spend helps your virtual pets grow and unlocks new companions.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Features */}
+      <div className="retro-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Star className="w-4 h-4 text-amber-500" />
+          <span className="text-sm font-bold">Features</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={index}
+                className="p-3 rounded-lg flex items-start gap-2"
+                style={{
+                  background: 'hsl(var(--card))',
+                  border: '2px solid hsl(var(--border))',
+                  boxShadow: '0 2px 0 hsl(var(--border) / 0.4)'
+                }}
+              >
+                <div className="w-8 h-8 retro-stat-pill rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold truncate">{feature.title}</div>
+                  <div className="text-[10px] text-muted-foreground">{feature.description}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Features</CardTitle>
-          <CardDescription>
-            What makes Phone Pet Paradise special
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-3 text-sm">
-            <div className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-              <div>
-                <strong>3D Pet Island:</strong> Watch your pets live and play in a beautiful 3D environment
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-              <div>
-                <strong>Focus Timer:</strong> Pomodoro-style timer to boost your productivity
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-              <div>
-                <strong>Pet Collection:</strong> Unlock new animals as you complete focus sessions
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-              <div>
-                <strong>XP System:</strong> Level up and earn rewards for your dedication
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Community & Support</CardTitle>
-          <CardDescription>
-            Connect with us and other users
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Button
-            variant="outline"
-            className="w-full justify-start"
+      {/* Community Links */}
+      <div className="retro-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Heart className="w-4 h-4 text-red-500" />
+          <span className="text-sm font-bold">Community</span>
+        </div>
+        <div className="space-y-2">
+          <button
             onClick={() => openLink('https://github.com/lovable-dev/phone-pet-paradise')}
+            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
           >
-            <Github className="w-4 h-4 mr-2" />
-            View on GitHub
-            <ExternalLink className="w-3 h-3 ml-auto" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => openLink('https://discord.gg/lovable')}
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            Join Discord Community
-            <ExternalLink className="w-3 h-3 ml-auto" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => openLink('https://lovable.dev')}
-          >
-            <Star className="w-4 h-4 mr-2" />
-            Built with Lovable
-            <ExternalLink className="w-3 h-3 ml-auto" />
-          </Button>
-        </CardContent>
-      </Card>
+            <Github className="w-5 h-5" />
+            <span className="text-sm font-semibold flex-1 text-left">View on GitHub</span>
+            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+          </button>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Technical Information</CardTitle>
-          <CardDescription>
-            Framework and technology details
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Framework:</span>
-              <span>React + TypeScript</span>
+          <button
+            onClick={() => openLink('https://discord.gg/lovable')}
+            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span className="text-sm font-semibold flex-1 text-left">Join Discord</span>
+            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+          </button>
+
+          <button
+            onClick={() => openLink('https://lovable.dev')}
+            className="w-full p-3 rounded-lg flex items-center gap-3 transition-all active:scale-95 bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 border-2 border-amber-500"
+          >
+            <Star className="w-5 h-5" />
+            <span className="text-sm font-bold flex-1 text-left">Built with Lovable</span>
+            <ExternalLink className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Tech Stack */}
+      <div className="retro-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="text-sm font-bold">Tech Stack</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {techStack.map((item, index) => (
+            <div
+              key={index}
+              className="p-2 rounded-lg text-center"
+              style={{
+                background: 'hsl(var(--card))',
+                border: '2px solid hsl(var(--border))',
+                boxShadow: '0 2px 0 hsl(var(--border) / 0.4)'
+              }}
+            >
+              <div className="text-[10px] text-muted-foreground">{item.label}</div>
+              <div className="text-xs font-bold">{item.value}</div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Styling:</span>
-              <span>Tailwind CSS</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">3D Engine:</span>
-              <span>Three.js + React Three Fiber</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Mobile:</span>
-              <span>Capacitor</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Build Tool:</span>
-              <span>Vite</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="retro-stat-pill p-3 text-center">
+        <p className="text-[10px] text-muted-foreground">
+          Made with love for productivity enthusiasts
+        </p>
+      </div>
     </div>
   );
 };

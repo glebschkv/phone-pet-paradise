@@ -1,9 +1,9 @@
 import { AppSettings } from "@/hooks/useSettings";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Clock, Bell } from "lucide-react";
+import { Clock, Coffee, Zap, Bell } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SettingsTimerProps {
   settings: AppSettings;
@@ -12,113 +12,140 @@ interface SettingsTimerProps {
 
 export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Clock className="w-5 h-5" />
-          Timer Settings
-        </h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Configure your focus sessions and breaks
-        </p>
+    <div className="space-y-3">
+      {/* Focus Time */}
+      <div className="retro-card p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 retro-level-badge rounded-lg flex items-center justify-center">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <Label className="text-sm font-bold">Focus Duration</Label>
+            <p className="text-[10px] text-muted-foreground">How long each focus session lasts</p>
+          </div>
+          <div className="retro-stat-pill px-3 py-1.5">
+            <span className="text-sm font-bold">{settings.defaultFocusTime}m</span>
+          </div>
+        </div>
+        <Slider
+          min={15}
+          max={90}
+          step={5}
+          value={[settings.defaultFocusTime]}
+          onValueChange={([value]) => onUpdate({ defaultFocusTime: value })}
+          className="w-full"
+        />
+        <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
+          <span>15 min</span>
+          <span>90 min</span>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Focus Sessions</CardTitle>
-          <CardDescription>
-            Set your default focus and break durations
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="focus-time">
-              Focus Time: {settings.defaultFocusTime} minutes
-            </Label>
-            <Slider
-              id="focus-time"
-              min={15}
-              max={90}
-              step={5}
-              value={[settings.defaultFocusTime]}
-              onValueChange={([value]) => onUpdate({ defaultFocusTime: value })}
-              className="w-full"
-            />
+      {/* Break Times */}
+      <div className="retro-card p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 retro-stat-pill rounded-lg flex items-center justify-center">
+            <Coffee className="w-5 h-5 text-muted-foreground" />
           </div>
-
-          <div className="space-y-3">
-            <Label htmlFor="short-break">
-              Short Break: {settings.shortBreakTime} minutes
-            </Label>
-            <Slider
-              id="short-break"
-              min={3}
-              max={15}
-              step={1}
-              value={[settings.shortBreakTime]}
-              onValueChange={([value]) => onUpdate({ shortBreakTime: value })}
-              className="w-full"
-            />
+          <div className="flex-1">
+            <Label className="text-sm font-bold">Short Break</Label>
+            <p className="text-[10px] text-muted-foreground">Quick rest between sessions</p>
           </div>
-
-          <div className="space-y-3">
-            <Label htmlFor="long-break">
-              Long Break: {settings.longBreakTime} minutes
-            </Label>
-            <Slider
-              id="long-break"
-              min={10}
-              max={30}
-              step={5}
-              value={[settings.longBreakTime]}
-              onValueChange={([value]) => onUpdate({ longBreakTime: value })}
-              className="w-full"
-            />
+          <div className="retro-stat-pill px-3 py-1.5">
+            <span className="text-sm font-bold">{settings.shortBreakTime}m</span>
           </div>
+        </div>
+        <Slider
+          min={3}
+          max={15}
+          step={1}
+          value={[settings.shortBreakTime]}
+          onValueChange={([value]) => onUpdate({ shortBreakTime: value })}
+          className="w-full"
+        />
+        <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
+          <span>3 min</span>
+          <span>15 min</span>
+        </div>
+      </div>
 
-          <div className="space-y-3">
-            <Label htmlFor="long-break-interval">
-              Long Break After: {settings.longBreakInterval} focus sessions
-            </Label>
-            <Slider
-              id="long-break-interval"
-              min={2}
-              max={8}
-              step={1}
-              value={[settings.longBreakInterval]}
-              onValueChange={([value]) => onUpdate({ longBreakInterval: value })}
-              className="w-full"
-            />
+      <div className="retro-card p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 retro-stat-pill rounded-lg flex items-center justify-center">
+            <Zap className="w-5 h-5 text-muted-foreground" />
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex-1">
+            <Label className="text-sm font-bold">Long Break</Label>
+            <p className="text-[10px] text-muted-foreground">Extended rest period</p>
+          </div>
+          <div className="retro-stat-pill px-3 py-1.5">
+            <span className="text-sm font-bold">{settings.longBreakTime}m</span>
+          </div>
+        </div>
+        <Slider
+          min={10}
+          max={30}
+          step={5}
+          value={[settings.longBreakTime]}
+          onValueChange={([value]) => onUpdate({ longBreakTime: value })}
+          className="w-full"
+        />
+        <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
+          <span>10 min</span>
+          <span>30 min</span>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-          <CardDescription>
-            Control when and how you get notified
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="notifications" className="flex items-center gap-2">
-                <Bell className="w-4 h-4" />
-                Enable Notifications
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Get notified when your timer ends
-              </p>
+      {/* Long Break Interval */}
+      <div className="retro-card p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <Label className="text-sm font-bold">Long Break After</Label>
+            <p className="text-[10px] text-muted-foreground">Sessions before long break</p>
+          </div>
+          <div className="retro-level-badge px-3 py-1.5">
+            <span className="text-sm font-bold">{settings.longBreakInterval} sessions</span>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {[2, 3, 4, 5, 6].map((num) => (
+            <button
+              key={num}
+              onClick={() => onUpdate({ longBreakInterval: num })}
+              className={cn(
+                "flex-1 py-2 rounded-lg text-sm font-bold transition-all active:scale-95",
+                settings.longBreakInterval === num
+                  ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 border-2 border-amber-500"
+                  : "retro-stat-pill"
+              )}
+            >
+              {num}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Notifications */}
+      <div className="retro-card p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center",
+              settings.enableNotifications ? "retro-level-badge" : "retro-stat-pill"
+            )}>
+              <Bell className="w-5 h-5" />
             </div>
-            <Switch
-              id="notifications"
-              checked={settings.enableNotifications}
-              onCheckedChange={(checked) => onUpdate({ enableNotifications: checked })}
-            />
+            <div>
+              <Label className="text-sm font-bold">Notifications</Label>
+              <p className="text-[10px] text-muted-foreground">Alert when timer ends</p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          <Switch
+            checked={settings.enableNotifications}
+            onCheckedChange={(checked) => onUpdate({ enableNotifications: checked })}
+          />
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,11 +1,9 @@
 import { AppSettings } from "@/hooks/useSettings";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Volume2, VolumeX, Music } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Volume2, VolumeX, Music, Play, Leaf, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SettingsSoundProps {
   settings: AppSettings;
@@ -13,123 +11,136 @@ interface SettingsSoundProps {
 }
 
 const soundThemes = [
-  { value: "default", label: "Default", description: "Classic notification sounds" },
-  { value: "nature", label: "Nature", description: "Calming nature sounds" },
-  { value: "minimal", label: "Minimal", description: "Subtle and gentle tones" },
+  { value: "default", label: "Classic", icon: Music, description: "Standard tones" },
+  { value: "nature", label: "Nature", icon: Leaf, description: "Calming sounds" },
+  { value: "minimal", label: "Minimal", icon: Sparkles, description: "Subtle alerts" },
 ];
 
 export const SettingsSound = ({ settings, onUpdate }: SettingsSoundProps) => {
   const testSound = () => {
-    // Play a test notification sound
     const audio = new Audio('/notification.mp3');
     audio.volume = settings.soundVolume / 100;
     audio.play().catch(() => {
-      // Fallback to system beep if audio file not found
       console.log('Test sound played');
     });
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Volume2 className="w-5 h-5" />
-          Sound Settings
-        </h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Configure audio feedback and notifications
-        </p>
+    <div className="space-y-3">
+      {/* Sound Toggle */}
+      <div className="retro-card p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center",
+              settings.soundEnabled ? "retro-level-badge" : "retro-stat-pill"
+            )}>
+              {settings.soundEnabled ? (
+                <Volume2 className="w-5 h-5" />
+              ) : (
+                <VolumeX className="w-5 h-5 text-muted-foreground" />
+              )}
+            </div>
+            <div>
+              <Label className="text-sm font-bold">Sound Effects</Label>
+              <p className="text-[10px] text-muted-foreground">Play audio notifications</p>
+            </div>
+          </div>
+          <Switch
+            checked={settings.soundEnabled}
+            onCheckedChange={(checked) => onUpdate({ soundEnabled: checked })}
+          />
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Audio</CardTitle>
-          <CardDescription>
-            Control sound playback and volume
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="sound-enabled" className="flex items-center gap-2">
-                {settings.soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                Enable Sounds
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Play notification sounds when timer ends
-              </p>
+      {settings.soundEnabled && (
+        <>
+          {/* Volume Control */}
+          <div className="retro-card p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <Label className="text-sm font-bold">Volume</Label>
+                <p className="text-[10px] text-muted-foreground">Adjust sound level</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="retro-stat-pill px-3 py-1.5">
+                  <span className="text-sm font-bold">{settings.soundVolume}%</span>
+                </div>
+                <button
+                  onClick={testSound}
+                  className="retro-stat-pill p-2 active:scale-95 transition-all"
+                >
+                  <Play className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <Switch
-              id="sound-enabled"
-              checked={settings.soundEnabled}
-              onCheckedChange={(checked) => onUpdate({ soundEnabled: checked })}
+            <Slider
+              min={0}
+              max={100}
+              step={5}
+              value={[settings.soundVolume]}
+              onValueChange={([value]) => onUpdate({ soundVolume: value })}
+              className="w-full"
             />
+            <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
+              <span>Mute</span>
+              <span>Max</span>
+            </div>
           </div>
 
-          {settings.soundEnabled && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="volume">
-                  Volume: {settings.soundVolume}%
-                </Label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={testSound}
-                  className="text-xs"
-                >
-                  Test
-                </Button>
-              </div>
-              <Slider
-                id="volume"
-                min={0}
-                max={100}
-                step={5}
-                value={[settings.soundVolume]}
-                onValueChange={([value]) => onUpdate({ soundVolume: value })}
-                className="w-full"
-              />
+          {/* Sound Theme */}
+          <div className="retro-card p-4">
+            <Label className="text-sm font-bold mb-3 block">Sound Theme</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {soundThemes.map((theme) => {
+                const Icon = theme.icon;
+                const isSelected = settings.soundTheme === theme.value;
+                return (
+                  <button
+                    key={theme.value}
+                    onClick={() => onUpdate({ soundTheme: theme.value as 'default' | 'nature' | 'minimal' })}
+                    className={cn(
+                      "p-3 rounded-lg flex flex-col items-center gap-2 transition-all active:scale-95",
+                      isSelected && "ring-2 ring-primary"
+                    )}
+                    style={{
+                      background: isSelected
+                        ? 'linear-gradient(180deg, hsl(45 80% 90%) 0%, hsl(var(--card)) 100%)'
+                        : 'hsl(var(--card))',
+                      border: '2px solid hsl(var(--border))',
+                      boxShadow: isSelected
+                        ? '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+                        : '0 2px 0 hsl(var(--border) / 0.4)'
+                    }}
+                  >
+                    <div className={cn(
+                      "w-9 h-9 rounded-lg flex items-center justify-center",
+                      isSelected ? "retro-level-badge" : "retro-stat-pill"
+                    )}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs font-bold">{theme.label}</div>
+                      <div className="text-[9px] text-muted-foreground">{theme.description}</div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        </>
+      )}
 
-      {settings.soundEnabled && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Sound Theme</CardTitle>
-            <CardDescription>
-              Choose your preferred sound style
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Label htmlFor="sound-theme" className="flex items-center gap-2">
-                <Music className="w-4 h-4" />
-                Theme
-              </Label>
-              <Select
-                value={settings.soundTheme}
-                onValueChange={(value) => onUpdate({ soundTheme: value as 'default' | 'nature' | 'minimal' })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a sound theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  {soundThemes.map((theme) => (
-                    <SelectItem key={theme.value} value={theme.value}>
-                      <div>
-                        <div className="font-medium">{theme.label}</div>
-                        <div className="text-sm text-muted-foreground">{theme.description}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+      {!settings.soundEnabled && (
+        <div className="retro-stat-pill p-4 text-center">
+          <VolumeX className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+          <p className="text-xs text-muted-foreground">
+            Sound effects are disabled
+          </p>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Enable sounds to customize volume and theme
+          </p>
+        </div>
       )}
     </div>
   );
