@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useBackendXPSystem } from './useBackendXPSystem';
+import { useXPSystem } from './useXPSystem';
 import { useBackendAchievements } from './useBackendAchievements';
 import { useBackendQuests } from './useBackendQuests';
 import { useBackendStreaks } from './useBackendStreaks';
@@ -12,7 +13,11 @@ import { toast } from 'sonner';
 
 export const useBackendAppState = () => {
   const { isAuthenticated } = useAuth();
-  const xpSystem = useBackendXPSystem();
+  const backendXPSystem = useBackendXPSystem();
+  const localXPSystem = useXPSystem();
+
+  // Use backend XP system when authenticated, local otherwise
+  const xpSystem = isAuthenticated ? backendXPSystem : localXPSystem;
   const achievements = useBackendAchievements();
   const quests = useBackendQuests();
   const streaks = useBackendStreaks();
@@ -63,9 +68,35 @@ export const useBackendAppState = () => {
 
   // Award XP and trigger all related systems
   const awardXP = useCallback(async (sessionMinutes: number) => {
+    // Use local XP system when not authenticated
     if (!isAuthenticated) {
-      console.warn('Cannot award XP: not authenticated');
-      return null;
+      console.log('Using local XP system (not authenticated)');
+      try {
+        const reward = localXPSystem.awardXP(sessionMinutes);
+        console.log('Local XP reward:', reward);
+
+        // Show notifications for level up
+        if (reward.leveledUp) {
+          toast.success(`Level up! You reached level ${reward.newLevel}!`);
+          reward.unlockedRewards.forEach(unlock => {
+            toast.success(`Unlocked: ${unlock.name}!`, {
+              description: unlock.description
+            });
+          });
+        }
+
+        return {
+          xpGained: reward.xpGained,
+          oldLevel: reward.oldLevel,
+          newLevel: reward.newLevel,
+          leveledUp: reward.leveledUp,
+          unlockedRewards: reward.unlockedRewards,
+          streakReward: null
+        };
+      } catch (error) {
+        console.error('Error awarding local XP:', error);
+        return null;
+      }
     }
 
     setIsLoading(true);
@@ -81,15 +112,15 @@ export const useBackendAppState = () => {
 
       // Record streak progress
       const streakReward = await streaks.recordSession();
-      
+
       // Update quest progress
       await quests.updateQuestProgress('focus_time', sessionMinutes);
 
       // Check for achievements
       const { data: achievementResult, error: achievementError } = await supabase.functions.invoke('process-achievements', {
-        body: { 
+        body: {
           triggerType: 'session_complete',
-          sessionMinutes 
+          sessionMinutes
         }
       });
 
@@ -121,7 +152,7 @@ export const useBackendAppState = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, streaks, quests, bondSystem, supabaseData.pets]);
+  }, [isAuthenticated, localXPSystem, streaks, quests, bondSystem, supabaseData.pets]);
 
   // Get pet interaction handler
   const interactWithPet = useCallback(async (petType: string, interactionType: string = 'play') => {
