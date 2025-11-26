@@ -487,9 +487,6 @@ export const UnifiedFocusTimer = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs px-2 py-1">
-              Session {timerState.completedSessions + 1}
-            </Badge>
             <Button
               variant="ghost"
               size="sm"
