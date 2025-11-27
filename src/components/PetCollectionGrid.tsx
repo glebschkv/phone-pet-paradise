@@ -44,6 +44,7 @@ const BACKGROUND_THEMES = [
   { id: 'night', name: 'Night', icon: Moon, unlockLevel: 5 },
   { id: 'ocean', name: 'Ocean', icon: Waves, unlockLevel: 8 },
   { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 12 },
+  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 15 },
 ];
 
 export const PetCollectionGrid = () => {
