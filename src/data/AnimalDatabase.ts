@@ -99,10 +99,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     spriteConfig: {
       spritePath: '/assets/sprites/Cat.png',
       frameCount: 10,
-      frameWidth: 140,
-      frameHeight: 95,
+      frameWidth: 141, // 1408px / 10 frames ≈ 140.8, rounded up for proper coverage
+      frameHeight: 64, // 128px / 2 rows = 64px per row
       animationSpeed: 12,
-      frameRow: 1 // Use the bottom row of the sprite sheet
+      frameRow: 1 // Use the bottom row of the sprite sheet (walking animation)
     }
   },
   // SUNSET BIOME (Levels 3-4)
