@@ -31,10 +31,12 @@ export const AnimalParade = memo(({ unlockedAnimals }: AnimalParadeProps) => {
     // Only show animals with sprite configs for now
     const spriteAnimals = animals.filter(a => a.spriteConfig);
 
+    // Stagger starting positions so animals run sequentially behind each other
+    // Each animal starts further to the left, creating a parade effect
     return spriteAnimals.map((animal, index) => ({
       animal,
-      position: 0.5, // Start centered
-      speed: 20 + (index * 5), // Gentle walking speed
+      position: 0.3 - (index * 0.2), // Each animal starts further left
+      speed: 30, // Same speed so they maintain spacing
       key: `${animal.id}-${index}`
     }));
   }, [unlockedAnimals]);
