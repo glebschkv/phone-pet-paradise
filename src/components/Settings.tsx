@@ -6,10 +6,12 @@ import { SettingsSound } from "@/components/settings/SettingsSound";
 import { SettingsGame } from "@/components/settings/SettingsGame";
 import { SettingsData } from "@/components/settings/SettingsData";
 import { SettingsAbout } from "@/components/settings/SettingsAbout";
-import { Loader2, Palette, Clock, Volume2, Gamepad2, Database, Heart, Settings as SettingsIcon } from "lucide-react";
+import { SettingsAccount } from "@/components/settings/SettingsAccount";
+import { Loader2, Palette, Clock, Volume2, Gamepad2, Database, Heart, Settings as SettingsIcon, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
+  { id: "account", label: "Account", icon: UserCircle },
   { id: "appearance", label: "Theme", icon: Palette },
   { id: "timer", label: "Timer", icon: Clock },
   { id: "sound", label: "Sound", icon: Volume2 },
@@ -20,7 +22,7 @@ const tabs = [
 
 export const Settings = () => {
   const { settings, isLoading, updateSettings, resetSettings, exportSettings, importSettings } = useSettings();
-  const [activeTab, setActiveTab] = useState("appearance");
+  const [activeTab, setActiveTab] = useState("account");
   const tabsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLButtonElement>(null);
 
@@ -102,6 +104,10 @@ export const Settings = () => {
 
       {/* Content */}
       <div className="px-3">
+        {activeTab === "account" && (
+          <SettingsAccount />
+        )}
+
         {activeTab === "appearance" && (
           <SettingsAppearance
             settings={settings}

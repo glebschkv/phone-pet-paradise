@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const GUEST_ID_KEY = 'pet_paradise_guest_id';
+const GUEST_CHOSEN_KEY = 'pet_paradise_guest_chosen';
+
 // Generate or retrieve a persistent guest ID for offline mode
 const getGuestId = (): string => {
-  const GUEST_ID_KEY = 'pet_paradise_guest_id';
   let guestId = localStorage.getItem(GUEST_ID_KEY);
   if (!guestId) {
     guestId = `guest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -14,11 +16,44 @@ const getGuestId = (): string => {
   return guestId;
 };
 
+// Check if user has explicitly chosen guest mode
+const hasChosenGuestMode = (): boolean => {
+  return localStorage.getItem(GUEST_CHOSEN_KEY) === 'true';
+};
+
+// Set guest mode choice
+const setGuestModeChosen = (chosen: boolean) => {
+  if (chosen) {
+    localStorage.setItem(GUEST_CHOSEN_KEY, 'true');
+  } else {
+    localStorage.removeItem(GUEST_CHOSEN_KEY);
+  }
+};
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGuestMode, setIsGuestMode] = useState(false);
+
+  const enableGuestMode = useCallback(() => {
+    const guestId = getGuestId();
+    setGuestModeChosen(true);
+
+    // Create a guest user object for local functionality
+    const guestUser = {
+      id: guestId,
+      email: 'guest@local',
+      app_metadata: {},
+      user_metadata: { is_guest: true },
+      aud: 'guest',
+      created_at: new Date().toISOString()
+    } as User;
+
+    setUser(guestUser);
+    setSession(null);
+    setIsGuestMode(true);
+  }, []);
 
   useEffect(() => {
     // Check for existing Supabase session
@@ -27,42 +62,36 @@ export const useAuth = () => {
         const { data: { session: existingSession }, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.log('Auth check failed, using guest mode:', error.message);
-          enableGuestMode();
+          console.log('Auth check failed:', error.message);
+          // If auth check fails and user had chosen guest mode before, re-enable it
+          if (hasChosenGuestMode()) {
+            enableGuestMode();
+          }
+          setIsLoading(false);
           return;
         }
 
         if (existingSession) {
+          // User is logged in with Supabase
           setSession(existingSession);
           setUser(existingSession.user);
           setIsGuestMode(false);
-        } else {
-          // No session, use guest mode for offline functionality
+          // Clear guest mode choice since they're now logged in
+          setGuestModeChosen(false);
+        } else if (hasChosenGuestMode()) {
+          // No Supabase session, but user has chosen guest mode before
           enableGuestMode();
         }
+        // If no session and no guest choice, user will be null (not authenticated)
+        // This will trigger redirect to auth page in Index.tsx
       } catch (error) {
-        console.log('Auth initialization failed, using guest mode');
-        enableGuestMode();
+        console.log('Auth initialization failed');
+        if (hasChosenGuestMode()) {
+          enableGuestMode();
+        }
       } finally {
         setIsLoading(false);
       }
-    };
-
-    const enableGuestMode = () => {
-      const guestId = getGuestId();
-      // Create a guest user object for local functionality
-      const guestUser = {
-        id: guestId,
-        email: 'guest@local',
-        app_metadata: {},
-        user_metadata: { is_guest: true },
-        aud: 'guest',
-        created_at: new Date().toISOString()
-      } as User;
-
-      setUser(guestUser);
-      setSession(null);
-      setIsGuestMode(true);
     };
 
     initAuth();
@@ -74,8 +103,13 @@ export const useAuth = () => {
           setSession(newSession);
           setUser(newSession.user);
           setIsGuestMode(false);
+          setGuestModeChosen(false);
         } else if (event === 'SIGNED_OUT') {
-          enableGuestMode();
+          // When signed out, clear everything and go back to unauthenticated state
+          setSession(null);
+          setUser(null);
+          setIsGuestMode(false);
+          setGuestModeChosen(false);
         }
       }
     );
@@ -83,20 +117,37 @@ export const useAuth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [enableGuestMode]);
 
   const signOut = async () => {
     try {
       if (!isGuestMode) {
         const { error } = await supabase.auth.signOut({ scope: 'global' });
         if (error) throw error;
-        toast.success('Signed out successfully');
       }
+
+      // Clear guest mode choice
+      setGuestModeChosen(false);
+      localStorage.removeItem(GUEST_ID_KEY);
+
+      // Reset state
+      setSession(null);
+      setUser(null);
+      setIsGuestMode(false);
+
+      toast.success('Signed out successfully');
+
+      // Redirect to auth page
       window.location.href = '/auth';
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign out');
     }
   };
+
+  // Function to explicitly enable guest mode (called from Auth page)
+  const continueAsGuest = useCallback(() => {
+    enableGuestMode();
+  }, [enableGuestMode]);
 
   return {
     user,
@@ -104,6 +155,7 @@ export const useAuth = () => {
     isLoading,
     isAuthenticated: !!user,
     isGuestMode,
-    signOut
+    signOut,
+    continueAsGuest
   };
 };
