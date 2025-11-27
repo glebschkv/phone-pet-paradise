@@ -17,7 +17,7 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
   const spriteConfig = animal.spriteConfig;
   if (!spriteConfig) return null;
 
-  const { spritePath, frameCount, frameWidth, frameHeight, animationSpeed = 10 } = spriteConfig;
+  const { spritePath, frameCount, frameWidth, frameHeight, animationSpeed = 10, frameRow = 0 } = spriteConfig;
 
   // Calculate frame duration in milliseconds (animationSpeed is FPS)
   const frameDuration = 1000 / animationSpeed;
@@ -68,8 +68,9 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
 
-  // Calculate pixel-perfect background position
+  // Calculate pixel-perfect background position (supports multi-row sprites)
   const backgroundPositionX = -(currentFrame * frameWidth * scale);
+  const backgroundPositionY = -(frameRow * frameHeight * scale);
 
   return (
     <div
@@ -91,9 +92,9 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
           width: `${scaledWidth}px`,
           height: `${scaledHeight}px`,
           backgroundImage: `url(${spritePath})`,
-          // Use exact pixel dimensions for the sprite sheet
-          backgroundSize: `${frameCount * scaledWidth}px ${scaledHeight}px`,
-          backgroundPosition: `${backgroundPositionX}px 0px`,
+          // Use exact pixel dimensions for the sprite sheet (auto height for multi-row support)
+          backgroundSize: `${frameCount * scaledWidth}px auto`,
+          backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
           backgroundRepeat: 'no-repeat',
           // Critical for pixel art - no blurring
           imageRendering: 'pixelated',

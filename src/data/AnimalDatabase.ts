@@ -20,6 +20,7 @@ export interface AnimalData {
     frameWidth: number;
     frameHeight: number;
     animationSpeed?: number;
+    frameRow?: number; // Row index for multi-row sprite sheets (0-indexed)
   };
 }
 
@@ -84,6 +85,24 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 48,
       frameHeight: 48,
       animationSpeed: 10
+    }
+  },
+  {
+    id: 'walking-cat',
+    name: 'Walking Cat',
+    emoji: '🐱',
+    rarity: 'common',
+    unlockLevel: 2,
+    description: 'A graceful feline companion with smooth, elegant movements.',
+    abilities: ['Graceful Steps', 'Quiet Focus'],
+    biome: 'Meadow',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Cat.png',
+      frameCount: 10,
+      frameWidth: 140,
+      frameHeight: 95,
+      animationSpeed: 12,
+      frameRow: 1 // Use the bottom row of the sprite sheet
     }
   },
   // SUNSET BIOME (Levels 3-4)
@@ -664,7 +683,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Meadow',
     unlockLevel: 1,
     description: 'A peaceful sunny realm where your journey begins.',
-    animals: ['black-dog', 'panda', 'fox']
+    animals: ['black-dog', 'panda', 'walking-cat']
   },
   {
     name: 'Sunset',
