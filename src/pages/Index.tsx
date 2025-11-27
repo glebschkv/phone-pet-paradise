@@ -31,7 +31,7 @@ const Index = () => {
   const { unlockedAnimals, currentLevel, currentBiome } = useBackendAppState();
   const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
   usePerformanceMonitor(); // Initialize performance monitoring
-  useDataBackup(); // Initialize auto-backup
+  const { autoBackup } = useDataBackup(); // Initialize auto-backup
   const [backgroundTheme, setBackgroundTheme] = useState<string>('day');
 
   // Load background theme from localStorage or derive from current biome
