@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -7,26 +7,36 @@ import {
   Lock,
   TreePine,
   Waves,
-  Mountain,
   Snowflake,
   MapPin,
   Star,
   Sun,
   Sunset,
-  Moon,
-  Palette
+  Moon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCollection } from "@/hooks/useCollection";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { AnimalData, BIOME_DATABASE } from "@/data/AnimalDatabase";
 
+// Biome icons match background themes
 const BIOME_ICONS = {
-  'Meadow': TreePine,
-  'Forest': TreePine,
+  'Meadow': Sun,
+  'Sunset': Sunset,
+  'Night': Moon,
   'Ocean': Waves,
-  'Mountains': Mountain,
-  'Tundra': Snowflake,
+  'Forest': TreePine,
+  'Snow': Snowflake,
+};
+
+// Map biome names to background theme IDs
+const BIOME_TO_BACKGROUND: Record<string, string> = {
+  'Meadow': 'day',
+  'Sunset': 'sunset',
+  'Night': 'night',
+  'Ocean': 'ocean',
+  'Forest': 'forest',
+  'Snow': 'snow',
 };
 
 const RARITY_STARS = {
@@ -37,15 +47,6 @@ const RARITY_STARS = {
 };
 
 const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
-
-const BACKGROUND_THEMES = [
-  { id: 'day', name: 'Day', icon: Sun, unlockLevel: 1 },
-  { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 3 },
-  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 5 },
-  { id: 'ocean', name: 'Ocean', icon: Waves, unlockLevel: 8 },
-  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 12 },
-  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 15 },
-];
 
 export const PetCollectionGrid = () => {
   const {
@@ -65,25 +66,14 @@ export const PetCollectionGrid = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPet, setSelectedPet] = useState<AnimalData | null>(null);
   const [activeTab, setActiveTab] = useState<"pets" | "worlds">("pets");
-  const [backgroundTheme, setBackgroundTheme] = useState<string>('day');
 
-  // Load background theme from localStorage
-  useEffect(() => {
-    const savedTheme = localStorage.getItem(HOME_BACKGROUND_KEY);
-    if (savedTheme) {
-      setBackgroundTheme(savedTheme);
-    }
-  }, []);
-
-  // Change background theme (only if unlocked)
-  const changeBackgroundTheme = (themeId: string) => {
-    const theme = BACKGROUND_THEMES.find(t => t.id === themeId);
-    if (theme && theme.unlockLevel <= currentLevel) {
-      setBackgroundTheme(themeId);
-      localStorage.setItem(HOME_BACKGROUND_KEY, themeId);
-      // Dispatch custom event to notify other components of theme change
-      window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: themeId }));
-    }
+  // When switching biomes, also update the background
+  const handleSwitchBiome = (biomeName: string) => {
+    switchBiome(biomeName);
+    // Update background to match the biome
+    const backgroundId = BIOME_TO_BACKGROUND[biomeName] || 'day';
+    localStorage.setItem(HOME_BACKGROUND_KEY, backgroundId);
+    window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundId }));
   };
 
   const filteredPets = filterAnimals(searchQuery, "all", "all");
@@ -218,68 +208,9 @@ export const PetCollectionGrid = () => {
       )}
 
       {activeTab === "worlds" && (
-        <div className="px-3 pt-3 space-y-4">
-          {/* Background Themes Section */}
-          <div className="retro-card p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Palette className="w-4 h-4 text-muted-foreground" />
-              <span className="font-bold text-sm">Home Background</span>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {BACKGROUND_THEMES.map((theme) => {
-                const Icon = theme.icon;
-                const isSelected = backgroundTheme === theme.id;
-                const isLocked = theme.unlockLevel > currentLevel;
-                return (
-                  <button
-                    key={theme.id}
-                    onClick={() => !isLocked && changeBackgroundTheme(theme.id)}
-                    disabled={isLocked}
-                    className={cn(
-                      "flex-1 min-w-[60px] p-3 rounded-lg flex flex-col items-center gap-1.5 transition-all",
-                      isLocked
-                        ? "opacity-40 cursor-not-allowed"
-                        : "active:scale-95",
-                      isSelected && !isLocked
-                        ? "ring-2 ring-primary"
-                        : ""
-                    )}
-                    style={{
-                      background: isLocked
-                        ? 'hsl(var(--muted) / 0.5)'
-                        : isSelected
-                          ? 'linear-gradient(180deg, hsl(45 80% 90%) 0%, hsl(var(--card)) 100%)'
-                          : 'hsl(var(--card))',
-                      border: '2px solid hsl(var(--border))',
-                      boxShadow: isSelected && !isLocked
-                        ? '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
-                        : '0 2px 0 hsl(var(--border) / 0.4)'
-                    }}
-                  >
-                    {isLocked ? (
-                      <Lock className="w-5 h-5 text-muted-foreground" />
-                    ) : (
-                      <Icon className={cn(
-                        "w-5 h-5",
-                        isSelected ? "text-primary" : "text-muted-foreground"
-                      )} />
-                    )}
-                    <span className={cn(
-                      "text-[10px] font-semibold",
-                      isLocked ? "text-muted-foreground" : isSelected ? "text-foreground" : "text-muted-foreground"
-                    )}>
-                      {isLocked ? `Lv.${theme.unlockLevel}` : theme.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Biomes Section */}
-          <div className="space-y-2">
+        <div className="px-3 pt-3 space-y-2">
           {BIOME_DATABASE.map((biome) => {
-            const Icon = BIOME_ICONS[biome.name as keyof typeof BIOME_ICONS] || TreePine;
+            const Icon = BIOME_ICONS[biome.name as keyof typeof BIOME_ICONS] || Sun;
             const isActive = biome.name === currentBiome;
             const isUnlocked = biome.unlockLevel <= currentLevel;
 
@@ -316,7 +247,7 @@ export const PetCollectionGrid = () => {
 
                   {isUnlocked && !isActive && (
                     <button
-                      onClick={() => switchBiome(biome.name)}
+                      onClick={() => handleSwitchBiome(biome.name)}
                       className="retro-stat-pill px-4 py-2 text-sm font-semibold active:scale-95 transition-all"
                     >
                       Visit
@@ -333,7 +264,6 @@ export const PetCollectionGrid = () => {
               </div>
             );
           })}
-          </div>
         </div>
       )}
 
