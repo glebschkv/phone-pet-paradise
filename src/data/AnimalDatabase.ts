@@ -92,7 +92,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Walking Cat',
     emoji: '🐱',
     rarity: 'common',
-    unlockLevel: 2,
+    unlockLevel: 1,
     description: 'A graceful feline companion with smooth, elegant movements.',
     abilities: ['Graceful Steps', 'Quiet Focus'],
     biome: 'Meadow',
@@ -683,7 +683,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Meadow',
     unlockLevel: 1,
     description: 'A peaceful sunny realm where your journey begins.',
-    animals: ['black-dog', 'panda', 'walking-cat']
+    animals: ['black-dog', 'walking-cat']
   },
   {
     name: 'Sunset',
