@@ -165,14 +165,25 @@ useEffect(() => {
         : calculateLevelRequirement(level + 1);
       const xpToNextLevel = level >= MAX_LEVEL ? 0 : nextLevelXP - parsed.currentXP;
 
+      // Recalculate available biomes from BIOME_DATABASE based on level
+      // This ensures biomes always match current database, not old localStorage data
+      const availableBiomes = BIOME_DATABASE
+        .filter(biome => biome.unlockLevel <= level)
+        .map(biome => biome.name);
+
+      // Validate currentBiome against available biomes
+      const currentBiome = availableBiomes.includes(parsed.currentBiome)
+        ? parsed.currentBiome
+        : availableBiomes[availableBiomes.length - 1] || 'Meadow';
+
       setXPState({
         currentXP: parsed.currentXP || 0,
         currentLevel: level,
         xpToNextLevel: Math.max(0, xpToNextLevel),
         totalXPForCurrentLevel: currentLevelXP,
         unlockedAnimals: allAnimals,
-        currentBiome: parsed.currentBiome || 'Meadow',
-        availableBiomes: parsed.availableBiomes || ['Meadow'],
+        currentBiome,
+        availableBiomes,
       });
 
       console.log(`Restored XP state: Level ${level}, ${parsed.currentXP} XP, ${allAnimals.length} animals`);
@@ -304,17 +315,25 @@ if (leveledUp) {
 
     // Update state
     const newAnimals = [...xpState.unlockedAnimals];
-    const newBiomes = [...xpState.availableBiomes];
-    let newCurrentBiome = xpState.currentBiome;
 
-unlockedRewards.forEach(reward => {
-  if (reward.type === 'animal' && !newAnimals.includes(reward.name)) {
-    newAnimals.push(reward.name);
-  } else if (reward.type === 'biome' && !newBiomes.includes(reward.name)) {
-    newBiomes.push(reward.name);
-    newCurrentBiome = reward.name; // Auto-switch to new biome
-  }
-});
+    // Add unlocked animals
+    unlockedRewards.forEach(reward => {
+      if (reward.type === 'animal' && !newAnimals.includes(reward.name)) {
+        newAnimals.push(reward.name);
+      }
+    });
+
+    // Recalculate biomes from BIOME_DATABASE based on new level
+    const newBiomes = BIOME_DATABASE
+      .filter(biome => biome.unlockLevel <= newLevel)
+      .map(biome => biome.name);
+
+    // Auto-switch to newest biome if a new one was unlocked
+    const oldBiomes = BIOME_DATABASE
+      .filter(biome => biome.unlockLevel <= oldLevel)
+      .map(biome => biome.name);
+    const newlyUnlockedBiome = newBiomes.find(b => !oldBiomes.includes(b));
+    const newCurrentBiome = newlyUnlockedBiome || xpState.currentBiome;
 
     saveState({
       currentXP: newTotalXP,
