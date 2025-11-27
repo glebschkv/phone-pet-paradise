@@ -1,7 +1,7 @@
 import { AppSettings } from "@/hooks/useSettings";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Zap, HelpCircle, Save, Turtle, Rabbit, Gauge } from "lucide-react";
+import { Zap, HelpCircle, Save, Turtle, Rabbit, Gauge, Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SettingsGameProps {
@@ -10,9 +10,9 @@ interface SettingsGameProps {
 }
 
 const animationSpeedOptions = [
-  { value: "slow", label: "Slow", icon: Turtle, description: "Relaxed pace" },
-  { value: "normal", label: "Normal", icon: Gauge, description: "Balanced" },
-  { value: "fast", label: "Fast", icon: Rabbit, description: "Quick actions" },
+  { value: "slow", label: "Slow", icon: Turtle },
+  { value: "normal", label: "Normal", icon: Gauge },
+  { value: "fast", label: "Fast", icon: Rabbit },
 ];
 
 export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
@@ -20,16 +20,11 @@ export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
     <div className="space-y-3">
       {/* Animation Speed */}
       <div className="retro-card p-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 retro-level-badge rounded-lg flex items-center justify-center">
-            <Zap className="w-5 h-5" />
-          </div>
-          <div>
-            <Label className="text-sm font-bold">Animation Speed</Label>
-            <p className="text-[10px] text-muted-foreground">Control visual effects speed</p>
-          </div>
+        <div className="flex items-center gap-2 mb-3">
+          <Zap className="w-4 h-4 text-primary" />
+          <Label className="text-sm font-bold">Animation Speed</Label>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="flex gap-2">
           {animationSpeedOptions.map((option) => {
             const Icon = option.icon;
             const isSelected = settings.animationSpeed === option.value;
@@ -38,7 +33,7 @@ export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
                 key={option.value}
                 onClick={() => onUpdate({ animationSpeed: option.value as 'slow' | 'normal' | 'fast' })}
                 className={cn(
-                  "p-3 rounded-lg flex flex-col items-center gap-2 transition-all active:scale-95",
+                  "flex-1 p-3 rounded-lg flex flex-col items-center gap-1.5 transition-all active:scale-95",
                   isSelected && "ring-2 ring-primary"
                 )}
                 style={{
@@ -47,75 +42,68 @@ export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
                     : 'hsl(var(--card))',
                   border: '2px solid hsl(var(--border))',
                   boxShadow: isSelected
-                    ? '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+                    ? '0 3px 0 hsl(var(--border) / 0.6)'
                     : '0 2px 0 hsl(var(--border) / 0.4)'
                 }}
               >
-                <div className={cn(
-                  "w-9 h-9 rounded-lg flex items-center justify-center",
-                  isSelected ? "retro-level-badge" : "retro-stat-pill"
-                )}>
-                  <Icon className="w-4 h-4" />
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-bold">{option.label}</div>
-                  <div className="text-[9px] text-muted-foreground">{option.description}</div>
-                </div>
+                <Icon className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
+                <span className="text-xs font-bold">{option.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Tutorial Hints */}
+      {/* Toggles - Combined */}
       <div className="retro-card p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "w-10 h-10 rounded-lg flex items-center justify-center",
-              settings.showTutorialHints ? "retro-level-badge" : "retro-stat-pill"
-            )}>
-              <HelpCircle className="w-5 h-5" />
-            </div>
-            <div>
-              <Label className="text-sm font-bold">Tutorial Hints</Label>
-              <p className="text-[10px] text-muted-foreground">Show helpful tips & guidance</p>
-            </div>
-          </div>
-          <Switch
-            checked={settings.showTutorialHints}
-            onCheckedChange={(checked) => onUpdate({ showTutorialHints: checked })}
-          />
+        <div className="flex items-center gap-2 mb-4">
+          <Gamepad2 className="w-4 h-4 text-primary" />
+          <Label className="text-sm font-bold">Gameplay Options</Label>
         </div>
-      </div>
 
-      {/* Auto-Save */}
-      <div className="retro-card p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "w-10 h-10 rounded-lg flex items-center justify-center",
-              settings.autoSaveProgress ? "retro-level-badge" : "retro-stat-pill"
-            )}>
-              <Save className="w-5 h-5" />
+        <div className="space-y-4">
+          {/* Tutorial Hints */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center",
+                settings.showTutorialHints ? "retro-level-badge" : "retro-stat-pill"
+              )}>
+                <HelpCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <Label className="text-xs font-bold">Tutorial Hints</Label>
+                <p className="text-[10px] text-muted-foreground">Show helpful tips</p>
+              </div>
             </div>
-            <div>
-              <Label className="text-sm font-bold">Auto-Save</Label>
-              <p className="text-[10px] text-muted-foreground">Automatically save progress</p>
-            </div>
+            <Switch
+              checked={settings.showTutorialHints}
+              onCheckedChange={(checked) => onUpdate({ showTutorialHints: checked })}
+            />
           </div>
-          <Switch
-            checked={settings.autoSaveProgress}
-            onCheckedChange={(checked) => onUpdate({ autoSaveProgress: checked })}
-          />
-        </div>
-      </div>
 
-      {/* Info hint */}
-      <div className="retro-stat-pill p-3 text-center">
-        <p className="text-xs text-muted-foreground">
-          Game settings affect gameplay experience
-        </p>
+          <div className="border-t border-border/30" />
+
+          {/* Auto-Save */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center",
+                settings.autoSaveProgress ? "retro-level-badge" : "retro-stat-pill"
+              )}>
+                <Save className="w-4 h-4" />
+              </div>
+              <div>
+                <Label className="text-xs font-bold">Auto-Save</Label>
+                <p className="text-[10px] text-muted-foreground">Save progress automatically</p>
+              </div>
+            </div>
+            <Switch
+              checked={settings.autoSaveProgress}
+              onCheckedChange={(checked) => onUpdate({ autoSaveProgress: checked })}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
