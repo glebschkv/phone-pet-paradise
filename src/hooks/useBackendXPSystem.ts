@@ -132,24 +132,20 @@ export const useBackendXPSystem = () => {
         : calculateLevelRequirement(currentLevel + 1);
       const xpToNextLevel = currentLevel >= MAX_LEVEL ? 0 : nextLevelXP - currentXP;
 
-      // Calculate unlocked animals and biomes based on level
+      // Calculate unlocked animals based on level
       const unlockedAnimals = getUnlockedAnimals(currentLevel).map(a => a.name);
       console.log(`Backend XP: Level ${currentLevel}, unlocked animals:`, unlockedAnimals);
-      const availableBiomes = ['Meadow'];
-      let currentBiome = 'Meadow';
 
-      for (let lvl = 1; lvl <= currentLevel; lvl++) {
-        if (UNLOCKS_BY_LEVEL[lvl]) {
-          UNLOCKS_BY_LEVEL[lvl].forEach(reward => {
-            if (reward.type === 'animal' && !unlockedAnimals.includes(reward.name)) {
-              unlockedAnimals.push(reward.name);
-            } else if (reward.type === 'biome' && !availableBiomes.includes(reward.name)) {
-              availableBiomes.push(reward.name);
-              currentBiome = reward.name; // Auto-switch to latest biome
-            }
-          });
-        }
-      }
+      // Calculate available biomes directly from BIOME_DATABASE based on level
+      // This ensures biomes always match current database, not any cached data
+      const availableBiomes = BIOME_DATABASE
+        .filter(biome => biome.unlockLevel <= currentLevel)
+        .map(biome => biome.name);
+
+      // Set current biome to the highest unlocked biome
+      const currentBiome = availableBiomes[availableBiomes.length - 1] || 'Meadow';
+
+      console.log(`Backend XP: Available biomes:`, availableBiomes);
 
       setXPState({
         currentXP,
