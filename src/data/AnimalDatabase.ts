@@ -59,7 +59,14 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A calm bamboo-loving friend that inspires gentle focus.',
     abilities: ['Calm Focus', 'Gentle Strength'],
     biome: 'Meadow',
-    modelConfig: { type: 'glb', modelPath: '/assets/models/Panda.glb', scale: 0.9, animationName: 'Walk' }
+    modelConfig: { type: 'glb', modelPath: '/assets/models/Panda.glb', scale: 0.9, animationName: 'Walk' },
+    spriteConfig: {
+      spritePath: '/assets/sprites/Walk.png',
+      frameCount: 6,
+      frameWidth: 48,
+      frameHeight: 48,
+      animationSpeed: 10
+    }
   },
   {
     id: 'fox',
@@ -70,7 +77,14 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A clever forest fox, cunning and agile for focus sessions.',
     abilities: ['Quick Thinking', 'Agility Boost'],
     biome: 'Meadow',
-    modelConfig: { type: 'glb', modelPath: '/assets/models/Fox.glb', scale: 0.4, animationName: 'Idle' }
+    modelConfig: { type: 'glb', modelPath: '/assets/models/Fox.glb', scale: 0.4, animationName: 'Idle' },
+    spriteConfig: {
+      spritePath: '/assets/sprites/Walk.png',
+      frameCount: 6,
+      frameWidth: 48,
+      frameHeight: 48,
+      animationSpeed: 10
+    }
   },
   // SUNSET BIOME (Levels 3-4)
   {
@@ -82,7 +96,14 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A gentle meadow rabbit, perfect for peaceful focus.',
     abilities: ['Gentle Focus', 'Peaceful Mind'],
     biome: 'Sunset',
-    modelConfig: { type: 'glb', modelPath: '/assets/models/Rabbit.glb', scale: 0.5, animationName: 'Idle' }
+    modelConfig: { type: 'glb', modelPath: '/assets/models/Rabbit.glb', scale: 0.5, animationName: 'Idle' },
+    spriteConfig: {
+      spritePath: '/assets/sprites/Walk.png',
+      frameCount: 6,
+      frameWidth: 48,
+      frameHeight: 48,
+      animationSpeed: 10
+    }
   },
   {
     id: 'deer',
@@ -93,7 +114,14 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A graceful woodland deer, bringing calm and serenity.',
     abilities: ['Grace', 'Serenity'],
     biome: 'Sunset',
-    modelConfig: { type: 'glb', modelPath: '/assets/models/Deer.glb', scale: 0.4, animationName: 'Idle' }
+    modelConfig: { type: 'glb', modelPath: '/assets/models/Deer.glb', scale: 0.4, animationName: 'Idle' },
+    spriteConfig: {
+      spritePath: '/assets/sprites/Walk.png',
+      frameCount: 6,
+      frameWidth: 48,
+      frameHeight: 48,
+      animationSpeed: 10
+    }
   },
   {
     id: 'squirrel',
@@ -104,7 +132,14 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'An energetic squirrel that loves quick bursts of focus.',
     abilities: ['Energy Burst', 'Quick Focus'],
     biome: 'Sunset',
-    modelConfig: { type: 'glb', modelPath: '/assets/models/Squirrel.glb', scale: 0.6, animationName: 'Idle' }
+    modelConfig: { type: 'glb', modelPath: '/assets/models/Squirrel.glb', scale: 0.6, animationName: 'Idle' },
+    spriteConfig: {
+      spritePath: '/assets/sprites/Walk.png',
+      frameCount: 6,
+      frameWidth: 48,
+      frameHeight: 48,
+      animationSpeed: 10
+    }
   },
 
   // NIGHT BIOME (Levels 5-7)

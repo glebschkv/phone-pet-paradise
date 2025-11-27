@@ -9,12 +9,10 @@ interface SpriteAnimalProps {
 
 export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps) => {
   const [currentPosition, setCurrentPosition] = useState(position);
-  const [direction, setDirection] = useState<'right' | 'left'>('right');
   const [currentFrame, setCurrentFrame] = useState(0);
 
   // Refs for animation state
   const frameTimeRef = useRef(0);
-  const directionRef = useRef<'right' | 'left'>('right');
 
   const spriteConfig = animal.spriteConfig;
   if (!spriteConfig) return null;
@@ -23,11 +21,6 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
 
   // Calculate frame duration in milliseconds (animationSpeed is FPS)
   const frameDuration = 1000 / animationSpeed;
-
-  // Keep direction ref in sync
-  useEffect(() => {
-    directionRef.current = direction;
-  }, [direction]);
 
   // Combined animation loop for both position and sprite frames
   useEffect(() => {
@@ -45,18 +38,14 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
         frameTimeRef.current = 0;
       }
 
-      // Update position - walk in a more centered area
+      // Update position - continuous left to right movement
       setCurrentPosition(prev => {
         const movement = (speed * (deltaTime / 1000)) / window.innerWidth;
-        const newPosition = prev + (directionRef.current === 'right' ? movement : -movement);
+        const newPosition = prev + movement; // Always move right
 
-        // Bounce back when reaching edges - keep more centered
-        if (newPosition > 0.75) {
-          setDirection('left');
-          return 0.75;
-        } else if (newPosition < 0.25) {
-          setDirection('right');
-          return 0.25;
+        // When fully off-screen right, wrap to off-screen left
+        if (newPosition > 1.15) {
+          return -0.15;
         }
 
         return newPosition;
@@ -92,7 +81,7 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
         width: `${scaledWidth}px`,
         height: `${scaledHeight}px`,
         zIndex: 10,
-        transform: `translateX(-50%) ${direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)'}`,
+        transform: 'translateX(-50%)',
         // GPU acceleration for smooth movement
         willChange: 'transform, left',
       }}
