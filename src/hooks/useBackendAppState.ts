@@ -240,8 +240,8 @@ export const useBackendAppState = () => {
       progress: supabaseData.progress,
       pets: supabaseData.pets,
       
-      // Loading states
-      isLoading: isLoading || xpSystem.isLoading || achievements.isLoading || quests.isLoading || streaks.isLoading,
+      // Loading states - check if isLoading exists (backend systems have it, local don't)
+      isLoading: isLoading || ('isLoading' in xpSystem && xpSystem.isLoading) || achievements.isLoading || quests.isLoading || streaks.isLoading,
     };
   }, [
     xpSystem, achievements, quests, streaks, supabaseData,

@@ -10,7 +10,7 @@ const GUEST_CHOSEN_KEY = 'pet_paradise_guest_chosen';
 const getGuestId = (): string => {
   let guestId = localStorage.getItem(GUEST_ID_KEY);
   if (!guestId) {
-    guestId = `guest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    guestId = `guest-${crypto.randomUUID()}`;
     localStorage.setItem(GUEST_ID_KEY, guestId);
   }
   return guestId;
@@ -139,8 +139,9 @@ export const useAuth = () => {
 
       // Redirect to auth page
       window.location.href = '/auth';
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign out');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to sign out';
+      toast.error(message);
     }
   };
 
