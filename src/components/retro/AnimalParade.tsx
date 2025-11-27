@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { SpriteAnimal } from './SpriteAnimal';
-import { AnimalData } from '@/data/AnimalDatabase';
+import { AnimalData, getAnimalById } from '@/data/AnimalDatabase';
 
 interface AnimalParadeProps {
   unlockedAnimals: AnimalData[];
@@ -9,24 +9,26 @@ interface AnimalParadeProps {
 export const AnimalParade = memo(({ unlockedAnimals }: AnimalParadeProps) => {
   // Use actual unlocked animals, filter to only those with sprite configs
   const paradeAnimals = useMemo(() => {
-    // Default to black dog if no animals unlocked
-    const animals = unlockedAnimals.length > 0 ? unlockedAnimals : [{
-      id: 'black-dog',
-      name: 'Black Dog',
-      emoji: '🐕‍⬛',
+    // Default to meadow hare if no animals unlocked (first animal in database)
+    const defaultAnimal = getAnimalById('hare') || {
+      id: 'hare',
+      name: 'Meadow Hare',
+      emoji: '🐰',
       rarity: 'common' as const,
       unlockLevel: 0,
-      description: 'Your first loyal companion that brings comfort and motivation to your focus sessions.',
-      abilities: ['Loyal Support', 'Energy Boost'],
+      description: 'Your first loyal companion!',
+      abilities: ['Quick Focus', 'Gentle Support', 'Speed Boost'],
       biome: 'Meadow',
       spriteConfig: {
-        spritePath: '/assets/sprites/Walk.png',
-        frameCount: 6,
-        frameWidth: 32,
-        frameHeight: 32,
-        animationSpeed: 0.8
+        spritePath: '/assets/sprites/HARE_WALK.png',
+        frameCount: 4,
+        frameWidth: 28,
+        frameHeight: 28,
+        animationSpeed: 10
       }
-    }];
+    };
+
+    const animals = unlockedAnimals.length > 0 ? unlockedAnimals : [defaultAnimal];
 
     // Only show animals with sprite configs for now
     const spriteAnimals = animals.filter(a => a.spriteConfig);
