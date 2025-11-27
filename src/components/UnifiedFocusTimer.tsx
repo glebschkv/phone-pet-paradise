@@ -15,6 +15,7 @@ import {
   Moon,
   Waves,
   TreePine,
+  Snowflake,
   Lock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +40,7 @@ const BACKGROUND_THEMES: BackgroundTheme[] = [
   { id: 'night', name: 'Night', icon: Moon, unlockLevel: 5 },
   { id: 'ocean', name: 'Ocean', icon: Waves, unlockLevel: 8 },
   { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 12 },
+  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 15 },
 ];
 
 interface TimerState {
@@ -768,6 +770,8 @@ const FocusBackground = ({ theme }: { theme: string }) => {
       return <OceanBackground key="ocean" />;
     case 'forest':
       return <ForestBackground key="forest" />;
+    case 'snow':
+      return <SnowBackground key="snow" />;
     default:
       return <SkyBackground key="sky" />;
   }
@@ -1011,3 +1015,117 @@ const ForestBackground = memo(() => (
   </div>
 ));
 ForestBackground.displayName = 'ForestBackground';
+
+// Snow Background
+const SnowBackground = memo(() => (
+  <div className="absolute inset-0 overflow-hidden">
+    {/* Sky Gradient - Winter sky */}
+    <div
+      className="absolute inset-0"
+      style={{
+        background: 'linear-gradient(180deg, hsl(210 40% 75%) 0%, hsl(210 35% 85%) 40%, hsl(210 30% 92%) 100%)'
+      }}
+    />
+
+    {/* Pale winter sun */}
+    <div
+      className="absolute top-[10%] right-[15%] w-24 h-24 rounded-full opacity-50"
+      style={{
+        background: 'radial-gradient(circle, hsl(45 30% 95%) 0%, hsl(45 20% 90%) 40%, transparent 70%)'
+      }}
+    />
+
+    {/* Soft winter clouds */}
+    <div className="absolute top-[8%] left-[5%] w-28 h-10 rounded-full bg-white/50 blur-sm" />
+    <div className="absolute top-[12%] left-[30%] w-22 h-7 rounded-full bg-white/40 blur-sm" />
+    <div className="absolute top-[6%] right-[20%] w-32 h-10 rounded-full bg-white/45 blur-sm" />
+    <div className="absolute top-[15%] right-[8%] w-18 h-6 rounded-full bg-white/35 blur-sm" />
+
+    {/* Animated snowflakes */}
+    {[
+      { top: '3%', left: '5%', size: 3, delay: 0 },
+      { top: '8%', left: '18%', size: 2.5, delay: 1.2 },
+      { top: '2%', left: '32%', size: 4, delay: 0.6 },
+      { top: '6%', left: '48%', size: 2, delay: 2.0 },
+      { top: '10%', left: '62%', size: 3.5, delay: 0.3 },
+      { top: '4%', left: '78%', size: 2.5, delay: 1.5 },
+      { top: '12%', left: '10%', size: 3, delay: 2.3 },
+      { top: '15%', left: '40%', size: 2, delay: 0.9 },
+      { top: '18%', left: '70%', size: 3, delay: 1.8 },
+      { top: '20%', left: '88%', size: 2.5, delay: 2.6 },
+      { top: '22%', left: '3%', size: 2, delay: 0.4 },
+      { top: '25%', left: '25%', size: 3.5, delay: 1.7 },
+      { top: '28%', left: '55%', size: 2.5, delay: 2.1 },
+      { top: '30%', left: '82%', size: 3, delay: 0.8 },
+    ].map((flake, i) => (
+      <div
+        key={i}
+        className="absolute rounded-full bg-white"
+        style={{
+          top: flake.top,
+          left: flake.left,
+          width: `${flake.size}px`,
+          height: `${flake.size}px`,
+          boxShadow: `0 0 ${flake.size * 2}px hsl(0 0% 100% / 0.8)`,
+          animation: `snowfall ${4 + i * 0.3}s linear infinite`,
+          animationDelay: `${flake.delay}s`
+        }}
+      />
+    ))}
+
+    {/* Snowy mountains */}
+    <div className="absolute bottom-0 w-full h-56">
+      <svg viewBox="0 0 1200 240" className="w-full h-full" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="focusSnowMountainGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(210 20% 95%)" />
+            <stop offset="40%" stopColor="hsl(210 25% 85%)" />
+            <stop offset="100%" stopColor="hsl(210 30% 75%)" />
+          </linearGradient>
+          <linearGradient id="focusSnowCapGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(0 0% 100%)" />
+            <stop offset="100%" stopColor="hsl(210 15% 95%)" />
+          </linearGradient>
+          <linearGradient id="focusSnowHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(210 20% 98%)" />
+            <stop offset="100%" stopColor="hsl(210 25% 90%)" />
+          </linearGradient>
+          <linearGradient id="focusSnowTreeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="hsl(150 30% 35%)" />
+            <stop offset="100%" stopColor="hsl(150 35% 25%)" />
+          </linearGradient>
+        </defs>
+
+        {/* Mountain base */}
+        <path d="M0,240 L0,160 L100,100 L200,140 L350,60 L500,110 L650,40 L800,90 L950,70 L1100,115 L1200,80 L1200,240 Z" fill="url(#focusSnowMountainGradient)" />
+        {/* Snow caps */}
+        <path d="M100,100 L75,120 L125,120 Z" fill="url(#focusSnowCapGradient)" />
+        <path d="M350,60 L315,85 L385,85 Z" fill="url(#focusSnowCapGradient)" />
+        <path d="M650,40 L605,70 L695,70 Z" fill="url(#focusSnowCapGradient)" />
+        <path d="M950,70 L915,95 L985,95 Z" fill="url(#focusSnowCapGradient)" />
+
+        {/* Snowy hills foreground */}
+        <path d="M0,240 L0,180 Q150,150 300,170 Q450,190 600,160 Q750,130 900,155 Q1050,180 1200,150 L1200,240 Z" fill="url(#focusSnowHillGradient)" />
+
+        {/* Snow-covered pine trees */}
+        <path d="M80,240 L80,210 L60,210 L90,170 L70,170 L90,140 L110,170 L90,170 L120,210 L100,210 L100,240 Z" fill="url(#focusSnowTreeGradient)" />
+        <path d="M90,140 L85,148 L95,148 Z" fill="white" />
+
+        <path d="M280,240 L280,215 L265,215 L290,180 L275,180 L290,155 L305,180 L290,180 L315,215 L300,215 L300,240 Z" fill="url(#focusSnowTreeGradient)" />
+        <path d="M290,155 L285,163 L295,163 Z" fill="white" />
+
+        <path d="M520,240 L520,205 L500,205 L530,160 L510,160 L530,125 L550,160 L530,160 L560,205 L540,205 L540,240 Z" fill="url(#focusSnowTreeGradient)" />
+        <path d="M530,125 L524,135 L536,135 Z" fill="white" />
+        <path d="M510,160 L520,168 L530,160 L540,168 L550,160 L530,160 Z" fill="hsl(210 20% 95%)" />
+
+        <path d="M780,240 L780,218 L768,218 L790,185 L778,185 L790,162 L802,185 L790,185 L812,218 L800,218 L800,240 Z" fill="url(#focusSnowTreeGradient)" />
+        <path d="M790,162 L785,170 L795,170 Z" fill="white" />
+
+        <path d="M1050,240 L1050,208 L1032,208 L1060,165 L1042,165 L1060,130 L1078,165 L1060,165 L1088,208 L1070,208 L1070,240 Z" fill="url(#focusSnowTreeGradient)" />
+        <path d="M1060,130 L1054,140 L1066,140 Z" fill="white" />
+        <path d="M1042,165 L1052,174 L1060,165 L1068,174 L1078,165 L1060,165 Z" fill="hsl(210 20% 95%)" />
+      </svg>
+    </div>
+  </div>
+));
+SnowBackground.displayName = 'SnowBackground';
