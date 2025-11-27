@@ -4,6 +4,18 @@ import { StatusBarActions } from "@/components/StatusBarActions";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { WorldSwitcher } from "@/components/WorldSwitcher";
 
+const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
+
+// Map biome names to background theme IDs
+const BIOME_TO_BACKGROUND: Record<string, string> = {
+  'Meadow': 'day',
+  'Sunset': 'sunset',
+  'Night': 'night',
+  'Ocean': 'ocean',
+  'Forest': 'forest',
+  'Snow': 'snow',
+};
+
 interface TopStatusBarProps {
   currentTab: string;
 }
@@ -22,6 +34,15 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
     currentBiome,
     switchBiome,
   } = useAppStateTracking();
+
+  // Handle biome switch with background update
+  const handleSwitchBiome = (biomeName: string) => {
+    switchBiome(biomeName);
+    // Update background to match the biome
+    const backgroundId = BIOME_TO_BACKGROUND[biomeName] || 'day';
+    localStorage.setItem(HOME_BACKGROUND_KEY, backgroundId);
+    window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundId }));
+  };
 
   // Only show on home tab
   if (currentTab !== "home") return null;
@@ -60,7 +81,7 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
           <WorldSwitcher
             currentBiome={currentBiome}
             availableBiomes={availableBiomes}
-            onSwitch={switchBiome}
+            onSwitch={handleSwitchBiome}
           />
         </div>
       </div>
