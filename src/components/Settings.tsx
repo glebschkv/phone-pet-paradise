@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSettings } from "@/hooks/useSettings";
 import { SettingsAppearance } from "@/components/settings/SettingsAppearance";
 import { SettingsTimer } from "@/components/settings/SettingsTimer";
@@ -6,7 +6,7 @@ import { SettingsSound } from "@/components/settings/SettingsSound";
 import { SettingsGame } from "@/components/settings/SettingsGame";
 import { SettingsData } from "@/components/settings/SettingsData";
 import { SettingsAbout } from "@/components/settings/SettingsAbout";
-import { Loader2, Palette, Clock, Volume2, Gamepad2, Database, Heart } from "lucide-react";
+import { Loader2, Palette, Clock, Volume2, Gamepad2, Database, Heart, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -21,6 +21,21 @@ const tabs = [
 export const Settings = () => {
   const { settings, isLoading, updateSettings, resetSettings, exportSettings, importSettings } = useSettings();
   const [activeTab, setActiveTab] = useState("appearance");
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLButtonElement>(null);
+
+  // Scroll active tab into view
+  useEffect(() => {
+    if (activeTabRef.current && tabsRef.current) {
+      const container = tabsRef.current;
+      const tab = activeTabRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const tabRect = tab.getBoundingClientRect();
+
+      const scrollLeft = tab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
+      container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+    }
+  }, [activeTab]);
 
   if (isLoading) {
     return (
@@ -40,31 +55,45 @@ export const Settings = () => {
       background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
     }}>
       {/* Header */}
-      <div className="retro-card mx-3 mt-3 overflow-hidden">
-        {/* Title */}
-        <div className="p-4 border-b border-border/30">
-          <h1 className="text-xl font-bold">Settings</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Customize your experience</p>
+      <div className="px-4 pt-4 pb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 retro-level-badge rounded-xl flex items-center justify-center">
+            <SettingsIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold">Settings</h1>
+            <p className="text-xs text-muted-foreground">Customize your experience</p>
+          </div>
         </div>
+      </div>
 
-        {/* Tab Navigation */}
-        <div className="grid grid-cols-6">
+      {/* Scrollable Tab Navigation */}
+      <div className="px-3 pb-3">
+        <div
+          ref={tabsRef}
+          className="flex gap-2 overflow-x-auto scrollbar-hide py-1 -mx-1 px-1"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
+                ref={isActive ? activeTabRef : null}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "py-2.5 flex flex-col items-center gap-1 transition-all active:scale-95",
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap transition-all active:scale-95 flex-shrink-0",
                   isActive
-                    ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900"
-                    : "text-muted-foreground hover:bg-muted/30"
+                    ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 shadow-md"
+                    : "retro-card text-muted-foreground"
                 )}
+                style={isActive ? {
+                  boxShadow: '0 3px 0 hsl(35 80% 35%), inset 0 1px 0 hsl(45 100% 70% / 0.3)'
+                } : {}}
               >
                 <Icon className="w-4 h-4" />
-                <span className="text-[10px] font-semibold">{tab.label}</span>
+                <span className="text-sm font-semibold">{tab.label}</span>
               </button>
             );
           })}
@@ -72,7 +101,7 @@ export const Settings = () => {
       </div>
 
       {/* Content */}
-      <div className="px-3 pt-3">
+      <div className="px-3">
         {activeTab === "appearance" && (
           <SettingsAppearance
             settings={settings}
