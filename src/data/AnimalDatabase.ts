@@ -109,7 +109,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Happy Vibes', 'Playful Energy', 'Monster Boost'],
     biome: 'Meadow',
     spriteConfig: {
-      spritePath: '/assets/sprites/Dude Monster_Walk2.png',
+      spritePath: '/assets/sprites/DudeMonster_Walk2.png',
       frameCount: 6, // 192px / 32px = 6 frames
       frameWidth: 32,
       frameHeight: 32,
@@ -255,7 +255,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Happy Dance', 'Night Joy', 'Sprite Magic'],
     biome: 'Night',
     spriteConfig: {
-      spritePath: '/assets/sprites/Dude Monster_Happy.png',
+      spritePath: '/assets/sprites/DudeMonster_Happy.png',
       frameCount: 6, // 192px / 32px = 6 frames
       frameWidth: 32,
       frameHeight: 32,
@@ -435,7 +435,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Forest Protection', 'Spirit Guide', 'Nature Focus'],
     biome: 'Forest',
     spriteConfig: {
-      spritePath: '/assets/sprites/Dude Monster_Roll.png',
+      spritePath: '/assets/sprites/DudeMonster_Roll.png',
       frameCount: 6,
       frameWidth: 32,
       frameHeight: 32,
@@ -576,7 +576,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Winter Magic', 'Frost Dance', 'Snow Blessing'],
     biome: 'Snow',
     spriteConfig: {
-      spritePath: '/assets/sprites/Dude Monster_Slide.png',
+      spritePath: '/assets/sprites/DudeMonster_Slide.png',
       frameCount: 4, // 128px / 32px = 4 frames
       frameWidth: 32,
       frameHeight: 32,
@@ -751,7 +751,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Cosmic Focus', 'Star Power', 'Universal Wisdom', 'Infinite Energy', 'Time Master'],
     biome: 'Snow',
     spriteConfig: {
-      spritePath: '/assets/sprites/Dude Monster_Squat.png',
+      spritePath: '/assets/sprites/DudeMonster_Squat.png',
       frameCount: 4,
       frameWidth: 32,
       frameHeight: 32,
@@ -767,7 +767,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 0,
     description: 'A peaceful grassy realm where your journey begins. Gentle creatures roam freely.',
     animals: ['hare', 'bird', 'lizard', 'horse', 'dude-monster'],
-    backgroundImage: '/assets/worlds/GRASSYPATH .png'
+    backgroundImage: '/assets/worlds/GRASSYPATH.png'
   },
   {
     name: 'Sunset',
@@ -781,7 +781,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 9,
     description: 'A mystical moonlit realm where nocturnal creatures thrive under the stars.',
     animals: ['bear', 'snake', 'white-hare', 'monster-happy'],
-    backgroundImage: '/assets/worlds/PURPLE NIGHTSKY.png'
+    backgroundImage: '/assets/worlds/PURPLE_NIGHTSKY.png'
   },
   {
     name: 'Ocean',
@@ -794,14 +794,14 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 19,
     description: 'Deep enchanted jungle filled with ancient wisdom and colorful life.',
     animals: ['jungle-bird', 'jungle-lizard', 'jungle-snake', 'forest-monster', 'jungle-turtle', 'jungle-hare'],
-    backgroundImage: '/assets/worlds/JUNGLE ISLAND.png'
+    backgroundImage: '/assets/worlds/JUNGLE_ISLAND.png'
   },
   {
     name: 'Snow',
     unlockLevel: 25,
     description: 'A magical winter wonderland of snow-capped peaks and arctic adventures.',
     animals: ['arctic-hare', 'mountain-elk', 'polar-bear', 'snow-horse', 'ice-crab', 'frost-spirit', 'ice-shark', 'snow-camel'],
-    backgroundImage: '/assets/worlds/SKYPLATFORM WORLD.png'
+    backgroundImage: '/assets/worlds/SKYPLATFORM_WORLD.png'
   }
 ];
 
