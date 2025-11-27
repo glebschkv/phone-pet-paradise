@@ -14,6 +14,16 @@ import { Button } from "@/components/ui/button";
 
 const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
 
+// Map biome names to background theme IDs
+const BIOME_TO_BACKGROUND: Record<string, string> = {
+  'Meadow': 'day',
+  'Sunset': 'sunset',
+  'Night': 'night',
+  'Ocean': 'ocean',
+  'Forest': 'forest',
+  'Snow': 'snow',
+};
+
 const Index = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
@@ -24,11 +34,16 @@ const Index = () => {
   const { autoBackup } = useDataBackup();
   const [backgroundTheme, setBackgroundTheme] = useState<string>('day');
 
-  // Load background theme from localStorage and listen for changes
+  // Load background theme from localStorage or derive from current biome
   useEffect(() => {
     const savedTheme = localStorage.getItem(HOME_BACKGROUND_KEY);
     if (savedTheme) {
       setBackgroundTheme(savedTheme);
+    } else if (currentBiome) {
+      // Initialize background based on current biome
+      const biomeBackground = BIOME_TO_BACKGROUND[currentBiome] || 'day';
+      setBackgroundTheme(biomeBackground);
+      localStorage.setItem(HOME_BACKGROUND_KEY, biomeBackground);
     }
 
     // Listen for background theme changes from Collection page
@@ -40,7 +55,7 @@ const Index = () => {
     return () => {
       window.removeEventListener('homeBackgroundChange', handleThemeChange as EventListener);
     };
-  }, []);
+  }, [currentBiome]);
 
   // Redirect to auth if not authenticated
   useEffect(() => {

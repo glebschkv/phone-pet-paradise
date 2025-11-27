@@ -32,7 +32,7 @@ export interface BiomeData {
 
 // Unified animal database with GLB models
 export const ANIMAL_DATABASE: AnimalData[] = [
-  // MEADOW BIOME (Levels 0-4) - Starting with the first pet
+  // MEADOW BIOME (Levels 0-2) - Starting with the first pet
   {
     id: 'black-dog',
     name: 'Black Dog',
@@ -72,6 +72,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Meadow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Fox.glb', scale: 0.4, animationName: 'Idle' }
   },
+  // SUNSET BIOME (Levels 3-4)
   {
     id: 'rabbit',
     name: 'Rabbit',
@@ -80,7 +81,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 3,
     description: 'A gentle meadow rabbit, perfect for peaceful focus.',
     abilities: ['Gentle Focus', 'Peaceful Mind'],
-    biome: 'Meadow',
+    biome: 'Sunset',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Rabbit.glb', scale: 0.5, animationName: 'Idle' }
   },
   {
@@ -91,7 +92,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 4,
     description: 'A graceful woodland deer, bringing calm and serenity.',
     abilities: ['Grace', 'Serenity'],
-    biome: 'Meadow',
+    biome: 'Sunset',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Deer.glb', scale: 0.4, animationName: 'Idle' }
   },
   {
@@ -102,11 +103,11 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 5,
     description: 'An energetic squirrel that loves quick bursts of focus.',
     abilities: ['Energy Burst', 'Quick Focus'],
-    biome: 'Meadow',
+    biome: 'Sunset',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Squirrel.glb', scale: 0.6, animationName: 'Idle' }
   },
 
-  // FOREST BIOME (Levels 6-9)
+  // NIGHT BIOME (Levels 5-7)
   {
     id: 'bear-grizzly',
     name: 'Grizzly Bear',
@@ -115,7 +116,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 6,
     description: 'A powerful forest guardian with strength and determination.',
     abilities: ['Strength Focus', 'Endurance', 'Protection'],
-    biome: 'Forest',
+    biome: 'Night',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Bear Grizzly.glb', scale: 0.3, animationName: 'Idle' }
   },
   {
@@ -126,7 +127,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 7,
     description: 'A loyal pack leader with fierce concentration.',
     abilities: ['Pack Leadership', 'Fierce Focus', 'Loyalty'],
-    biome: 'Forest',
+    biome: 'Night',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Wolf.glb', scale: 0.4, animationName: 'Idle' }
   },
   {
@@ -137,7 +138,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 8,
     description: 'A majestic sky hunter with keen vision and focus.',
     abilities: ['Sharp Vision', 'Sky Focus', 'Leadership'],
-    biome: 'Forest',
+    biome: 'Night',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Eagle.glb', scale: 0.5, animationName: 'Idle' }
   },
   {
@@ -148,11 +149,11 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 9,
     description: 'A determined forest dweller with relentless focus.',
     abilities: ['Determination', 'Forest Wisdom', 'Persistence'],
-    biome: 'Forest',
+    biome: 'Night',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Boar.glb', scale: 0.35, animationName: 'Idle' }
   },
 
-  // OCEAN BIOME (Levels 10-14)
+  // OCEAN BIOME (Levels 8-11)
   {
     id: 'dolphin',
     name: 'Dolphin',
@@ -209,16 +210,16 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     modelConfig: { type: 'glb', modelPath: '/assets/models/Seahorse.glb', scale: 0.6, animationName: 'Idle' }
   },
 
-  // TUNDRA BIOME (Levels 15-19)
+  // FOREST BIOME (Levels 12-14)
   {
     id: 'penguin',
     name: 'Penguin',
     emoji: '🐧',
     rarity: 'common',
-    unlockLevel: 15,
-    description: 'A cheerful arctic companion that thrives in challenges.',
+    unlockLevel: 12,
+    description: 'A cheerful companion that thrives in challenges.',
     abilities: ['Persistence', 'Cold Focus', 'Community'],
-    biome: 'Tundra',
+    biome: 'Forest',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Penguin.glb', scale: 0.5, animationName: 'Idle' }
   },
   {
@@ -229,7 +230,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 16,
     description: 'A mighty arctic predator with incredible endurance.',
     abilities: ['Arctic Strength', 'Extreme Focus', 'Survival'],
-    biome: 'Tundra',
+    biome: 'Forest',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Bear Polar.glb', scale: 0.3, animationName: 'Idle' }
   },
   {
@@ -240,7 +241,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 17,
     description: 'A playful arctic swimmer with endurance focus.',
     abilities: ['Endurance', 'Playful Focus', 'Ice Wisdom'],
-    biome: 'Tundra',
+    biome: 'Forest',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Seal.glb', scale: 0.4, animationName: 'Idle' }
   },
   {
@@ -251,7 +252,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 18,
     description: 'A massive arctic guardian with ancient wisdom.',
     abilities: ['Ancient Wisdom', 'Arctic Mastery', 'Deep Focus'],
-    biome: 'Tundra',
+    biome: 'Forest',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Walrus.glb', scale: 0.3, animationName: 'Idle' }
   },
   {
@@ -262,7 +263,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 19,
     description: 'A magical reindeer with seasonal focus powers.',
     abilities: ['Seasonal Focus', 'Magic Touch', 'Endurance'],
-    biome: 'Tundra',
+    biome: 'Forest',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Reindeer.glb', scale: 0.35, animationName: 'Idle' }
   },
 
@@ -275,7 +276,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 20,
     description: 'A powerful striped hunter with fierce concentration.',
     abilities: ['Fierce Focus', 'Hunter Instinct', 'Power Strike'],
-    biome: 'Mountains',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Tiger.glb', scale: 0.35, animationName: 'Idle' }
   },
   {
@@ -286,7 +287,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 21,
     description: 'The king of beasts with majestic leadership focus.',
     abilities: ['Royal Focus', 'Leadership', 'Courage', 'Pride Power'],
-    biome: 'Mountains',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Lion Male.glb', scale: 0.35, animationName: 'Idle' }
   },
   {
@@ -297,7 +298,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 22,
     description: 'A wise giant with incredible memory and focus.',
     abilities: ['Memory Master', 'Wisdom', 'Gentle Giant', 'Ancient Knowledge'],
-    biome: 'Mountains',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Elephant Male.glb', scale: 0.25, animationName: 'Idle' }
   },
   {
@@ -308,7 +309,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 23,
     description: 'A tall guardian with far-reaching vision and patience.',
     abilities: ['Far Sight', 'Patience', 'High Perspective'],
-    biome: 'Mountains',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Giraffe.glb', scale: 0.25, animationName: 'Idle' }
   },
   {
@@ -319,7 +320,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 24,
     description: 'An armored giant with unstoppable determination.',
     abilities: ['Unstoppable Focus', 'Armor Defense', 'Determination'],
-    biome: 'Mountains',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Rhino.glb', scale: 0.3, animationName: 'Idle' }
   },
 
@@ -332,7 +333,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 25,
     description: 'A desert survivor with incredible endurance and patience.',
     abilities: ['Desert Endurance', 'Heat Resistance', 'Long Focus'],
-    biome: 'Desert Dunes',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Camel Dromedary.glb', scale: 0.35, animationName: 'Idle' }
   },
   {
@@ -343,7 +344,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 26,
     description: 'A stealthy desert predator with hypnotic focus.',
     abilities: ['Hypnotic Focus', 'Stealth', 'Patience'],
-    biome: 'Desert Dunes',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Snake.glb', scale: 0.5, animationName: 'Idle' }
   },
   {
@@ -354,7 +355,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 27,
     description: 'A patient web-weaver with intricate focus patterns.',
     abilities: ['Web Focus', 'Patience', 'Precision'],
-    biome: 'Desert Dunes',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Spider.glb', scale: 0.6, animationName: 'Idle' }
   },
   {
@@ -365,7 +366,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 28,
     description: 'A resourceful survivor with quick thinking.',
     abilities: ['Quick Thinking', 'Resourcefulness', 'Survival'],
-    biome: 'Desert Dunes',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Rat.glb', scale: 0.5, animationName: 'Idle' }
   },
   {
@@ -376,7 +377,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 29,
     description: 'A patient desert soarer with keen observation.',
     abilities: ['Sky Patrol', 'Patience', 'Sharp Eyes'],
-    biome: 'Desert Dunes',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Vulture.glb', scale: 0.4, animationName: 'Idle' }
   },
 
@@ -389,7 +390,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 30,
     description: 'A colorful reef guardian with sideways thinking.',
     abilities: ['Lateral Thinking', 'Reef Guardian', 'Defense'],
-    biome: 'Coral Reef',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Crab.glb', scale: 0.5, animationName: 'Idle' }
   },
   {
@@ -400,7 +401,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 31,
     description: 'A vibrant reef fish with flowing focus.',
     abilities: ['Flow State', 'Colorful Mind', 'School Focus'],
-    biome: 'Coral Reef',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Fish.glb', scale: 0.6, animationName: 'Idle' }
   },
   {
@@ -411,7 +412,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 32,
     description: 'A patient reef dweller with regenerative focus.',
     abilities: ['Regenerative Focus', 'Star Power', 'Patience'],
-    biome: 'Coral Reef',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Starfish.glb', scale: 0.6, animationName: 'Idle' }
   },
   {
@@ -422,7 +423,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 33,
     description: 'An intelligent cephalopod with jet-powered focus.',
     abilities: ['Jet Focus', 'Intelligence', 'Camouflage'],
-    biome: 'Coral Reef',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Squid.glb', scale: 0.4, animationName: 'Idle' }
   },
   {
@@ -433,7 +434,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 34,
     description: 'A graceful drifter with flowing meditation.',
     abilities: ['Flow Meditation', 'Grace', 'Gentle Power'],
-    biome: 'Coral Reef',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Jellyfish.glb', scale: 0.4, animationName: 'Idle' }
   },
 
@@ -446,7 +447,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 35,
     description: 'A mythical unicorn with pure magical focus energy.',
     abilities: ['Pure Focus', 'Magic Touch', 'Healing Aura', 'Legendary Grace'],
-    biome: 'Mystic Forest',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Horse.glb', scale: 0.35, animationName: 'Idle' }
   },
   {
@@ -457,7 +458,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 36,
     description: 'A wise talking bird with memory enhancement.',
     abilities: ['Memory Echo', 'Wisdom Voice', 'Color Focus'],
-    biome: 'Mystic Forest',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Parrot.glb', scale: 0.5, animationName: 'Idle' }
   },
   {
@@ -468,7 +469,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 37,
     description: 'An intelligent primate with problem-solving focus.',
     abilities: ['Problem Solving', 'Intelligence', 'Forest Wisdom'],
-    biome: 'Mystic Forest',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Chimpanzee.glb', scale: 0.4, animationName: 'Idle' }
   },
   {
@@ -479,7 +480,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 38,
     description: 'A peaceful spirit guide with pure focus energy.',
     abilities: ['Peace Focus', 'Spirit Guide', 'Pure Energy'],
-    biome: 'Mystic Forest',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Dove.glb', scale: 0.5, animationName: 'Idle' }
   },
   {
@@ -490,7 +491,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 39,
     description: 'A mystical feline with stealth and intuition.',
     abilities: ['Stealth Focus', 'Intuition', 'Nine Lives'],
-    biome: 'Mystic Forest',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Cat.glb', scale: 0.5, animationName: 'Idle' }
   },
 
@@ -503,7 +504,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 40,
     description: 'A sure-footed climber with peak performance focus.',
     abilities: ['Peak Performance', 'Sure Footed', 'Mountain Wisdom'],
-    biome: 'Alpine Peaks',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Goat.glb', scale: 0.4, animationName: 'Idle' }
   },
   {
@@ -514,7 +515,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 41,
     description: 'A wild mountain bear with untamed focus power.',
     abilities: ['Wild Focus', 'Mountain Strength', 'Untamed Power', 'Alpha Presence'],
-    biome: 'Alpine Peaks',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Bear Grizzly Wild.glb', scale: 0.3, animationName: 'Idle' }
   },
   {
@@ -525,7 +526,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 42,
     description: 'A fluffy companion that brings calm counting focus.',
     abilities: ['Counting Focus', 'Cloud Dreams', 'Peaceful Sleep'],
-    biome: 'Alpine Peaks',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Sheep.glb', scale: 0.4, animationName: 'Idle' }
   },
   {
@@ -536,7 +537,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 43,
     description: 'A powerful herd leader with thunder focus.',
     abilities: ['Thunder Focus', 'Herd Power', 'Sky Strength'],
-    biome: 'Alpine Peaks',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Buffalo.glb', scale: 0.3, animationName: 'Idle' }
   },
   {
@@ -547,7 +548,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 44,
     description: 'A swift mountain runner with speed focus.',
     abilities: ['Speed Focus', 'Swift Thinking', 'Peak Runner'],
-    biome: 'Alpine Peaks',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Ostrich.glb', scale: 0.35, animationName: 'Idle' }
   },
 
@@ -560,7 +561,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 45,
     description: 'A resilient cave dweller with survival focus.',
     abilities: ['Survival Focus', 'Resilience', 'Cave Explorer'],
-    biome: 'Crystal Caves',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Cockroach.glb', scale: 0.6, animationName: 'Idle' }
   },
   {
@@ -571,7 +572,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 46,
     description: 'A diligent builder with construction focus.',
     abilities: ['Construction Focus', 'Diligence', 'Crystal Craft'],
-    biome: 'Crystal Caves',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Beaver.glb', scale: 0.4, animationName: 'Idle' }
   },
   {
@@ -582,7 +583,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 47,
     description: 'A buzzing worker with hive mind focus.',
     abilities: ['Hive Mind', 'Work Focus', 'Crystal Honey'],
-    biome: 'Crystal Caves',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Honeybee.glb', scale: 0.6, animationName: 'Idle' }
   },
   {
@@ -593,7 +594,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 48,
     description: 'An ancient cave guardian with deep earth focus.',
     abilities: ['Earth Focus', 'Ancient Guard', 'Deep Meditation'],
-    biome: 'Crystal Caves',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Tapir.glb', scale: 0.35, animationName: 'Idle' }
   },
   {
@@ -604,7 +605,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 49,
     description: 'A vigilant sentinel with crystal clear focus.',
     abilities: ['Crystal Focus', 'Vigilance', 'Group Unity'],
-    biome: 'Crystal Caves',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Meerkat.glb', scale: 0.5, animationName: 'Idle' }
   },
 
@@ -617,78 +618,48 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 50,
     description: 'A starborne wolf with cosmic consciousness and infinite focus.',
     abilities: ['Cosmic Focus', 'Star Wisdom', 'Infinite Concentration', 'Universal Unity'],
-    biome: 'Celestial Isles',
+    biome: 'Snow',
     modelConfig: { type: 'glb', modelPath: '/assets/models/Wolf.glb', scale: 0.4, animationName: 'Idle' }
   }
 ];
 
-// Biome configuration
+// Biome configuration - matches background themes
 export const BIOME_DATABASE: BiomeData[] = [
   {
     name: 'Meadow',
-    unlockLevel: 0,
-    description: 'A peaceful starting realm where your journey begins.',
-    animals: ['black-dog', 'panda', 'fox', 'rabbit', 'deer', 'squirrel']
+    unlockLevel: 1,
+    description: 'A peaceful sunny realm where your journey begins.',
+    animals: ['black-dog', 'panda', 'fox']
   },
   {
-    name: 'Forest',
-    unlockLevel: 6,
-    description: 'A mystical forest realm filled with woodland creatures.',
+    name: 'Sunset',
+    unlockLevel: 3,
+    description: 'Golden hour meadows bathed in warm evening light.',
+    animals: ['rabbit', 'deer', 'squirrel']
+  },
+  {
+    name: 'Night',
+    unlockLevel: 5,
+    description: 'A mystical moonlit realm where nocturnal creatures thrive.',
     animals: ['bear-grizzly', 'wolf', 'eagle', 'boar']
   },
   {
     name: 'Ocean',
-    unlockLevel: 10,
-    description: 'Serene ocean depths where aquatic friends await.',
+    unlockLevel: 8,
+    description: 'Serene ocean waters where aquatic friends await.',
     animals: ['dolphin', 'whale', 'shark', 'octopus', 'seahorse']
   },
   {
-    name: 'Tundra',
-    unlockLevel: 15,
-    description: 'Harsh arctic lands where the strongest companions thrive.',
+    name: 'Forest',
+    unlockLevel: 12,
+    description: 'Deep enchanted woods filled with woodland wisdom.',
     animals: ['penguin', 'polar-bear', 'seal', 'walrus', 'reindeer']
   },
   {
-    name: 'Mountains',
-    unlockLevel: 20,
-    description: 'Legendary peaks where mythical creatures dwell.',
-    animals: ['tiger', 'lion-male', 'elephant-male', 'giraffe', 'rhino']
-  },
-  {
-    name: 'Desert Dunes',
-    unlockLevel: 25,
-    description: 'Golden sands and ancient ruins under blazing suns.',
-    animals: ['camel-dromedary', 'snake', 'spider', 'rat', 'vulture']
-  },
-  {
-    name: 'Coral Reef',
-    unlockLevel: 30,
-    description: 'Vibrant underwater gardens teeming with life.',
-    animals: ['crab', 'fish', 'starfish', 'squid', 'jellyfish']
-  },
-  {
-    name: 'Mystic Forest',
-    unlockLevel: 35,
-    description: 'Enchanted groves glowing with ethereal light.',
-    animals: ['horse-unicorn', 'parrot', 'chimpanzee', 'dove', 'cat']
-  },
-  {
-    name: 'Alpine Peaks',
-    unlockLevel: 40,
-    description: 'Snowy cliffs and crystal-clear skies above the clouds.',
-    animals: ['goat', 'bear-grizzly-wild', 'sheep', 'buffalo', 'ostrich']
-  },
-  {
-    name: 'Crystal Caves',
-    unlockLevel: 45,
-    description: 'Shimmering caverns echoing with ancient energy.',
-    animals: ['cockroach', 'beaver', 'honeybee', 'tapir', 'meerkat']
-  },
-  {
-    name: 'Celestial Isles',
-    unlockLevel: 50,
-    description: 'Floating islands among the stars—the ultimate realm.',
-    animals: ['cosmic-wolf']
+    name: 'Snow',
+    unlockLevel: 15,
+    description: 'A magical winter wonderland of snow-capped peaks.',
+    animals: ['tiger', 'lion-male', 'elephant-male', 'giraffe', 'rhino', 'camel-dromedary', 'snake', 'spider', 'rat', 'vulture', 'crab', 'fish', 'starfish', 'squid', 'jellyfish', 'horse-unicorn', 'parrot', 'chimpanzee', 'dove', 'cat', 'goat', 'bear-grizzly-wild', 'sheep', 'buffalo', 'ostrich', 'cockroach', 'beaver', 'honeybee', 'tapir', 'meerkat', 'cosmic-wolf']
   }
 ];
 
