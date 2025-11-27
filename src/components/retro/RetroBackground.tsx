@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { getBiomeByName } from '@/data/AnimalDatabase';
 
 interface RetroBackgroundProps {
@@ -24,34 +24,64 @@ export const RetroBackground = memo(({ theme = 'day' }: RetroBackgroundProps) =>
 
 RetroBackground.displayName = 'RetroBackground';
 
-// Reusable Image Background Component
+// Reusable Image Background Component with proper loading/error handling
 const ImageBackground = memo(({ imagePath, fallbackGradient, children }: {
   imagePath: string;
   fallbackGradient: string;
   children?: React.ReactNode;
-}) => (
-  <div className="absolute inset-0 overflow-hidden">
-    {/* Background Image */}
-    <div
-      className="absolute inset-0"
-      style={{
-        backgroundImage: `url(${imagePath})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center bottom',
-        backgroundRepeat: 'no-repeat',
-        imageRendering: 'pixelated',
-      }}
-    />
-    {/* Fallback gradient overlay for loading */}
-    <div
-      className="absolute inset-0 opacity-0 transition-opacity duration-500"
-      style={{
-        background: fallbackGradient
-      }}
-    />
-    {children}
-  </div>
-));
+}) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    // Reset state when imagePath changes
+    setImageLoaded(false);
+    setImageError(false);
+
+    // Preload the image
+    const img = new Image();
+    img.onload = () => {
+      setImageLoaded(true);
+    };
+    img.onerror = () => {
+      setImageError(true);
+    };
+    img.src = imagePath;
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [imagePath]);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {/* Fallback gradient - shown while loading or on error */}
+      <div
+        className="absolute inset-0 transition-opacity duration-300"
+        style={{
+          background: fallbackGradient,
+          opacity: imageLoaded && !imageError ? 0 : 1
+        }}
+      />
+      {/* Background Image - only visible when loaded successfully */}
+      {!imageError && (
+        <div
+          className="absolute inset-0 transition-opacity duration-300"
+          style={{
+            backgroundImage: `url(${imagePath})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center bottom',
+            backgroundRepeat: 'no-repeat',
+            imageRendering: 'pixelated',
+            opacity: imageLoaded ? 1 : 0
+          }}
+        />
+      )}
+      {children}
+    </div>
+  );
+});
 ImageBackground.displayName = 'ImageBackground';
 
 // Day Background (Meadow - Grassy Path)
