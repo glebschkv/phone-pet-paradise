@@ -1,9 +1,8 @@
 import { AppSettings } from "@/hooks/useSettings";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Gamepad2, Zap, HelpCircle, Save } from "lucide-react";
+import { Zap, HelpCircle, Save, Turtle, Rabbit, Gauge } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SettingsGameProps {
   settings: AppSettings;
@@ -11,112 +10,113 @@ interface SettingsGameProps {
 }
 
 const animationSpeedOptions = [
-  { value: "slow", label: "Slow", description: "Relaxed animations for better focus" },
-  { value: "normal", label: "Normal", description: "Balanced animation speed" },
-  { value: "fast", label: "Fast", description: "Quick animations for efficiency" },
+  { value: "slow", label: "Slow", icon: Turtle, description: "Relaxed pace" },
+  { value: "normal", label: "Normal", icon: Gauge, description: "Balanced" },
+  { value: "fast", label: "Fast", icon: Rabbit, description: "Quick actions" },
 ];
 
 export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Gamepad2 className="w-5 h-5" />
-          Game Settings
-        </h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Customize your gameplay experience
-        </p>
+    <div className="space-y-3">
+      {/* Animation Speed */}
+      <div className="retro-card p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 retro-level-badge rounded-lg flex items-center justify-center">
+            <Zap className="w-5 h-5" />
+          </div>
+          <div>
+            <Label className="text-sm font-bold">Animation Speed</Label>
+            <p className="text-[10px] text-muted-foreground">Control visual effects speed</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {animationSpeedOptions.map((option) => {
+            const Icon = option.icon;
+            const isSelected = settings.animationSpeed === option.value;
+            return (
+              <button
+                key={option.value}
+                onClick={() => onUpdate({ animationSpeed: option.value as 'slow' | 'normal' | 'fast' })}
+                className={cn(
+                  "p-3 rounded-lg flex flex-col items-center gap-2 transition-all active:scale-95",
+                  isSelected && "ring-2 ring-primary"
+                )}
+                style={{
+                  background: isSelected
+                    ? 'linear-gradient(180deg, hsl(45 80% 90%) 0%, hsl(var(--card)) 100%)'
+                    : 'hsl(var(--card))',
+                  border: '2px solid hsl(var(--border))',
+                  boxShadow: isSelected
+                    ? '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+                    : '0 2px 0 hsl(var(--border) / 0.4)'
+                }}
+              >
+                <div className={cn(
+                  "w-9 h-9 rounded-lg flex items-center justify-center",
+                  isSelected ? "retro-level-badge" : "retro-stat-pill"
+                )}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-bold">{option.label}</div>
+                  <div className="text-[9px] text-muted-foreground">{option.description}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Animation & Performance</CardTitle>
-          <CardDescription>
-            Control visual effects and responsiveness
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Label htmlFor="animation-speed" className="flex items-center gap-2">
-              <Zap className="w-4 h-4" />
-              Animation Speed
-            </Label>
-            <Select
-              value={settings.animationSpeed}
-              onValueChange={(value) => onUpdate({ animationSpeed: value as 'slow' | 'normal' | 'fast' })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select animation speed" />
-              </SelectTrigger>
-              <SelectContent>
-                {animationSpeedOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div>
-                      <div className="font-medium">{option.label}</div>
-                      <div className="text-sm text-muted-foreground">{option.description}</div>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Assistance</CardTitle>
-          <CardDescription>
-            Tutorial and help options
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="tutorial-hints" className="flex items-center gap-2">
-                <HelpCircle className="w-4 h-4" />
-                Show Tutorial Hints
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Display helpful tips and guidance
-              </p>
+      {/* Tutorial Hints */}
+      <div className="retro-card p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center",
+              settings.showTutorialHints ? "retro-level-badge" : "retro-stat-pill"
+            )}>
+              <HelpCircle className="w-5 h-5" />
             </div>
-            <Switch
-              id="tutorial-hints"
-              checked={settings.showTutorialHints}
-              onCheckedChange={(checked) => onUpdate({ showTutorialHints: checked })}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Progress</CardTitle>
-          <CardDescription>
-            How your progress is saved
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="auto-save" className="flex items-center gap-2">
-                <Save className="w-4 h-4" />
-                Auto-Save Progress
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Automatically save your game progress
-              </p>
+            <div>
+              <Label className="text-sm font-bold">Tutorial Hints</Label>
+              <p className="text-[10px] text-muted-foreground">Show helpful tips & guidance</p>
             </div>
-            <Switch
-              id="auto-save"
-              checked={settings.autoSaveProgress}
-              onCheckedChange={(checked) => onUpdate({ autoSaveProgress: checked })}
-            />
           </div>
-        </CardContent>
-      </Card>
+          <Switch
+            checked={settings.showTutorialHints}
+            onCheckedChange={(checked) => onUpdate({ showTutorialHints: checked })}
+          />
+        </div>
+      </div>
+
+      {/* Auto-Save */}
+      <div className="retro-card p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center",
+              settings.autoSaveProgress ? "retro-level-badge" : "retro-stat-pill"
+            )}>
+              <Save className="w-5 h-5" />
+            </div>
+            <div>
+              <Label className="text-sm font-bold">Auto-Save</Label>
+              <p className="text-[10px] text-muted-foreground">Automatically save progress</p>
+            </div>
+          </div>
+          <Switch
+            checked={settings.autoSaveProgress}
+            onCheckedChange={(checked) => onUpdate({ autoSaveProgress: checked })}
+          />
+        </div>
+      </div>
+
+      {/* Info hint */}
+      <div className="retro-stat-pill p-3 text-center">
+        <p className="text-xs text-muted-foreground">
+          Game settings affect gameplay experience
+        </p>
+      </div>
     </div>
   );
 };
