@@ -22,20 +22,20 @@ export const StatusBarActions = ({
   };
 
   return (
-    <div className="flex items-center gap-1.5">
-      {/* Pet Count - Retro pill style */}
-      <div className="retro-stat-pill flex items-center gap-1.5 px-2.5 py-1 touch-manipulation">
-        <Heart className="w-3.5 h-3.5 text-pink-500" />
+    <div className="flex items-center gap-1.5 shrink-0">
+      {/* Pet Count - Clean pill style */}
+      <div className="stat-pill-clean touch-manipulation">
+        <Heart className="w-4 h-4 text-rose-400 fill-rose-400/20" />
         <span className="text-sm font-bold text-foreground tabular-nums">{petCount}</span>
       </div>
 
-      {/* Debug Test Button */}
+      {/* Energy/Debug Button */}
       <button
         onClick={handleTestLevelUp}
-        className="retro-stat-pill flex items-center gap-1 px-2.5 py-1 hover:brightness-95 active:scale-95 transition-all touch-manipulation"
+        className="stat-pill-clean hover:brightness-95 active:scale-95 transition-all touch-manipulation"
+        title="Test XP gain"
       >
-        <Zap className="w-3.5 h-3.5 text-yellow-500" />
-        <span className="text-xs font-semibold text-muted-foreground hidden sm:inline">Test</span>
+        <Zap className="w-4 h-4 text-amber-400 fill-amber-400/30" />
       </button>
     </div>
   );

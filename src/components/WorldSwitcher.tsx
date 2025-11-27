@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MapPin, ChevronDown } from "lucide-react";
 
@@ -12,24 +11,20 @@ export const WorldSwitcher = ({ currentBiome, availableBiomes, onSwitch }: World
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="retro-stat-pill flex items-center gap-2 px-3 py-1.5 hover:brightness-95 active:scale-95 transition-all touch-manipulation">
-          <MapPin className="w-3.5 h-3.5 text-primary" />
+        <button className="biome-selector touch-manipulation">
+          <MapPin className="w-4 h-4 text-primary/80" />
           <span className="text-sm font-semibold text-foreground">{currentBiome}</span>
-          <ChevronDown className="w-3 h-3 text-muted-foreground" />
+          <ChevronDown className="w-3.5 h-3.5 text-foreground/40 transition-transform group-data-[state=open]:rotate-180" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[10rem] retro-card border-2 border-border p-1">
+      <DropdownMenuContent align="end" className="min-w-[9rem] biome-dropdown">
         {availableBiomes.map((biome) => (
           <DropdownMenuItem
             key={biome}
             onClick={() => onSwitch(biome)}
-            className={`rounded-md px-3 py-2 text-sm cursor-pointer transition-colors ${
-              biome === currentBiome
-                ? "bg-primary/10 font-semibold text-primary"
-                : "hover:bg-muted/50"
-            }`}
+            className={`biome-option ${biome === currentBiome ? 'active' : ''}`}
           >
-            <MapPin className={`w-3.5 h-3.5 mr-2 ${biome === currentBiome ? 'text-primary' : 'text-muted-foreground'}`} />
+            <MapPin className="w-3.5 h-3.5" />
             {biome}
           </DropdownMenuItem>
         ))}

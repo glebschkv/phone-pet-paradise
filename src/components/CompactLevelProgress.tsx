@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { Star } from "lucide-react";
 
 interface CompactLevelProgressProps {
   currentLevel: number;
@@ -14,31 +14,29 @@ export const CompactLevelProgress = ({
   xpToNextLevel
 }: CompactLevelProgressProps) => {
   return (
-    <div className="flex items-center gap-3 flex-1 min-w-0">
-      {/* Level Badge - Retro gold style */}
-      <div className="retro-level-badge px-2.5 py-1 flex items-center gap-1.5 shrink-0">
-        <Sparkles className="w-3.5 h-3.5" />
-        <span className="text-sm font-bold tracking-tight">LV.{currentLevel}</span>
+    <div className="flex items-center gap-2 flex-1 min-w-0">
+      {/* Level Badge - Enhanced gold style */}
+      <div className="level-badge-enhanced shrink-0">
+        <Star className="w-3.5 h-3.5 fill-current" />
+        <span className="font-bold tracking-tight">LV.{currentLevel}</span>
       </div>
 
-      {/* XP Bar Container */}
-      <div className="flex-1 min-w-0">
-        {/* XP Text Row */}
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">EXP</span>
-          <span className="text-[10px] font-mono text-foreground/70">
-            {xpToNextLevel} <span className="text-muted-foreground">to next</span>
-          </span>
+      {/* XP Progress Section */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        {/* XP Bar with inline label */}
+        <div className="xp-bar-container">
+          <div
+            className="xp-bar-fill"
+            style={{ width: `${Math.max(3, progress)}%` }}
+          />
+          <span className="xp-bar-label">EXP</span>
         </div>
 
-        {/* Retro XP Bar */}
-        <div className="retro-xp-bar">
-          <div
-            className="retro-xp-fill"
-            style={{ width: `${Math.max(2, progress)}%` }}
-          >
-            <div className="shine" />
-          </div>
+        {/* XP Numbers below */}
+        <div className="flex items-center justify-end">
+          <span className="text-[10px] font-medium text-foreground/60 tabular-nums">
+            {xpToNextLevel} to next
+          </span>
         </div>
       </div>
     </div>

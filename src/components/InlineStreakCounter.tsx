@@ -20,18 +20,20 @@ export const InlineStreakCounter = ({
   const hasStreak = streakData.currentStreak >= 3;
 
   return (
-    <div className="retro-stat-pill flex items-center gap-2 px-3 py-1.5">
-      <Flame className={`w-4 h-4 text-orange-500 ${hasStreak ? 'streak-glow' : ''}`} />
-      <div className="flex items-center gap-1.5">
+    <div className="streak-pill">
+      <div className={`streak-icon-wrapper ${hasStreak ? 'has-streak' : ''}`}>
+        <Flame className="w-4 h-4" />
+      </div>
+      <div className="flex items-center gap-1">
         <span className="text-sm font-bold text-foreground tabular-nums">
           {streakData.currentStreak}
         </span>
-        <span className="text-xs text-muted-foreground font-medium">
+        <span className="text-xs text-foreground/50 font-medium">
           day{streakData.currentStreak !== 1 ? 's' : ''}
         </span>
       </div>
       {hasStreak && (
-        <span className="text-base leading-none">
+        <span className="text-sm leading-none ml-0.5">
           {getStreakEmoji(streakData.currentStreak)}
         </span>
       )}

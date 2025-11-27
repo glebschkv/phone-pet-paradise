@@ -385,4 +385,224 @@
     );
     animation: xp-shine 2s ease-in-out infinite;
   }
+
+  /* ============================================
+     IMPROVED TOPBAR STYLES
+     ============================================ */
+
+  /* Main topbar container - clean glass effect */
+  .topbar-container {
+    background: linear-gradient(180deg,
+      hsl(var(--card) / 0.95) 0%,
+      hsl(var(--card) / 0.88) 100%
+    );
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid hsl(var(--border) / 0.6);
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow:
+      0 2px 8px hsl(0 0% 0% / 0.06),
+      0 4px 16px hsl(0 0% 0% / 0.04),
+      inset 0 1px 0 hsl(0 0% 100% / 0.2);
+  }
+
+  /* Enhanced level badge - gold with glow */
+  .level-badge-enhanced {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    background: linear-gradient(135deg,
+      hsl(42 92% 56%) 0%,
+      hsl(38 88% 48%) 50%,
+      hsl(42 92% 56%) 100%
+    );
+    border: 1.5px solid hsl(32 75% 38%);
+    border-radius: 8px;
+    color: hsl(28 60% 12%);
+    font-size: 13px;
+    box-shadow:
+      0 2px 0 hsl(30 70% 30% / 0.5),
+      0 2px 8px hsl(40 90% 50% / 0.25),
+      inset 0 1px 0 hsl(48 100% 75% / 0.5);
+    text-shadow: 0 1px 0 hsl(48 100% 75% / 0.35);
+  }
+
+  /* Clean XP bar container */
+  .xp-bar-container {
+    position: relative;
+    height: 18px;
+    background: linear-gradient(180deg,
+      hsl(var(--muted) / 0.25) 0%,
+      hsl(var(--muted) / 0.4) 100%
+    );
+    border: 1.5px solid hsl(var(--border) / 0.7);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px hsl(0 0% 0% / 0.05);
+  }
+
+  .xp-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(180deg,
+      hsl(272 65% 62%) 0%,
+      hsl(260 58% 52%) 50%,
+      hsl(268 60% 58%) 100%
+    );
+    border-radius: 4px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.25),
+      0 0 10px hsl(260 60% 55% / 0.35);
+  }
+
+  .xp-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    right: 3px;
+    height: 4px;
+    background: linear-gradient(90deg,
+      hsl(0 0% 100% / 0.35) 0%,
+      hsl(0 0% 100% / 0.1) 100%
+    );
+    border-radius: 2px;
+  }
+
+  .xp-bar-label {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: hsl(var(--foreground) / 0.5);
+    text-transform: uppercase;
+    z-index: 1;
+    text-shadow: 0 1px 0 hsl(0 0% 100% / 0.3);
+  }
+
+  /* Clean stat pill */
+  .stat-pill-clean {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: linear-gradient(180deg,
+      hsl(var(--background) / 0.9) 0%,
+      hsl(var(--muted) / 0.35) 100%
+    );
+    border: 1.5px solid hsl(var(--border) / 0.6);
+    border-radius: 10px;
+    box-shadow:
+      0 1px 3px hsl(0 0% 0% / 0.04),
+      inset 0 1px 0 hsl(0 0% 100% / 0.15);
+  }
+
+  /* Streak pill with icon wrapper */
+  .streak-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(180deg,
+      hsl(var(--background) / 0.9) 0%,
+      hsl(var(--muted) / 0.3) 100%
+    );
+    border: 1.5px solid hsl(var(--border) / 0.5);
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.1);
+  }
+
+  .streak-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(24 90% 55%);
+    transition: all 0.2s ease;
+  }
+
+  .streak-icon-wrapper.has-streak {
+    color: hsl(22 95% 55%);
+    filter: drop-shadow(0 0 5px hsl(25 100% 50% / 0.5));
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { filter: drop-shadow(0 0 4px hsl(25 100% 50% / 0.5)); }
+    50% { filter: drop-shadow(0 0 8px hsl(25 100% 50% / 0.7)); }
+  }
+
+  /* Biome selector button */
+  .biome-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(180deg,
+      hsl(var(--background) / 0.9) 0%,
+      hsl(var(--muted) / 0.3) 100%
+    );
+    border: 1.5px solid hsl(var(--border) / 0.5);
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.1);
+    transition: all 0.15s ease;
+  }
+
+  .biome-selector:hover {
+    background: linear-gradient(180deg,
+      hsl(var(--background)) 0%,
+      hsl(var(--muted) / 0.4) 100%
+    );
+    border-color: hsl(var(--border) / 0.7);
+  }
+
+  .biome-selector:active {
+    transform: scale(0.97);
+  }
+
+  /* Biome dropdown menu */
+  .biome-dropdown {
+    background: hsl(var(--card) / 0.98);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid hsl(var(--border) / 0.6);
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow:
+      0 4px 16px hsl(0 0% 0% / 0.1),
+      0 2px 6px hsl(0 0% 0% / 0.06);
+  }
+
+  .biome-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: hsl(var(--foreground) / 0.8);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .biome-option:hover {
+    background: hsl(var(--muted) / 0.4);
+  }
+
+  .biome-option.active {
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+    font-weight: 600;
+  }
+
+  .biome-option.active svg {
+    color: hsl(var(--primary));
+  }
 }
