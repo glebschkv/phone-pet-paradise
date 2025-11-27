@@ -98,10 +98,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Meadow',
     spriteConfig: {
       spritePath: '/assets/sprites/Cat.png',
-      frameCount: 10,
-      frameWidth: 141, // 1408px / 10 frames ≈ 140.8, rounded up for proper coverage
+      frameCount: 11, // 11 frames in the sprite sheet
+      frameWidth: 128, // 1408px / 11 frames = 128px exactly
       frameHeight: 64, // 128px / 2 rows = 64px per row
-      animationSpeed: 12,
+      animationSpeed: 10, // Slightly slower for smoother walking
       frameRow: 1 // Use the bottom row of the sprite sheet (walking animation)
     }
   },
