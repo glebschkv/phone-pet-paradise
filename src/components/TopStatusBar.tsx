@@ -49,9 +49,10 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
 
   return (
     <div className="absolute top-safe left-3 right-3 pointer-events-auto z-40">
-      <div className="retro-card p-3">
-        {/* Main Row - XP Progress */}
-        <div className="flex items-center gap-3">
+      <div className="topbar-container">
+        {/* Top Row - Level, XP Progress, and Stats */}
+        <div className="flex items-center gap-2.5">
+          {/* Level Badge */}
           <CompactLevelProgress
             currentLevel={currentLevel}
             progress={getLevelProgress()}
@@ -59,20 +60,15 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
             xpToNextLevel={xpToNextLevel}
           />
 
-          {/* Actions on same row for mobile */}
-          <div className="flex items-center gap-2 shrink-0">
-            <StatusBarActions
-              petCount={unlockedAnimals.length}
-              onTestLevelUp={testLevelUp}
-            />
-          </div>
+          {/* Stats Group */}
+          <StatusBarActions
+            petCount={unlockedAnimals.length}
+            onTestLevelUp={testLevelUp}
+          />
         </div>
 
-        {/* Divider */}
-        <div className="h-px bg-border/50 my-2.5" />
-
         {/* Bottom Row - Streak & World */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-2.5">
           <InlineStreakCounter
             streakData={streakData}
             getStreakEmoji={getStreakEmoji}
