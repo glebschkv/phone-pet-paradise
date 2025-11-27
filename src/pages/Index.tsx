@@ -26,12 +26,12 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading, signOut } = useAuth();
-  const { profile, progress, pets } = useSupabaseData();
+  const { isAuthenticated, isLoading } = useAuth();
+  useSupabaseData(); // Initialize Supabase data loading
   const { unlockedAnimals, currentLevel, currentBiome } = useBackendAppState();
   const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
-  const { performanceLevel } = usePerformanceMonitor();
-  const { autoBackup } = useDataBackup();
+  usePerformanceMonitor(); // Initialize performance monitoring
+  useDataBackup(); // Initialize auto-backup
   const [backgroundTheme, setBackgroundTheme] = useState<string>('day');
 
   // Load background theme from localStorage or derive from current biome
