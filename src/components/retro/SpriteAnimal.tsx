@@ -1,18 +1,22 @@
 import { memo, useState, useEffect, useRef } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
+import { PositionRegistry } from './useAnimalPositions';
 
 interface SpriteAnimalProps {
   animal: AnimalData;
+  animalId: string;
   position: number;
   speed: number;
+  positionRegistry: PositionRegistry;
 }
 
-export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps) => {
+export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionRegistry }: SpriteAnimalProps) => {
   const [currentPosition, setCurrentPosition] = useState(position);
   const [currentFrame, setCurrentFrame] = useState(0);
 
   // Refs for animation state
   const frameTimeRef = useRef(0);
+  const positionRef = useRef(position);
 
   const spriteConfig = animal.spriteConfig;
   if (!spriteConfig) return null;
@@ -21,6 +25,14 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
 
   // Calculate frame duration in milliseconds (animationSpeed is FPS)
   const frameDuration = 1000 / animationSpeed;
+
+  // Register and unregister position on mount/unmount
+  useEffect(() => {
+    positionRegistry.updatePosition(animalId, position);
+    return () => {
+      positionRegistry.removePosition(animalId);
+    };
+  }, [animalId, positionRegistry]);
 
   // Combined animation loop for both position and sprite frames
   useEffect(() => {
@@ -38,18 +50,27 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
         frameTimeRef.current = 0;
       }
 
-      // Update position - continuous left to right movement
-      setCurrentPosition(prev => {
-        const movement = (speed * (deltaTime / 1000)) / window.innerWidth;
-        const newPosition = prev + movement; // Always move right
+      // Get dynamic speed multiplier based on proximity to other animals
+      const speedMultiplier = positionRegistry.getSpeedMultiplier(
+        animalId,
+        positionRef.current,
+        speed
+      );
 
-        // When fully off-screen right, wrap to off-screen left
-        if (newPosition > 1.15) {
-          return -0.15;
-        }
+      // Update position with adjusted speed
+      const adjustedSpeed = speed * speedMultiplier;
+      const movement = (adjustedSpeed * (deltaTime / 1000)) / window.innerWidth;
 
-        return newPosition;
-      });
+      let newPosition = positionRef.current + movement;
+
+      // When fully off-screen right, wrap to off-screen left
+      if (newPosition > 1.15) {
+        newPosition = -0.15;
+      }
+
+      positionRef.current = newPosition;
+      positionRegistry.updatePosition(animalId, newPosition);
+      setCurrentPosition(newPosition);
 
       animationFrame = requestAnimationFrame(animate);
     };
@@ -61,7 +82,7 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
         cancelAnimationFrame(animationFrame);
       }
     };
-  }, [speed, frameDuration, frameCount]);
+  }, [speed, frameDuration, frameCount, animalId, positionRegistry]);
 
   // Scale up the sprite for better visibility (2.5x for crisp pixels)
   const scale = 2.5;
