@@ -1,5 +1,5 @@
-import { BOOSTER_TYPES, BoosterType } from '@/hooks/useCoinBooster';
-import { getCoinExclusiveAnimals, AnimalData } from './AnimalDatabase';
+import { BOOSTER_TYPES } from '@/hooks/useCoinBooster';
+import { getCoinExclusiveAnimals } from './AnimalDatabase';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SHOP ITEM TYPES

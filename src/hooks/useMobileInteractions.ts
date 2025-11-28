@@ -26,7 +26,7 @@ export const useMobileInteractions = () => {
   });
 
   const { triggerHaptic } = useDeviceActivity();
-  const { getSessionStats } = useBackgroundProcessing();
+  const { getSessionStats: _getSessionStats } = useBackgroundProcessing();
   const { scheduleRewardNotification } = useNotifications();
 
   // Detect device capabilities

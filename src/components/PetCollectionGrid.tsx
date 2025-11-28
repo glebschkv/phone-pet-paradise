@@ -13,7 +13,6 @@ import {
   Sunset,
   Moon,
   Home,
-  Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCollection } from "@/hooks/useCollection";

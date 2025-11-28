@@ -52,7 +52,10 @@ export const useBackendStreaks = () => {
     }
   }, [isAuthenticated, progress]);
 
-  const checkStreakValidity = useCallback((data: StreakData) => {
+  // Preserved for potential use - validates streak data
+  // @ts-expect-error - Method kept for potential future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _checkStreakValidity = useCallback((data: StreakData) => {
     if (!data.lastSessionDate) return data;
 
     const lastSession = new Date(data.lastSessionDate);

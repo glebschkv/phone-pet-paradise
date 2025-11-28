@@ -7,7 +7,7 @@ import { useBackendStreaks } from './useBackendStreaks';
 import { useSupabaseData } from './useSupabaseData';
 import { useBondSystem } from './useBondSystem';
 import { useCollection } from './useCollection';
-import { useCoinSystem, CoinReward } from './useCoinSystem';
+import { useCoinSystem } from './useCoinSystem';
 import { useCoinBooster } from './useCoinBooster';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';

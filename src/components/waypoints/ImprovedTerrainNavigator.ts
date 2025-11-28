@@ -1,4 +1,4 @@
-import { Vector3, Raycaster, Object3D, Mesh } from 'three';
+import { Vector3, Raycaster, Mesh } from 'three';
 
 export interface NavigationResult {
   position: Vector3;
@@ -15,8 +15,6 @@ export class ImprovedTerrainNavigator {
   private tempVector3: Vector3;
   private readonly maxSlopeAngle: number = 45; // degrees
   private readonly rayLength: number = 10;
-  private readonly groundCheckHeight: number = 0.2;
-  private readonly multiRayOffset: number = 0.1;
 
   constructor() {
     this.raycaster = new Raycaster();

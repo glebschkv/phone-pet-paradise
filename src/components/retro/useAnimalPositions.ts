@@ -36,7 +36,7 @@ export function useAnimalPositionRegistry(): PositionRegistry {
    * - If far from animal ahead: speed up slightly
    * - Otherwise: normal speed
    */
-  const getSpeedMultiplier = useCallback((id: string, currentPosition: number, baseSpeed: number) => {
+  const getSpeedMultiplier = useCallback((id: string, currentPosition: number, _baseSpeed: number) => {
     const positions = positionsRef.current;
 
     if (positions.size <= 1) return 1; // No other animals, normal speed
@@ -102,7 +102,7 @@ export function useFlyingPositionRegistry(): PositionRegistry {
     positionsRef.current.delete(id);
   }, []);
 
-  const getSpeedMultiplier = useCallback((id: string, currentPosition: number, baseSpeed: number) => {
+  const getSpeedMultiplier = useCallback((id: string, currentPosition: number, _baseSpeed: number) => {
     const positions = positionsRef.current;
 
     if (positions.size <= 1) return 1;

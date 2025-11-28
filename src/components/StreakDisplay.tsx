@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   Flame, 
-  Target, 
   Calendar,
   Snowflake,
   Trophy

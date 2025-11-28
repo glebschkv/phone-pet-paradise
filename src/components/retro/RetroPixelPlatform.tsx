@@ -27,7 +27,7 @@ const loadActivePetsFromStorage = (): string[] => {
   return ['hare'];
 };
 
-export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel, backgroundTheme = 'day' }: RetroPixelPlatformProps) => {
+export const RetroPixelPlatform = memo(({ unlockedAnimals: _unlockedAnimals, currentLevel, backgroundTheme = 'day' }: RetroPixelPlatformProps) => {
   // Initialize with localStorage value to avoid flash
   const [activeHomePets, setActiveHomePets] = useState<string[]>(() => loadActivePetsFromStorage());
 

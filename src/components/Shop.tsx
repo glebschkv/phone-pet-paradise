@@ -19,7 +19,6 @@ import {
   getShopItemsByCategory,
   ShopItem,
   COIN_PACKS,
-  CoinPack,
 } from "@/data/ShopData";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";

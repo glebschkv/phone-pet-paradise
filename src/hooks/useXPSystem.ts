@@ -33,7 +33,6 @@ export interface XPSystemState {
 
 const STORAGE_KEY = 'petIsland_xpSystem';
 const XP_UPDATE_EVENT = 'petIsland_xpUpdate';
-const LOGIN_REWARD_EVENT = 'petIsland_dailyLoginReward';
 const ANIMAL_PURCHASED_EVENT = 'petIsland_animalPurchased';
 
 // Random bonus XP system - creates variable rewards (slot machine psychology)

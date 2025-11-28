@@ -53,9 +53,6 @@ export class WaypointGenerator {
    * Get behavior profile for different animal types
    */
   private getAnimalBehavior(animal: AnimalData): AnimalBehavior {
-    const rarity = animal.rarity;
-    const size = this.getAnimalSize(animal.name);
-    
     // Base behavior patterns
     const behaviors: Record<string, Partial<AnimalBehavior>> = {
       // Small, quick animals
@@ -214,6 +211,8 @@ export class WaypointGenerator {
   /**
    * Get animal size category
    */
+  // @ts-expect-error - Method kept for potential future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private getAnimalSize(name: string): 'small' | 'medium' | 'large' {
     const small = ['rabbit', 'squirrel', 'rat', 'fish', 'crab', 'starfish'];
     const large = ['elephant', 'whale', 'bear', 'lion', 'tiger', 'giraffe', 'rhino'];

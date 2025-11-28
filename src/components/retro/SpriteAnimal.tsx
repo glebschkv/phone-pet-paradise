@@ -97,8 +97,8 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
     <div
       className="absolute"
       style={{
-        // Position the animal on the ground surface (at the top of the ice/ground platform)
-        bottom: '18%',
+        // Position the animal on the ground surface (at the top of the ground platform, above tab bar)
+        bottom: '13%',
         left: `${currentPosition * 100}%`,
         width: `${scaledWidth}px`,
         height: `${scaledHeight}px`,

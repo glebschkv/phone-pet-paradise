@@ -315,7 +315,7 @@ export const useBackendQuests = (): QuestSystemReturn => {
   }, [quests, createQuestFromTemplate, isGuestMode, saveQuestsToStorage]);
 
   // Update quest progress
-  const updateQuestProgress = useCallback(async (type: string, amount: number, metadata?: any) => {
+  const updateQuestProgress = useCallback(async (type: string, amount: number, _metadata?: any) => {
     if (!user) return;
 
     const activeQuests = quests.filter(q => !q.isCompleted);

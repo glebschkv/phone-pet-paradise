@@ -1,4 +1,4 @@
-import { Vector3, Raycaster, Mesh, BufferGeometry } from 'three';
+import { Vector3, Raycaster, Mesh } from 'three';
 
 export interface IslandBounds {
   minX: number;
