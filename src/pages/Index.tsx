@@ -19,7 +19,6 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
   'Meadow': 'day',
   'Sunset': 'sunset',
   'Night': 'night',
-  'Ocean': 'ocean',
   'Forest': 'forest',
   'Snow': 'snow',
 };

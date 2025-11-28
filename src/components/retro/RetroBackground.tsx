@@ -11,8 +11,6 @@ export const RetroBackground = memo(({ theme = 'day' }: RetroBackgroundProps) =>
       return <SunsetHomeBackground key="sunset" />;
     case 'night':
       return <NightHomeBackground key="night" />;
-    case 'ocean':
-      return <OceanHomeBackground key="ocean" />;
     case 'forest':
       return <ForestHomeBackground key="forest" />;
     case 'snow':
@@ -313,67 +311,6 @@ const NightHomeBackground = memo(() => {
   );
 });
 NightHomeBackground.displayName = 'NightHomeBackground';
-
-// Ocean Background
-const OceanHomeBackground = memo(() => (
-  <div className="absolute inset-0 overflow-hidden">
-    {/* Sky Gradient - Tropical */}
-    <div
-      className="absolute inset-0"
-      style={{
-        background: 'linear-gradient(180deg, hsl(195 75% 70%) 0%, hsl(200 65% 78%) 40%, hsl(45 60% 85%) 100%)'
-      }}
-    />
-
-    {/* Sun */}
-    <div
-      className="absolute top-[12%] right-[22%] w-20 h-20 rounded-full opacity-70"
-      style={{
-        background: 'radial-gradient(circle, hsl(45 100% 90%) 0%, transparent 70%)'
-      }}
-    />
-
-    {/* Tropical clouds */}
-    <div className="absolute top-[10%] left-[8%] w-24 h-9 rounded-full bg-white/45 blur-sm" />
-    <div className="absolute top-[6%] left-[28%] w-18 h-6 rounded-full bg-white/35 blur-sm" />
-    <div className="absolute top-[14%] left-[55%] w-28 h-10 rounded-full bg-white/40 blur-sm" />
-    <div className="absolute top-[8%] right-[30%] w-16 h-5 rounded-full bg-white/30 blur-sm" />
-
-    {/* Distant island silhouette */}
-    <div className="absolute bottom-[28%] w-full h-40">
-      <svg viewBox="0 0 1200 160" className="w-full h-full" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="oceanIslandGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="hsl(150 40% 55%)" />
-            <stop offset="100%" stopColor="hsl(150 45% 45%)" />
-          </linearGradient>
-        </defs>
-        <path d="M0,160 L0,140 L200,140 L250,100 L300,80 L400,90 L500,70 L600,85 L700,75 L800,90 L900,140 L1200,140 L1200,160 Z" fill="url(#oceanIslandGradient)" />
-      </svg>
-    </div>
-
-    {/* Ocean waves */}
-    <div className="absolute bottom-[18%] w-full h-32">
-      <svg viewBox="0 0 1200 130" className="w-full h-full" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="oceanWaveGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="hsl(200 70% 60%)" stopOpacity="0.7" />
-            <stop offset="100%" stopColor="hsl(205 65% 50%)" stopOpacity="0.8" />
-          </linearGradient>
-          <linearGradient id="oceanWaveGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="hsl(205 60% 50%)" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="hsl(210 55% 40%)" stopOpacity="0.9" />
-          </linearGradient>
-        </defs>
-        {/* Back wave */}
-        <path d="M0,130 L0,60 Q100,40 200,60 Q300,80 400,50 Q500,20 600,50 Q700,80 800,40 Q900,10 1000,40 Q1100,70 1200,30 L1200,130 Z" fill="url(#oceanWaveGradient1)" />
-        {/* Front wave */}
-        <path d="M0,130 L0,90 Q150,70 300,100 Q450,130 600,90 Q750,50 900,90 Q1050,130 1200,70 L1200,130 Z" fill="url(#oceanWaveGradient2)" />
-      </svg>
-    </div>
-  </div>
-));
-OceanHomeBackground.displayName = 'OceanHomeBackground';
 
 // Forest Background (Jungle Island)
 const ForestHomeBackground = memo(() => {

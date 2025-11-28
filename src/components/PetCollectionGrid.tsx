@@ -6,7 +6,6 @@ import {
   Heart,
   Lock,
   TreePine,
-  Waves,
   Snowflake,
   MapPin,
   Star,
@@ -86,7 +85,6 @@ const BIOME_ICONS = {
   'Meadow': Sun,
   'Sunset': Sunset,
   'Night': Moon,
-  'Ocean': Waves,
   'Forest': TreePine,
   'Snow': Snowflake,
 };
@@ -96,7 +94,6 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
   'Meadow': 'day',
   'Sunset': 'sunset',
   'Night': 'night',
-  'Ocean': 'ocean',
   'Forest': 'forest',
   'Snow': 'snow',
 };
