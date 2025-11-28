@@ -116,11 +116,6 @@ export const IOSTabBar = ({ activeTab, onTabChange }: TabBarProps) => {
               <Icon className="dock-item-icon" strokeWidth={isActive ? 2.5 : 2} />
               <span className="dock-item-label">{tab.label}</span>
 
-              {/* Notification badge */}
-              {tab.badge && (
-                <span className="dock-badge">{tab.badge}</span>
-              )}
-
               {/* Active indicator dot */}
               <span className="dock-active-dot" />
             </button>

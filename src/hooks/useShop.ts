@@ -8,9 +8,6 @@ import {
   PREMIUM_BACKGROUNDS,
   PROFILE_BADGES,
   UTILITY_ITEMS,
-  getShopItemById,
-  PremiumBackground,
-  ProfileBadge,
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 

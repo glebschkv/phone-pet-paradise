@@ -1,5 +1,4 @@
-import { Vector3, Mesh, Raycaster, Object3D } from 'three';
-import { ANIMAL_DATABASE } from '@/data/AnimalDatabase';
+import { Vector3, Mesh, Raycaster } from 'three';
 
 export interface SmartWaypoint {
   position: Vector3;
@@ -18,11 +17,9 @@ export interface AnimalBehavior {
 
 export class ImprovedWaypointGenerator {
   private raycaster: Raycaster;
-  private tempVector: Vector3;
 
   constructor() {
     this.raycaster = new Raycaster();
-    this.tempVector = new Vector3();
   }
 
   /**

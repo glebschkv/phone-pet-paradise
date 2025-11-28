@@ -1,6 +1,5 @@
 import { memo, useEffect, useState } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
-import { SpriteAnimal } from './SpriteAnimal';
 
 interface PixelAnimalProps {
   animal: AnimalData;
@@ -9,20 +8,8 @@ interface PixelAnimalProps {
 }
 
 export const PixelAnimal = memo(({ animal, position, speed }: PixelAnimalProps) => {
-  // Route to sprite-based animals if they have sprite config
-  if (animal.spriteConfig) {
-    return (
-      <SpriteAnimal
-        animal={animal}
-        position={position}
-        speed={speed}
-      />
-    );
-  }
-
-  // Original CSS-based pixel animal logic
+  // Original CSS-based pixel animal logic (sprite animals use SpriteAnimal directly now)
   const [currentPosition, setCurrentPosition] = useState(position);
-  const [isWalking, setIsWalking] = useState(true);
   
   useEffect(() => {
     const startTime = Date.now();
@@ -65,7 +52,7 @@ export const PixelAnimal = memo(({ animal, position, speed }: PixelAnimalProps) 
       }}
     >
       {/* Pixel Art Animal Body */}
-      <div className={`relative ${isWalking ? 'animate-pixel-walk' : ''}`}>
+      <div className="relative animate-pixel-walk">
         {/* Shadow */}
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-8 h-2 bg-muted/30 rounded-full blur-sm" />
         
@@ -105,7 +92,7 @@ const FoxPixelArt = memo(({ colors }: { colors: { primary: string; accent: strin
   </div>
 ));
 
-const PandaPixelArt = memo(({ colors }: { colors: { primary: string; accent: string } }) => (
+const PandaPixelArt = memo(({ colors: _colors }: { colors: { primary: string; accent: string } }) => (
   <div className="relative w-8 h-8">
     {/* Ears */}
     <div className="absolute top-0 left-1 w-2 h-2 bg-foreground rounded-full" />

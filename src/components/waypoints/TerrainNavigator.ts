@@ -1,4 +1,4 @@
-import { Vector3, Mesh, Raycaster } from 'three';
+import { Vector3, Mesh } from 'three';
 import { IslandAnalyzer } from './IslandAnalyzer';
 
 export interface NavigationResult {
@@ -11,10 +11,8 @@ export interface NavigationResult {
 
 export class TerrainNavigator {
   private analyzer = new IslandAnalyzer();
-  private raycaster = new Raycaster();
   private tempVector = new Vector3();
   private tempVector2 = new Vector3();
-  private surfaceNormal = new Vector3();
 
   /**
    * Calculate safe movement with terrain awareness

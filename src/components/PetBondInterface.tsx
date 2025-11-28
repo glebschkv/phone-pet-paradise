@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, Play, Gift, Zap, Camera, Palette, Send } from 'lucide-react';
+import { Heart, Play, Gift, Zap, Camera } from 'lucide-react';
 import { useBondSystem } from '@/hooks/useBondSystem';
 import { getAnimalById } from '@/data/AnimalDatabase';
 
@@ -15,7 +15,7 @@ interface PetBondInterfaceProps {
 
 export const PetBondInterface: React.FC<PetBondInterfaceProps> = ({ animalId, onClose }) => {
   const [isInteracting, setIsInteracting] = useState(false);
-  const [selectedTraining, setSelectedTraining] = useState<string>('');
+  const [_selectedTraining, _setSelectedTraining] = useState<string>('');
   
   const {
     getBondLevel,

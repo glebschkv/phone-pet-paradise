@@ -50,7 +50,7 @@ export const useNotifications = () => {
       }
 
       // Request permissions
-      const [pushPermissions, localPermissions] = await Promise.all([
+      const [_pushPermissions, _localPermissions] = await Promise.all([
         PushNotifications.requestPermissions(),
         LocalNotifications.requestPermissions()
       ]);

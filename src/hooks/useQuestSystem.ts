@@ -203,8 +203,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
 
   // Generate daily quests
   const generateDailyQuests = useCallback(() => {
-    const today = new Date().toDateString();
-    const existingDaily = quests.filter(q => 
+    const existingDaily = quests.filter(q =>
       q.type === 'daily' && 
       q.expiresAt && 
       q.expiresAt > Date.now()
@@ -253,7 +252,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
   }, [quests, createQuestFromTemplate, saveQuestData]);
 
   // Update quest progress
-  const updateQuestProgress = useCallback((type: string, amount: number, metadata?: any) => {
+  const updateQuestProgress = useCallback((type: string, amount: number, _metadata?: any) => {
     setQuests(prev => {
       const updated = prev.map(quest => {
         if (quest.isCompleted) return quest;
