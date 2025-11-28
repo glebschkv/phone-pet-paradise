@@ -69,8 +69,7 @@ const ImageBackground = memo(({ imagePath, fallbackGradient, children }: {
           style={{
             backgroundImage: `url(${imagePath})`,
             backgroundSize: 'cover',
-            // Shift background up by 80px to show ground above tab bar
-            backgroundPosition: 'center calc(100% + 80px)',
+            backgroundPosition: 'center bottom',
             backgroundRepeat: 'no-repeat',
             imageRendering: 'pixelated',
             opacity: imageLoaded ? 1 : 0
