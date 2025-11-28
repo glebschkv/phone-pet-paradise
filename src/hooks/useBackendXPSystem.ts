@@ -137,8 +137,8 @@ export const useBackendXPSystem = () => {
   
   const [xpState, setXPState] = useState<XPSystemState>({
     currentXP: 0,
-    currentLevel: 0, // Start at level 0 to include Black Dog
-    xpToNextLevel: 25,
+    currentLevel: 0, // Start at level 0 to include Meadow Hare
+    xpToNextLevel: 15, // Level 1 requires 15 XP
     totalXPForCurrentLevel: 0,
     unlockedAnimals: getUnlockedAnimals(0).map(a => a.name),
     currentBiome: 'Meadow',
