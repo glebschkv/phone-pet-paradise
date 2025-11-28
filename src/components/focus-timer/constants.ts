@@ -1,7 +1,6 @@
 import { Clock, Brain, Coffee, Sun, Sunset, Moon, Waves, TreePine, Snowflake, LucideIcon } from "lucide-react";
 
 export const STORAGE_KEY = 'petIsland_unifiedTimer';
-export const TIMER_PERSISTENCE_KEY = 'petIsland_timerPersistence';
 export const BACKGROUND_THEME_KEY = 'petIsland_focusBackground';
 
 export interface BackgroundTheme {
@@ -30,15 +29,6 @@ export interface TimerState {
   sessionType: SessionType;
   completedSessions: number;
   soundEnabled: boolean;
-}
-
-export interface TimerPersistence {
-  wasRunning: boolean;
-  pausedAt: number | null;
-  originalStartTime: number | null;
-  timeLeftWhenPaused: number;
-  sessionDuration: number;
-  sessionType: SessionType;
 }
 
 export interface TimerPreset {

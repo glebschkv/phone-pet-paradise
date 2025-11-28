@@ -1,12 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import {
   TimerPreset,
-  TimerPersistence,
   TIMER_PRESETS,
-  TIMER_PERSISTENCE_KEY,
   BACKGROUND_THEME_KEY,
   BACKGROUND_THEMES,
 } from "./focus-timer/constants";
@@ -33,6 +31,11 @@ export const UnifiedFocusTimer = () => {
   } = useTimerPersistence();
 
   const [backgroundTheme, setBackgroundTheme] = useState<string>('sky');
+  const [displayTime, setDisplayTime] = useState<number>(timerState.timeLeft);
+
+  // Refs for stable timer management
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isCompletingRef = useRef(false);
 
   // Load background theme from localStorage (validate against unlock level)
   useEffect(() => {
@@ -61,8 +64,10 @@ export const UnifiedFocusTimer = () => {
   const setPreset = useCallback((preset: TimerPreset) => {
     if (!timerState.isRunning) {
       setSelectedPreset(preset);
+      const newTimeLeft = preset.duration * 60;
+      setDisplayTime(newTimeLeft);
       saveTimerState({
-        timeLeft: preset.duration * 60,
+        timeLeft: newTimeLeft,
         sessionDuration: preset.duration * 60,
         sessionType: preset.type,
         isRunning: false,
@@ -94,7 +99,17 @@ export const UnifiedFocusTimer = () => {
   }, [timerState.completedSessions, toast, setPreset]);
 
   const handleComplete = useCallback(async () => {
+    // Prevent double completion
+    if (isCompletingRef.current) return;
+    isCompletingRef.current = true;
+
     const completedMinutes = timerState.sessionDuration / 60;
+
+    // Clear interval first
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
 
     clearPersistence();
 
@@ -120,6 +135,8 @@ export const UnifiedFocusTimer = () => {
       duration: 4000,
     });
 
+    // Reset display time and timer state
+    setDisplayTime(timerState.sessionDuration);
     saveTimerState({
       isRunning: false,
       timeLeft: timerState.sessionDuration,
@@ -131,95 +148,149 @@ export const UnifiedFocusTimer = () => {
     if (timerState.sessionType !== 'break') {
       suggestBreak();
     }
+
+    isCompletingRef.current = false;
   }, [timerState, selectedPreset, awardXP, toast, saveTimerState, clearPersistence, playCompletionSound, suggestBreak]);
 
-  // Timer countdown effect
+  // Sync displayTime with timerState when not running
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    if (!timerState.isRunning) {
+      setDisplayTime(timerState.timeLeft);
+    }
+  }, [timerState.timeLeft, timerState.isRunning]);
 
-    if (timerState.isRunning && timerState.timeLeft > 0) {
-      interval = setInterval(() => {
-        saveTimerState({ timeLeft: timerState.timeLeft - 1 });
-      }, 1000);
-    } else if (timerState.timeLeft === 0 && timerState.isRunning) {
-      handleComplete();
+  // Timer countdown effect using refs for stable interval
+  useEffect(() => {
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
 
-    return () => clearInterval(interval);
-  }, [timerState.isRunning, timerState.timeLeft, saveTimerState, handleComplete]);
+    if (timerState.isRunning && timerState.startTime) {
+      const tick = () => {
+        const now = Date.now();
+        const elapsedMs = now - timerState.startTime!;
+        const elapsedSeconds = Math.floor(elapsedMs / 1000);
+        const newTimeLeft = Math.max(0, timerState.sessionDuration - elapsedSeconds);
+
+        setDisplayTime(newTimeLeft);
+
+        // Update storage periodically (every 5 seconds) for persistence
+        if (elapsedSeconds % 5 === 0) {
+          saveTimerState({ timeLeft: newTimeLeft });
+        }
+
+        // Timer completed
+        if (newTimeLeft === 0) {
+          handleComplete();
+        }
+      };
+
+      // Run immediately
+      tick();
+
+      // Set up interval
+      intervalRef.current = setInterval(tick, 1000);
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, saveTimerState, handleComplete]);
 
   // Page visibility API to handle app focus/blur
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // App going to background - save current state
-        if (timerState.isRunning) {
-          const persistenceData: TimerPersistence = {
-            wasRunning: true,
-            pausedAt: null,
-            originalStartTime: timerState.startTime,
-            timeLeftWhenPaused: timerState.timeLeft,
-            sessionDuration: timerState.sessionDuration,
-            sessionType: timerState.sessionType
-          };
-          localStorage.setItem(TIMER_PERSISTENCE_KEY, JSON.stringify(persistenceData));
-        }
-      } else {
-        // App coming to foreground - restore if needed
-        const savedPersistence = localStorage.getItem(TIMER_PERSISTENCE_KEY);
-        if (savedPersistence && timerState.isRunning && timerState.startTime) {
-          try {
-            const persistence: TimerPersistence = JSON.parse(savedPersistence);
-            if (persistence.wasRunning && persistence.originalStartTime) {
-              const totalElapsed = Date.now() - persistence.originalStartTime;
-              const elapsedSeconds = Math.floor(totalElapsed / 1000);
-              const newTimeLeft = Math.max(0, persistence.sessionDuration - elapsedSeconds);
+      if (!document.hidden && timerState.isRunning && timerState.startTime) {
+        // App coming to foreground - recalculate time
+        const now = Date.now();
+        const elapsedMs = now - timerState.startTime;
+        const elapsedSeconds = Math.floor(elapsedMs / 1000);
+        const newTimeLeft = Math.max(0, timerState.sessionDuration - elapsedSeconds);
 
-              saveTimerState({
-                timeLeft: newTimeLeft,
-                isRunning: newTimeLeft > 0
-              });
+        setDisplayTime(newTimeLeft);
+        saveTimerState({ timeLeft: newTimeLeft });
 
-              if (newTimeLeft === 0) {
-                setTimeout(handleComplete, 100);
-              }
-            }
-          } catch (error) {
-            console.error('Failed to restore timer on foreground:', error);
-          }
+        if (newTimeLeft === 0) {
+          handleComplete();
         }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [timerState, saveTimerState, handleComplete]);
+  }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, saveTimerState, handleComplete]);
 
   const startTimer = useCallback(() => {
+    const now = Date.now();
+    setDisplayTime(timerState.timeLeft);
     saveTimerState({
       isRunning: true,
-      startTime: Date.now(),
+      startTime: now,
+      // Calculate sessionDuration based on current timeLeft for resumed timers
+      sessionDuration: timerState.timeLeft,
     });
-  }, [saveTimerState]);
+  }, [saveTimerState, timerState.timeLeft]);
 
   const pauseTimer = useCallback(() => {
+    // Calculate current time left
+    const now = Date.now();
+    let currentTimeLeft = timerState.timeLeft;
+
+    if (timerState.startTime) {
+      const elapsedMs = now - timerState.startTime;
+      const elapsedSeconds = Math.floor(elapsedMs / 1000);
+      currentTimeLeft = Math.max(0, timerState.sessionDuration - elapsedSeconds);
+    }
+
+    setDisplayTime(currentTimeLeft);
     saveTimerState({
       isRunning: false,
       startTime: null,
+      timeLeft: currentTimeLeft,
+      // Keep the original session duration for the progress bar
+      sessionDuration: selectedPreset.duration * 60,
     });
-  }, [saveTimerState]);
+  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, selectedPreset.duration]);
 
   const stopTimer = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    const fullDuration = selectedPreset.duration * 60;
+    setDisplayTime(fullDuration);
     clearPersistence();
     saveTimerState({
       isRunning: false,
-      timeLeft: timerState.sessionDuration,
+      timeLeft: fullDuration,
+      sessionDuration: fullDuration,
       startTime: null,
     });
-  }, [clearPersistence, saveTimerState, timerState.sessionDuration]);
+  }, [clearPersistence, saveTimerState, selectedPreset.duration]);
 
   const skipTimer = useCallback(async () => {
-    const completedMinutes = Math.ceil((timerState.sessionDuration - timerState.timeLeft) / 60);
+    // Calculate actual time worked
+    let elapsedSeconds = 0;
+    if (timerState.startTime) {
+      const now = Date.now();
+      const elapsedMs = now - timerState.startTime;
+      elapsedSeconds = Math.floor(elapsedMs / 1000);
+    } else {
+      elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
+    }
+
+    const completedMinutes = Math.ceil(elapsedSeconds / 60);
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
 
     clearPersistence();
 
@@ -246,8 +317,15 @@ export const UnifiedFocusTimer = () => {
       });
     }
 
-    stopTimer();
-  }, [timerState, awardXP, toast, clearPersistence, stopTimer]);
+    const fullDuration = selectedPreset.duration * 60;
+    setDisplayTime(fullDuration);
+    saveTimerState({
+      isRunning: false,
+      timeLeft: fullDuration,
+      sessionDuration: fullDuration,
+      startTime: null,
+    });
+  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });
@@ -258,16 +336,10 @@ export const UnifiedFocusTimer = () => {
       <FocusBackground theme={backgroundTheme} />
 
       <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-16 pb-32">
-        <BackgroundThemeSwitcher
-          currentTheme={backgroundTheme}
-          currentLevel={currentLevel}
-          onThemeChange={changeBackgroundTheme}
-        />
-
         <TimerDisplay
           preset={selectedPreset}
-          timeLeft={timerState.timeLeft}
-          sessionDuration={timerState.sessionDuration}
+          timeLeft={displayTime}
+          sessionDuration={selectedPreset.duration * 60}
           isRunning={timerState.isRunning}
           soundEnabled={timerState.soundEnabled}
           onToggleSound={toggleSound}
@@ -290,6 +362,12 @@ export const UnifiedFocusTimer = () => {
         </div>
 
         <TimerStats completedSessions={timerState.completedSessions} />
+
+        <BackgroundThemeSwitcher
+          currentTheme={backgroundTheme}
+          currentLevel={currentLevel}
+          onThemeChange={changeBackgroundTheme}
+        />
       </div>
     </div>
   );
