@@ -76,8 +76,8 @@ export const SpriteAnimal = memo(({ animal, position, speed }: SpriteAnimalProps
     <div
       className="absolute"
       style={{
-        // Position the dog on top of the grass platform
-        bottom: '22%',
+        // Position the animal on the ground surface (at the top of the ice/ground platform)
+        bottom: '10%',
         left: `${currentPosition * 100}%`,
         width: `${scaledWidth}px`,
         height: `${scaledHeight}px`,
