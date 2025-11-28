@@ -8,6 +8,7 @@ interface CollectionStats {
   totalBiomes: number;
   unlockedBiomes: number;
   favoritesCount: number;
+  activeHomePetsCount: number;
   rarityStats: Record<string, { total: number; unlocked: number }>;
 }
 
@@ -17,23 +18,29 @@ interface UseCollectionReturn {
   unlockedAnimalsData: AnimalData[];
   currentBiomeAnimals: AnimalData[];
   favorites: Set<string>;
+  activeHomePets: Set<string>;
   stats: CollectionStats;
-  
+
   // Actions
   toggleFavorite: (animalId: string) => void;
+  toggleHomeActive: (animalId: string) => void;
   isAnimalUnlocked: (animalId: string) => boolean;
   isAnimalFavorite: (animalId: string) => boolean;
+  isAnimalHomeActive: (animalId: string) => boolean;
   getAnimalData: (animalId: string) => AnimalData | undefined;
-  
+  getActiveHomePetsData: () => AnimalData[];
+
   // Filtering
   filterAnimals: (searchQuery: string, rarity?: string, biome?: string) => AnimalData[];
 }
 
 const FAVORITES_STORAGE_KEY = 'petparadise-favorites';
+const ACTIVE_HOME_PETS_KEY = 'petparadise-active-home-pets';
 
 export const useCollection = (): UseCollectionReturn => {
   const { currentLevel, unlockedAnimals, currentBiome, availableBiomes } = useAppStateTracking();
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [activeHomePets, setActiveHomePets] = useState<Set<string>>(new Set());
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -48,12 +55,39 @@ export const useCollection = (): UseCollectionReturn => {
     }
   }, []);
 
+  // Load active home pets from localStorage
+  useEffect(() => {
+    const savedActivePets = localStorage.getItem(ACTIVE_HOME_PETS_KEY);
+    if (savedActivePets) {
+      try {
+        const activePetsArray = JSON.parse(savedActivePets);
+        setActiveHomePets(new Set(activePetsArray));
+      } catch (error) {
+        console.error('Failed to load active home pets:', error);
+      }
+    } else {
+      // Default: show first unlocked pet (hare) if nothing saved
+      setActiveHomePets(new Set(['hare']));
+    }
+  }, []);
+
   // Save favorites to localStorage
   const saveFavorites = useCallback((newFavorites: Set<string>) => {
     try {
       localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(newFavorites)));
     } catch (error) {
       console.error('Failed to save favorites:', error);
+    }
+  }, []);
+
+  // Save active home pets to localStorage
+  const saveActiveHomePets = useCallback((newActivePets: Set<string>) => {
+    try {
+      localStorage.setItem(ACTIVE_HOME_PETS_KEY, JSON.stringify(Array.from(newActivePets)));
+      // Dispatch event so AnimalParade can react
+      window.dispatchEvent(new CustomEvent('activeHomePetsChange', { detail: Array.from(newActivePets) }));
+    } catch (error) {
+      console.error('Failed to save active home pets:', error);
     }
   }, []);
 
@@ -70,6 +104,7 @@ export const useCollection = (): UseCollectionReturn => {
     totalBiomes: availableBiomes.length + (5 - availableBiomes.length), // Total possible biomes
     unlockedBiomes: availableBiomes.length,
     favoritesCount: favorites.size,
+    activeHomePetsCount: activeHomePets.size,
     rarityStats: {
       common: {
         total: ANIMAL_DATABASE.filter(a => a.rarity === 'common').length,
@@ -104,6 +139,20 @@ export const useCollection = (): UseCollectionReturn => {
     });
   }, [saveFavorites]);
 
+  // Toggle home page display status
+  const toggleHomeActive = useCallback((animalId: string) => {
+    setActiveHomePets(prev => {
+      const newActivePets = new Set(prev);
+      if (newActivePets.has(animalId)) {
+        newActivePets.delete(animalId);
+      } else {
+        newActivePets.add(animalId);
+      }
+      saveActiveHomePets(newActivePets);
+      return newActivePets;
+    });
+  }, [saveActiveHomePets]);
+
   // Helper functions
   const isAnimalUnlocked = useCallback((animalId: string): boolean => {
     const animal = getAnimalById(animalId);
@@ -114,9 +163,23 @@ export const useCollection = (): UseCollectionReturn => {
     return favorites.has(animalId);
   }, [favorites]);
 
+  const isAnimalHomeActive = useCallback((animalId: string): boolean => {
+    return activeHomePets.has(animalId);
+  }, [activeHomePets]);
+
   const getAnimalData = useCallback((animalId: string): AnimalData | undefined => {
     return getAnimalById(animalId);
   }, []);
+
+  // Get active home pets data (animals shown on home page)
+  const getActiveHomePetsData = useCallback((): AnimalData[] => {
+    // Only include unlocked pets that are active
+    return Array.from(activeHomePets)
+      .map(id => getAnimalById(id))
+      .filter((animal): animal is AnimalData =>
+        animal !== undefined && animal.unlockLevel <= currentLevel && animal.spriteConfig !== undefined
+      );
+  }, [activeHomePets, currentLevel]);
 
   // Filter animals based on search, rarity, and biome
   const filterAnimals = useCallback((searchQuery: string, rarity?: string, biome?: string): AnimalData[] => {
@@ -134,11 +197,15 @@ export const useCollection = (): UseCollectionReturn => {
     unlockedAnimalsData,
     currentBiomeAnimals,
     favorites,
+    activeHomePets,
     stats,
     toggleFavorite,
+    toggleHomeActive,
     isAnimalUnlocked,
     isAnimalFavorite,
+    isAnimalHomeActive,
     getAnimalData,
+    getActiveHomePetsData,
     filterAnimals
   };
 };

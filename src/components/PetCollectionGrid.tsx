@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -12,12 +12,74 @@ import {
   Star,
   Sun,
   Sunset,
-  Moon
+  Moon,
+  Home,
+  Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCollection } from "@/hooks/useCollection";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { AnimalData, BIOME_DATABASE } from "@/data/AnimalDatabase";
+
+// Animated sprite preview component for collection modal
+const SpritePreview = ({ animal }: { animal: AnimalData }) => {
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const frameTimeRef = useRef(0);
+  const spriteConfig = animal.spriteConfig;
+
+  useEffect(() => {
+    if (!spriteConfig) return;
+
+    const { frameCount, animationSpeed = 10 } = spriteConfig;
+    const frameDuration = 1000 / animationSpeed;
+
+    let animationFrame: number;
+    let lastTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const deltaTime = currentTime - lastTime;
+      lastTime = currentTime;
+
+      frameTimeRef.current += deltaTime;
+      if (frameTimeRef.current >= frameDuration) {
+        setCurrentFrame(prev => (prev + 1) % frameCount);
+        frameTimeRef.current = 0;
+      }
+
+      animationFrame = requestAnimationFrame(animate);
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+    };
+  }, [spriteConfig]);
+
+  if (!spriteConfig) return null;
+
+  const { spritePath, frameCount, frameWidth, frameHeight, frameRow = 0 } = spriteConfig;
+  const scale = 4; // Larger scale for close-up view
+  const scaledWidth = frameWidth * scale;
+  const scaledHeight = frameHeight * scale;
+  const backgroundPositionX = -(currentFrame * frameWidth * scale);
+  const backgroundPositionY = -(frameRow * frameHeight * scale);
+
+  return (
+    <div
+      className="mx-auto"
+      style={{
+        width: `${scaledWidth}px`,
+        height: `${scaledHeight}px`,
+        backgroundImage: `url(${spritePath})`,
+        backgroundSize: `${frameCount * scaledWidth}px auto`,
+        backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
+        backgroundRepeat: 'no-repeat',
+        imageRendering: 'pixelated',
+      }}
+    />
+  );
+};
 
 // Biome icons match background themes
 const BIOME_ICONS = {
@@ -58,8 +120,10 @@ export const PetCollectionGrid = () => {
   const {
     stats,
     toggleFavorite,
+    toggleHomeActive,
     isAnimalUnlocked,
     isAnimalFavorite,
+    isAnimalHomeActive,
     filterAnimals
   } = useCollection();
 
@@ -137,6 +201,8 @@ export const PetCollectionGrid = () => {
               const isFavorited = isAnimalFavorite(pet.id);
               const stars = RARITY_STARS[pet.rarity];
 
+              const isHomeActive = isAnimalHomeActive(pet.id);
+
               return (
                 <button
                   key={pet.id}
@@ -156,6 +222,13 @@ export const PetCollectionGrid = () => {
                   {!isLocked && isFavorited && (
                     <div className="absolute top-1.5 left-1.5">
                       <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                    </div>
+                  )}
+
+                  {/* Home active indicator */}
+                  {!isLocked && isHomeActive && (
+                    <div className="absolute top-1.5 right-1.5">
+                      <Home className="w-4 h-4 text-green-500 fill-green-500/30" />
                     </div>
                   )}
 
@@ -272,13 +345,20 @@ export const PetCollectionGrid = () => {
         <DialogContent className="max-w-xs retro-card border-2 border-border p-0 overflow-hidden">
           {selectedPet && (
             <>
-              {/* Header */}
+              {/* Header with sprite animation */}
               <div className="p-6 text-center" style={{
                 background: 'linear-gradient(180deg, hsl(45 80% 90%) 0%, hsl(var(--card)) 100%)'
               }}>
-                <div className="text-5xl mb-3">
-                  {isAnimalUnlocked(selectedPet.id) ? selectedPet.emoji : "❓"}
-                </div>
+                {/* Show animated sprite for unlocked pets, emoji for locked */}
+                {isAnimalUnlocked(selectedPet.id) && selectedPet.spriteConfig ? (
+                  <div className="mb-3 flex items-center justify-center min-h-[100px]">
+                    <SpritePreview animal={selectedPet} />
+                  </div>
+                ) : (
+                  <div className="text-5xl mb-3">
+                    {isAnimalUnlocked(selectedPet.id) ? selectedPet.emoji : "❓"}
+                  </div>
+                )}
 
                 {/* Stars */}
                 <div className="flex justify-center gap-1 mb-2">
@@ -306,13 +386,31 @@ export const PetCollectionGrid = () => {
                 </div>
               </div>
 
-              <div className="p-4 space-y-4">
+              <div className="p-4 space-y-3">
                 {isAnimalUnlocked(selectedPet.id) ? (
                   <>
                     <p className="text-sm text-muted-foreground text-center">
                       {selectedPet.description}
                     </p>
 
+                    {/* Show on Home toggle */}
+                    <button
+                      onClick={() => toggleHomeActive(selectedPet.id)}
+                      className={cn(
+                        "w-full py-3 rounded-lg font-bold text-sm transition-all active:scale-95",
+                        isAnimalHomeActive(selectedPet.id)
+                          ? "bg-green-100 text-green-700 border-2 border-green-300"
+                          : "retro-stat-pill"
+                      )}
+                    >
+                      <Home className={cn(
+                        "w-4 h-4 inline mr-2",
+                        isAnimalHomeActive(selectedPet.id) && "fill-green-500/50"
+                      )} />
+                      {isAnimalHomeActive(selectedPet.id) ? "Showing on Home" : "Show on Home"}
+                    </button>
+
+                    {/* Favorite toggle */}
                     <button
                       onClick={() => toggleFavorite(selectedPet.id)}
                       className={cn(
