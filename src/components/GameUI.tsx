@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 export const GameUI = () => {
   const [currentTab, setCurrentTab] = useState("home");
+  const [isTaskbarCompact, setIsTaskbarCompact] = useState(false);
   const {
     currentLevel,
     showRewardModal,
@@ -76,6 +77,8 @@ export const GameUI = () => {
       <IOSTabBar
         activeTab={currentTab}
         onTabChange={setCurrentTab}
+        isCompact={isTaskbarCompact}
+        onCompactChange={setIsTaskbarCompact}
       />
 
       {/* XP Reward Modal */}
