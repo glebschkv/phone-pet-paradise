@@ -13,34 +13,61 @@ interface RetroPixelPlatformProps {
   backgroundTheme?: string;
 }
 
-export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel, backgroundTheme = 'day' }: RetroPixelPlatformProps) => {
-  const [activeHomePets, setActiveHomePets] = useState<string[]>([]);
+// Helper function to load active pets from localStorage
+const loadActivePetsFromStorage = (): string[] => {
+  const saved = localStorage.getItem(ACTIVE_HOME_PETS_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : ['hare'];
+    } catch {
+      return ['hare'];
+    }
+  }
+  return ['hare'];
+};
 
-  // Load active home pets from localStorage and listen for changes
+export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel, backgroundTheme = 'day' }: RetroPixelPlatformProps) => {
+  // Initialize with localStorage value to avoid flash
+  const [activeHomePets, setActiveHomePets] = useState<string[]>(() => loadActivePetsFromStorage());
+
+  // Listen for changes from collection page
   useEffect(() => {
-    const loadActivePets = () => {
-      const saved = localStorage.getItem(ACTIVE_HOME_PETS_KEY);
-      if (saved) {
-        try {
-          setActiveHomePets(JSON.parse(saved));
-        } catch {
-          setActiveHomePets(['hare']); // Default to hare
-        }
-      } else {
-        setActiveHomePets(['hare']); // Default to hare
+    // Listen for changes from collection page via custom event
+    const handleChange = (event: Event) => {
+      const customEvent = event as CustomEvent<string[]>;
+      if (Array.isArray(customEvent.detail)) {
+        setActiveHomePets(customEvent.detail);
       }
     };
 
-    loadActivePets();
-
-    // Listen for changes from collection page
-    const handleChange = (e: CustomEvent) => {
-      setActiveHomePets(e.detail);
+    // Also listen for focus to re-sync from localStorage (fallback)
+    const handleFocus = () => {
+      setActiveHomePets(loadActivePetsFromStorage());
     };
 
-    window.addEventListener('activeHomePetsChange', handleChange as EventListener);
+    // Also listen for storage events from other tabs
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === ACTIVE_HOME_PETS_KEY && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          if (Array.isArray(parsed)) {
+            setActiveHomePets(parsed);
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
+    };
+
+    window.addEventListener('activeHomePetsChange', handleChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('storage', handleStorage);
+
     return () => {
-      window.removeEventListener('activeHomePetsChange', handleChange as EventListener);
+      window.removeEventListener('activeHomePetsChange', handleChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('storage', handleStorage);
     };
   }, []);
 
