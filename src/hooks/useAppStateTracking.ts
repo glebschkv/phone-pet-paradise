@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useXPSystem, XPReward } from '@/hooks/useXPSystem';
 import { useStreakSystem } from '@/hooks/useStreakSystem';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useDailyLoginRewards, DailyReward } from '@/hooks/useDailyLoginRewards';
 
 interface AppStateData {
   lastActiveTime: number;
@@ -16,6 +17,7 @@ export const useAppStateTracking = () => {
   const xpSystem = useXPSystem();
   const streakSystem = useStreakSystem();
   const notifications = useNotifications();
+  const dailyLoginRewards = useDailyLoginRewards();
   
   const [appState, setAppState] = useState<AppStateData>({
     lastActiveTime: Date.now(),
@@ -159,21 +161,63 @@ export const useAppStateTracking = () => {
     return reward;
   }, [xpSystem, saveState]);
 
+  // Handle claiming daily login reward
+  const handleClaimDailyReward = useCallback((): DailyReward | null => {
+    const reward = dailyLoginRewards.claimReward();
+    if (reward) {
+      // Award XP directly to the XP state (bypassing duration calculation)
+      if (reward.type === 'xp' || reward.type === 'mystery_bonus') {
+        // Manually add XP to current total
+        const currentXP = xpSystem.currentXP;
+        const newXP = currentXP + reward.amount;
+
+        // We need to trigger a state update - dispatch an event
+        const xpEvent = new CustomEvent('petIsland_xpUpdate', {
+          detail: {
+            ...xpSystem,
+            currentXP: newXP,
+          }
+        });
+        window.dispatchEvent(xpEvent);
+
+        // Save to localStorage
+        const savedData = localStorage.getItem('petIsland_xpSystem');
+        if (savedData) {
+          try {
+            const parsed = JSON.parse(savedData);
+            parsed.currentXP = newXP;
+            localStorage.setItem('petIsland_xpSystem', JSON.stringify(parsed));
+          } catch (e) {
+            console.error('Failed to save daily login XP', e);
+          }
+        }
+      } else if (reward.type === 'streak_freeze') {
+        // Award streak freeze
+        streakSystem.earnStreakFreeze();
+      }
+    }
+    return reward;
+  }, [dailyLoginRewards, xpSystem, streakSystem]);
+
   return {
     // XP System data
     ...xpSystem,
-    
+
     // Streak System data
     ...streakSystem,
-    
+
     // Notifications
     notifications,
-    
+
+    // Daily Login Rewards
+    dailyLoginRewards,
+    handleClaimDailyReward,
+
     // App state data
     timeAwayMinutes: appState.timeAwayMinutes,
     showRewardModal: appState.showRewardModal,
     currentReward: appState.currentReward,
-    
+
     // Actions
     dismissRewardModal,
     resetProgress,

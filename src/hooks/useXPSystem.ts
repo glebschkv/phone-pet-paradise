@@ -3,6 +3,11 @@ import { ANIMAL_DATABASE, BIOME_DATABASE, getUnlockedAnimals } from '@/data/Anim
 
 export interface XPReward {
   xpGained: number;
+  baseXP: number;
+  bonusXP: number;
+  bonusMultiplier: number;
+  hasBonusXP: boolean;
+  bonusType: 'none' | 'lucky' | 'super_lucky' | 'jackpot';
   oldLevel: number;
   newLevel: number;
   leveledUp: boolean;
@@ -28,6 +33,34 @@ export interface XPSystemState {
 
 const STORAGE_KEY = 'petIsland_xpSystem';
 const XP_UPDATE_EVENT = 'petIsland_xpUpdate';
+const LOGIN_REWARD_EVENT = 'petIsland_dailyLoginReward';
+
+// Random bonus XP system - creates variable rewards (slot machine psychology)
+// 20% chance of bonus, with different tiers
+interface BonusResult {
+  hasBonusXP: boolean;
+  bonusMultiplier: number;
+  bonusType: 'none' | 'lucky' | 'super_lucky' | 'jackpot';
+}
+
+const calculateRandomBonus = (): BonusResult => {
+  const roll = Math.random() * 100;
+
+  // 2% chance: Jackpot (2x XP)
+  if (roll < 2) {
+    return { hasBonusXP: true, bonusMultiplier: 2.0, bonusType: 'jackpot' };
+  }
+  // 5% chance: Super Lucky (1.5x XP)
+  if (roll < 7) {
+    return { hasBonusXP: true, bonusMultiplier: 1.5, bonusType: 'super_lucky' };
+  }
+  // 13% chance: Lucky (1.25x XP)
+  if (roll < 20) {
+    return { hasBonusXP: true, bonusMultiplier: 1.25, bonusType: 'lucky' };
+  }
+  // 80% chance: No bonus
+  return { hasBonusXP: false, bonusMultiplier: 1.0, bonusType: 'none' };
+};
 
 export const MAX_LEVEL = 50 as const;
 
@@ -312,9 +345,15 @@ const calculateLevel = useCallback((totalXP: number): number => {
   return level;
 }, []);
 
-  // Award XP and handle level ups
+  // Award XP and handle level ups with random bonus chance
   const awardXP = useCallback((sessionMinutes: number): XPReward => {
-    const xpGained = calculateXPFromDuration(sessionMinutes);
+    const baseXP = calculateXPFromDuration(sessionMinutes);
+
+    // Calculate random bonus
+    const bonus = calculateRandomBonus();
+    const xpGained = Math.round(baseXP * bonus.bonusMultiplier);
+    const bonusXP = xpGained - baseXP;
+
     const oldLevel = xpState.currentLevel;
     const newTotalXP = xpState.currentXP + xpGained;
     const newLevel = calculateLevel(newTotalXP);
@@ -371,6 +410,11 @@ if (leveledUp) {
 
     return {
       xpGained,
+      baseXP,
+      bonusXP,
+      bonusMultiplier: bonus.bonusMultiplier,
+      hasBonusXP: bonus.hasBonusXP,
+      bonusType: bonus.bonusType,
       oldLevel,
       newLevel,
       leveledUp,
