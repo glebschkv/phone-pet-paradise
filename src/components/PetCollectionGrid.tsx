@@ -19,8 +19,8 @@ import { useCollection } from "@/hooks/useCollection";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { AnimalData, BIOME_DATABASE } from "@/data/AnimalDatabase";
 
-// Animated sprite preview component for collection modal
-const SpritePreview = ({ animal }: { animal: AnimalData }) => {
+// Animated sprite preview component for collection
+const SpritePreview = ({ animal, scale = 4 }: { animal: AnimalData; scale?: number }) => {
   const [currentFrame, setCurrentFrame] = useState(0);
   const frameTimeRef = useRef(0);
   const spriteConfig = animal.spriteConfig;
@@ -57,7 +57,6 @@ const SpritePreview = ({ animal }: { animal: AnimalData }) => {
   if (!spriteConfig) return null;
 
   const { spritePath, frameCount, frameWidth, frameHeight, frameRow = 0 } = spriteConfig;
-  const scale = 4; // Larger scale for close-up view
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
   const backgroundPositionX = -(currentFrame * frameWidth * scale);
@@ -235,15 +234,20 @@ export const PetCollectionGrid = () => {
                     </div>
                   )}
 
-                  {/* Emoji or Lock */}
+                  {/* Sprite or Lock */}
                   <div className={cn(
-                    "text-4xl mb-1.5 h-11 flex items-center justify-center",
+                    "mb-1.5 h-12 flex items-center justify-center overflow-hidden",
                     isLocked && "opacity-30 grayscale"
                   )}>
                     {isLocked ? (
                       <Lock className="w-7 h-7 text-muted-foreground" />
+                    ) : pet.spriteConfig ? (
+                      <SpritePreview
+                        animal={pet}
+                        scale={Math.min(1.5, 48 / pet.spriteConfig.frameHeight)}
+                      />
                     ) : (
-                      pet.emoji
+                      <span className="text-4xl">{pet.emoji}</span>
                     )}
                   </div>
 
