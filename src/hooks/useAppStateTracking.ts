@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useXPSystem, XPReward } from '@/hooks/useXPSystem';
 import { useStreakSystem } from '@/hooks/useStreakSystem';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useDailyLoginRewards, DailyReward } from '@/hooks/useDailyLoginRewards';
 
 interface AppStateData {
   lastActiveTime: number;
@@ -16,6 +17,7 @@ export const useAppStateTracking = () => {
   const xpSystem = useXPSystem();
   const streakSystem = useStreakSystem();
   const notifications = useNotifications();
+  const dailyLoginRewards = useDailyLoginRewards();
   
   const [appState, setAppState] = useState<AppStateData>({
     lastActiveTime: Date.now(),
@@ -46,23 +48,36 @@ export const useAppStateTracking = () => {
     });
   }, []);
 
-  // Award XP based on focus session duration
+  // Award XP based on focus session duration (includes daily login streak bonus)
   const awardSessionXP = useCallback((minutes: number): XPReward | null => {
     if (minutes >= 30) { // Minimum 30 minutes for XP
       const xpReward = xpSystem.awardXP(minutes);
       const streakReward = streakSystem.recordSession();
-      
+
+      // Add focus streak bonus (from useStreakSystem)
       if (xpReward && streakReward) {
         xpReward.xpGained += streakReward.xpBonus;
+        xpReward.bonusXP += streakReward.xpBonus;
+      }
+
+      // Apply daily login streak bonus multiplier
+      const loginStreakBonus = dailyLoginRewards.getStreakBonus();
+      if (loginStreakBonus > 0 && xpReward) {
+        const bonusFromLoginStreak = Math.round(xpReward.baseXP * loginStreakBonus);
+        xpReward.xpGained += bonusFromLoginStreak;
+        xpReward.bonusXP += bonusFromLoginStreak;
+        if (bonusFromLoginStreak > 0) {
+          xpReward.hasBonusXP = true;
+        }
       }
 
       // Schedule notification reminders
       notifications.scheduleTimerReminder();
-      
+
       return xpReward;
     }
     return null;
-  }, [xpSystem, streakSystem, notifications]);
+  }, [xpSystem, streakSystem, notifications, dailyLoginRewards]);
 
   // Handle app becoming active (foreground)
   const handleAppActive = useCallback(() => {
@@ -159,21 +174,50 @@ export const useAppStateTracking = () => {
     return reward;
   }, [xpSystem, saveState]);
 
+  // Handle claiming daily login reward - returns both daily reward and XP reward for level-ups
+  const handleClaimDailyReward = useCallback((): { dailyReward: DailyReward | null; xpReward: XPReward | null } => {
+    const reward = dailyLoginRewards.claimReward();
+    let xpReward: XPReward | null = null;
+
+    if (reward) {
+      if (reward.type === 'xp' || reward.type === 'mystery_bonus') {
+        // Use addDirectXP which properly handles level-ups
+        xpReward = xpSystem.addDirectXP(reward.amount);
+
+        // If leveled up, show the XP reward modal
+        if (xpReward.leveledUp) {
+          saveState({
+            showRewardModal: true,
+            currentReward: xpReward,
+          });
+        }
+      } else if (reward.type === 'streak_freeze') {
+        // Award streak freeze
+        streakSystem.earnStreakFreeze();
+      }
+    }
+    return { dailyReward: reward, xpReward };
+  }, [dailyLoginRewards, xpSystem, streakSystem, saveState]);
+
   return {
     // XP System data
     ...xpSystem,
-    
+
     // Streak System data
     ...streakSystem,
-    
+
     // Notifications
     notifications,
-    
+
+    // Daily Login Rewards
+    dailyLoginRewards,
+    handleClaimDailyReward,
+
     // App state data
     timeAwayMinutes: appState.timeAwayMinutes,
     showRewardModal: appState.showRewardModal,
     currentReward: appState.currentReward,
-    
+
     // Actions
     dismissRewardModal,
     resetProgress,

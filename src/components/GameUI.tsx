@@ -1,5 +1,6 @@
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { XPRewardModal } from "@/components/XPRewardModal";
+import { DailyLoginRewardModal } from "@/components/DailyLoginRewardModal";
 import { TopStatusBar } from "@/components/TopStatusBar";
 import { UnifiedFocusTimer } from "@/components/UnifiedFocusTimer";
 import { IOSTabBar } from "@/components/IOSTabBar";
@@ -7,6 +8,7 @@ import { PetCollectionGrid } from "@/components/PetCollectionGrid";
 import { Settings } from "@/components/Settings";
 import { FriendsComingSoon } from "@/components/FriendsComingSoon";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const GameUI = () => {
   const [currentTab, setCurrentTab] = useState("home");
@@ -16,7 +18,32 @@ export const GameUI = () => {
     currentReward,
     dismissRewardModal,
     getLevelProgress,
+    dailyLoginRewards,
+    handleClaimDailyReward,
   } = useAppStateTracking();
+
+  const handleDailyRewardClaim = () => {
+    const { dailyReward, xpReward } = handleClaimDailyReward();
+    if (dailyReward) {
+      if (dailyReward.type === 'xp' || dailyReward.type === 'mystery_bonus') {
+        toast.success(`+${dailyReward.amount} XP claimed!`, {
+          description: dailyReward.description,
+        });
+        // If leveled up, show additional toast
+        if (xpReward?.leveledUp) {
+          toast.success(`Level Up! You're now level ${xpReward.newLevel}!`, {
+            description: xpReward.unlockedRewards.length > 0
+              ? `Unlocked: ${xpReward.unlockedRewards.map(r => r.name).join(', ')}`
+              : undefined,
+          });
+        }
+      } else if (dailyReward.type === 'streak_freeze') {
+        toast.success(`+${dailyReward.amount} Streak Freeze earned!`, {
+          description: "Use it to protect your streak!",
+        });
+      }
+    }
+  };
 
   const renderContent = () => {
     switch (currentTab) {
@@ -58,6 +85,16 @@ export const GameUI = () => {
         reward={currentReward}
         newLevel={currentLevel}
         levelProgress={getLevelProgress()}
+      />
+
+      {/* Daily Login Reward Modal */}
+      <DailyLoginRewardModal
+        isOpen={dailyLoginRewards.showRewardModal}
+        onClaim={handleDailyRewardClaim}
+        onDismiss={dailyLoginRewards.dismissModal}
+        reward={dailyLoginRewards.pendingReward}
+        currentStreak={dailyLoginRewards.loginState.currentStreak}
+        allRewards={dailyLoginRewards.dailyRewards}
       />
     </div>
   );

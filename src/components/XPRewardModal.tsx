@@ -1,8 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { XPReward } from "@/hooks/useBackendXPSystem";
-import { Star, Gift, Zap, Sparkles, Trophy } from "lucide-react";
+import { Star, Gift, Zap, Sparkles, Trophy, Flame } from "lucide-react";
 
 interface XPRewardModalProps {
   isOpen: boolean;
@@ -40,6 +39,26 @@ export const XPRewardModal = ({
         <div className="px-5 pb-5 space-y-5">
           {/* XP Gained - Big emphasis */}
           <div className="retro-stat-pill p-4 text-center">
+            {/* Bonus XP Badge */}
+            {reward.hasBonusXP && (
+              <div
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full mb-2 text-xs font-bold animate-pulse"
+                style={{
+                  background: reward.bonusType === 'jackpot'
+                    ? 'linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24)'
+                    : reward.bonusType === 'super_lucky'
+                    ? 'linear-gradient(90deg, #a855f7, #8b5cf6, #a855f7)'
+                    : 'linear-gradient(90deg, #22c55e, #16a34a, #22c55e)',
+                  color: 'white',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                }}
+              >
+                <Flame className="w-3 h-3" />
+                {reward.bonusType === 'jackpot' && 'JACKPOT! 2x XP'}
+                {reward.bonusType === 'super_lucky' && 'SUPER LUCKY! 1.5x XP'}
+                {reward.bonusType === 'lucky' && 'LUCKY! +25% XP'}
+              </div>
+            )}
             <div className="flex items-center justify-center gap-2 mb-1">
               <Star className="w-5 h-5 text-yellow-500" />
               <span className="text-2xl font-bold tabular-nums">
@@ -47,6 +66,11 @@ export const XPRewardModal = ({
               </span>
               <span className="text-sm font-semibold text-muted-foreground">XP</span>
             </div>
+            {reward.hasBonusXP && reward.bonusXP > 0 && (
+              <p className="text-xs text-green-500 font-semibold">
+                (+{reward.bonusXP} bonus XP!)
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
               Great focus session!
             </p>
