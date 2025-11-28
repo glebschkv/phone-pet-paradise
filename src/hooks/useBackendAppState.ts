@@ -20,6 +20,9 @@ export const useBackendAppState = () => {
   const backendXPSystem = useBackendXPSystem();
   const localXPSystem = useXPSystem();
 
+  // Use the HIGHER level between local and backend to prevent progress regression
+  const effectiveLevel = Math.max(backendXPSystem.currentLevel, localXPSystem.currentLevel);
+
   // Use backend XP system when authenticated, local otherwise
   const xpSystem = isAuthenticated ? backendXPSystem : localXPSystem;
   const achievements = useBackendAchievements();
@@ -209,15 +212,18 @@ export const useBackendAppState = () => {
 
   // Get comprehensive app state
   const getAppState = useCallback(() => {
+    // Use effective level (max of local and backend) for unlocked animals
+    const unlockedAnimals = getUnlockedAnimals(effectiveLevel).map(a => a.name);
+
     return {
-      // XP System
+      // XP System - use effectiveLevel to prevent progress regression
       currentXP: xpSystem.currentXP,
-      currentLevel: xpSystem.currentLevel,
+      currentLevel: effectiveLevel,
       xpToNextLevel: xpSystem.xpToNextLevel,
       levelProgress: getLevelProgress(),
-      
-      // Collection
-      unlockedAnimals: xpSystem.unlockedAnimals,
+
+      // Collection - use effectiveLevel for unlocked animals
+      unlockedAnimals,
       currentBiome: xpSystem.currentBiome,
       availableBiomes: xpSystem.availableBiomes,
       
@@ -245,7 +251,7 @@ export const useBackendAppState = () => {
     };
   }, [
     xpSystem, achievements, quests, streaks, supabaseData,
-    getLevelProgress, isLoading
+    getLevelProgress, isLoading, effectiveLevel
   ]);
 
   return {
