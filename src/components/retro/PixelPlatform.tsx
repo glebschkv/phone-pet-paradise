@@ -49,7 +49,7 @@ export const PixelPlatform = memo(({ theme = 'day' }: PixelPlatformProps) => {
           style={{
             backgroundImage: `url(${groundImage})`,
             backgroundSize: '100% auto',
-            backgroundPosition: 'center 78%',
+            backgroundPosition: 'center 80%',
             backgroundRepeat: 'no-repeat',
             imageRendering: 'pixelated',
             opacity: imageLoaded ? 1 : 0
