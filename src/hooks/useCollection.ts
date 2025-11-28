@@ -46,7 +46,10 @@ export const useCollection = (): UseCollectionReturn => {
   const localXPSystem = useXPSystem();
 
   // Select the appropriate XP system
-  const xpSystem = isAuthenticated ? backendXPSystem : localXPSystem;
+  // Use backend when authenticated AND data is loaded, otherwise fall back to local
+  // This ensures we don't show currentLevel: 0 while backend is loading
+  const backendIsLoading = 'isLoading' in backendXPSystem && backendXPSystem.isLoading;
+  const xpSystem = (isAuthenticated && !backendIsLoading) ? backendXPSystem : localXPSystem;
   const { currentLevel, unlockedAnimals, currentBiome, availableBiomes } = xpSystem;
 
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
