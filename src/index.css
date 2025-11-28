@@ -387,292 +387,304 @@
   }
 
   /* ============================================
-     REDESIGNED TASKBAR STYLES - MODERN MINIMALIST
+     CLEAN MINIMAL STATUS BAR - USER-FOCUSED DESIGN
      ============================================ */
 
-  /* ---- TOP BAR STYLES ---- */
-
-  /* Split floating pill design */
-  .topbar-wrapper {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
+  /* Main container */
+  .status-bar-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: max(12px, env(safe-area-inset-top)) 16px 0;
+    pointer-events: auto;
+    z-index: 40;
   }
 
-  /* Left pill - Level & XP */
-  .topbar-level-pill {
+  /* Clean single-row status bar */
+  .status-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background: hsl(var(--card) / 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--border) / 0.3);
-    border-radius: 20px;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 8px;
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid hsl(var(--border) / 0.2);
+    border-radius: 50px;
     box-shadow:
-      0 4px 24px hsl(0 0% 0% / 0.08),
-      0 1px 3px hsl(0 0% 0% / 0.04),
-      inset 0 1px 0 hsl(0 0% 100% / 0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      0 2px 16px hsl(0 0% 0% / 0.06),
+      0 1px 2px hsl(0 0% 0% / 0.04);
   }
 
-  .topbar-level-pill:active {
-    transform: scale(0.98);
-  }
-
-  /* Level ring with animated progress */
-  .level-ring-container {
+  /* Level Badge Button - Tappable */
+  .level-badge-btn {
     position: relative;
     width: 44px;
     height: 44px;
-    flex-shrink: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .level-ring-bg {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: linear-gradient(135deg,
-      hsl(var(--muted) / 0.4) 0%,
-      hsl(var(--muted) / 0.2) 100%
-    );
+  .level-badge-btn:active {
+    transform: scale(0.92);
   }
 
-  .level-ring-progress {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: conic-gradient(
-      hsl(var(--primary)) var(--progress, 0%),
-      transparent var(--progress, 0%)
-    );
-    mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .level-ring-inner {
-    position: absolute;
-    inset: 4px;
-    border-radius: 50%;
-    background: linear-gradient(145deg,
-      hsl(42 85% 58%) 0%,
-      hsl(38 90% 48%) 100%
-    );
+  .level-badge-ring {
+    position: relative;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow:
-      inset 0 2px 4px hsl(45 100% 70% / 0.4),
-      0 2px 8px hsl(40 90% 50% / 0.3);
   }
 
-  .level-ring-inner span {
-    font-size: 14px;
+  .level-progress-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .level-progress-bg {
+    stroke: hsl(var(--muted) / 0.3);
+  }
+
+  .level-progress-fill {
+    stroke: hsl(var(--primary));
+    transition: stroke-dasharray 0.5s ease;
+  }
+
+  .level-number {
+    position: relative;
+    z-index: 1;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, hsl(45 90% 58%) 0%, hsl(40 95% 48%) 100%);
+    border-radius: 50%;
+    font-size: 13px;
     font-weight: 800;
     color: hsl(30 60% 15%);
-    text-shadow: 0 1px 0 hsl(45 100% 70% / 0.4);
-    letter-spacing: -0.5px;
+    box-shadow:
+      inset 0 2px 4px hsl(50 100% 75% / 0.4),
+      0 2px 6px hsl(40 90% 45% / 0.25);
   }
 
-  /* XP info section */
-  .xp-info {
+  /* Stats Popover */
+  .stats-popover {
+    width: 220px;
+    padding: 0;
+    background: hsl(var(--card) / 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.3);
+    border-radius: 16px;
+    box-shadow:
+      0 12px 40px hsl(0 0% 0% / 0.12),
+      0 4px 12px hsl(0 0% 0% / 0.06);
+    overflow: hidden;
+  }
+
+  .stats-popover-content {
+    padding: 16px;
+  }
+
+  .stats-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+  }
+
+  .stats-grid {
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    min-width: 0;
+    gap: 10px;
+    margin-bottom: 16px;
   }
 
-  .xp-label {
-    font-size: 10px;
-    font-weight: 600;
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-label {
+    font-size: 13px;
     color: hsl(var(--muted-foreground));
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
   }
 
-  .xp-value {
+  .stat-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    display: flex;
+    align-items: center;
+  }
+
+  .xp-progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .xp-progress-bar {
+    height: 6px;
+    background: hsl(var(--muted) / 0.4);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .xp-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(280 65% 60%));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .xp-progress-label {
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+    text-align: center;
+  }
+
+  /* Coin Display - Center/Primary */
+  .coin-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, hsl(45 85% 92%) 0%, hsl(40 80% 88%) 100%);
+    border: 1px solid hsl(40 60% 80%);
+    border-radius: 20px;
+    box-shadow: inset 0 1px 2px hsl(50 100% 95% / 0.5);
+  }
+
+  .coin-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(40 90% 45%);
+  }
+
+  .coin-amount {
+    font-size: 15px;
+    font-weight: 700;
+    color: hsl(35 80% 30%);
+    letter-spacing: -0.3px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Streak Display - Right */
+  .streak-display {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+  }
+
+  .streak-display.active {
+    background: hsl(25 100% 95%);
+  }
+
+  .streak-fire-idle {
+    color: hsl(25 60% 65%);
+    opacity: 0.7;
+  }
+
+  .streak-fire-active {
+    color: hsl(25 100% 50%);
+    filter: drop-shadow(0 0 6px hsl(25 100% 50% / 0.5));
+    animation: streak-pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes streak-pulse {
+    0%, 100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 4px hsl(25 100% 50% / 0.4));
+    }
+    50% {
+      transform: scale(1.1);
+      filter: drop-shadow(0 0 8px hsl(20 100% 50% / 0.6));
+    }
+  }
+
+  .streak-count {
     font-size: 15px;
     font-weight: 700;
     color: hsl(var(--foreground));
-    letter-spacing: -0.3px;
+    font-variant-numeric: tabular-nums;
   }
 
-  .xp-value span {
-    font-weight: 500;
-    color: hsl(var(--muted-foreground));
-    font-size: 12px;
+  .streak-display.active .streak-count {
+    color: hsl(25 80% 35%);
   }
 
-  /* Right stats row */
-  .topbar-stats-row {
+  /* Biome Floating Selector */
+  .biome-float {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+    padding-right: 4px;
+  }
+
+  .biome-pill {
     display: flex;
     align-items: center;
-    gap: 6px;
-  }
-
-  /* Mini stat pill */
-  .stat-mini-pill {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 8px 12px;
-    background: hsl(var(--card) / 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--border) / 0.3);
-    border-radius: 16px;
-    box-shadow:
-      0 4px 24px hsl(0 0% 0% / 0.08),
-      0 1px 3px hsl(0 0% 0% / 0.04),
-      inset 0 1px 0 hsl(0 0% 100% / 0.1);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .stat-mini-pill:active {
-    transform: scale(0.95);
-  }
-
-  .stat-mini-pill .stat-icon {
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .stat-mini-pill .stat-value {
-    font-size: 14px;
-    font-weight: 700;
-    color: hsl(var(--foreground));
-    tabular-nums: true;
-  }
-
-  /* Streak fire animation */
-  .streak-fire {
-    color: hsl(24 95% 53%);
-    animation: fire-flicker 0.8s ease-in-out infinite alternate;
-    filter: drop-shadow(0 0 4px hsl(25 100% 50% / 0.5));
-  }
-
-  .streak-fire.active {
-    animation: fire-dance 0.5s ease-in-out infinite alternate;
-  }
-
-  @keyframes fire-flicker {
-    0% {
-      transform: scaleY(1) scaleX(1);
-      filter: drop-shadow(0 0 4px hsl(25 100% 50% / 0.4));
-    }
-    100% {
-      transform: scaleY(1.05) scaleX(0.98);
-      filter: drop-shadow(0 0 8px hsl(25 100% 50% / 0.6));
-    }
-  }
-
-  @keyframes fire-dance {
-    0% {
-      transform: scaleY(1) scaleX(1) rotate(-2deg);
-      filter: drop-shadow(0 0 6px hsl(25 100% 50% / 0.6));
-    }
-    100% {
-      transform: scaleY(1.1) scaleX(0.95) rotate(2deg);
-      filter: drop-shadow(0 0 12px hsl(20 100% 50% / 0.8));
-    }
-  }
-
-  /* Pet count heart */
-  .pet-heart {
-    color: hsl(350 85% 60%);
-    animation: heart-beat 1.5s ease-in-out infinite;
-  }
-
-  @keyframes heart-beat {
-    0%, 100% { transform: scale(1); }
-    14% { transform: scale(1.15); }
-    28% { transform: scale(1); }
-    42% { transform: scale(1.1); }
-    56% { transform: scale(1); }
-  }
-
-  /* Biome selector - modern dropdown trigger */
-  .biome-trigger {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    background: hsl(var(--card) / 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--border) / 0.3);
-    border-radius: 16px;
-    box-shadow:
-      0 4px 24px hsl(0 0% 0% / 0.08),
-      0 1px 3px hsl(0 0% 0% / 0.04),
-      inset 0 1px 0 hsl(0 0% 100% / 0.1);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 4px;
+    padding: 6px 10px;
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border) / 0.2);
+    border-radius: 14px;
     cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px hsl(0 0% 0% / 0.04);
   }
 
-  .biome-trigger:hover {
-    background: hsl(var(--card) / 0.95);
-    border-color: hsl(var(--border) / 0.5);
+  .biome-pill:hover {
+    background: hsl(var(--card) / 0.8);
   }
 
-  .biome-trigger:active {
-    transform: scale(0.97);
+  .biome-pill:active {
+    transform: scale(0.96);
   }
 
-  .biome-trigger .biome-icon {
+  .biome-emoji-icon {
     font-size: 16px;
     line-height: 1;
   }
 
-  .biome-trigger .biome-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: hsl(var(--foreground));
-  }
-
-  .biome-trigger .biome-chevron {
-    width: 14px;
-    height: 14px;
-    color: hsl(var(--muted-foreground));
-    transition: transform 0.2s ease;
-  }
-
-  .biome-trigger[data-state="open"] .biome-chevron {
-    transform: rotate(180deg);
-  }
-
-  /* Biome dropdown */
-  .biome-dropdown-content {
-    background: hsl(var(--card) / 0.95);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid hsl(var(--border) / 0.4);
-    border-radius: 16px;
+  /* Biome Menu */
+  .biome-menu {
+    min-width: 150px;
     padding: 6px;
+    background: hsl(var(--card) / 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.3);
+    border-radius: 14px;
     box-shadow:
-      0 8px 32px hsl(0 0% 0% / 0.12),
-      0 2px 8px hsl(0 0% 0% / 0.08);
-    animation: dropdown-in 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      0 8px 32px hsl(0 0% 0% / 0.1),
+      0 2px 8px hsl(0 0% 0% / 0.06);
   }
 
-  @keyframes dropdown-in {
-    from {
-      opacity: 0;
-      transform: translateY(-8px) scale(0.96);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  .biome-dropdown-item {
+  .biome-menu-item {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -685,30 +697,21 @@
     transition: all 0.15s ease;
   }
 
-  .biome-dropdown-item:hover {
-    background: hsl(var(--muted) / 0.5);
+  .biome-menu-item:hover {
+    background: hsl(var(--muted) / 0.4);
     color: hsl(var(--foreground));
   }
 
-  .biome-dropdown-item.active {
-    background: hsl(var(--primary) / 0.15);
+  .biome-menu-item.selected {
+    background: hsl(var(--primary) / 0.12);
     color: hsl(var(--primary));
     font-weight: 600;
   }
 
-  .biome-dropdown-item .biome-emoji {
-    font-size: 18px;
-    line-height: 1;
-  }
-
-  .biome-dropdown-item .locked-badge {
+  .biome-check {
     margin-left: auto;
-    font-size: 10px;
-    padding: 2px 6px;
-    background: hsl(var(--muted) / 0.5);
-    border-radius: 6px;
-    color: hsl(var(--muted-foreground));
-    font-weight: 600;
+    font-size: 12px;
+    color: hsl(var(--primary));
   }
 
   /* ---- BOTTOM DOCK NAVIGATION ---- */

@@ -1,12 +1,21 @@
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
-import { Heart, Flame, ChevronDown, Zap, Coins } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
+import { Flame, Coins, Heart, Sparkles, ChevronDown } from "lucide-react";
+import { useState } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
 
-// Map biome names to background theme IDs and emojis
 const BIOME_CONFIG: Record<string, { bg: string; emoji: string }> = {
   'Meadow': { bg: 'day', emoji: '🌿' },
   'Sunset': { bg: 'sunset', emoji: '🌅' },
@@ -21,7 +30,7 @@ interface TopStatusBarProps {
 }
 
 export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
-  const { toast } = useToast();
+  const [statsOpen, setStatsOpen] = useState(false);
   const {
     currentLevel,
     currentXP,
@@ -29,14 +38,12 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
     unlockedAnimals,
     getLevelProgress,
     streakData,
-    testLevelUp,
     availableBiomes,
     currentBiome,
     switchBiome,
   } = useAppStateTracking();
   const coinSystem = useCoinSystem();
 
-  // Handle biome switch with background update
   const handleSwitchBiome = (biomeName: string) => {
     switchBiome(biomeName);
     const backgroundId = BIOME_CONFIG[biomeName]?.bg || 'day';
@@ -44,17 +51,6 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
     window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundId }));
   };
 
-  // Handle quick XP action
-  const handleQuickXP = () => {
-    testLevelUp();
-    toast({
-      title: "Focus Complete!",
-      description: "You earned XP for your session.",
-      duration: 2000,
-    });
-  };
-
-  // Only show on home tab
   if (currentTab !== "home") return null;
 
   const progress = getLevelProgress();
@@ -62,79 +58,106 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
   const currentBiomeEmoji = BIOME_CONFIG[currentBiome]?.emoji || '🌿';
 
   return (
-    <div className="absolute top-safe left-3 right-3 pointer-events-auto z-40">
-      <div className="topbar-wrapper">
-        {/* Left Section - Level & XP */}
-        <div className="topbar-level-pill">
-          {/* Circular Level Ring with Progress */}
-          <div className="level-ring-container">
-            <div className="level-ring-bg" />
-            <div
-              className="level-ring-progress"
-              style={{ '--progress': `${progress * 3.6}deg` } as React.CSSProperties}
-            />
-            <div className="level-ring-inner">
-              <span>{currentLevel}</span>
-            </div>
-          </div>
+    <div className="status-bar-container">
+      {/* Clean Single Row Layout */}
+      <div className="status-bar">
+        {/* Left: Tappable Level Badge with Stats Popover */}
+        <Popover open={statsOpen} onOpenChange={setStatsOpen}>
+          <PopoverTrigger asChild>
+            <button className="level-badge-btn" aria-label="View stats">
+              <div className="level-badge-ring">
+                <svg className="level-progress-svg" viewBox="0 0 40 40">
+                  <circle
+                    className="level-progress-bg"
+                    cx="20"
+                    cy="20"
+                    r="17"
+                    fill="none"
+                    strokeWidth="3"
+                  />
+                  <circle
+                    className="level-progress-fill"
+                    cx="20"
+                    cy="20"
+                    r="17"
+                    fill="none"
+                    strokeWidth="3"
+                    strokeDasharray={`${progress * 1.068} 106.8`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span className="level-number">{currentLevel}</span>
+              </div>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="stats-popover" align="start" sideOffset={8}>
+            <div className="stats-popover-content">
+              <div className="stats-header">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>Your Progress</span>
+              </div>
 
-          {/* XP Info */}
-          <div className="xp-info">
-            <span className="xp-label">Experience</span>
-            <span className="xp-value">
-              {currentXP} <span>/ {currentXP + xpToNextLevel}</span>
-            </span>
+              <div className="stats-grid">
+                <div className="stat-row">
+                  <span className="stat-label">Level</span>
+                  <span className="stat-val">{currentLevel}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">XP</span>
+                  <span className="stat-val">{currentXP} / {currentXP + xpToNextLevel}</span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Pets Collected</span>
+                  <span className="stat-val">
+                    <Heart className="w-3.5 h-3.5 text-pink-500 fill-current inline mr-1" />
+                    {unlockedAnimals.length}
+                  </span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-label">Best Streak</span>
+                  <span className="stat-val">{streakData.longestStreak} days</span>
+                </div>
+              </div>
+
+              {/* XP Progress Bar */}
+              <div className="xp-progress-container">
+                <div className="xp-progress-bar">
+                  <div
+                    className="xp-progress-fill"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <span className="xp-progress-label">{Math.round(progress)}% to next level</span>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Center: Coin Balance - Primary Currency */}
+        <div className="coin-display">
+          <div className="coin-icon-wrap">
+            <Coins className="w-5 h-5" />
           </div>
+          <span className="coin-amount">{coinSystem.balance.toLocaleString()}</span>
         </div>
 
-        {/* Right Section - Stats */}
-        <div className="topbar-stats-row">
-          {/* Coin Balance */}
-          <div className="stat-mini-pill touch-manipulation bg-gradient-to-r from-amber-100 to-amber-200 border-amber-300">
-            <div className="stat-icon">
-              <Coins className="w-[18px] h-[18px] text-amber-600" />
-            </div>
-            <span className="stat-value text-amber-700">{coinSystem.balance.toLocaleString()}</span>
-          </div>
-
-          {/* Streak Counter */}
-          <div className="stat-mini-pill touch-manipulation">
-            <div className="stat-icon">
-              <Flame className={`w-[18px] h-[18px] streak-fire ${hasActiveStreak ? 'active' : ''}`} />
-            </div>
-            <span className="stat-value">{streakData.currentStreak}</span>
-          </div>
-
-          {/* Pet Count */}
-          <div className="stat-mini-pill touch-manipulation">
-            <div className="stat-icon">
-              <Heart className="w-[18px] h-[18px] pet-heart fill-current" />
-            </div>
-            <span className="stat-value">{unlockedAnimals.length}</span>
-          </div>
-
-          {/* Quick XP Button */}
-          <button
-            onClick={handleQuickXP}
-            className="quick-action-btn energy-pulse touch-manipulation"
-            aria-label="Quick focus"
-          >
-            <Zap className="w-[18px] h-[18px] fill-current" />
-          </button>
+        {/* Right: Streak Counter */}
+        <div className={`streak-display ${hasActiveStreak ? 'active' : ''}`}>
+          <Flame className={`w-5 h-5 ${hasActiveStreak ? 'streak-fire-active' : 'streak-fire-idle'}`} />
+          <span className="streak-count">{streakData.currentStreak}</span>
         </div>
       </div>
 
-      {/* Second Row - Biome Selector (floating) */}
-      <div className="flex justify-end mt-2">
+      {/* Biome Selector - Subtle Floating Pill */}
+      <div className="biome-float">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="biome-trigger touch-manipulation">
-              <span className="biome-icon">{currentBiomeEmoji}</span>
-              <span className="biome-name">{currentBiome}</span>
-              <ChevronDown className="biome-chevron" />
+            <button className="biome-pill">
+              <span className="biome-emoji-icon">{currentBiomeEmoji}</span>
+              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="biome-dropdown-content min-w-[160px]">
+          <DropdownMenuContent align="end" className="biome-menu">
             {availableBiomes.map((biome) => {
               const config = BIOME_CONFIG[biome];
               const isActive = biome === currentBiome;
@@ -142,10 +165,11 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
                 <DropdownMenuItem
                   key={biome}
                   onClick={() => handleSwitchBiome(biome)}
-                  className={`biome-dropdown-item ${isActive ? 'active' : ''}`}
+                  className={`biome-menu-item ${isActive ? 'selected' : ''}`}
                 >
-                  <span className="biome-emoji">{config?.emoji || '🌍'}</span>
+                  <span className="text-base">{config?.emoji || '🌍'}</span>
                   <span>{biome}</span>
+                  {isActive && <span className="biome-check">✓</span>}
                 </DropdownMenuItem>
               );
             })}
