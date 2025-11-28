@@ -1,4 +1,4 @@
-import { Clock, Brain, Coffee, Sun, Sunset, Moon, Waves, TreePine, Snowflake, LucideIcon } from "lucide-react";
+import { Clock, Brain, Coffee, Sun, Sunset, Moon, TreePine, Snowflake, LucideIcon } from "lucide-react";
 
 export const STORAGE_KEY = 'petIsland_unifiedTimer';
 export const TIMER_PERSISTENCE_KEY = 'petIsland_timerPersistence';
@@ -15,9 +15,8 @@ export const BACKGROUND_THEMES: BackgroundTheme[] = [
   { id: 'sky', name: 'Day', icon: Sun, unlockLevel: 1 },
   { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 3 },
   { id: 'night', name: 'Night', icon: Moon, unlockLevel: 5 },
-  { id: 'ocean', name: 'Ocean', icon: Waves, unlockLevel: 8 },
-  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 12 },
-  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 15 },
+  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 8 },
+  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 12 },
 ];
 
 export type SessionType = 'pomodoro' | 'deep-work' | 'break';

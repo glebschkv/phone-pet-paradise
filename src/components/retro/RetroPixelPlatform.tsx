@@ -95,7 +95,7 @@ export const RetroPixelPlatform = memo(({ unlockedAnimals, currentLevel, backgro
       <FlyingAnimalParade flyingAnimals={flyingAnimals} />
 
       {/* Platform Structure */}
-      <PixelPlatform />
+      <PixelPlatform theme={backgroundTheme} />
 
       {/* Walking Animals on ground */}
       <AnimalParade unlockedAnimals={groundAnimals} />

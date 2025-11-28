@@ -20,7 +20,6 @@ const BIOME_CONFIG: Record<string, { bg: string; emoji: string }> = {
   'Meadow': { bg: 'day', emoji: '🌿' },
   'Sunset': { bg: 'sunset', emoji: '🌅' },
   'Night': { bg: 'night', emoji: '🌙' },
-  'Ocean': { bg: 'ocean', emoji: '🌊' },
   'Forest': { bg: 'forest', emoji: '🌲' },
   'Snow': { bg: 'snow', emoji: '❄️' },
 };

@@ -117,38 +117,29 @@ const STORY_QUESTS = [
   {
     id: 'story-3',
     title: "Forest Explorer",
-    description: "Unlock the mystical forest biome",
-    objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 6" }],
-    rewards: [{ type: 'pet_unlock', itemId: 'wolf', description: "Unlock Wolf companion" }],
-    unlockLevel: 6,
+    description: "Unlock the mystical jungle biome",
+    objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 13" }],
+    rewards: [{ type: 'pet_unlock', itemId: 'jungle-bird', description: "Unlock Tropical Bird companion" }],
+    unlockLevel: 13,
     storylineChapter: 2
   },
   {
     id: 'story-4',
-    title: "Ocean Depths",
-    description: "Discover the serene ocean realm",
-    objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 10" }],
-    rewards: [{ type: 'pet_unlock', itemId: 'dolphin', description: "Unlock Dolphin companion" }],
-    unlockLevel: 10,
+    title: "Arctic Adventure",
+    description: "Brave the harsh tundra lands",
+    objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 19" }],
+    rewards: [{ type: 'pet_unlock', itemId: 'arctic-hare', description: "Unlock Arctic Hare companion" }],
+    unlockLevel: 19,
     storylineChapter: 3
   },
   {
     id: 'story-5',
-    title: "Arctic Adventure",
-    description: "Brave the harsh tundra lands",
-    objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 15" }],
-    rewards: [{ type: 'pet_unlock', itemId: 'penguin', description: "Unlock Penguin companion" }],
-    unlockLevel: 15,
-    storylineChapter: 4
-  },
-  {
-    id: 'story-6',
     title: "Legendary Peaks",
     description: "Ascend to the mythical mountains",
-    objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 20" }],
-    rewards: [{ type: 'pet_unlock', itemId: 'tiger', description: "Unlock Tiger companion" }],
-    unlockLevel: 20,
-    storylineChapter: 5
+    objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 27" }],
+    rewards: [{ type: 'pet_unlock', itemId: 'alpha-bear', description: "Unlock Alpha Bear companion" }],
+    unlockLevel: 27,
+    storylineChapter: 4
   }
 ];
 

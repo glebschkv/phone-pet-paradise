@@ -7,8 +7,6 @@ export const FocusBackground = ({ theme }: { theme: string }) => {
       return <SunsetBackground key="sunset" />;
     case 'night':
       return <NightBackground key="night" />;
-    case 'ocean':
-      return <OceanBackground key="ocean" />;
     case 'forest':
       return <ForestBackground key="forest" />;
     case 'snow':
@@ -149,45 +147,6 @@ export const NightBackground = memo(() => (
   </div>
 ));
 NightBackground.displayName = 'NightBackground';
-
-// Ocean Background
-export const OceanBackground = memo(() => (
-  <div className="absolute inset-0 overflow-hidden">
-    <div
-      className="absolute inset-0"
-      style={{
-        background: 'linear-gradient(180deg, hsl(195 70% 75%) 0%, hsl(200 60% 65%) 30%, hsl(205 55% 50%) 60%, hsl(210 50% 40%) 100%)'
-      }}
-    />
-    <div
-      className="absolute top-[8%] right-[20%] w-24 h-24 rounded-full opacity-60"
-      style={{
-        background: 'radial-gradient(circle, hsl(45 100% 90%) 0%, transparent 70%)'
-      }}
-    />
-    <div className="absolute top-[10%] left-[5%] w-28 h-10 rounded-full bg-white/40 blur-sm" />
-    <div className="absolute top-[5%] left-[30%] w-20 h-7 rounded-full bg-white/30 blur-sm" />
-    <div className="absolute top-[12%] right-[25%] w-24 h-8 rounded-full bg-white/35 blur-sm" />
-    <div className="absolute bottom-0 w-full h-56">
-      <svg viewBox="0 0 1200 250" className="w-full h-full" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="oceanGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="hsl(200 65% 55%)" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="hsl(205 60% 45%)" stopOpacity="0.9" />
-          </linearGradient>
-          <linearGradient id="oceanGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="hsl(205 55% 45%)" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="hsl(210 50% 35%)" stopOpacity="1" />
-          </linearGradient>
-        </defs>
-        <path d="M0,250 L0,80 Q100,60 200,80 Q300,100 400,70 Q500,40 600,70 Q700,100 800,60 Q900,20 1000,50 Q1100,80 1200,40 L1200,250 Z" fill="url(#oceanGradient1)" />
-        <path d="M0,250 L0,120 Q150,100 300,130 Q450,160 600,120 Q750,80 900,120 Q1050,160 1200,100 L1200,250 Z" fill="url(#oceanGradient2)" />
-        <path d="M0,125 Q150,105 300,135 Q450,165 600,125 Q750,85 900,125 Q1050,165 1200,105" fill="none" stroke="hsl(0 0% 100% / 0.3)" strokeWidth="3" />
-      </svg>
-    </div>
-  </div>
-));
-OceanBackground.displayName = 'OceanBackground';
 
 // Forest Background
 export const ForestBackground = memo(() => (

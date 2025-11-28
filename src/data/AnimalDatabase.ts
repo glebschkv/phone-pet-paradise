@@ -267,114 +267,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // OCEAN BIOME (Levels 13-18) - Deep sea creatures
-  // Background: Ocean (CSS animated waves)
-  // ═══════════════════════════════════════════════════════════════════════════
-  {
-    id: 'shark',
-    name: 'Ocean Shark',
-    emoji: '🦈',
-    rarity: 'epic',
-    unlockLevel: 13,
-    description: 'A focused predator of the deep with razor-sharp concentration.',
-    abilities: ['Predator Focus', 'Ocean Power', 'Swift Strike'],
-    biome: 'Ocean',
-    spriteConfig: {
-      spritePath: '/assets/sprites/SHARK_Walk.png',
-      frameCount: 6, // 576px / 96px = 6 frames
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 10
-    }
-  },
-  {
-    id: 'octopus',
-    name: 'Mystic Octopus',
-    emoji: '🐙',
-    rarity: 'epic',
-    unlockLevel: 14,
-    description: 'An intelligent cephalopod with multiple tentacles for multitasking mastery.',
-    abilities: ['Multi-Focus', 'Deep Wisdom', 'Ink Escape'],
-    biome: 'Ocean',
-    spriteConfig: {
-      spritePath: '/assets/sprites/OCTOPUS_Walk.png',
-      frameCount: 6, // 576px / 96px = 6 frames
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 8
-    }
-  },
-  {
-    id: 'crab',
-    name: 'Coral Crab',
-    emoji: '🦀',
-    rarity: 'rare',
-    unlockLevel: 15,
-    description: 'A colorful reef guardian that teaches sideways thinking.',
-    abilities: ['Lateral Focus', 'Pincer Power', 'Reef Guard'],
-    biome: 'Ocean',
-    spriteConfig: {
-      spritePath: '/assets/sprites/CRAB_CRABWALK.png',
-      frameCount: 6, // 576px / 96px = 6 frames
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 9
-    }
-  },
-  {
-    id: 'sea-turtle',
-    name: 'Sea Turtle',
-    emoji: '🐢',
-    rarity: 'rare',
-    unlockLevel: 16,
-    description: 'An ancient sea turtle gliding through ocean currents with timeless grace.',
-    abilities: ['Ocean Current', 'Ancient Wisdom', 'Gentle Glide'],
-    biome: 'Ocean',
-    spriteConfig: {
-      spritePath: '/assets/sprites/Turtle_Swim.png',
-      frameCount: 6, // 432px / 72px = 6 frames
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 7
-    }
-  },
-  {
-    id: 'shark-hunter',
-    name: 'Great Hunter',
-    emoji: '🦈',
-    rarity: 'legendary',
-    unlockLevel: 17,
-    description: 'The apex predator of the ocean, unstoppable in its pursuit.',
-    abilities: ['Apex Focus', 'Hunting Instinct', 'Ocean Master'],
-    biome: 'Ocean',
-    spriteConfig: {
-      spritePath: '/assets/sprites/SHARK_Special.png',
-      frameCount: 6, // 576px / 96px = 6 frames
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 11
-    }
-  },
-  {
-    id: 'octopus-wise',
-    name: 'Deep Oracle',
-    emoji: '🐙',
-    rarity: 'legendary',
-    unlockLevel: 18,
-    description: 'A wise oracle from the deepest trenches, holding ancient knowledge.',
-    abilities: ['Deep Knowledge', 'Oracle Vision', 'Tentacle Mastery'],
-    biome: 'Ocean',
-    spriteConfig: {
-      spritePath: '/assets/sprites/OCTOPUS_Special.png',
-      frameCount: 6, // 576px / 96px = 6 frames
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 8
-    }
-  },
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FOREST BIOME (Levels 19-24) - Jungle creatures
+  // FOREST BIOME (Levels 13-18) - Jungle creatures
   // Background: Jungle Island
   // ═══════════════════════════════════════════════════════════════════════════
   {
@@ -382,7 +275,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Tropical Bird',
     emoji: '🦜',
     rarity: 'rare',
-    unlockLevel: 19,
+    unlockLevel: 13,
     description: 'A vibrant tropical bird with colorful feathers and melodic songs.',
     abilities: ['Jungle Song', 'Tropical Flight', 'Color Dance'],
     biome: 'Forest',
@@ -399,7 +292,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Rainforest Gecko',
     emoji: '🦎',
     rarity: 'epic',
-    unlockLevel: 20,
+    unlockLevel: 14,
     description: 'A colorful gecko that climbs the tallest jungle trees.',
     abilities: ['Climb Focus', 'Jungle Agility', 'Camouflage'],
     biome: 'Forest',
@@ -416,7 +309,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Vine Snake',
     emoji: '🐍',
     rarity: 'epic',
-    unlockLevel: 21,
+    unlockLevel: 15,
     description: 'A slender snake that moves through jungle vines with precision.',
     abilities: ['Vine Dance', 'Jungle Stealth', 'Swift Coil'],
     biome: 'Forest',
@@ -433,7 +326,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Jungle Spirit',
     emoji: '🌿',
     rarity: 'legendary',
-    unlockLevel: 22,
+    unlockLevel: 16,
     description: 'A mystical forest spirit that protects the jungle and its inhabitants.',
     abilities: ['Forest Protection', 'Spirit Guide', 'Nature Focus'],
     biome: 'Forest',
@@ -450,7 +343,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Ancient Tortoise',
     emoji: '🐢',
     rarity: 'legendary',
-    unlockLevel: 23,
+    unlockLevel: 17,
     description: 'An ancient tortoise that has witnessed centuries of jungle history.',
     abilities: ['Ancient Wisdom', 'Slow Power', 'Time Focus'],
     biome: 'Forest',
@@ -467,7 +360,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Forest Runner',
     emoji: '🐰',
     rarity: 'rare',
-    unlockLevel: 24,
+    unlockLevel: 18,
     description: 'A swift hare that dashes through the jungle underbrush.',
     abilities: ['Quick Dash', 'Forest Speed', 'Undergrowth Run'],
     biome: 'Forest',
@@ -481,15 +374,15 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // SNOW BIOME (Levels 25-32) - Arctic and mountain creatures
-  // Background: Sky Platform World / Rocky Back
+  // SNOW BIOME (Levels 19-26) - Arctic and mountain creatures
+  // Background: Sky Platform World
   // ═══════════════════════════════════════════════════════════════════════════
   {
     id: 'arctic-hare',
     name: 'Arctic Hare',
     emoji: '🐇',
     rarity: 'rare',
-    unlockLevel: 25,
+    unlockLevel: 19,
     description: 'A pure white hare perfectly adapted to the frozen tundra.',
     abilities: ['Snow Camouflage', 'Ice Speed', 'Arctic Focus'],
     biome: 'Snow',
@@ -506,7 +399,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Mountain Elk',
     emoji: '🦌',
     rarity: 'epic',
-    unlockLevel: 26,
+    unlockLevel: 20,
     description: 'A powerful elk that roams the snowy mountain peaks.',
     abilities: ['Peak Power', 'Mountain Stride', 'Snow King'],
     biome: 'Snow',
@@ -523,7 +416,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Polar Bear',
     emoji: '🐻‍❄️',
     rarity: 'legendary',
-    unlockLevel: 27,
+    unlockLevel: 21,
     description: 'The mighty ruler of the arctic, a symbol of strength and endurance.',
     abilities: ['Arctic Strength', 'Ice Master', 'Polar Power'],
     biome: 'Snow',
@@ -540,7 +433,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Frost Stallion',
     emoji: '🐴',
     rarity: 'legendary',
-    unlockLevel: 28,
+    unlockLevel: 22,
     description: 'A majestic stallion with a coat as white as freshly fallen snow.',
     abilities: ['Frost Gallop', 'Snow Trail', 'Winter Spirit'],
     biome: 'Snow',
@@ -557,7 +450,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Glacier Crab',
     emoji: '🦀',
     rarity: 'epic',
-    unlockLevel: 29,
+    unlockLevel: 23,
     description: 'A hardy crab that survives in the coldest waters of the arctic.',
     abilities: ['Ice Pincer', 'Glacier Walk', 'Cold Armor'],
     biome: 'Snow',
@@ -574,7 +467,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Frost Spirit',
     emoji: '❄️',
     rarity: 'legendary',
-    unlockLevel: 30,
+    unlockLevel: 24,
     description: 'A playful spirit of winter that brings snow and magic wherever it goes.',
     abilities: ['Winter Magic', 'Frost Dance', 'Snow Blessing'],
     biome: 'Snow',
@@ -591,7 +484,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Arctic Shark',
     emoji: '🦈',
     rarity: 'legendary',
-    unlockLevel: 31,
+    unlockLevel: 25,
     description: 'A fearsome shark that hunts beneath the frozen seas.',
     abilities: ['Ice Hunter', 'Frozen Strike', 'Arctic Predator'],
     biome: 'Snow',
@@ -608,7 +501,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Bactrian Camel',
     emoji: '🐫',
     rarity: 'epic',
-    unlockLevel: 32,
+    unlockLevel: 26,
     description: 'A two-humped camel adapted to the harsh cold of the mountain steppes.',
     abilities: ['Cold Endurance', 'Mountain Trek', 'Double Strength'],
     biome: 'Snow',
@@ -622,7 +515,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // LEGENDARY TIER (Levels 33-40) - Ultimate creatures
+  // LEGENDARY TIER (Levels 27-34) - Ultimate creatures
   // Special rare variants with unique abilities
   // ═══════════════════════════════════════════════════════════════════════════
   {
@@ -630,7 +523,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Alpha Bear',
     emoji: '🐻',
     rarity: 'legendary',
-    unlockLevel: 33,
+    unlockLevel: 27,
     description: 'The ultimate alpha predator, commanding respect from all creatures.',
     abilities: ['Alpha Command', 'Ultimate Strength', 'Focus Master', 'Leader Aura'],
     biome: 'Night',
@@ -647,10 +540,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Kraken',
     emoji: '🐙',
     rarity: 'legendary',
-    unlockLevel: 34,
-    description: 'The legendary Kraken, master of the deep ocean and ancient wisdom.',
-    abilities: ['Ocean Domination', 'Tentacle Master', 'Deep Sea King', 'Ancient Power'],
-    biome: 'Ocean',
+    unlockLevel: 28,
+    description: 'The legendary Kraken, master of the deep and ancient wisdom.',
+    abilities: ['Deep Domination', 'Tentacle Master', 'Deep Sea King', 'Ancient Power'],
+    biome: 'Night',
     spriteConfig: {
       spritePath: '/assets/sprites/OCTOPUS_Attack1.png',
       frameCount: 6,
@@ -664,10 +557,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Giant Crab',
     emoji: '🦀',
     rarity: 'legendary',
-    unlockLevel: 35,
+    unlockLevel: 29,
     description: 'A massive crab with impenetrable armor and crushing pincers.',
-    abilities: ['Armor Master', 'Crushing Grip', 'Titan Defense', 'Ocean Guardian'],
-    biome: 'Ocean',
+    abilities: ['Armor Master', 'Crushing Grip', 'Titan Defense', 'Beach Guardian'],
+    biome: 'Sunset',
     spriteConfig: {
       spritePath: '/assets/sprites/CRAB_Special.png',
       frameCount: 6,
@@ -681,10 +574,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Megalodon',
     emoji: '🦈',
     rarity: 'legendary',
-    unlockLevel: 36,
-    description: 'The prehistoric apex predator returns, dominating all seas.',
-    abilities: ['Prehistoric Power', 'Ultimate Hunter', 'Sea Terror', 'Ancient Might'],
-    biome: 'Ocean',
+    unlockLevel: 30,
+    description: 'The prehistoric apex predator returns, dominating all lands.',
+    abilities: ['Prehistoric Power', 'Ultimate Hunter', 'Land Terror', 'Ancient Might'],
+    biome: 'Snow',
     spriteConfig: {
       spritePath: '/assets/sprites/SHARK_Attack1.png',
       frameCount: 6,
@@ -698,7 +591,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Serpent King',
     emoji: '🐍',
     rarity: 'legendary',
-    unlockLevel: 37,
+    unlockLevel: 31,
     description: 'The ruler of all serpents, wielding hypnotic power and ancient wisdom.',
     abilities: ['Hypnotic Gaze', 'Serpent Command', 'Venom Master', 'Ancient Coil'],
     biome: 'Night',
@@ -715,7 +608,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Phoenix',
     emoji: '🔥',
     rarity: 'legendary',
-    unlockLevel: 38,
+    unlockLevel: 32,
     description: 'A mythical bird reborn from flames, eternal and ever-powerful.',
     abilities: ['Eternal Flame', 'Rebirth', 'Sky Blaze', 'Immortal Focus'],
     biome: 'Sunset',
@@ -732,7 +625,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Unicorn',
     emoji: '🦄',
     rarity: 'legendary',
-    unlockLevel: 39,
+    unlockLevel: 33,
     description: 'A mythical horse with a magical horn, bringing pure focus and magic.',
     abilities: ['Pure Magic', 'Healing Light', 'Rainbow Trail', 'Legendary Grace'],
     biome: 'Meadow',
@@ -749,7 +642,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Cosmic Spirit',
     emoji: '✨',
     rarity: 'legendary',
-    unlockLevel: 40,
+    unlockLevel: 34,
     description: 'The ultimate companion - a cosmic being of pure focus energy and infinite power.',
     abilities: ['Cosmic Focus', 'Star Power', 'Universal Wisdom', 'Infinite Energy', 'Time Master'],
     biome: 'Snow',
@@ -793,7 +686,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 999,
     description: 'A magnificent shark made of living crystal, refracting light into rainbows.',
     abilities: ['Crystal Armor', 'Prism Strike', 'Diamond Focus', 'Gem Collector'],
-    biome: 'Ocean',
+    biome: 'Snow',
     coinPrice: 3000,
     isExclusive: true,
     spriteConfig: {
@@ -869,7 +762,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 999,
     description: 'A bioluminescent octopus glowing with electric colors from the deep abyss.',
     abilities: ['Neon Glow', 'Electric Pulse', 'Deep Light', 'Ink Flash'],
-    biome: 'Ocean',
+    biome: 'Night',
     coinPrice: 2000,
     isExclusive: true,
     spriteConfig: {
@@ -982,21 +875,15 @@ export const BIOME_DATABASE: BiomeData[] = [
     backgroundImage: '/assets/worlds/PURPLE_NIGHTSKY.png'
   },
   {
-    name: 'Ocean',
-    unlockLevel: 13,
-    description: 'Serene ocean waters where mysterious aquatic friends await in the depths.',
-    animals: ['shark', 'octopus', 'crab', 'sea-turtle', 'shark-hunter', 'octopus-wise']
-  },
-  {
     name: 'Forest',
-    unlockLevel: 19,
+    unlockLevel: 13,
     description: 'Deep enchanted jungle filled with ancient wisdom and colorful life.',
     animals: ['jungle-bird', 'jungle-lizard', 'jungle-snake', 'forest-monster', 'jungle-turtle', 'jungle-hare'],
     backgroundImage: '/assets/worlds/JUNGLE_ISLAND.png'
   },
   {
     name: 'Snow',
-    unlockLevel: 25,
+    unlockLevel: 19,
     description: 'A magical winter wonderland of snow-capped peaks and arctic adventures.',
     animals: ['arctic-hare', 'mountain-elk', 'polar-bear', 'snow-horse', 'ice-crab', 'frost-spirit', 'ice-shark', 'snow-camel'],
     backgroundImage: '/assets/worlds/SKYPLATFORM_WORLD.png'
