@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AnimalData, getAnimalById, getUnlockedAnimals, getUnlockedBiomes, getAnimalsByBiome, ANIMAL_DATABASE } from '@/data/AnimalDatabase';
-import { useAppStateTracking } from '@/hooks/useAppStateTracking';
+import { useBackendXPSystem } from '@/hooks/useBackendXPSystem';
+import { useXPSystem } from '@/hooks/useXPSystem';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CollectionStats {
   totalAnimals: number;
@@ -38,7 +40,15 @@ const FAVORITES_STORAGE_KEY = 'petparadise-favorites';
 const ACTIVE_HOME_PETS_KEY = 'petparadise-active-home-pets';
 
 export const useCollection = (): UseCollectionReturn => {
-  const { currentLevel, unlockedAnimals, currentBiome, availableBiomes } = useAppStateTracking();
+  // Use the correct XP system based on authentication status
+  const { isAuthenticated } = useAuth();
+  const backendXPSystem = useBackendXPSystem();
+  const localXPSystem = useXPSystem();
+
+  // Select the appropriate XP system
+  const xpSystem = isAuthenticated ? backendXPSystem : localXPSystem;
+  const { currentLevel, unlockedAnimals, currentBiome, availableBiomes } = xpSystem;
+
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [activeHomePets, setActiveHomePets] = useState<Set<string>>(new Set());
 
