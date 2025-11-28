@@ -57,7 +57,10 @@ const SpritePreview = ({ animal }: { animal: AnimalData }) => {
   if (!spriteConfig) return null;
 
   const { spritePath, frameCount, frameWidth, frameHeight, frameRow = 0 } = spriteConfig;
-  const scale = 4; // Larger scale for close-up view
+  // Dynamic scale based on sprite size to fit within modal
+  // Target ~140px max size for consistent display
+  const maxDimension = Math.max(frameWidth, frameHeight);
+  const scale = maxDimension > 40 ? 2 : 4;
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
   const backgroundPositionX = -(currentFrame * frameWidth * scale);
