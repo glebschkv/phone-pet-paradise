@@ -3,6 +3,8 @@ import { useXPSystem, XPReward } from '@/hooks/useXPSystem';
 import { useStreakSystem } from '@/hooks/useStreakSystem';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useDailyLoginRewards, DailyReward } from '@/hooks/useDailyLoginRewards';
+import { useSpinWheel, WheelSegment } from '@/hooks/useSpinWheel';
+import { useComboSystem } from '@/hooks/useComboSystem';
 
 interface AppStateData {
   lastActiveTime: number;
@@ -18,6 +20,8 @@ export const useAppStateTracking = () => {
   const streakSystem = useStreakSystem();
   const notifications = useNotifications();
   const dailyLoginRewards = useDailyLoginRewards();
+  const spinWheel = useSpinWheel();
+  const comboSystem = useComboSystem();
   
   const [appState, setAppState] = useState<AppStateData>({
     lastActiveTime: Date.now(),
@@ -48,11 +52,14 @@ export const useAppStateTracking = () => {
     });
   }, []);
 
-  // Award XP based on focus session duration (includes daily login streak bonus)
+  // Award XP based on focus session duration (includes all bonuses)
   const awardSessionXP = useCallback((minutes: number): XPReward | null => {
     if (minutes >= 30) { // Minimum 30 minutes for XP
       const xpReward = xpSystem.awardXP(minutes);
       const streakReward = streakSystem.recordSession();
+
+      // Record combo session and get multiplier
+      const comboResult = comboSystem.recordSession();
 
       // Add focus streak bonus (from useStreakSystem)
       if (xpReward && streakReward) {
@@ -71,13 +78,23 @@ export const useAppStateTracking = () => {
         }
       }
 
+      // Apply combo multiplier (on base XP, stacks with other bonuses)
+      if (comboResult.multiplier > 1 && xpReward) {
+        const comboBonus = Math.round(xpReward.baseXP * (comboResult.multiplier - 1));
+        xpReward.xpGained += comboBonus;
+        xpReward.bonusXP += comboBonus;
+        if (comboBonus > 0) {
+          xpReward.hasBonusXP = true;
+        }
+      }
+
       // Schedule notification reminders
       notifications.scheduleTimerReminder();
 
       return xpReward;
     }
     return null;
-  }, [xpSystem, streakSystem, notifications, dailyLoginRewards]);
+  }, [xpSystem, streakSystem, notifications, dailyLoginRewards, comboSystem]);
 
   // Handle app becoming active (foreground)
   const handleAppActive = useCallback(() => {
@@ -199,6 +216,29 @@ export const useAppStateTracking = () => {
     return { dailyReward: reward, xpReward };
   }, [dailyLoginRewards, xpSystem, streakSystem, saveState]);
 
+  // Handle claiming spin wheel reward
+  const handleClaimSpinReward = useCallback((segment: WheelSegment): XPReward | null => {
+    let xpReward: XPReward | null = null;
+
+    if (segment.type === 'xp' || segment.type === 'small_xp' || segment.type === 'bonus_xp' || segment.type === 'jackpot') {
+      // Award XP
+      xpReward = xpSystem.addDirectXP(segment.value);
+
+      // If leveled up, show the XP reward modal
+      if (xpReward.leveledUp) {
+        saveState({
+          showRewardModal: true,
+          currentReward: xpReward,
+        });
+      }
+    } else if (segment.type === 'streak_freeze') {
+      // Award streak freeze
+      streakSystem.earnStreakFreeze();
+    }
+
+    return xpReward;
+  }, [xpSystem, streakSystem, saveState]);
+
   return {
     // XP System data
     ...xpSystem,
@@ -212,6 +252,13 @@ export const useAppStateTracking = () => {
     // Daily Login Rewards
     dailyLoginRewards,
     handleClaimDailyReward,
+
+    // Spin Wheel
+    spinWheel,
+    handleClaimSpinReward,
+
+    // Combo System
+    comboSystem,
 
     // App state data
     timeAwayMinutes: appState.timeAwayMinutes,
