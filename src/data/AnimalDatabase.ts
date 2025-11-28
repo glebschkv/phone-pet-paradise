@@ -858,3 +858,18 @@ export const getAnimalsCountByRarity = (): Record<string, number> => {
     return acc;
   }, {} as Record<string, number>);
 };
+
+// Flying animals (birds) that should appear in the sky instead of walking
+const FLYING_ANIMAL_IDS = ['bird', 'jungle-bird', 'celestial-bird'];
+
+export const isFlyingAnimal = (animalId: string): boolean => {
+  return FLYING_ANIMAL_IDS.includes(animalId);
+};
+
+export const getFlyingAnimals = (animals: AnimalData[]): AnimalData[] => {
+  return animals.filter(animal => FLYING_ANIMAL_IDS.includes(animal.id));
+};
+
+export const getGroundAnimals = (animals: AnimalData[]): AnimalData[] => {
+  return animals.filter(animal => !FLYING_ANIMAL_IDS.includes(animal.id));
+};

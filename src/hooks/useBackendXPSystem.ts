@@ -32,26 +32,36 @@ export interface XPSystemState {
 export const MAX_LEVEL = 50 as const;
 
 // XP rewards based on session duration (in minutes)
+// Designed to feel rewarding - a 30 min session should feel impactful
 const XP_REWARDS = {
-  25: 8,    // 25 minutes = 8 XP (minimum focus session)
-  30: 10,   // 30 minutes = 10 XP
-  45: 15,   // 45 minutes = 15 XP
-  60: 25,   // 1 hour = 25 XP
-  90: 40,   // 90 minutes (deep work) = 40 XP
-  120: 60,  // 2 hours = 60 XP
-  180: 100, // 3 hours = 100 XP
-  240: 150, // 4 hours = 150 XP
-  300: 210, // 5 hours = 210 XP
+  25: 12,   // 25 minutes = 12 XP (minimum focus session)
+  30: 15,   // 30 minutes = 15 XP - good for quick unlocks
+  45: 25,   // 45 minutes = 25 XP
+  60: 35,   // 1 hour = 35 XP - sweet spot for progression
+  90: 55,   // 90 minutes (deep work) = 55 XP
+  120: 80,  // 2 hours = 80 XP
+  180: 120, // 3 hours = 120 XP
+  240: 170, // 4 hours = 170 XP
+  300: 230, // 5 hours = 230 XP
 };
 
-// Level progression: how much total XP needed to reach each level
-// Level 0 is the starting level (0 XP), level 1 requires 25 XP, etc.
+// Level progression: XP required for each level
+// Early levels are quick (1-2 sessions), mid levels moderate (3-5 sessions), late levels rewarding (5+ sessions)
+// This creates an addicting but sustainable progression curve
 const LEVEL_REQUIREMENTS = [
-  0,   // Level 0 (starting level - included implicitly)
-  25,  // Level 1
-  50,  // Level 2 (25 + 25)
-  75,  // Level 3 (50 + 25)
-  125, // Level 4 (75 + 50)
+  0,    // Level 0 (starting - Meadow Hare)
+  15,   // Level 1 - Songbird (1 session)
+  35,   // Level 2 - Garden Lizard (~2 sessions total)
+  60,   // Level 3 - Wild Horse (~3 sessions)
+  90,   // Level 4 - Friendly Monster (~4 sessions)
+  125,  // Level 5 - Desert Camel + Sunset biome (~5 sessions)
+  165,  // Level 6 - Golden Elk
+  210,  // Level 7 - Wise Turtle
+  260,  // Level 8 - Sunset Stallion
+  320,  // Level 9 - Night Bear + Night biome
+  385,  // Level 10 - Shadow Serpent
+  455,  // Level 11 - Ghost Hare
+  530,  // Level 12 - Night Sprite
 ];
 
 // Memoized level requirement calculation
@@ -61,21 +71,35 @@ const calculateLevelRequirement = (level: number): number => {
   if (levelRequirementCache.has(level)) {
     return levelRequirementCache.get(level)!;
   }
-  
+
   let result: number;
-  if (level <= 5) {
-    result = LEVEL_REQUIREMENTS[level - 1] || 0;
+
+  // Use predefined values for levels 0-12
+  if (level < LEVEL_REQUIREMENTS.length) {
+    result = LEVEL_REQUIREMENTS[level];
   } else {
-    let totalXP = LEVEL_REQUIREMENTS[4]; // XP for level 5
-    let increment = 100; // Starting increment for level 6
-    
-    for (let i = 6; i <= level; i++) {
+    // For levels 13+, continue with a smooth progression
+    // Base: last defined level's XP + incremental growth
+    let totalXP = LEVEL_REQUIREMENTS[LEVEL_REQUIREMENTS.length - 1]; // Level 12 = 530
+    let increment = 80; // Starting increment after level 12
+
+    for (let i = LEVEL_REQUIREMENTS.length; i <= level; i++) {
       totalXP += increment;
-      increment += 50; // Increase by 50 each level
+      // Gradually increase XP needed per level (addicting but challenging)
+      // Early teens: 80-100 XP per level (2-3 sessions)
+      // Level 20s: 100-150 XP per level (3-5 sessions)
+      // Level 30s+: 150-200+ XP per level (5+ sessions for legendaries)
+      if (i < 20) {
+        increment += 8;  // Small increase for levels 13-19
+      } else if (i < 30) {
+        increment += 12; // Medium increase for levels 20-29
+      } else {
+        increment += 15; // Larger increase for legendary tier (30+)
+      }
     }
     result = totalXP;
   }
-  
+
   levelRequirementCache.set(level, result);
   return result;
 };
@@ -113,8 +137,8 @@ export const useBackendXPSystem = () => {
   
   const [xpState, setXPState] = useState<XPSystemState>({
     currentXP: 0,
-    currentLevel: 0, // Start at level 0 to include Black Dog
-    xpToNextLevel: 25,
+    currentLevel: 0, // Start at level 0 to include Meadow Hare
+    xpToNextLevel: 15, // Level 1 requires 15 XP
     totalXPForCurrentLevel: 0,
     unlockedAnimals: getUnlockedAnimals(0).map(a => a.name),
     currentBiome: 'Meadow',
