@@ -93,9 +93,10 @@ export const useCollection = (): UseCollectionReturn => {
   // Save active home pets to localStorage
   const saveActiveHomePets = useCallback((newActivePets: Set<string>) => {
     try {
-      localStorage.setItem(ACTIVE_HOME_PETS_KEY, JSON.stringify(Array.from(newActivePets)));
-      // Dispatch event so AnimalParade can react
-      window.dispatchEvent(new CustomEvent('activeHomePetsChange', { detail: Array.from(newActivePets) }));
+      const petsArray = Array.from(newActivePets);
+      localStorage.setItem(ACTIVE_HOME_PETS_KEY, JSON.stringify(petsArray));
+      // Dispatch event so home page can react immediately
+      window.dispatchEvent(new CustomEvent('activeHomePetsChange', { detail: petsArray }));
     } catch (error) {
       console.error('Failed to save active home pets:', error);
     }
