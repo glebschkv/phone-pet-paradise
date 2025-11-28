@@ -14,7 +14,7 @@ export const BackgroundThemeSwitcher = ({
   onThemeChange
 }: BackgroundThemeSwitcherProps) => {
   return (
-    <div className="w-full max-w-sm mb-4">
+    <div className="w-full max-w-sm mt-6">
       <div className="flex justify-center gap-2">
         {BACKGROUND_THEMES.map((theme) => {
           const Icon = theme.icon;

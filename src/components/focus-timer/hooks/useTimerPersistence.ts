@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   TimerState,
-  TimerPersistence,
   TimerPreset,
   STORAGE_KEY,
-  TIMER_PERSISTENCE_KEY,
   TIMER_PRESETS,
   DEFAULT_TIMER_STATE
 } from '../constants';
@@ -20,80 +18,59 @@ interface UseTimerPersistenceReturn {
 export const useTimerPersistence = (): UseTimerPersistenceReturn => {
   const [timerState, setTimerState] = useState<TimerState>(DEFAULT_TIMER_STATE);
   const [selectedPreset, setSelectedPreset] = useState<TimerPreset>(TIMER_PRESETS[0]);
+  const isInitialized = useRef(false);
 
-  // Save timer state to localStorage with persistence
+  // Save timer state to localStorage
   const saveTimerState = useCallback((state: Partial<TimerState>) => {
     setTimerState(prev => {
       const newState = { ...prev, ...state };
 
-      // Save basic timer state
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        ...newState,
-        isRunning: false,
-        startTime: null
-      }));
-
-      // Save persistence data separately for running timers
-      const persistenceData: TimerPersistence = {
-        wasRunning: newState.isRunning,
-        pausedAt: newState.isRunning ? null : Date.now(),
-        originalStartTime: newState.startTime,
-        timeLeftWhenPaused: newState.timeLeft,
-        sessionDuration: newState.sessionDuration,
-        sessionType: newState.sessionType
-      };
-
-      localStorage.setItem(TIMER_PERSISTENCE_KEY, JSON.stringify(persistenceData));
+      // Save complete state to localStorage
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
 
       return newState;
     });
   }, []);
 
   const clearPersistence = useCallback(() => {
-    localStorage.removeItem(TIMER_PERSISTENCE_KEY);
+    // Clear the running timer data but keep other state
+    setTimerState(prev => {
+      const clearedState = {
+        ...prev,
+        isRunning: false,
+        startTime: null
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clearedState));
+      return clearedState;
+    });
   }, []);
 
-  // Load timer state from localStorage with persistence restoration
+  // Load timer state from localStorage on mount
   useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
     const savedState = localStorage.getItem(STORAGE_KEY);
-    const savedPersistence = localStorage.getItem(TIMER_PERSISTENCE_KEY);
 
     if (savedState) {
       try {
-        const parsed = JSON.parse(savedState);
-        let finalState: TimerState = {
-          ...parsed,
-          isRunning: false,
-          startTime: null
-        };
+        const parsed: TimerState = JSON.parse(savedState);
+        let finalState = { ...parsed };
 
-        // Check if we need to restore a running timer
-        if (savedPersistence) {
-          const persistence: TimerPersistence = JSON.parse(savedPersistence);
+        // If timer was running when app closed, calculate remaining time
+        if (parsed.isRunning && parsed.startTime) {
+          const now = Date.now();
+          const elapsedMs = now - parsed.startTime;
+          const elapsedSeconds = Math.floor(elapsedMs / 1000);
+          const newTimeLeft = Math.max(0, parsed.sessionDuration - elapsedSeconds);
 
-          if (persistence.wasRunning && persistence.originalStartTime) {
-            // Calculate how much time has actually elapsed
-            const totalElapsed = Date.now() - persistence.originalStartTime;
-            const elapsedSeconds = Math.floor(totalElapsed / 1000);
-            const newTimeLeft = Math.max(0, persistence.sessionDuration - elapsedSeconds);
-
-            finalState = {
-              ...finalState,
-              timeLeft: newTimeLeft,
-              sessionDuration: persistence.sessionDuration,
-              sessionType: persistence.sessionType,
-              isRunning: newTimeLeft > 0,
-              startTime: persistence.originalStartTime
-            };
-          } else if (persistence.pausedAt) {
-            // Timer was paused, restore paused state
-            finalState = {
-              ...finalState,
-              timeLeft: persistence.timeLeftWhenPaused,
-              sessionDuration: persistence.sessionDuration,
-              sessionType: persistence.sessionType
-            };
-          }
+          finalState = {
+            ...finalState,
+            timeLeft: newTimeLeft,
+            isRunning: newTimeLeft > 0,
+            // Keep the original startTime so the countdown continues correctly
+            startTime: newTimeLeft > 0 ? parsed.startTime : null
+          };
         }
 
         setTimerState(finalState);
