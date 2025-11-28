@@ -1,19 +1,18 @@
-import { CompactLevelProgress } from "@/components/CompactLevelProgress";
-import { InlineStreakCounter } from "@/components/InlineStreakCounter";
-import { StatusBarActions } from "@/components/StatusBarActions";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
-import { WorldSwitcher } from "@/components/WorldSwitcher";
+import { Heart, Flame, ChevronDown, Zap } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
 
-// Map biome names to background theme IDs
-const BIOME_TO_BACKGROUND: Record<string, string> = {
-  'Meadow': 'day',
-  'Sunset': 'sunset',
-  'Night': 'night',
-  'Ocean': 'ocean',
-  'Forest': 'forest',
-  'Snow': 'snow',
+// Map biome names to background theme IDs and emojis
+const BIOME_CONFIG: Record<string, { bg: string; emoji: string }> = {
+  'Meadow': { bg: 'day', emoji: '🌿' },
+  'Sunset': { bg: 'sunset', emoji: '🌅' },
+  'Night': { bg: 'night', emoji: '🌙' },
+  'Ocean': { bg: 'ocean', emoji: '🌊' },
+  'Forest': { bg: 'forest', emoji: '🌲' },
+  'Snow': { bg: 'snow', emoji: '❄️' },
 };
 
 interface TopStatusBarProps {
@@ -21,6 +20,7 @@ interface TopStatusBarProps {
 }
 
 export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
+  const { toast } = useToast();
   const {
     currentLevel,
     currentXP,
@@ -28,7 +28,6 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
     unlockedAnimals,
     getLevelProgress,
     streakData,
-    getStreakEmoji,
     testLevelUp,
     availableBiomes,
     currentBiome,
@@ -38,48 +37,110 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
   // Handle biome switch with background update
   const handleSwitchBiome = (biomeName: string) => {
     switchBiome(biomeName);
-    // Update background to match the biome
-    const backgroundId = BIOME_TO_BACKGROUND[biomeName] || 'day';
+    const backgroundId = BIOME_CONFIG[biomeName]?.bg || 'day';
     localStorage.setItem(HOME_BACKGROUND_KEY, backgroundId);
     window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundId }));
+  };
+
+  // Handle quick XP action
+  const handleQuickXP = () => {
+    testLevelUp();
+    toast({
+      title: "Focus Complete!",
+      description: "You earned XP for your session.",
+      duration: 2000,
+    });
   };
 
   // Only show on home tab
   if (currentTab !== "home") return null;
 
+  const progress = getLevelProgress();
+  const hasActiveStreak = streakData.currentStreak >= 3;
+  const currentBiomeEmoji = BIOME_CONFIG[currentBiome]?.emoji || '🌿';
+
   return (
     <div className="absolute top-safe left-3 right-3 pointer-events-auto z-40">
-      <div className="topbar-container">
-        {/* Top Row - Level, XP Progress, and Stats */}
-        <div className="flex items-center gap-2.5">
-          {/* Level Badge */}
-          <CompactLevelProgress
-            currentLevel={currentLevel}
-            progress={getLevelProgress()}
-            currentXP={currentXP}
-            xpToNextLevel={xpToNextLevel}
-          />
+      <div className="topbar-wrapper">
+        {/* Left Section - Level & XP */}
+        <div className="topbar-level-pill">
+          {/* Circular Level Ring with Progress */}
+          <div className="level-ring-container">
+            <div className="level-ring-bg" />
+            <div
+              className="level-ring-progress"
+              style={{ '--progress': `${progress * 3.6}deg` } as React.CSSProperties}
+            />
+            <div className="level-ring-inner">
+              <span>{currentLevel}</span>
+            </div>
+          </div>
 
-          {/* Stats Group */}
-          <StatusBarActions
-            petCount={unlockedAnimals.length}
-            onTestLevelUp={testLevelUp}
-          />
+          {/* XP Info */}
+          <div className="xp-info">
+            <span className="xp-label">Experience</span>
+            <span className="xp-value">
+              {currentXP} <span>/ {currentXP + xpToNextLevel}</span>
+            </span>
+          </div>
         </div>
 
-        {/* Bottom Row - Streak & World */}
-        <div className="flex items-center justify-between mt-2.5">
-          <InlineStreakCounter
-            streakData={streakData}
-            getStreakEmoji={getStreakEmoji}
-          />
+        {/* Right Section - Stats */}
+        <div className="topbar-stats-row">
+          {/* Streak Counter */}
+          <div className="stat-mini-pill touch-manipulation">
+            <div className="stat-icon">
+              <Flame className={`w-[18px] h-[18px] streak-fire ${hasActiveStreak ? 'active' : ''}`} />
+            </div>
+            <span className="stat-value">{streakData.currentStreak}</span>
+          </div>
 
-          <WorldSwitcher
-            currentBiome={currentBiome}
-            availableBiomes={availableBiomes}
-            onSwitch={handleSwitchBiome}
-          />
+          {/* Pet Count */}
+          <div className="stat-mini-pill touch-manipulation">
+            <div className="stat-icon">
+              <Heart className="w-[18px] h-[18px] pet-heart fill-current" />
+            </div>
+            <span className="stat-value">{unlockedAnimals.length}</span>
+          </div>
+
+          {/* Quick XP Button */}
+          <button
+            onClick={handleQuickXP}
+            className="quick-action-btn energy-pulse touch-manipulation"
+            aria-label="Quick focus"
+          >
+            <Zap className="w-[18px] h-[18px] fill-current" />
+          </button>
         </div>
+      </div>
+
+      {/* Second Row - Biome Selector (floating) */}
+      <div className="flex justify-end mt-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="biome-trigger touch-manipulation">
+              <span className="biome-icon">{currentBiomeEmoji}</span>
+              <span className="biome-name">{currentBiome}</span>
+              <ChevronDown className="biome-chevron" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="biome-dropdown-content min-w-[160px]">
+            {availableBiomes.map((biome) => {
+              const config = BIOME_CONFIG[biome];
+              const isActive = biome === currentBiome;
+              return (
+                <DropdownMenuItem
+                  key={biome}
+                  onClick={() => handleSwitchBiome(biome)}
+                  className={`biome-dropdown-item ${isActive ? 'active' : ''}`}
+                >
+                  <span className="biome-emoji">{config?.emoji || '🌍'}</span>
+                  <span>{biome}</span>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
