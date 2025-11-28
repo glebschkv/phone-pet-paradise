@@ -115,7 +115,7 @@ export const UnifiedFocusTimer = () => {
     toast({
       title: `${selectedPreset.name} Complete!`,
       description: reward
-        ? `Session complete! +${reward.xpGained} XP earned${reward.leveledUp ? ' - Level Up!' : ''}`
+        ? `+${reward.xpGained} XP${reward.coinReward ? ` & +${reward.coinReward.coinsGained} coins` : ''}${reward.leveledUp ? ' - Level Up!' : ''}`
         : `${completedMinutes}-minute ${timerState.sessionType} session completed.`,
       duration: 4000,
     });

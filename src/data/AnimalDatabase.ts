@@ -15,6 +15,9 @@ export interface AnimalData {
     animationSpeed?: number;
     frameRow?: number; // Row index for multi-row sprite sheets (0-indexed)
   };
+  // Coin-exclusive properties
+  coinPrice?: number; // If set, this animal can only be purchased with coins
+  isExclusive?: boolean; // Marks as shop-exclusive (not unlockable via XP)
 }
 
 export interface BiomeData {
@@ -757,6 +760,201 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 32,
       animationSpeed: 10
     }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COIN-EXCLUSIVE CHARACTERS - Special animals only purchasable with coins
+  // These cannot be unlocked through XP progression
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'golden-hare',
+    name: 'Golden Hare',
+    emoji: '🐰',
+    rarity: 'epic',
+    unlockLevel: 999, // Never unlocks via XP
+    description: 'A mystical hare with a coat of pure gold, radiating prosperity and fortune.',
+    abilities: ['Golden Touch', 'Luck Boost', 'Coin Magnet', 'Prosperity Aura'],
+    biome: 'Meadow',
+    coinPrice: 1500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/HARE_WALK.png',
+      frameCount: 4,
+      frameWidth: 28,
+      frameHeight: 28,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'crystal-shark',
+    name: 'Crystal Shark',
+    emoji: '💎',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A magnificent shark made of living crystal, refracting light into rainbows.',
+    abilities: ['Crystal Armor', 'Prism Strike', 'Diamond Focus', 'Gem Collector'],
+    biome: 'Ocean',
+    coinPrice: 3000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/SHARK_Walk.png',
+      frameCount: 6,
+      frameWidth: 96,
+      frameHeight: 96,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'shadow-wolf',
+    name: 'Shadow Wolf',
+    emoji: '🐺',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A mysterious wolf that moves through shadows, guardian of the night.',
+    abilities: ['Shadow Step', 'Night Vision', 'Pack Leader', 'Stealth Master'],
+    biome: 'Night',
+    coinPrice: 2500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Bear_Walk.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'ember-phoenix',
+    name: 'Ember Phoenix',
+    emoji: '🔥',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A blazing phoenix born from eternal flames, symbol of rebirth and power.',
+    abilities: ['Flame Wing', 'Rebirth', 'Fire Trail', 'Ash Rising'],
+    biome: 'Sunset',
+    coinPrice: 4000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Bird_Fly.png',
+      frameCount: 4,
+      frameWidth: 28,
+      frameHeight: 28,
+      animationSpeed: 18
+    }
+  },
+  {
+    id: 'frost-dragon',
+    name: 'Frost Dragon',
+    emoji: '🐉',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'An ancient dragon of ice and snow, breathing blizzards and commanding winter.',
+    abilities: ['Ice Breath', 'Blizzard Call', 'Frost Shield', 'Winter King'],
+    biome: 'Snow',
+    coinPrice: 5000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/SNAKE_Walk.png',
+      frameCount: 4,
+      frameWidth: 48,
+      frameHeight: 48,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'neon-octopus',
+    name: 'Neon Octopus',
+    emoji: '🦑',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A bioluminescent octopus glowing with electric colors from the deep abyss.',
+    abilities: ['Neon Glow', 'Electric Pulse', 'Deep Light', 'Ink Flash'],
+    biome: 'Ocean',
+    coinPrice: 2000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/OCTOPUS_Walk.png',
+      frameCount: 6,
+      frameWidth: 96,
+      frameHeight: 96,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'spirit-deer',
+    name: 'Spirit Deer',
+    emoji: '🦌',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A celestial deer with starlight antlers, guide of lost souls.',
+    abilities: ['Star Guide', 'Spirit Walk', 'Celestial Light', 'Soul Comfort'],
+    biome: 'Forest',
+    coinPrice: 3500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/ELK_WALK.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'rainbow-turtle',
+    name: 'Rainbow Turtle',
+    emoji: '🐢',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A magical turtle with a shell that shimmers in all colors of the rainbow.',
+    abilities: ['Rainbow Shell', 'Color Shift', 'Prismatic Defense', 'Joy Spread'],
+    biome: 'Meadow',
+    coinPrice: 1800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Turtle_Walk.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 6
+    }
+  },
+  {
+    id: 'void-serpent',
+    name: 'Void Serpent',
+    emoji: '🌑',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A serpent from the void between stars, embodying cosmic mystery.',
+    abilities: ['Void Coil', 'Dark Matter', 'Space Warp', 'Cosmic Venom'],
+    biome: 'Night',
+    coinPrice: 4500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/SNAKE_Attack.png',
+      frameCount: 6,
+      frameWidth: 48,
+      frameHeight: 48,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'aurora-horse',
+    name: 'Aurora Horse',
+    emoji: '🌈',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A majestic horse with a mane of northern lights, galloping across the sky.',
+    abilities: ['Aurora Trail', 'Sky Gallop', 'Light Dance', 'Dream Runner'],
+    biome: 'Snow',
+    coinPrice: 4000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Horse_Jump.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 11
+    }
   }
 ];
 
@@ -872,4 +1070,23 @@ export const getFlyingAnimals = (animals: AnimalData[]): AnimalData[] => {
 
 export const getGroundAnimals = (animals: AnimalData[]): AnimalData[] => {
   return animals.filter(animal => !FLYING_ANIMAL_IDS.includes(animal.id));
+};
+
+// Coin-exclusive animal helpers
+export const getCoinExclusiveAnimals = (): AnimalData[] => {
+  return ANIMAL_DATABASE.filter(animal => animal.isExclusive === true);
+};
+
+export const getXPUnlockableAnimals = (): AnimalData[] => {
+  return ANIMAL_DATABASE.filter(animal => !animal.isExclusive);
+};
+
+export const isAnimalCoinExclusive = (animalId: string): boolean => {
+  const animal = getAnimalById(animalId);
+  return animal?.isExclusive === true;
+};
+
+export const getAnimalCoinPrice = (animalId: string): number | undefined => {
+  const animal = getAnimalById(animalId);
+  return animal?.coinPrice;
 };

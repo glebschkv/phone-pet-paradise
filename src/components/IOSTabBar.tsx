@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Timer, Home, Users, Grid3X3, Settings, Sparkles } from "lucide-react";
+import { Timer, Home, ShoppingBag, Grid3X3, Settings, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TabBarProps {
@@ -12,7 +12,7 @@ const tabs = [
   { id: "home", icon: Home, label: "Home" },
   { id: "timer", icon: Timer, label: "Focus", isCenter: true },
   { id: "collection", icon: Grid3X3, label: "Pets" },
-  { id: "friends", icon: Users, label: "Social", badge: "Soon" },
+  { id: "shop", icon: ShoppingBag, label: "Shop" },
   { id: "settings", icon: Settings, label: "Settings" },
 ];
 
@@ -21,7 +21,7 @@ const orderedTabs = [
   tabs[0], // Home
   tabs[2], // Collection
   tabs[1], // Timer (center)
-  tabs[3], // Friends
+  tabs[3], // Shop
   tabs[4], // Settings
 ];
 

@@ -1,5 +1,6 @@
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
-import { Heart, Flame, ChevronDown, Zap } from "lucide-react";
+import { useCoinSystem } from "@/hooks/useCoinSystem";
+import { Heart, Flame, ChevronDown, Zap, Coins } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,6 +34,7 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
     currentBiome,
     switchBiome,
   } = useAppStateTracking();
+  const coinSystem = useCoinSystem();
 
   // Handle biome switch with background update
   const handleSwitchBiome = (biomeName: string) => {
@@ -87,6 +89,14 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
 
         {/* Right Section - Stats */}
         <div className="topbar-stats-row">
+          {/* Coin Balance */}
+          <div className="stat-mini-pill touch-manipulation bg-gradient-to-r from-amber-100 to-amber-200 border-amber-300">
+            <div className="stat-icon">
+              <Coins className="w-[18px] h-[18px] text-amber-600" />
+            </div>
+            <span className="stat-value text-amber-700">{coinSystem.balance.toLocaleString()}</span>
+          </div>
+
           {/* Streak Counter */}
           <div className="stat-mini-pill touch-manipulation">
             <div className="stat-icon">

@@ -34,6 +34,7 @@ export interface XPSystemState {
 const STORAGE_KEY = 'petIsland_xpSystem';
 const XP_UPDATE_EVENT = 'petIsland_xpUpdate';
 const LOGIN_REWARD_EVENT = 'petIsland_dailyLoginReward';
+const ANIMAL_PURCHASED_EVENT = 'petIsland_animalPurchased';
 
 // Random bonus XP system - creates variable rewards (slot machine psychology)
 // 20% chance of bonus, with different tiers
@@ -302,6 +303,34 @@ useEffect(() => {
     return () => {
       window.removeEventListener(XP_UPDATE_EVENT, handleXPUpdate as EventListener);
       window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Listen for animal purchase events (from shop)
+  useEffect(() => {
+    const handleAnimalPurchased = (event: CustomEvent<{ animalId: string; animalName: string }>) => {
+      console.log('Animal purchased:', event.detail);
+      const { animalName } = event.detail;
+
+      setXPState(prev => {
+        if (prev.unlockedAnimals.includes(animalName)) {
+          return prev; // Already unlocked
+        }
+
+        const updatedState = {
+          ...prev,
+          unlockedAnimals: [...prev.unlockedAnimals, animalName],
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedState));
+        window.dispatchEvent(new CustomEvent(XP_UPDATE_EVENT, { detail: updatedState }));
+        return updatedState;
+      });
+    };
+
+    window.addEventListener(ANIMAL_PURCHASED_EVENT, handleAnimalPurchased as EventListener);
+
+    return () => {
+      window.removeEventListener(ANIMAL_PURCHASED_EVENT, handleAnimalPurchased as EventListener);
     };
   }, []);
 

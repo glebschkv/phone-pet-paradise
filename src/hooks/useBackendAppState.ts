@@ -7,6 +7,8 @@ import { useBackendStreaks } from './useBackendStreaks';
 import { useSupabaseData } from './useSupabaseData';
 import { useBondSystem } from './useBondSystem';
 import { useCollection } from './useCollection';
+import { useCoinSystem, CoinReward } from './useCoinSystem';
+import { useCoinBooster } from './useCoinBooster';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -31,7 +33,9 @@ export const useBackendAppState = () => {
   const bondSystem = useBondSystem();
   const collection = useCollection();
   const supabaseData = useSupabaseData();
-  
+  const coinSystem = useCoinSystem();
+  const coinBooster = useCoinBooster();
+
   const [isLoading, setIsLoading] = useState(false);
 
   // Real-time subscriptions for progress updates
@@ -73,8 +77,13 @@ export const useBackendAppState = () => {
     };
   }, [isAuthenticated]);
 
-  // Award XP and trigger all related systems
+  // Award XP and coins, trigger all related systems
   const awardXP = useCallback(async (sessionMinutes: number) => {
+    // Award coins with booster multiplier
+    const boosterMultiplier = coinBooster.getCurrentMultiplier();
+    const coinReward = coinSystem.awardCoins(sessionMinutes, boosterMultiplier);
+    console.log('Coin reward:', coinReward);
+
     // Use local XP system when not authenticated
     if (!isAuthenticated) {
       console.log('Using local XP system (not authenticated)');
@@ -98,7 +107,8 @@ export const useBackendAppState = () => {
           newLevel: reward.newLevel,
           leveledUp: reward.leveledUp,
           unlockedRewards: reward.unlockedRewards,
-          streakReward: null
+          streakReward: null,
+          coinReward
         };
       } catch (error) {
         console.error('Error awarding local XP:', error);
@@ -169,7 +179,8 @@ export const useBackendAppState = () => {
         newLevel: xpResult.newLevel,
         leveledUp: xpResult.leveledUp,
         unlockedRewards: [],
-        streakReward
+        streakReward,
+        coinReward
       };
 
     } catch (error) {
@@ -179,7 +190,7 @@ export const useBackendAppState = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, localXPSystem, streaks, quests, bondSystem, supabaseData.pets, backendXPSystem]);
+  }, [isAuthenticated, localXPSystem, streaks, quests, bondSystem, supabaseData.pets, backendXPSystem, coinSystem, coinBooster]);
 
   // Get pet interaction handler
   const interactWithPet = useCallback(async (petType: string, interactionType: string = 'play') => {
@@ -222,36 +233,47 @@ export const useBackendAppState = () => {
       xpToNextLevel: xpSystem.xpToNextLevel,
       levelProgress: getLevelProgress(),
 
+      // Coin System
+      coinBalance: coinSystem.balance,
+      totalCoinsEarned: coinSystem.totalEarned,
+      totalCoinsSpent: coinSystem.totalSpent,
+
+      // Booster System
+      isBoosterActive: coinBooster.isBoosterActive(),
+      activeBooster: coinBooster.activeBooster,
+      boosterMultiplier: coinBooster.getCurrentMultiplier(),
+      boosterTimeRemaining: coinBooster.getTimeRemainingFormatted(),
+
       // Collection - use effectiveLevel for unlocked animals
       unlockedAnimals,
       currentBiome: xpSystem.currentBiome,
       availableBiomes: xpSystem.availableBiomes,
-      
+
       // Achievements
       totalAchievements: achievements.achievements.length,
       unlockedAchievements: achievements.unlockedAchievements.length,
       achievementPoints: achievements.getTotalAchievementPoints(),
-      
+
       // Quests
       activeQuests: quests.activeQuests.length,
       completedQuests: quests.completedQuests.length,
-      
+
       // Streaks
       currentStreak: streaks.streakData.currentStreak,
       longestStreak: streaks.streakData.longestStreak,
       streakFreezes: streaks.streakData.streakFreezeCount,
-      
+
       // Backend data
       profile: supabaseData.profile,
       progress: supabaseData.progress,
       pets: supabaseData.pets,
-      
+
       // Loading states - check if isLoading exists (backend systems have it, local don't)
       isLoading: isLoading || ('isLoading' in xpSystem && xpSystem.isLoading) || achievements.isLoading || quests.isLoading || streaks.isLoading,
     };
   }, [
     xpSystem, achievements, quests, streaks, supabaseData,
-    getLevelProgress, isLoading, effectiveLevel
+    getLevelProgress, isLoading, effectiveLevel, coinSystem, coinBooster
   ]);
 
   return {
@@ -260,7 +282,7 @@ export const useBackendAppState = () => {
     interactWithPet,
     getLevelProgress,
     getAppState,
-    
+
     // Direct access to subsystems
     xpSystem,
     achievements,
@@ -269,7 +291,9 @@ export const useBackendAppState = () => {
     bondSystem,
     collection,
     supabaseData,
-    
+    coinSystem,
+    coinBooster,
+
     // Quick access to key data
     ...getAppState(),
   };
