@@ -69,7 +69,7 @@ const ImageBackground = memo(({ imagePath, fallbackGradient, children }: {
           style={{
             backgroundImage: `url(${imagePath})`,
             backgroundSize: 'cover',
-            backgroundPosition: 'center calc(100% - 40px)',
+            backgroundPosition: 'center bottom',
             backgroundRepeat: 'no-repeat',
             imageRendering: 'pixelated',
             opacity: imageLoaded ? 1 : 0
