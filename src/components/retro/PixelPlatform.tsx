@@ -41,7 +41,7 @@ export const PixelPlatform = memo(({ theme = 'day' }: PixelPlatformProps) => {
   }, [groundImage]);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-[55%]">
+    <div className="absolute bottom-0 left-0 right-0 h-full">
       {/* Ground image background */}
       {!imageError && (
         <div
