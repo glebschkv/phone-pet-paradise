@@ -422,6 +422,73 @@ if (leveledUp) {
     };
   }, [xpState, calculateXPFromDuration, calculateLevel, saveState]);
 
+  // Add direct XP (for daily login rewards, bonuses, etc.) - handles level-ups properly
+  const addDirectXP = useCallback((xpAmount: number): XPReward => {
+    const oldLevel = xpState.currentLevel;
+    const newTotalXP = xpState.currentXP + xpAmount;
+    const newLevel = calculateLevel(newTotalXP);
+    const leveledUp = newLevel > oldLevel;
+
+    // Calculate XP progress for new level
+    const currentLevelXP = calculateLevelRequirement(newLevel);
+    const nextLevelXP = newLevel >= MAX_LEVEL
+      ? calculateLevelRequirement(newLevel)
+      : calculateLevelRequirement(newLevel + 1);
+    const xpToNextLevel = newLevel >= MAX_LEVEL ? 0 : nextLevelXP - newTotalXP;
+
+    // Determine unlocked rewards
+    const unlockedRewards: UnlockedReward[] = [];
+    if (leveledUp) {
+      for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
+        if (UNLOCKS_BY_LEVEL[lvl]) {
+          unlockedRewards.push(...UNLOCKS_BY_LEVEL[lvl]);
+        }
+      }
+    }
+
+    // Update state
+    const newAnimals = [...xpState.unlockedAnimals];
+    unlockedRewards.forEach(reward => {
+      if (reward.type === 'animal' && !newAnimals.includes(reward.name)) {
+        newAnimals.push(reward.name);
+      }
+    });
+
+    // Recalculate biomes
+    const newBiomes = BIOME_DATABASE
+      .filter(biome => biome.unlockLevel <= newLevel)
+      .map(biome => biome.name);
+
+    const oldBiomes = BIOME_DATABASE
+      .filter(biome => biome.unlockLevel <= oldLevel)
+      .map(biome => biome.name);
+    const newlyUnlockedBiome = newBiomes.find(b => !oldBiomes.includes(b));
+    const newCurrentBiome = newlyUnlockedBiome || xpState.currentBiome;
+
+    saveState({
+      currentXP: newTotalXP,
+      currentLevel: newLevel,
+      xpToNextLevel,
+      totalXPForCurrentLevel: currentLevelXP,
+      unlockedAnimals: newAnimals,
+      currentBiome: newCurrentBiome,
+      availableBiomes: newBiomes,
+    });
+
+    return {
+      xpGained: xpAmount,
+      baseXP: xpAmount,
+      bonusXP: 0,
+      bonusMultiplier: 1,
+      hasBonusXP: false,
+      bonusType: 'none',
+      oldLevel,
+      newLevel,
+      leveledUp,
+      unlockedRewards,
+    };
+  }, [xpState, calculateLevel, saveState]);
+
 // Get progress percentage for current level
 const getLevelProgress = useCallback((): number => {
   if (xpState.currentLevel >= MAX_LEVEL) return 100;
@@ -429,7 +496,7 @@ const getLevelProgress = useCallback((): number => {
   const nextLevelXP = calculateLevelRequirement(xpState.currentLevel + 1);
   const progressXP = xpState.currentXP - currentLevelXP;
   const totalXPNeeded = Math.max(1, nextLevelXP - currentLevelXP);
-  
+
   return Math.min(100, (progressXP / totalXPNeeded) * 100);
 }, [xpState]);
 
@@ -459,6 +526,7 @@ const getLevelProgress = useCallback((): number => {
   return {
     ...xpState,
     awardXP,
+    addDirectXP,
     getLevelProgress,
     switchBiome,
     resetProgress,

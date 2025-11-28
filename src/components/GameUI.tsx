@@ -23,14 +23,22 @@ export const GameUI = () => {
   } = useAppStateTracking();
 
   const handleDailyRewardClaim = () => {
-    const reward = handleClaimDailyReward();
-    if (reward) {
-      if (reward.type === 'xp' || reward.type === 'mystery_bonus') {
-        toast.success(`+${reward.amount} XP claimed!`, {
-          description: reward.description,
+    const { dailyReward, xpReward } = handleClaimDailyReward();
+    if (dailyReward) {
+      if (dailyReward.type === 'xp' || dailyReward.type === 'mystery_bonus') {
+        toast.success(`+${dailyReward.amount} XP claimed!`, {
+          description: dailyReward.description,
         });
-      } else if (reward.type === 'streak_freeze') {
-        toast.success(`+${reward.amount} Streak Freeze earned!`, {
+        // If leveled up, show additional toast
+        if (xpReward?.leveledUp) {
+          toast.success(`Level Up! You're now level ${xpReward.newLevel}!`, {
+            description: xpReward.unlockedRewards.length > 0
+              ? `Unlocked: ${xpReward.unlockedRewards.map(r => r.name).join(', ')}`
+              : undefined,
+          });
+        }
+      } else if (dailyReward.type === 'streak_freeze') {
+        toast.success(`+${dailyReward.amount} Streak Freeze earned!`, {
           description: "Use it to protect your streak!",
         });
       }

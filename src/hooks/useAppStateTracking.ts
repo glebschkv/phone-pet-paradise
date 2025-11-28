@@ -48,23 +48,36 @@ export const useAppStateTracking = () => {
     });
   }, []);
 
-  // Award XP based on focus session duration
+  // Award XP based on focus session duration (includes daily login streak bonus)
   const awardSessionXP = useCallback((minutes: number): XPReward | null => {
     if (minutes >= 30) { // Minimum 30 minutes for XP
       const xpReward = xpSystem.awardXP(minutes);
       const streakReward = streakSystem.recordSession();
-      
+
+      // Add focus streak bonus (from useStreakSystem)
       if (xpReward && streakReward) {
         xpReward.xpGained += streakReward.xpBonus;
+        xpReward.bonusXP += streakReward.xpBonus;
+      }
+
+      // Apply daily login streak bonus multiplier
+      const loginStreakBonus = dailyLoginRewards.getStreakBonus();
+      if (loginStreakBonus > 0 && xpReward) {
+        const bonusFromLoginStreak = Math.round(xpReward.baseXP * loginStreakBonus);
+        xpReward.xpGained += bonusFromLoginStreak;
+        xpReward.bonusXP += bonusFromLoginStreak;
+        if (bonusFromLoginStreak > 0) {
+          xpReward.hasBonusXP = true;
+        }
       }
 
       // Schedule notification reminders
       notifications.scheduleTimerReminder();
-      
+
       return xpReward;
     }
     return null;
-  }, [xpSystem, streakSystem, notifications]);
+  }, [xpSystem, streakSystem, notifications, dailyLoginRewards]);
 
   // Handle app becoming active (foreground)
   const handleAppActive = useCallback(() => {
@@ -161,43 +174,30 @@ export const useAppStateTracking = () => {
     return reward;
   }, [xpSystem, saveState]);
 
-  // Handle claiming daily login reward
-  const handleClaimDailyReward = useCallback((): DailyReward | null => {
+  // Handle claiming daily login reward - returns both daily reward and XP reward for level-ups
+  const handleClaimDailyReward = useCallback((): { dailyReward: DailyReward | null; xpReward: XPReward | null } => {
     const reward = dailyLoginRewards.claimReward();
+    let xpReward: XPReward | null = null;
+
     if (reward) {
-      // Award XP directly to the XP state (bypassing duration calculation)
       if (reward.type === 'xp' || reward.type === 'mystery_bonus') {
-        // Manually add XP to current total
-        const currentXP = xpSystem.currentXP;
-        const newXP = currentXP + reward.amount;
+        // Use addDirectXP which properly handles level-ups
+        xpReward = xpSystem.addDirectXP(reward.amount);
 
-        // We need to trigger a state update - dispatch an event
-        const xpEvent = new CustomEvent('petIsland_xpUpdate', {
-          detail: {
-            ...xpSystem,
-            currentXP: newXP,
-          }
-        });
-        window.dispatchEvent(xpEvent);
-
-        // Save to localStorage
-        const savedData = localStorage.getItem('petIsland_xpSystem');
-        if (savedData) {
-          try {
-            const parsed = JSON.parse(savedData);
-            parsed.currentXP = newXP;
-            localStorage.setItem('petIsland_xpSystem', JSON.stringify(parsed));
-          } catch (e) {
-            console.error('Failed to save daily login XP', e);
-          }
+        // If leveled up, show the XP reward modal
+        if (xpReward.leveledUp) {
+          saveState({
+            showRewardModal: true,
+            currentReward: xpReward,
+          });
         }
       } else if (reward.type === 'streak_freeze') {
         // Award streak freeze
         streakSystem.earnStreakFreeze();
       }
     }
-    return reward;
-  }, [dailyLoginRewards, xpSystem, streakSystem]);
+    return { dailyReward: reward, xpReward };
+  }, [dailyLoginRewards, xpSystem, streakSystem, saveState]);
 
   return {
     // XP System data
