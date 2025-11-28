@@ -40,17 +40,21 @@ const FAVORITES_STORAGE_KEY = 'petparadise-favorites';
 const ACTIVE_HOME_PETS_KEY = 'petparadise-active-home-pets';
 
 export const useCollection = (): UseCollectionReturn => {
-  // Use the correct XP system based on authentication status
+  // Get both XP systems
   const { isAuthenticated } = useAuth();
   const backendXPSystem = useBackendXPSystem();
   const localXPSystem = useXPSystem();
 
-  // Select the appropriate XP system
-  // Use backend when authenticated AND data is loaded, otherwise fall back to local
-  // This ensures we don't show currentLevel: 0 while backend is loading
+  // Use the HIGHER level between local and backend to prevent progress appearing to regress
+  // This handles cases where local and backend are out of sync
+  const backendLevel = backendXPSystem.currentLevel;
+  const localLevel = localXPSystem.currentLevel;
+  const currentLevel = Math.max(backendLevel, localLevel);
+
+  // For other properties, prefer backend when authenticated and loaded, otherwise local
   const backendIsLoading = 'isLoading' in backendXPSystem && backendXPSystem.isLoading;
   const xpSystem = (isAuthenticated && !backendIsLoading) ? backendXPSystem : localXPSystem;
-  const { currentLevel, unlockedAnimals, currentBiome, availableBiomes } = xpSystem;
+  const { unlockedAnimals, currentBiome, availableBiomes } = xpSystem;
 
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [activeHomePets, setActiveHomePets] = useState<Set<string>>(new Set());
