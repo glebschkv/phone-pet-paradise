@@ -6,7 +6,7 @@ import { UnifiedFocusTimer } from "@/components/UnifiedFocusTimer";
 import { IOSTabBar } from "@/components/IOSTabBar";
 import { PetCollectionGrid } from "@/components/PetCollectionGrid";
 import { Settings } from "@/components/Settings";
-import { FriendsComingSoon } from "@/components/FriendsComingSoon";
+import { Shop } from "@/components/Shop";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -51,8 +51,8 @@ export const GameUI = () => {
         return <UnifiedFocusTimer />;
       case "collection":
         return <PetCollectionGrid />;
-      case "friends":
-        return <FriendsComingSoon />;
+      case "shop":
+        return <Shop />;
       case "settings":
         return <Settings />;
       default:

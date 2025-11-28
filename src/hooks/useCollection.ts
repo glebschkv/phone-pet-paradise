@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { AnimalData, getAnimalById, getUnlockedAnimals, getUnlockedBiomes, getAnimalsByBiome, ANIMAL_DATABASE } from '@/data/AnimalDatabase';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { AnimalData, getAnimalById, getUnlockedAnimals, getUnlockedBiomes, getAnimalsByBiome, ANIMAL_DATABASE, getXPUnlockableAnimals } from '@/data/AnimalDatabase';
 import { useBackendXPSystem } from '@/hooks/useBackendXPSystem';
 import { useXPSystem } from '@/hooks/useXPSystem';
 import { useAuth } from '@/hooks/useAuth';
@@ -109,36 +109,48 @@ export const useCollection = (): UseCollectionReturn => {
     }
   }, []);
 
-  // Get unlocked animals data
-  const unlockedAnimalsData = getUnlockedAnimals(currentLevel);
-  
+  // Get unlocked animals data (level-based + purchased coin-exclusive)
+  const unlockedAnimalsData = useMemo(() => {
+    const levelUnlocked = getUnlockedAnimals(currentLevel);
+
+    // Also include any coin-exclusive animals that are in the unlockedAnimals list
+    const purchasedAnimals = ANIMAL_DATABASE.filter(animal =>
+      animal.isExclusive &&
+      unlockedAnimals.includes(animal.name) &&
+      !levelUnlocked.some(a => a.id === animal.id)
+    );
+
+    return [...levelUnlocked, ...purchasedAnimals];
+  }, [currentLevel, unlockedAnimals]);
+
   // Get animals for current biome
   const currentBiomeAnimals = getAnimalsByBiome(currentBiome);
 
-  // Calculate collection statistics
+  // Calculate collection statistics (only count XP-unlockable animals for progression)
+  const xpUnlockableAnimals = getXPUnlockableAnimals();
   const stats: CollectionStats = {
-    totalAnimals: ANIMAL_DATABASE.length,
-    unlockedAnimals: unlockedAnimalsData.length,
+    totalAnimals: xpUnlockableAnimals.length, // Only XP-unlockable for main progression
+    unlockedAnimals: unlockedAnimalsData.filter(a => !a.isExclusive).length,
     totalBiomes: availableBiomes.length + (5 - availableBiomes.length), // Total possible biomes
     unlockedBiomes: availableBiomes.length,
     favoritesCount: favorites.size,
     activeHomePetsCount: activeHomePets.size,
     rarityStats: {
       common: {
-        total: ANIMAL_DATABASE.filter(a => a.rarity === 'common').length,
-        unlocked: unlockedAnimalsData.filter(a => a.rarity === 'common').length
+        total: xpUnlockableAnimals.filter(a => a.rarity === 'common').length,
+        unlocked: unlockedAnimalsData.filter(a => a.rarity === 'common' && !a.isExclusive).length
       },
       rare: {
-        total: ANIMAL_DATABASE.filter(a => a.rarity === 'rare').length,
-        unlocked: unlockedAnimalsData.filter(a => a.rarity === 'rare').length
+        total: xpUnlockableAnimals.filter(a => a.rarity === 'rare').length,
+        unlocked: unlockedAnimalsData.filter(a => a.rarity === 'rare' && !a.isExclusive).length
       },
       epic: {
-        total: ANIMAL_DATABASE.filter(a => a.rarity === 'epic').length,
-        unlocked: unlockedAnimalsData.filter(a => a.rarity === 'epic').length
+        total: xpUnlockableAnimals.filter(a => a.rarity === 'epic').length,
+        unlocked: unlockedAnimalsData.filter(a => a.rarity === 'epic' && !a.isExclusive).length
       },
       legendary: {
-        total: ANIMAL_DATABASE.filter(a => a.rarity === 'legendary').length,
-        unlocked: unlockedAnimalsData.filter(a => a.rarity === 'legendary').length
+        total: xpUnlockableAnimals.filter(a => a.rarity === 'legendary').length,
+        unlocked: unlockedAnimalsData.filter(a => a.rarity === 'legendary' && !a.isExclusive).length
       }
     }
   };
@@ -174,8 +186,17 @@ export const useCollection = (): UseCollectionReturn => {
   // Helper functions
   const isAnimalUnlocked = useCallback((animalId: string): boolean => {
     const animal = getAnimalById(animalId);
-    return animal ? animal.unlockLevel <= currentLevel : false;
-  }, [currentLevel]);
+    if (!animal) return false;
+
+    // Check if unlocked by level
+    if (animal.unlockLevel <= currentLevel) return true;
+
+    // Check if purchased (in unlockedAnimals list but not by level)
+    // This handles coin-exclusive animals that were purchased from the shop
+    if (unlockedAnimals.includes(animal.name)) return true;
+
+    return false;
+  }, [currentLevel, unlockedAnimals]);
 
   const isAnimalFavorite = useCallback((animalId: string): boolean => {
     return favorites.has(animalId);
@@ -194,21 +215,29 @@ export const useCollection = (): UseCollectionReturn => {
     // Only include unlocked pets that are active
     return Array.from(activeHomePets)
       .map(id => getAnimalById(id))
-      .filter((animal): animal is AnimalData =>
-        animal !== undefined && animal.unlockLevel <= currentLevel && animal.spriteConfig !== undefined
-      );
-  }, [activeHomePets, currentLevel]);
+      .filter((animal): animal is AnimalData => {
+        if (!animal || !animal.spriteConfig) return false;
+        // Check level-based unlock OR purchased (in unlockedAnimals list)
+        return animal.unlockLevel <= currentLevel || unlockedAnimals.includes(animal.name);
+      });
+  }, [activeHomePets, currentLevel, unlockedAnimals]);
 
   // Filter animals based on search, rarity, and biome
+  // Only show XP-unlockable animals in the main collection (coin-exclusive shown in shop)
   const filterAnimals = useCallback((searchQuery: string, rarity?: string, biome?: string): AnimalData[] => {
     return ANIMAL_DATABASE.filter(animal => {
+      // Hide coin-exclusive animals unless they're already purchased
+      if (animal.isExclusive && !unlockedAnimals.includes(animal.name)) {
+        return false;
+      }
+
       const matchesSearch = animal.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRarity = !rarity || rarity === 'all' || animal.rarity === rarity;
       const matchesBiome = !biome || biome === 'all' || animal.biome === biome;
-      
+
       return matchesSearch && matchesRarity && matchesBiome;
     });
-  }, []);
+  }, [unlockedAnimals]);
 
   return {
     allAnimals: ANIMAL_DATABASE,
