@@ -1,24 +1,32 @@
 import { memo, useMemo } from 'react';
 import { FlyingSprite } from './FlyingSprite';
 import { AnimalData } from '@/data/AnimalDatabase';
+import { useFlyingPositionRegistry } from './useAnimalPositions';
 
 interface FlyingAnimalParadeProps {
   flyingAnimals: AnimalData[];
 }
 
 export const FlyingAnimalParade = memo(({ flyingAnimals }: FlyingAnimalParadeProps) => {
+  // Create shared position registry for collision-aware spacing
+  const positionRegistry = useFlyingPositionRegistry();
+
   // Create flying formation - birds fly in the sky with staggered heights
   const flyingFormation = useMemo(() => {
     if (flyingAnimals.length === 0) return [];
 
+    // Distribute flying animals evenly across the screen
+    const totalAnimals = flyingAnimals.length;
+    const spacing = 1.0 / Math.max(totalAnimals, 1);
+
     return flyingAnimals.map((animal, index) => ({
       animal,
-      // Stagger starting positions so birds are spread out
-      startPosition: 0.1 + (index * 0.25),
+      // Distribute starting positions evenly
+      startPosition: (index * spacing) % 1.0,
       // Vary heights - each bird at a different altitude
       heightOffset: 0.12 + (index * 0.06), // 12% to 30% from top
-      // Vary speeds slightly for natural movement
-      speed: 25 + (index * 3),
+      // Same base speed for all - dynamic spacing will handle the rest
+      speed: 28,
       key: `flying-${animal.id}-${index}`
     }));
   }, [flyingAnimals]);
@@ -30,10 +38,12 @@ export const FlyingAnimalParade = memo(({ flyingAnimals }: FlyingAnimalParadePro
       {flyingFormation.map(({ animal, startPosition, heightOffset, speed, key }) => (
         <FlyingSprite
           key={key}
+          animalId={key}
           animal={animal}
           startPosition={startPosition}
           heightOffset={heightOffset}
           speed={speed}
+          positionRegistry={positionRegistry}
         />
       ))}
     </div>

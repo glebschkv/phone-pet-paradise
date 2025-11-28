@@ -1,19 +1,19 @@
-import { memo, useState, useEffect } from "react";
+import { memo, useState, useEffect } from 'react';
 
 // Ground image mapping for each theme
 const GROUND_IMAGES: Record<string, string> = {
-  day: "/assets/worlds/GRASSYPATH_GROUND.png",
-  sunset: "/assets/worlds/WINDMILL_GROUND.png",
-  night: "/assets/worlds/PURPLE_NIGHTSKY_GROUND.png",
-  forest: "/assets/worlds/JUNGLE_ISLAND_GROUND.png",
-  snow: "/assets/worlds/SKYPLATFORM_WORLD_GROUND.png",
+  day: '/assets/worlds/GRASSYPATH_GROUND.png',
+  sunset: '/assets/worlds/WINDMILL_GROUND.png',
+  night: '/assets/worlds/PURPLE_NIGHTSKY_GROUND.png',
+  forest: '/assets/worlds/JUNGLE_ISLAND_GROUND.png',
+  snow: '/assets/worlds/SKYPLATFORM_WORLD_GROUND.png',
 };
 
 interface PixelPlatformProps {
   theme?: string;
 }
 
-export const PixelPlatform = memo(({ theme = "day" }: PixelPlatformProps) => {
+export const PixelPlatform = memo(({ theme = 'day' }: PixelPlatformProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -41,18 +41,18 @@ export const PixelPlatform = memo(({ theme = "day" }: PixelPlatformProps) => {
   }, [groundImage]);
 
   return (
-    <div className="absolute bottom-[30%] left-0 right-0 h-[25%]">
+    <div className="absolute bottom-[8%] left-0 right-0 h-[25%]">
       {/* Ground image background */}
       {!imageError && (
         <div
           className="absolute inset-0 transition-opacity duration-300"
           style={{
             backgroundImage: `url(${groundImage})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center top",
-            backgroundRepeat: "no-repeat",
-            imageRendering: "pixelated",
-            opacity: imageLoaded ? 1 : 0,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+            imageRendering: 'pixelated',
+            opacity: imageLoaded ? 1 : 0
           }}
         />
       )}
@@ -61,10 +61,14 @@ export const PixelPlatform = memo(({ theme = "day" }: PixelPlatformProps) => {
       <div
         className="absolute inset-0 transition-opacity duration-300"
         style={{
-          opacity: imageLoaded && !imageError ? 0 : 1,
+          opacity: imageLoaded && !imageError ? 0 : 1
         }}
       >
-        <svg viewBox="0 0 1200 200" className="w-full h-full" preserveAspectRatio="none">
+        <svg
+          viewBox="0 0 1200 200"
+          className="w-full h-full"
+          preserveAspectRatio="none"
+        >
           <defs>
             <linearGradient id="grassGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="hsl(120 45% 50%)" />
@@ -93,4 +97,4 @@ export const PixelPlatform = memo(({ theme = "day" }: PixelPlatformProps) => {
   );
 });
 
-PixelPlatform.displayName = "PixelPlatform";
+PixelPlatform.displayName = 'PixelPlatform';
