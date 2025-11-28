@@ -48,8 +48,8 @@ export const PixelPlatform = memo(({ theme = 'day' }: PixelPlatformProps) => {
           className="absolute inset-0 transition-opacity duration-300"
           style={{
             backgroundImage: `url(${groundImage})`,
-            backgroundSize: '100% auto',
-            backgroundPosition: 'center 75%',
+            backgroundSize: '100% 50%',
+            backgroundPosition: 'center bottom',
             backgroundRepeat: 'no-repeat',
             imageRendering: 'pixelated',
             opacity: imageLoaded ? 1 : 0
