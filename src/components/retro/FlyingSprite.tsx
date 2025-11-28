@@ -1,35 +1,23 @@
 import { memo, useState, useEffect, useRef } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
-import { PositionRegistry } from './useAnimalPositions';
 
 interface FlyingSpriteProps {
   animal: AnimalData;
-  animalId: string;
   startPosition: number;
   heightOffset: number; // Percentage from top (0-1)
   speed: number;
-  positionRegistry: PositionRegistry;
 }
 
-export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffset, speed, positionRegistry }: FlyingSpriteProps) => {
+export const FlyingSprite = memo(({ animal, startPosition, heightOffset, speed }: FlyingSpriteProps) => {
   const [currentPosition, setCurrentPosition] = useState(startPosition);
   const [currentFrame, setCurrentFrame] = useState(0);
   const frameTimeRef = useRef(0);
-  const positionRef = useRef(startPosition);
 
   const spriteConfig = animal.spriteConfig;
   if (!spriteConfig) return null;
 
   const { spritePath, frameCount, frameWidth, frameHeight, animationSpeed = 10, frameRow = 0 } = spriteConfig;
   const frameDuration = 1000 / animationSpeed;
-
-  // Register and unregister position on mount/unmount
-  useEffect(() => {
-    positionRegistry.updatePosition(animalId, startPosition);
-    return () => {
-      positionRegistry.removePosition(animalId);
-    };
-  }, [animalId, positionRegistry]);
 
   // Combined animation loop for position and sprite frames
   useEffect(() => {
@@ -47,27 +35,18 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
         frameTimeRef.current = 0;
       }
 
-      // Get dynamic speed multiplier based on proximity to other flying animals
-      const speedMultiplier = positionRegistry.getSpeedMultiplier(
-        animalId,
-        positionRef.current,
-        speed
-      );
+      // Update position - birds fly left to right
+      setCurrentPosition(prev => {
+        const movement = (speed * (deltaTime / 1000)) / window.innerWidth;
+        const newPosition = prev + movement;
 
-      // Update position with adjusted speed
-      const adjustedSpeed = speed * speedMultiplier;
-      const movement = (adjustedSpeed * (deltaTime / 1000)) / window.innerWidth;
+        // Wrap around when off screen
+        if (newPosition > 1.2) {
+          return -0.2;
+        }
 
-      let newPosition = positionRef.current + movement;
-
-      // Wrap around when off screen
-      if (newPosition > 1.2) {
-        newPosition = -0.2;
-      }
-
-      positionRef.current = newPosition;
-      positionRegistry.updatePosition(animalId, newPosition);
-      setCurrentPosition(newPosition);
+        return newPosition;
+      });
 
       animationFrame = requestAnimationFrame(animate);
     };
@@ -77,7 +56,7 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
     return () => {
       if (animationFrame) cancelAnimationFrame(animationFrame);
     };
-  }, [speed, frameDuration, frameCount, animalId, positionRegistry]);
+  }, [speed, frameDuration, frameCount]);
 
   // Scale for flying creatures (slightly smaller than ground animals)
   const scale = 2;

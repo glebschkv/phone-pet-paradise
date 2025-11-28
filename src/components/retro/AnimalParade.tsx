@@ -1,16 +1,12 @@
 import { memo, useMemo } from 'react';
 import { SpriteAnimal } from './SpriteAnimal';
 import { AnimalData } from '@/data/AnimalDatabase';
-import { useAnimalPositionRegistry } from './useAnimalPositions';
 
 interface AnimalParadeProps {
   unlockedAnimals: AnimalData[];
 }
 
 export const AnimalParade = memo(({ unlockedAnimals }: AnimalParadeProps) => {
-  // Create shared position registry for collision-aware spacing
-  const positionRegistry = useAnimalPositionRegistry();
-
   // Create parade formation from active ground animals
   const paradeAnimals = useMemo(() => {
     // Only show animals with sprite configs
@@ -18,16 +14,12 @@ export const AnimalParade = memo(({ unlockedAnimals }: AnimalParadeProps) => {
 
     if (spriteAnimals.length === 0) return [];
 
-    // Distribute animals evenly across the screen
-    // This ensures better initial spacing to prevent bunching
-    const totalAnimals = spriteAnimals.length;
-    const spacing = 1.0 / Math.max(totalAnimals, 1);
-
+    // Stagger starting positions so animals walk in a line behind each other
+    // Each animal starts further to the left, creating a parade effect
     return spriteAnimals.map((animal, index) => ({
       animal,
-      // Distribute starting positions evenly across the screen
-      position: (index * spacing) % 1.0,
-      speed: 30, // Base speed - will be adjusted dynamically
+      position: 0.3 - (index * 0.15), // Each animal starts further left
+      speed: 30, // Same speed so they maintain spacing
       key: `ground-${animal.id}-${index}`
     }));
   }, [unlockedAnimals]);
@@ -37,11 +29,9 @@ export const AnimalParade = memo(({ unlockedAnimals }: AnimalParadeProps) => {
       {paradeAnimals.map(({ animal, position, speed, key }) => (
         <SpriteAnimal
           key={key}
-          animalId={key}
           animal={animal}
           position={position}
           speed={speed}
-          positionRegistry={positionRegistry}
         />
       ))}
     </div>
