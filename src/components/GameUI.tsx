@@ -40,18 +40,16 @@ export const GameUI = () => {
 
       {/* Full Screen Content */}
       {currentTab !== "home" && (
-        <div className="absolute inset-0 bg-background pointer-events-auto overflow-auto pb-20">
+        <div className="absolute inset-0 bg-background pointer-events-auto overflow-auto pb-24">
           {renderContent()}
         </div>
       )}
-      
-      {/* iOS-style Tab Bar */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-auto">
-        <IOSTabBar 
-          activeTab={currentTab} 
-          onTabChange={setCurrentTab} 
-        />
-      </div>
+
+      {/* Modern Floating Dock Navigation */}
+      <IOSTabBar
+        activeTab={currentTab}
+        onTabChange={setCurrentTab}
+      />
 
       {/* XP Reward Modal */}
       <XPRewardModal
