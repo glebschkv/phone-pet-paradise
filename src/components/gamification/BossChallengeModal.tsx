@@ -154,8 +154,9 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
         </div>
 
         {/* Challenge List */}
-        <ScrollArea className="flex-1 min-h-0 overflow-y-auto">
-          <div className="space-y-3 px-4 py-3 pb-4">
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="space-y-3 px-4 py-3 pb-4">
             {getChallengesByDifficulty(activeTab).map(({ challenge, status }) => (
               <div
                 key={challenge.id}
@@ -269,8 +270,9 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                 )}
               </div>
             ))}
-          </div>
-        </ScrollArea>
+            </div>
+          </ScrollArea>
+        </div>
 
         {/* Footer - Fixed at bottom */}
         <div className="flex-shrink-0 p-3 border-t-2 border-purple-700/50 bg-purple-900/30">
