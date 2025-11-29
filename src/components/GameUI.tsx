@@ -102,7 +102,7 @@ export const GameUI = () => {
 
       {/* Full Screen Content */}
       {currentTab !== "home" && (
-        <div className="absolute inset-0 bg-background pointer-events-auto overflow-auto pb-24">
+        <div className={`absolute inset-0 pointer-events-auto overflow-auto pb-24 ${currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" : "bg-background"}`}>
           {renderContent()}
         </div>
       )}
