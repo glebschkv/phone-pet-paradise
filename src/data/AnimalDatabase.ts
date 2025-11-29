@@ -1032,7 +1032,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 35,
     description: 'The mysterious depths of the ocean where legendary creatures dwell.',
     animals: [],
-    backgroundImage: '/assets/worlds/DEEP OCEAN.png'
+    backgroundImage: '/assets/worlds/DEEP_OCEAN.png'
   }
 ];
 
