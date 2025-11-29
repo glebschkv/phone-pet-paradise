@@ -204,12 +204,16 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   const backgroundPositionX = -(currentFrame * currentAnimConfig.frameWidth * scale);
   const backgroundPositionY = -(frameRow * currentAnimConfig.frameHeight * scale);
 
+  // Get ground offset for positioning adjustment (handles sprites with empty space)
+  const groundOffset = animal.groundOffset || 0;
+
   return (
     <div
       className="absolute"
       style={{
         // Position the animal on the ground surface (at the top of the ground platform, above tab bar)
-        bottom: '8%',
+        // groundOffset adjusts for sprites with empty space (negative = lower position)
+        bottom: `${8 + groundOffset}%`,
         left: `${currentPosition * 100}%`,
         width: `${scaledWidth}px`,
         height: `${scaledHeight}px`,
