@@ -2079,6 +2079,11 @@
     box-shadow: 0 0 10px hsl(280 100% 50% / 0.3);
   }
 
+  .retro-reward-item.compact {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
   /* CRT Flicker Effect */
   @keyframes crt-flicker {
     0% { opacity: 0.97; }
