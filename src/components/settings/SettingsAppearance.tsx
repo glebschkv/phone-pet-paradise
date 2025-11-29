@@ -14,14 +14,6 @@ const themeOptions = [
   { value: "system", label: "Auto", icon: Monitor, description: "Follow system" },
 ];
 
-const colorOptions = [
-  { value: "default", label: "Ocean", color: "bg-blue-500" },
-  { value: "emerald", label: "Emerald", color: "bg-emerald-500" },
-  { value: "purple", label: "Purple", color: "bg-purple-500" },
-  { value: "rose", label: "Rose", color: "bg-rose-500" },
-  { value: "orange", label: "Orange", color: "bg-orange-500" },
-];
-
 export const SettingsAppearance = ({ settings, onUpdate }: SettingsAppearanceProps) => {
   return (
     <div className="space-y-3">
@@ -65,42 +57,6 @@ export const SettingsAppearance = ({ settings, onUpdate }: SettingsAppearancePro
                   <div className="text-xs font-bold">{option.label}</div>
                   <div className="text-[10px] text-muted-foreground">{option.description}</div>
                 </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Accent Color */}
-      <div className="retro-card p-4">
-        <Label className="text-sm font-bold mb-3 block">Accent Color</Label>
-        <div className="flex gap-2 justify-between">
-          {colorOptions.map((color) => {
-            const isSelected = settings.primaryColor === color.value;
-            return (
-              <button
-                key={color.value}
-                onClick={() => onUpdate({ primaryColor: color.value })}
-                className={cn(
-                  "flex-1 p-2.5 rounded-lg flex flex-col items-center gap-2 transition-all active:scale-95",
-                  isSelected && "ring-2 ring-primary"
-                )}
-                style={{
-                  background: isSelected
-                    ? 'linear-gradient(180deg, hsl(45 80% 90%) 0%, hsl(var(--card)) 100%)'
-                    : 'hsl(var(--card))',
-                  border: '2px solid hsl(var(--border))',
-                  boxShadow: isSelected
-                    ? '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
-                    : '0 2px 0 hsl(var(--border) / 0.4)'
-                }}
-              >
-                <div className={cn(
-                  "w-7 h-7 rounded-full border-2 border-white/50 shadow-sm",
-                  color.color,
-                  isSelected && "ring-2 ring-offset-2 ring-primary"
-                )} />
-                <span className="text-[10px] font-semibold">{color.label}</span>
               </button>
             );
           })}
