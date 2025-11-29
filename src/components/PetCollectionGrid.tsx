@@ -101,9 +101,9 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
   'Night': 'night',
   'Forest': 'forest',
   'Snow': 'snow',
-  'City': 'day',
-  'Ruins': 'sunset',
-  'Deep Ocean': 'night',
+  'City': 'city',
+  'Ruins': 'ruins',
+  'Deep Ocean': 'deepocean',
 };
 
 const RARITY_STARS = {
