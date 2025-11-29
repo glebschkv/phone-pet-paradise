@@ -397,7 +397,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     contents: {
       coins: 1000,
       boosterId: 'focus_boost',
-      characterId: 'golden-hare',
+      characterId: 'white-hare', // Ghost Hare - epic tier unlock
     },
     savings: '50%',
   },
@@ -413,7 +413,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     contents: {
       coins: 5000,
       boosterId: 'super_boost',
-      characterId: 'crystal-shark',
+      characterId: 'mech-warrior', // Exclusive Mech Warrior
       badgeId: 'badge-gold-flame',
     },
     savings: '60%',
