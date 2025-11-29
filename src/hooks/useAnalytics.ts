@@ -8,6 +8,7 @@ import {
   SessionType,
   SessionStatus,
   WeeklyStats,
+  FocusCategory,
   DEFAULT_ANALYTICS_SETTINGS,
   DEFAULT_PERSONAL_RECORDS,
   createEmptyDailyStats,
@@ -124,7 +125,9 @@ export const useAnalytics = () => {
     plannedDuration: number,
     actualDuration: number,
     status: SessionStatus,
-    xpEarned: number = 0
+    xpEarned: number = 0,
+    category?: FocusCategory,
+    taskLabel?: string
   ) => {
     const now = Date.now();
     const startTime = now - (actualDuration * 1000);
@@ -141,6 +144,8 @@ export const useAnalytics = () => {
       sessionType,
       status,
       xpEarned,
+      category,
+      taskLabel,
     };
 
     // Update sessions list
@@ -156,6 +161,12 @@ export const useAnalytics = () => {
       newHourlyFocus[hour] = (newHourlyFocus[hour] || 0) + actualDuration;
     }
 
+    // Update category time tracking
+    const newCategoryTime = { ...(existingStats.categoryTime || {}) };
+    if (isWorkSession && status === 'completed' && category) {
+      newCategoryTime[category] = (newCategoryTime[category] || 0) + actualDuration;
+    }
+
     const updatedStats: DailyStats = {
       ...existingStats,
       totalFocusTime: existingStats.totalFocusTime + (isWorkSession ? actualDuration : 0),
@@ -167,6 +178,7 @@ export const useAnalytics = () => {
         : existingStats.longestSession,
       goalMet: (existingStats.totalFocusTime + (isWorkSession ? actualDuration : 0)) >= settings.dailyGoalMinutes * 60,
       hourlyFocus: newHourlyFocus,
+      categoryTime: newCategoryTime,
     };
 
     const newDailyStats = { ...dailyStats, [dateStr]: updatedStats };
@@ -409,6 +421,38 @@ export const useAnalytics = () => {
     return Math.round(((thisWeekStats.totalFocusTime - lastWeekStats.totalFocusTime) / lastWeekStats.totalFocusTime) * 100);
   }, [thisWeekStats, lastWeekStats]);
 
+  // Get category distribution (all-time or date range)
+  const getCategoryDistribution = useCallback((days?: number): Record<FocusCategory, number> => {
+    const distribution: Record<FocusCategory, number> = {
+      work: 0,
+      study: 0,
+      creative: 0,
+      personal: 0,
+      health: 0,
+      other: 0,
+    };
+
+    const cutoffDate = days ? Date.now() - (days * 24 * 60 * 60 * 1000) : 0;
+
+    sessions.forEach(session => {
+      if (
+        session.sessionType !== 'break' &&
+        session.status === 'completed' &&
+        session.category &&
+        session.startTime >= cutoffDate
+      ) {
+        distribution[session.category] += session.actualDuration;
+      }
+    });
+
+    return distribution;
+  }, [sessions]);
+
+  // This week's category breakdown
+  const thisWeekCategoryDistribution = useMemo(() => {
+    return getCategoryDistribution(7);
+  }, [getCategoryDistribution]);
+
   // Format duration helper
   const formatDuration = useCallback((seconds: number, format: 'short' | 'long' = 'short') => {
     const hours = Math.floor(seconds / 3600);
@@ -461,12 +505,14 @@ export const useAnalytics = () => {
     bestFocusHours,
     completionRate,
     weekOverWeekChange,
+    thisWeekCategoryDistribution,
 
     // Actions
     recordSession,
     updateSettings,
     getDailyStatsRange,
     getRecentSessions,
+    getCategoryDistribution,
     formatDuration,
     resetAnalytics,
   };

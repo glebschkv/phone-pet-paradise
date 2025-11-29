@@ -3,6 +3,18 @@
 export type SessionType = 'pomodoro' | 'deep-work' | 'break';
 export type SessionStatus = 'completed' | 'skipped' | 'abandoned';
 
+// Focus categories for task/intention tracking
+export type FocusCategory = 'work' | 'study' | 'creative' | 'personal' | 'health' | 'other';
+
+export const FOCUS_CATEGORIES: { id: FocusCategory; label: string; emoji: string; color: string }[] = [
+  { id: 'work', label: 'Work', emoji: '💼', color: 'bg-blue-500' },
+  { id: 'study', label: 'Study', emoji: '📚', color: 'bg-purple-500' },
+  { id: 'creative', label: 'Creative', emoji: '🎨', color: 'bg-pink-500' },
+  { id: 'personal', label: 'Personal', emoji: '🏠', color: 'bg-green-500' },
+  { id: 'health', label: 'Health', emoji: '💪', color: 'bg-orange-500' },
+  { id: 'other', label: 'Other', emoji: '✨', color: 'bg-gray-500' },
+];
+
 export interface FocusSession {
   id: string;
   startTime: number; // timestamp
@@ -12,6 +24,9 @@ export interface FocusSession {
   sessionType: SessionType;
   status: SessionStatus;
   xpEarned: number;
+  // New fields for task/intention tracking
+  category?: FocusCategory;
+  taskLabel?: string; // Optional custom task description
 }
 
 export interface DailyStats {
@@ -23,6 +38,8 @@ export interface DailyStats {
   longestSession: number; // seconds
   goalMet: boolean;
   hourlyFocus: Record<number, number>; // hour (0-23) -> seconds focused
+  // Category breakdown for task/intention tracking
+  categoryTime?: Record<FocusCategory, number>; // category -> seconds focused
 }
 
 export interface AnalyticsSettings {

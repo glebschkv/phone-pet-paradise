@@ -8,7 +8,8 @@ import { AnalyticsBestHours } from "./AnalyticsBestHours";
 import { AnalyticsSessionHistory } from "./AnalyticsSessionHistory";
 import { AnalyticsRecords } from "./AnalyticsRecords";
 import { AnalyticsComparison } from "./AnalyticsComparison";
-import { BarChart3, Loader2 } from "lucide-react";
+import { AnalyticsCategoryBreakdown } from "./AnalyticsCategoryBreakdown";
+import { Loader2 } from "lucide-react";
 
 export const Analytics = () => {
   const {
@@ -23,6 +24,7 @@ export const Analytics = () => {
     bestFocusHours,
     weekOverWeekChange,
     currentGoalStreak,
+    thisWeekCategoryDistribution,
     getDailyStatsRange,
     getRecentSessions,
     formatDuration,
@@ -65,6 +67,12 @@ export const Analytics = () => {
         <AnalyticsWeeklyChart
           dailyStats={last7Days}
           dailyGoalMinutes={settings.dailyGoalMinutes}
+        />
+
+        {/* Category Breakdown */}
+        <AnalyticsCategoryBreakdown
+          categoryDistribution={thisWeekCategoryDistribution}
+          formatDuration={formatDuration}
         />
 
         {/* Week vs Week Comparison */}
