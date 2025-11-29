@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 
 // Hooks
 import { useBattlePass } from '@/hooks/useBattlePass';
-import { useGuildSystem } from '@/hooks/useGuildSystem';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { useComboSystem } from '@/hooks/useComboSystem';
@@ -12,7 +11,6 @@ import { useSpecialEvents } from '@/hooks/useSpecialEvents';
 
 // Components
 import { BattlePassModal } from './BattlePassModal';
-import { GuildPanel } from './GuildPanel';
 import { BossChallengeModal } from './BossChallengeModal';
 import { LuckyWheelModal } from './LuckyWheelModal';
 import { ComboDisplay } from './ComboDisplay';
@@ -21,7 +19,6 @@ import { EventIndicator } from './SpecialEventBanner';
 // Icons
 import {
   Crown,
-  Users,
   Swords,
   Sparkles,
   Flame,
@@ -40,20 +37,17 @@ interface GamificationHubProps {
 export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubProps) => {
   // Modal states
   const [showBattlePass, setShowBattlePass] = useState(false);
-  const [showGuild, setShowGuild] = useState(false);
   const [showBossChallenge, setShowBossChallenge] = useState(false);
   const [showLuckyWheel, setShowLuckyWheel] = useState(false);
 
   // Hooks
   const { getProgress, currentSeason, getUnclaimedRewards } = useBattlePass();
-  const { state: guildState, isInGuild, getGuildProgress } = useGuildSystem();
   const { getActiveChallenge, allChallenges } = useBossChallenges();
   const { canSpinToday, getStats } = useLuckyWheel();
   const { state: comboState, currentTier } = useComboSystem();
   const { activeEvents, isDoubleXPActive, isDoubleCoinsActive } = useSpecialEvents();
 
   const battlePassProgress = getProgress();
-  const guildProgress = getGuildProgress();
   const activeChallenge = getActiveChallenge();
   const wheelStats = getStats();
   const unclaimedBattlePassRewards = getUnclaimedRewards();
@@ -248,39 +242,6 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
             </div>
           </button>
 
-          {/* Guild - Party System Style */}
-          <button
-            className="w-full retro-game-card p-4 cursor-pointer transition-all text-left"
-            onClick={() => setShowGuild(true)}
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center border-2 border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.5)]">
-                {isInGuild ? (
-                  <span className="text-2xl">{guildState.currentGuild?.emoji}</span>
-                ) : (
-                  <Users className="w-7 h-7 text-white" />
-                )}
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-white retro-pixel-text">
-                  {isInGuild ? guildState.currentGuild?.name?.toUpperCase() : 'JOIN GUILD'}
-                </h3>
-                <p className="text-sm text-purple-300/80">
-                  {isInGuild ? (
-                    <>
-                      <span className="retro-neon-text">LVL {guildProgress?.level}</span>
-                      <span className="mx-1">·</span>
-                      <span>{guildState.myContribution} min this week</span>
-                    </>
-                  ) : (
-                    'Team up for group missions'
-                  )}
-                </p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-purple-400" />
-            </div>
-          </button>
-
           {/* Retro Stats Grid */}
           <div className="retro-stats-grid">
             <div className="retro-stat-box">
@@ -338,10 +299,6 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
         isOpen={showBattlePass}
         onClose={() => setShowBattlePass(false)}
         onClaimReward={handleRewardClaim}
-      />
-      <GuildPanel
-        isOpen={showGuild}
-        onClose={() => setShowGuild(false)}
       />
       <BossChallengeModal
         isOpen={showBossChallenge}
