@@ -1,6 +1,11 @@
-import { memo, useState, useEffect, useRef } from 'react';
+import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
 import { PositionRegistry } from './useAnimalPositions';
+import { getRandomSpecialAnimation, hasSpecialAnimations, SpecialAnimationConfig } from '@/data/SpecialAnimations';
+
+// Configuration for random special animations
+const SPECIAL_ANIMATION_MIN_INTERVAL = 5000; // Minimum 5 seconds between special animations
+const SPECIAL_ANIMATION_MAX_INTERVAL = 15000; // Maximum 15 seconds between special animations
 
 interface FlyingSpriteProps {
   animal: AnimalData;
@@ -14,14 +19,68 @@ interface FlyingSpriteProps {
 export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffset, speed, positionRegistry }: FlyingSpriteProps) => {
   const [currentPosition, setCurrentPosition] = useState(startPosition);
   const [currentFrame, setCurrentFrame] = useState(0);
+
+  // State for special animations
+  const [activeSpecialAnimation, setActiveSpecialAnimation] = useState<SpecialAnimationConfig | null>(null);
+  const [isPlayingSpecial, setIsPlayingSpecial] = useState(false);
+
   const frameTimeRef = useRef(0);
   const positionRef = useRef(startPosition);
+  const specialAnimationTimerRef = useRef<number | null>(null);
+  const specialFrameCountRef = useRef(0);
 
   const spriteConfig = animal.spriteConfig;
   if (!spriteConfig) return null;
 
   const { spritePath, frameCount, frameWidth, frameHeight, animationSpeed = 10, frameRow = 0 } = spriteConfig;
-  const frameDuration = 1000 / animationSpeed;
+
+  // Check if this animal has special animations available
+  const canPlaySpecialAnimations = hasSpecialAnimations(spritePath);
+
+  // Get a random interval for the next special animation
+  const getRandomInterval = useCallback(() => {
+    return Math.random() * (SPECIAL_ANIMATION_MAX_INTERVAL - SPECIAL_ANIMATION_MIN_INTERVAL) + SPECIAL_ANIMATION_MIN_INTERVAL;
+  }, []);
+
+  // Trigger a random special animation
+  const triggerSpecialAnimation = useCallback(() => {
+    if (!canPlaySpecialAnimations || isPlayingSpecial) return;
+
+    const specialAnim = getRandomSpecialAnimation(spritePath);
+    if (specialAnim) {
+      setActiveSpecialAnimation(specialAnim);
+      setIsPlayingSpecial(true);
+      setCurrentFrame(0);
+      specialFrameCountRef.current = 0;
+    }
+  }, [canPlaySpecialAnimations, isPlayingSpecial, spritePath]);
+
+  // Schedule the next special animation
+  const scheduleNextSpecialAnimation = useCallback(() => {
+    if (!canPlaySpecialAnimations) return;
+
+    if (specialAnimationTimerRef.current) {
+      clearTimeout(specialAnimationTimerRef.current);
+    }
+
+    const interval = getRandomInterval();
+    specialAnimationTimerRef.current = window.setTimeout(() => {
+      triggerSpecialAnimation();
+    }, interval);
+  }, [canPlaySpecialAnimations, getRandomInterval, triggerSpecialAnimation]);
+
+  // Current animation config (either special or base)
+  const currentAnimConfig = isPlayingSpecial && activeSpecialAnimation
+    ? {
+        spritePath: activeSpecialAnimation.spritePath,
+        frameCount: activeSpecialAnimation.frameCount,
+        frameWidth: activeSpecialAnimation.frameWidth,
+        frameHeight: activeSpecialAnimation.frameHeight,
+        animationSpeed: activeSpecialAnimation.animationSpeed || animationSpeed
+      }
+    : { spritePath, frameCount, frameWidth, frameHeight, animationSpeed };
+
+  const frameDuration = 1000 / currentAnimConfig.animationSpeed;
 
   // Register and unregister position on mount/unmount
   useEffect(() => {
@@ -30,6 +89,19 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
       positionRegistry.removePosition(animalId);
     };
   }, [animalId, positionRegistry]);
+
+  // Set up special animation timer
+  useEffect(() => {
+    if (canPlaySpecialAnimations) {
+      scheduleNextSpecialAnimation();
+    }
+
+    return () => {
+      if (specialAnimationTimerRef.current) {
+        clearTimeout(specialAnimationTimerRef.current);
+      }
+    };
+  }, [canPlaySpecialAnimations, scheduleNextSpecialAnimation]);
 
   // Combined animation loop for position and sprite frames
   useEffect(() => {
@@ -43,7 +115,25 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
       // Update sprite frame
       frameTimeRef.current += deltaTime;
       if (frameTimeRef.current >= frameDuration) {
-        setCurrentFrame(prev => (prev + 1) % frameCount);
+        setCurrentFrame(prev => {
+          const nextFrame = (prev + 1) % currentAnimConfig.frameCount;
+
+          // Check if special animation has completed one full cycle
+          if (isPlayingSpecial && activeSpecialAnimation) {
+            specialFrameCountRef.current++;
+            if (specialFrameCountRef.current >= currentAnimConfig.frameCount) {
+              // Special animation finished, return to normal
+              setIsPlayingSpecial(false);
+              setActiveSpecialAnimation(null);
+              specialFrameCountRef.current = 0;
+              // Schedule the next special animation
+              scheduleNextSpecialAnimation();
+              return 0; // Reset to first frame of normal animation
+            }
+          }
+
+          return nextFrame;
+        });
         frameTimeRef.current = 0;
       }
 
@@ -83,14 +173,14 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
     return () => {
       if (animationFrame) cancelAnimationFrame(animationFrame);
     };
-  }, [speed, frameDuration, frameCount, animalId, positionRegistry]);
+  }, [speed, frameDuration, currentAnimConfig.frameCount, animalId, positionRegistry, isPlayingSpecial, activeSpecialAnimation, scheduleNextSpecialAnimation]);
 
   // Scale for flying creatures (slightly smaller than ground animals)
   const scale = 2;
-  const scaledWidth = frameWidth * scale;
-  const scaledHeight = frameHeight * scale;
-  const backgroundPositionX = -(currentFrame * frameWidth * scale);
-  const backgroundPositionY = -(frameRow * frameHeight * scale);
+  const scaledWidth = currentAnimConfig.frameWidth * scale;
+  const scaledHeight = currentAnimConfig.frameHeight * scale;
+  const backgroundPositionX = -(currentFrame * currentAnimConfig.frameWidth * scale);
+  const backgroundPositionY = -(frameRow * currentAnimConfig.frameHeight * scale);
 
   return (
     <div
@@ -108,8 +198,8 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
         style={{
           width: `${scaledWidth}px`,
           height: `${scaledHeight}px`,
-          backgroundImage: `url(${spritePath})`,
-          backgroundSize: `${frameCount * scaledWidth}px auto`,
+          backgroundImage: `url(${currentAnimConfig.spritePath})`,
+          backgroundSize: `${currentAnimConfig.frameCount * scaledWidth}px auto`,
           backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
           backgroundRepeat: 'no-repeat',
           imageRendering: 'pixelated',
