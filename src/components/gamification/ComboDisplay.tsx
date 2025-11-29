@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useComboSystem, COMBO_UPDATED_EVENT } from '@/hooks/useComboSystem';
 import { cn } from '@/lib/utils';
-import { Flame, Clock, TrendingUp } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { Flame, Clock, TrendingUp, Zap } from 'lucide-react';
 
 interface ComboDisplayProps {
   variant?: 'compact' | 'full' | 'minimal';
@@ -41,13 +40,14 @@ export const ComboDisplay = ({ variant = 'compact', className }: ComboDisplayPro
   if (variant === 'minimal') {
     return (
       <div className={cn(
-        "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold",
-        "bg-gradient-to-r from-orange-500/20 to-red-500/20",
+        "flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold retro-pixel-text",
+        "bg-gradient-to-r from-orange-500/30 to-red-500/30",
+        "border border-orange-500/50",
         showAnimation && "animate-pulse",
         className
       )}>
-        <Flame className="w-3 h-3 text-orange-500" />
-        <span style={{ color: currentTier.color }}>{state.currentCombo}x</span>
+        <Flame className="w-3 h-3 text-orange-400" />
+        <span className="retro-neon-orange">{state.currentCombo}x</span>
       </div>
     );
   }
@@ -55,48 +55,54 @@ export const ComboDisplay = ({ variant = 'compact', className }: ComboDisplayPro
   if (variant === 'compact') {
     return (
       <div className={cn(
-        "flex items-center gap-3 p-3 rounded-lg border bg-card",
-        showAnimation && "ring-2 ring-orange-500 animate-pulse",
+        "retro-game-card p-3",
+        showAnimation && "retro-active-challenge",
         className
       )}>
-        {/* Combo count */}
-        <div className={cn(
-          "w-12 h-12 rounded-full flex flex-col items-center justify-center",
-          "bg-gradient-to-br from-orange-500 to-red-500"
-        )}>
-          <span className="text-white font-bold text-lg">{state.currentCombo}</span>
-          <span className="text-white/80 text-[8px]">COMBO</span>
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-bold" style={{ color: currentTier.color }}>
-              {currentTier.emoji} {currentTier.name}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {multiplier}x bonus
-            </span>
+        <div className="flex items-center gap-3">
+          {/* Combo Counter */}
+          <div className="retro-combo-counter w-16 h-16 shrink-0">
+            <span className="retro-combo-number">{state.currentCombo}</span>
+            <span className="retro-combo-label">HIT</span>
           </div>
 
-          {/* Time until expiry */}
-          {!timeUntilExpiry.isExpired && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-              <Clock className="w-3 h-3" />
-              <span>Expires in {timeUntilExpiry.hours}h {timeUntilExpiry.minutes}m</span>
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-bold retro-pixel-text" style={{ color: currentTier.color }}>
+                {currentTier.emoji} {currentTier.name.toUpperCase()}
+              </span>
+              <span className="retro-neon-green text-sm retro-pixel-text">
+                {multiplier}x
+              </span>
             </div>
-          )}
 
-          {/* Progress to next tier */}
-          {nextTierProgress.nextTier && (
-            <div className="mt-2">
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Next: {nextTierProgress.nextTier.name}</span>
-                <span>{nextTierProgress.sessionsNeeded} sessions</span>
+            {/* Time until expiry */}
+            {!timeUntilExpiry.isExpired && (
+              <div className="flex items-center gap-1 text-xs text-purple-400 mb-2">
+                <Clock className="w-3 h-3" />
+                <span className="retro-pixel-text">
+                  {timeUntilExpiry.hours}h {timeUntilExpiry.minutes}m left
+                </span>
               </div>
-              <Progress value={nextTierProgress.progressPercent} className="h-1.5" />
-            </div>
-          )}
+            )}
+
+            {/* Progress to next tier */}
+            {nextTierProgress.nextTier && (
+              <div>
+                <div className="flex justify-between text-xs text-purple-400 mb-1">
+                  <span className="retro-pixel-text">NEXT: {nextTierProgress.nextTier.name}</span>
+                  <span>{nextTierProgress.sessionsNeeded} more</span>
+                </div>
+                <div className="retro-health-bar h-2">
+                  <div
+                    className="retro-health-bar-fill"
+                    style={{ width: `${nextTierProgress.progressPercent}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -105,51 +111,50 @@ export const ComboDisplay = ({ variant = 'compact', className }: ComboDisplayPro
   // Full variant
   return (
     <div className={cn(
-      "p-4 rounded-xl border bg-card overflow-hidden relative",
-      showAnimation && "ring-2 ring-orange-500",
+      "retro-game-card p-4 overflow-hidden relative",
+      showAnimation && "retro-active-challenge",
       className
     )}>
-      {/* Animated background */}
+      {/* Animated background glow */}
       <div
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-20"
         style={{
-          background: `radial-gradient(circle at 50% 50%, ${currentTier.color} 0%, transparent 70%)`,
+          background: `radial-gradient(circle at 30% 50%, ${currentTier.color} 0%, transparent 50%)`,
         }}
       />
 
       <div className="relative">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-lg flex items-center gap-2">
-            <Flame className="w-5 h-5 text-orange-500" />
-            Combo System
+          <h3 className="font-bold text-lg flex items-center gap-2 retro-pixel-text retro-neon-orange">
+            <Zap className="w-5 h-5" />
+            COMBO SYSTEM
           </h3>
           <div className="flex items-center gap-1 text-sm">
-            <TrendingUp className="w-4 h-4 text-green-500" />
-            <span className="text-muted-foreground">Best: {state.highestCombo}</span>
+            <TrendingUp className="w-4 h-4 text-green-400" />
+            <span className="text-purple-400 retro-pixel-text">BEST: {state.highestCombo}</span>
           </div>
         </div>
 
         {/* Main combo display */}
         <div className="flex items-center gap-4 mb-4">
           <div className={cn(
-            "w-20 h-20 rounded-2xl flex flex-col items-center justify-center",
-            "bg-gradient-to-br from-orange-500 to-red-600",
+            "retro-combo-counter w-24 h-24",
             showAnimation && "animate-bounce"
           )}>
-            <span className="text-white font-bold text-3xl">{state.currentCombo}</span>
-            <span className="text-white/80 text-xs">COMBO</span>
+            <span className="retro-combo-number text-4xl">{state.currentCombo}</span>
+            <span className="retro-combo-label">COMBO</span>
           </div>
 
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">{currentTier.emoji}</span>
-              <span className="font-bold text-xl" style={{ color: currentTier.color }}>
-                {currentTier.name}
+              <span className="font-bold text-xl retro-pixel-text" style={{ color: currentTier.color }}>
+                {currentTier.name.toUpperCase()}
               </span>
             </div>
-            <div className="text-3xl font-bold text-green-500">
-              {multiplier}x <span className="text-sm font-normal text-muted-foreground">multiplier</span>
+            <div className="text-3xl font-bold retro-neon-green retro-pixel-text">
+              {multiplier}x <span className="text-sm font-normal text-purple-400">BONUS</span>
             </div>
           </div>
         </div>
@@ -157,56 +162,61 @@ export const ComboDisplay = ({ variant = 'compact', className }: ComboDisplayPro
         {/* Expiry timer */}
         {state.currentCombo > 0 && (
           <div className={cn(
-            "flex items-center justify-between p-3 rounded-lg mb-4",
-            timeUntilExpiry.hours < 1 ? "bg-red-500/10" : "bg-muted"
+            "retro-game-card p-3 flex items-center justify-between mb-4",
+            timeUntilExpiry.hours < 1 && "border-red-500/50"
           )}>
             <div className="flex items-center gap-2">
               <Clock className={cn(
                 "w-4 h-4",
-                timeUntilExpiry.hours < 1 ? "text-red-500" : "text-muted-foreground"
+                timeUntilExpiry.hours < 1 ? "text-red-400" : "text-purple-400"
               )} />
-              <span className="text-sm">
+              <span className="text-sm retro-pixel-text text-purple-300">
                 {timeUntilExpiry.isExpired
-                  ? "Combo expired!"
-                  : `Combo expires in ${timeUntilExpiry.hours}h ${timeUntilExpiry.minutes}m`}
+                  ? "COMBO EXPIRED!"
+                  : `Expires in ${timeUntilExpiry.hours}h ${timeUntilExpiry.minutes}m`}
               </span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              Complete a session to keep it going!
+            <span className="text-xs text-purple-400">
+              Keep playing!
             </span>
           </div>
         )}
 
         {/* Progress to next tier */}
         {nextTierProgress.nextTier && (
-          <div className="space-y-2">
+          <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
-              <span className="flex items-center gap-1">
-                Next tier:
+              <span className="flex items-center gap-1 retro-pixel-text text-purple-300">
+                NEXT TIER:
                 <span className="font-bold" style={{ color: nextTierProgress.nextTier.color }}>
                   {nextTierProgress.nextTier.emoji} {nextTierProgress.nextTier.name}
                 </span>
               </span>
-              <span className="text-muted-foreground">
-                {nextTierProgress.sessionsNeeded} more sessions
+              <span className="text-purple-400 retro-pixel-text">
+                {nextTierProgress.sessionsNeeded} sessions
               </span>
             </div>
-            <Progress value={nextTierProgress.progressPercent} className="h-2" />
-            <p className="text-xs text-muted-foreground text-center">
-              Reach {nextTierProgress.nextTier.multiplier}x multiplier at {nextTierProgress.nextTier.minCombo} combo
+            <div className="retro-health-bar">
+              <div
+                className="retro-health-bar-fill"
+                style={{ width: `${nextTierProgress.progressPercent}%` }}
+              />
+            </div>
+            <p className="text-xs text-purple-400 text-center retro-pixel-text">
+              {nextTierProgress.nextTier.multiplier}x at {nextTierProgress.nextTier.minCombo} combo
             </p>
           </div>
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t">
-          <div className="text-center p-2 rounded-lg bg-muted">
-            <div className="text-xl font-bold text-yellow-500">+{state.totalBonusXPEarned}</div>
-            <div className="text-xs text-muted-foreground">Bonus XP earned</div>
+        <div className="retro-stats-grid">
+          <div className="retro-stat-box">
+            <div className="retro-stat-value retro-neon-yellow">+{state.totalBonusXPEarned}</div>
+            <div className="retro-stat-label">BONUS XP</div>
           </div>
-          <div className="text-center p-2 rounded-lg bg-muted">
-            <div className="text-xl font-bold text-amber-500">+{state.totalBonusCoinsEarned}</div>
-            <div className="text-xs text-muted-foreground">Bonus coins earned</div>
+          <div className="retro-stat-box">
+            <div className="retro-stat-value retro-neon-orange">+{state.totalBonusCoinsEarned}</div>
+            <div className="retro-stat-label">BONUS COINS</div>
           </div>
         </div>
       </div>

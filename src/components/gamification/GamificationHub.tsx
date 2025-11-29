@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 // Hooks
@@ -18,7 +16,7 @@ import { GuildPanel } from './GuildPanel';
 import { BossChallengeModal } from './BossChallengeModal';
 import { LuckyWheelModal } from './LuckyWheelModal';
 import { ComboDisplay } from './ComboDisplay';
-import { SpecialEventBanner, EventIndicator } from './SpecialEventBanner';
+import { EventIndicator } from './SpecialEventBanner';
 
 // Icons
 import {
@@ -27,11 +25,11 @@ import {
   Swords,
   Sparkles,
   Flame,
-  Calendar,
+  Zap,
   Gift,
   ChevronRight,
-  Trophy,
-  Target,
+  Gamepad2,
+  Star,
 } from 'lucide-react';
 
 interface GamificationHubProps {
@@ -52,7 +50,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
   const { getActiveChallenge, allChallenges } = useBossChallenges();
   const { canSpinToday, getStats } = useLuckyWheel();
   const { state: comboState, currentTier } = useComboSystem();
-  const { activeEvents, hasUnclaimedRewards: hasEventRewards, isDoubleXPActive, isDoubleCoinsActive } = useSpecialEvents();
+  const { activeEvents, isDoubleXPActive, isDoubleCoinsActive } = useSpecialEvents();
 
   const battlePassProgress = getProgress();
   const guildProgress = getGuildProgress();
@@ -69,50 +67,61 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
   };
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-500" />
-            Challenges
-          </h1>
+    <div className="h-full flex flex-col retro-arcade-container">
+      {/* Retro Header */}
+      <div className="relative p-4 border-b-4 border-purple-600/50">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-transparent to-pink-900/50" />
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 retro-icon-badge">
+              <Gamepad2 className="w-6 h-6 text-cyan-400" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold retro-pixel-text retro-neon-text">
+                ARCADE
+              </h1>
+              <p className="text-xs text-purple-300/80 uppercase tracking-wider">
+                Challenges & Rewards
+              </p>
+            </div>
+          </div>
           <EventIndicator />
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          Complete challenges and earn bonus rewards
-        </p>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {/* Active Events Banner (if any) */}
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
+          {/* Active Events Banner */}
           {activeEvents.length > 0 && (
-            <Card className={cn(
-              "overflow-hidden",
-              "bg-gradient-to-r",
-              activeEvents[0].backgroundGradient
-            )}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
+            <div className="retro-game-card p-4 retro-active-challenge">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 retro-icon-badge flex items-center justify-center">
                   <span className="text-3xl">{activeEvents[0].emoji}</span>
-                  <div className="flex-1 text-white">
-                    <h3 className="font-bold">{activeEvents[0].name}</h3>
-                    <p className="text-sm text-white/80">{activeEvents[0].description}</p>
-                  </div>
-                  {(isDoubleXPActive() || isDoubleCoinsActive()) && (
-                    <div className="flex flex-col gap-1">
-                      {isDoubleXPActive() && (
-                        <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold text-white">2x XP</span>
-                      )}
-                      {isDoubleCoinsActive() && (
-                        <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold text-white">2x Coins</span>
-                      )}
-                    </div>
-                  )}
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white retro-pixel-text">
+                    {activeEvents[0].name}
+                  </h3>
+                  <p className="text-sm text-purple-300/80">
+                    {activeEvents[0].description}
+                  </p>
+                </div>
+                {(isDoubleXPActive() || isDoubleCoinsActive()) && (
+                  <div className="flex flex-col gap-1">
+                    {isDoubleXPActive() && (
+                      <span className="retro-difficulty-badge retro-difficulty-legendary text-xs">
+                        2x XP
+                      </span>
+                    )}
+                    {isDoubleCoinsActive() && (
+                      <span className="retro-difficulty-badge retro-difficulty-hard text-xs">
+                        2x COINS
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {/* Combo Display */}
@@ -120,174 +129,207 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
             <ComboDisplay variant="compact" />
           )}
 
-          {/* Lucky Wheel */}
-          <Card
+          {/* Lucky Wheel - Arcade Style */}
+          <button
             className={cn(
-              "cursor-pointer transition-all hover:shadow-md",
-              canSpinToday() && "ring-2 ring-purple-500 ring-offset-2"
+              "w-full retro-game-card p-4 cursor-pointer transition-all text-left",
+              canSpinToday() && "retro-active-challenge"
             )}
             onClick={() => setShowLuckyWheel(true)}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <div className={cn(
-                  "w-14 h-14 rounded-xl flex items-center justify-center",
-                  "bg-gradient-to-br from-purple-500 to-pink-500",
-                  canSpinToday() && "animate-pulse"
-                )}>
-                  <Sparkles className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold">Lucky Wheel</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {canSpinToday() ? 'Daily spin available!' : `${wheelStats.totalSpins} total spins`}
-                  </p>
-                </div>
-                {canSpinToday() && (
-                  <div className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    FREE
-                  </div>
-                )}
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "w-14 h-14 rounded-lg flex items-center justify-center",
+                "bg-gradient-to-br from-pink-500 to-purple-600",
+                "border-2 border-pink-400",
+                "shadow-[0_0_15px_rgba(236,72,153,0.5)]",
+                canSpinToday() && "animate-pulse"
+              )}>
+                <Sparkles className="w-7 h-7 text-white" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex-1">
+                <h3 className="font-bold text-white retro-pixel-text">LUCKY SPIN</h3>
+                <p className="text-sm text-purple-300/80">
+                  {canSpinToday() ? (
+                    <span className="retro-neon-green">FREE SPIN READY!</span>
+                  ) : (
+                    `${wheelStats.totalSpins} total spins`
+                  )}
+                </p>
+              </div>
+              {canSpinToday() && (
+                <div className="retro-arcade-btn retro-arcade-btn-yellow px-3 py-1.5 text-xs">
+                  FREE
+                </div>
+              )}
+              <ChevronRight className="w-5 h-5 text-purple-400" />
+            </div>
+          </button>
 
-          {/* Battle Pass */}
-          <Card
+          {/* Battle Pass - Season Pass Style */}
+          <button
             className={cn(
-              "cursor-pointer transition-all hover:shadow-md overflow-hidden",
-              unclaimedBattlePassRewards.length > 0 && "ring-2 ring-yellow-500"
+              "w-full retro-game-card overflow-hidden cursor-pointer transition-all text-left",
+              unclaimedBattlePassRewards.length > 0 && "retro-active-challenge"
             )}
             onClick={() => setShowBattlePass(true)}
           >
-            <div className={cn(
-              "h-2 bg-gradient-to-r",
-              currentSeason?.backgroundGradient || "from-blue-500 to-purple-500"
-            )} />
-            <CardContent className="p-4">
+            {/* Progress Bar at Top */}
+            <div className="h-2 bg-purple-900/50">
+              <div
+                className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all"
+                style={{ width: `${battlePassProgress.progressPercent}%` }}
+              />
+            </div>
+            <div className="p-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
+                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center border-2 border-yellow-400 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
                   <Crown className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold">{currentSeason?.name || 'Battle Pass'}</h3>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Tier {battlePassProgress.currentTier}</span>
+                  <h3 className="font-bold text-white retro-pixel-text">
+                    {currentSeason?.name || 'SEASON PASS'}
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-purple-300/80">
+                    <span className="retro-neon-yellow">LVL {battlePassProgress.currentTier}</span>
                     <span>·</span>
                     <span>{battlePassProgress.daysRemaining} days left</span>
                   </div>
                 </div>
                 {unclaimedBattlePassRewards.length > 0 && (
-                  <div className="bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                  <div className="flex items-center gap-1 retro-arcade-btn retro-arcade-btn-yellow px-2 py-1 text-xs">
                     <Gift className="w-3 h-3" />
                     {unclaimedBattlePassRewards.length}
                   </div>
                 )}
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <ChevronRight className="w-5 h-5 text-purple-400" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </button>
 
-          {/* Boss Challenges */}
-          <Card
+          {/* Boss Challenges - Boss Battle Style */}
+          <button
             className={cn(
-              "cursor-pointer transition-all hover:shadow-md",
-              activeChallenge.challenge && "ring-2 ring-red-500"
+              "w-full retro-game-card p-4 cursor-pointer transition-all text-left",
+              activeChallenge.challenge && "retro-active-challenge"
             )}
             onClick={() => setShowBossChallenge(true)}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-                  <Swords className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold">Boss Challenges</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {activeChallenge.challenge
-                      ? `Active: ${activeChallenge.challenge.name}`
-                      : `${allChallenges.length} challenges available`}
-                  </p>
-                </div>
-                {activeChallenge.challenge && (
-                  <div className="text-sm font-bold text-orange-500">
-                    {Math.round(activeChallenge.percentComplete)}%
-                  </div>
-                )}
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center border-2 border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]">
+                <Swords className="w-7 h-7 text-white" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex-1">
+                <h3 className="font-bold text-white retro-pixel-text">BOSS BATTLES</h3>
+                <p className="text-sm text-purple-300/80">
+                  {activeChallenge.challenge ? (
+                    <span className="retro-neon-orange">
+                      FIGHTING: {activeChallenge.challenge.name}
+                    </span>
+                  ) : (
+                    `${allChallenges.length} bosses available`
+                  )}
+                </p>
+              </div>
+              {activeChallenge.challenge && (
+                <div className="flex flex-col items-end gap-1">
+                  <div className="retro-health-bar retro-health-bar-red w-20 h-3">
+                    <div
+                      className="retro-health-bar-fill"
+                      style={{ width: `${activeChallenge.percentComplete}%` }}
+                    />
+                  </div>
+                  <span className="text-xs retro-neon-orange font-bold">
+                    {Math.round(activeChallenge.percentComplete)}%
+                  </span>
+                </div>
+              )}
+              <ChevronRight className="w-5 h-5 text-purple-400" />
+            </div>
+          </button>
 
-          {/* Guild */}
-          <Card
-            className="cursor-pointer transition-all hover:shadow-md"
+          {/* Guild - Party System Style */}
+          <button
+            className="w-full retro-game-card p-4 cursor-pointer transition-all text-left"
             onClick={() => setShowGuild(true)}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
-                  {isInGuild ? (
-                    <span className="text-2xl">{guildState.currentGuild?.emoji}</span>
-                  ) : (
-                    <Users className="w-7 h-7 text-white" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold">
-                    {isInGuild ? guildState.currentGuild?.name : 'Join a Guild'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {isInGuild
-                      ? `Level ${guildProgress?.level} · ${guildState.myContribution} min this week`
-                      : 'Team up with others for group goals'}
-                  </p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center border-2 border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.5)]">
+                {isInGuild ? (
+                  <span className="text-2xl">{guildState.currentGuild?.emoji}</span>
+                ) : (
+                  <Users className="w-7 h-7 text-white" />
+                )}
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex-1">
+                <h3 className="font-bold text-white retro-pixel-text">
+                  {isInGuild ? guildState.currentGuild?.name?.toUpperCase() : 'JOIN GUILD'}
+                </h3>
+                <p className="text-sm text-purple-300/80">
+                  {isInGuild ? (
+                    <>
+                      <span className="retro-neon-text">LVL {guildProgress?.level}</span>
+                      <span className="mx-1">·</span>
+                      <span>{guildState.myContribution} min this week</span>
+                    </>
+                  ) : (
+                    'Team up for group missions'
+                  )}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-purple-400" />
+            </div>
+          </button>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Flame className="w-6 h-6 mx-auto mb-2 text-orange-500" />
-                <div className="text-2xl font-bold">{comboState.currentCombo}</div>
-                <div className="text-xs text-muted-foreground">Current Combo</div>
-                <div className="text-xs mt-1" style={{ color: currentTier.color }}>
-                  {currentTier.multiplier}x multiplier
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Target className="w-6 h-6 mx-auto mb-2 text-green-500" />
-                <div className="text-2xl font-bold">{comboState.highestCombo}</div>
-                <div className="text-xs text-muted-foreground">Best Combo</div>
-                <div className="text-xs mt-1 text-muted-foreground">
-                  All time record
-                </div>
-              </CardContent>
-            </Card>
+          {/* Retro Stats Grid */}
+          <div className="retro-stats-grid">
+            <div className="retro-stat-box">
+              <div className="flex items-center justify-center mb-2">
+                <Flame className="w-6 h-6 text-orange-500" />
+              </div>
+              <div className="retro-stat-value">{comboState.currentCombo}</div>
+              <div className="retro-stat-label">Current Combo</div>
+              <div className="text-xs mt-1 retro-pixel-text" style={{ color: currentTier.color }}>
+                {currentTier.multiplier}x MULT
+              </div>
+            </div>
+            <div className="retro-stat-box">
+              <div className="flex items-center justify-center mb-2">
+                <Star className="w-6 h-6 text-yellow-500" />
+              </div>
+              <div className="retro-stat-value">{comboState.highestCombo}</div>
+              <div className="retro-stat-label">Best Combo</div>
+              <div className="text-xs mt-1 text-purple-400">
+                ALL TIME RECORD
+              </div>
+            </div>
           </div>
 
-          {/* Info section */}
-          <Card className="bg-muted/50">
-            <CardContent className="p-4">
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                How Combo Works
-              </h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Complete focus sessions to build your combo</li>
-                <li>• Higher combos = bigger XP & coin bonuses</li>
-                <li>• Combo expires after 3 hours of inactivity</li>
-                <li>• Reach 10 combo for 2x legendary multiplier!</li>
-              </ul>
-            </CardContent>
-          </Card>
+          {/* Info Panel - Arcade Style */}
+          <div className="retro-game-card p-4">
+            <h4 className="font-bold mb-3 flex items-center gap-2 text-cyan-400 retro-pixel-text">
+              <Zap className="w-4 h-4" />
+              HOW TO PLAY
+            </h4>
+            <ul className="text-sm text-purple-300/80 space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-yellow-400">►</span>
+                Complete focus sessions to build your combo
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400">►</span>
+                Higher combos = bigger XP & coin bonuses
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-400">►</span>
+                Combo expires after 3 hours of inactivity
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-400">►</span>
+                Reach 10 combo for 2x legendary multiplier!
+              </li>
+            </ul>
+          </div>
         </div>
       </ScrollArea>
 

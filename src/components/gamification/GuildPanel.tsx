@@ -2,12 +2,10 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGuildSystem } from '@/hooks/useGuildSystem';
 import { cn } from '@/lib/utils';
-import { Users, Trophy, Target, Crown, LogOut, Plus, Search } from 'lucide-react';
+import { Users, Trophy, Crown, LogOut, Plus, Search, Shield, Swords, Star } from 'lucide-react';
 
 interface GuildPanelProps {
   isOpen: boolean;
@@ -44,107 +42,148 @@ export const GuildPanel = ({ isOpen, onClose }: GuildPanelProps) => {
     }
   };
 
+  const tabs = [
+    { id: 'overview', label: 'HQ', icon: Shield },
+    { id: 'challenges', label: 'MISSIONS', icon: Swords },
+    { id: 'leaderboard', label: 'RANKS', icon: Trophy },
+  ];
+
   if (!isInGuild) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-lg max-h-[85vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Users className="w-6 h-6" />
-              Join a Guild
-            </DialogTitle>
-          </DialogHeader>
-
-          {showCreateForm ? (
-            <div className="space-y-4 p-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Guild Name</label>
-                <Input
-                  value={newGuildName}
-                  onChange={(e) => setNewGuildName(e.target.value)}
-                  placeholder="Enter guild name..."
-                  maxLength={24}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Guild Emoji</label>
-                <div className="flex gap-2 flex-wrap">
-                  {['🎯', '🔥', '⚡', '🌟', '💪', '🦁', '🐉', '🏆'].map(emoji => (
-                    <button
-                      key={emoji}
-                      onClick={() => setNewGuildEmoji(emoji)}
-                      className={cn(
-                        "w-10 h-10 rounded-lg text-xl flex items-center justify-center transition-all",
-                        newGuildEmoji === emoji
-                          ? "bg-primary text-primary-foreground scale-110"
-                          : "bg-muted hover:bg-muted/80"
-                      )}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
+        <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal">
+          <div className="retro-modal-header">
+            <DialogHeader>
+              <DialogTitle className="text-white text-xl flex items-center gap-3 retro-pixel-text">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center border-2 border-indigo-400">
+                  <Users className="w-5 h-5 text-white" />
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setShowCreateForm(false)} className="flex-1">
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateGuild} className="flex-1">
-                  Create Guild
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                className="w-full"
-                variant="outline"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create New Guild
-              </Button>
+                <span className="retro-neon-text">JOIN A GUILD</span>
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-purple-200/80 text-sm mt-2">
+              Team up with other players for group missions!
+            </p>
+          </div>
 
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Search guilds..." className="pl-10" />
-              </div>
-
-              <ScrollArea className="h-[350px]">
-                <div className="space-y-2">
-                  {availableGuilds.map(guild => (
-                    <div
-                      key={guild.id}
-                      className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-2xl">
-                          {guild.emoji}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate">{guild.name}</h3>
-                          <p className="text-sm text-muted-foreground truncate">{guild.description}</p>
-                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Users className="w-3 h-3" />
-                              {guild.memberCount}/{guild.maxMembers}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Trophy className="w-3 h-3" />
-                              Level {guild.level}
-                            </span>
-                          </div>
-                        </div>
-                        <Button size="sm" onClick={() => joinGuild(guild)}>
-                          Join
-                        </Button>
+          <div className="p-4">
+            {showCreateForm ? (
+              <div className="space-y-4">
+                <div className="retro-game-card p-4">
+                  <h3 className="text-white font-bold mb-3 retro-pixel-text">CREATE GUILD</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-purple-400 retro-pixel-text mb-1 block">
+                        GUILD NAME
+                      </label>
+                      <Input
+                        value={newGuildName}
+                        onChange={(e) => setNewGuildName(e.target.value)}
+                        placeholder="Enter guild name..."
+                        maxLength={24}
+                        className="bg-purple-900/50 border-purple-600 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-purple-400 retro-pixel-text mb-2 block">
+                        GUILD EMBLEM
+                      </label>
+                      <div className="flex gap-2 flex-wrap">
+                        {['🎯', '🔥', '⚡', '🌟', '💪', '🦁', '🐉', '🏆'].map(emoji => (
+                          <button
+                            key={emoji}
+                            onClick={() => setNewGuildEmoji(emoji)}
+                            className={cn(
+                              "w-12 h-12 rounded-lg text-xl flex items-center justify-center transition-all",
+                              "retro-icon-badge",
+                              newGuildEmoji === emoji
+                                ? "border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)]"
+                                : "border-purple-600/50"
+                            )}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </ScrollArea>
-            </div>
-          )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowCreateForm(false)}
+                    className="flex-1 retro-arcade-btn px-4 py-2 text-sm"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    onClick={handleCreateGuild}
+                    className="flex-1 retro-arcade-btn retro-arcade-btn-green px-4 py-2 text-sm"
+                  >
+                    CREATE
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="w-full retro-arcade-btn retro-arcade-btn-purple py-3 flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="retro-pixel-text">CREATE NEW GUILD</span>
+                </button>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-purple-400" />
+                  <Input
+                    placeholder="Search guilds..."
+                    className="pl-10 bg-purple-900/50 border-purple-600 text-white placeholder:text-purple-500"
+                  />
+                </div>
+
+                <ScrollArea className="h-[320px]">
+                  <div className="space-y-3">
+                    {availableGuilds.map(guild => (
+                      <div
+                        key={guild.id}
+                        className="retro-game-card p-4 hover:border-cyan-500 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-14 h-14 retro-icon-badge shrink-0">
+                            <span className="text-2xl">{guild.emoji}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-white truncate retro-pixel-text">
+                              {guild.name}
+                            </h3>
+                            <p className="text-xs text-purple-300/70 truncate">
+                              {guild.description}
+                            </p>
+                            <div className="flex items-center gap-4 mt-2 text-xs text-purple-400">
+                              <span className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                {guild.memberCount}/{guild.maxMembers}
+                              </span>
+                              <span className="flex items-center gap-1 retro-neon-yellow">
+                                <Trophy className="w-3 h-3" />
+                                LVL {guild.level}
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => joinGuild(guild)}
+                            className="retro-arcade-btn retro-arcade-btn-green px-3 py-1.5 text-xs"
+                          >
+                            JOIN
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     );
@@ -152,147 +191,206 @@ export const GuildPanel = ({ isOpen, onClose }: GuildPanelProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden">
-        {/* Guild header */}
-        <div className="p-4 bg-gradient-to-r from-indigo-600 to-purple-600">
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-3xl">
-              {state.currentGuild?.emoji}
+      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal">
+        {/* Guild Header Banner */}
+        <div className="retro-guild-banner p-4">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 retro-icon-badge shrink-0">
+              <span className="text-3xl">{state.currentGuild?.emoji}</span>
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-white">{state.currentGuild?.name}</h2>
-              <div className="flex items-center gap-2 text-white/80 text-sm">
-                <Users className="w-4 h-4" />
-                <span>{state.currentGuild?.memberCount} members</span>
-                <span className="mx-1">·</span>
-                <Trophy className="w-4 h-4" />
-                <span>Level {progress?.level}</span>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-bold text-white retro-pixel-text truncate">
+                {state.currentGuild?.name}
+              </h2>
+              <div className="flex items-center gap-3 text-sm mt-1">
+                <span className="flex items-center gap-1 text-purple-200">
+                  <Users className="w-4 h-4" />
+                  {state.currentGuild?.memberCount}
+                </span>
+                <span className="retro-neon-yellow flex items-center gap-1">
+                  <Trophy className="w-4 h-4" />
+                  LVL {progress?.level}
+                </span>
               </div>
             </div>
           </div>
 
+          {/* XP Progress */}
           {progress && (
             <div className="mt-4 space-y-1">
-              <div className="flex justify-between text-white/80 text-xs">
-                <span>Guild XP</span>
-                <span>{progress.xpToNextLevel} to next level</span>
+              <div className="flex justify-between text-xs">
+                <span className="text-cyan-400 retro-pixel-text">GUILD XP</span>
+                <span className="text-purple-300">{progress.xpToNextLevel} to next</span>
               </div>
-              <Progress value={progress.progressPercent} className="h-2 bg-white/20" />
+              <div className="retro-health-bar retro-health-bar-purple h-3">
+                <div
+                  className="retro-health-bar-fill"
+                  style={{ width: `${progress.progressPercent}%` }}
+                />
+              </div>
             </div>
           )}
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-            <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="challenges" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
-              Challenges
-            </TabsTrigger>
-            <TabsTrigger value="leaderboard" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
-              Leaderboard
-            </TabsTrigger>
-          </TabsList>
+        {/* Tabs */}
+        <div className="px-4 py-2 flex gap-1 bg-purple-900/30">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex-1 py-2 px-3 rounded-md text-xs font-bold uppercase transition-all retro-pixel-text flex items-center justify-center gap-1",
+                activeTab === tab.id
+                  ? "bg-cyan-600 text-white shadow-[0_0_10px_rgba(34,211,238,0.4)]"
+                  : "text-purple-400 hover:text-purple-300 hover:bg-purple-800/30"
+              )}
+            >
+              <tab.icon className="w-3 h-3" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-          <ScrollArea className="h-[300px]">
-            <TabsContent value="overview" className="p-4 m-0 space-y-4">
-              {/* Weekly goal */}
+        {/* Tab Content */}
+        <ScrollArea className="h-[300px] px-4 py-3">
+          {activeTab === 'overview' && (
+            <div className="space-y-4">
+              {/* Weekly Goal */}
               {progress && (
-                <div className="p-4 rounded-lg bg-muted">
+                <div className="retro-game-card p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">Weekly Goal</span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-cyan-400 retro-pixel-text text-sm">WEEKLY GOAL</span>
+                    <span className="text-purple-300 text-sm">
                       {progress.weeklyProgress}/{state.currentGuild?.weeklyGoal} min
                     </span>
                   </div>
-                  <Progress value={progress.weeklyGoalPercent} className="h-3" />
+                  <div className="retro-health-bar">
+                    <div
+                      className="retro-health-bar-fill"
+                      style={{ width: `${progress.weeklyGoalPercent}%` }}
+                    />
+                  </div>
                 </div>
               )}
 
-              {/* Your contribution */}
-              <div className="p-4 rounded-lg bg-muted">
-                <h3 className="font-medium mb-2">Your Contribution</h3>
-                <div className="text-3xl font-bold text-primary">{state.myContribution} min</div>
-                <p className="text-sm text-muted-foreground">this week</p>
+              {/* Your Contribution */}
+              <div className="retro-game-card p-4 text-center">
+                <h3 className="text-purple-400 text-xs retro-pixel-text mb-2">YOUR CONTRIBUTION</h3>
+                <div className="retro-score-display text-4xl">{state.myContribution}</div>
+                <p className="text-purple-300/60 text-xs mt-1">minutes this week</p>
               </div>
 
-              {/* Leave guild button */}
-              <Button
-                variant="destructive"
-                className="w-full"
+              {/* Leave Button */}
+              <button
                 onClick={leaveGuild}
+                className="w-full retro-arcade-btn py-3 flex items-center justify-center gap-2"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Leave Guild
-              </Button>
-            </TabsContent>
+                <LogOut className="w-4 h-4" />
+                <span className="retro-pixel-text">LEAVE GUILD</span>
+              </button>
+            </div>
+          )}
 
-            <TabsContent value="challenges" className="p-4 m-0 space-y-3">
+          {activeTab === 'challenges' && (
+            <div className="space-y-3">
               {challenges.map(challenge => (
                 <div
                   key={challenge.id}
                   className={cn(
-                    "p-4 rounded-lg border",
-                    challenge.isCompleted ? "bg-green-500/10 border-green-500/30" : "bg-card"
+                    "retro-game-card p-4",
+                    challenge.isCompleted && "border-green-500/50"
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">{challenge.emoji}</span>
-                    <div className="flex-1">
-                      <h4 className="font-medium">{challenge.name}</h4>
-                      <p className="text-sm text-muted-foreground">{challenge.description}</p>
-                      <Progress
-                        value={(challenge.currentMinutes / challenge.targetMinutes) * 100}
-                        className="h-2 mt-2"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>{challenge.currentMinutes}/{challenge.targetMinutes}</span>
-                        <span>+{challenge.rewards.xp} XP, +{challenge.rewards.coins} coins</span>
+                    <div className="w-12 h-12 retro-icon-badge shrink-0">
+                      <span className="text-2xl">{challenge.emoji}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-white retro-pixel-text text-sm">
+                        {challenge.name}
+                      </h4>
+                      <p className="text-xs text-purple-300/70 mt-1">
+                        {challenge.description}
+                      </p>
+                      <div className="mt-2">
+                        <div className="retro-health-bar h-2">
+                          <div
+                            className="retro-health-bar-fill"
+                            style={{ width: `${(challenge.currentMinutes / challenge.targetMinutes) * 100}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-xs text-purple-400 mt-1">
+                          <span>{challenge.currentMinutes}/{challenge.targetMinutes} min</span>
+                          <span className="retro-neon-yellow">
+                            +{challenge.rewards.xp} XP, +{challenge.rewards.coins} coins
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
-            </TabsContent>
+            </div>
+          )}
 
-            <TabsContent value="leaderboard" className="p-4 m-0">
-              <div className="space-y-2">
-                {leaderboard.map((member, index) => (
-                  <div
-                    key={member.id}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg",
-                      member.id === 'me' ? "bg-primary/10 border border-primary/30" : "bg-muted"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm",
-                      index === 0 && "bg-yellow-500 text-white",
-                      index === 1 && "bg-gray-400 text-white",
-                      index === 2 && "bg-orange-600 text-white",
-                      index > 2 && "bg-muted-foreground/20"
-                    )}>
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{member.name}</span>
-                        {member.role === 'leader' && <Crown className="w-4 h-4 text-yellow-500" />}
-                        {member.isOnline && <div className="w-2 h-2 rounded-full bg-green-500" />}
-                      </div>
-                      <span className="text-xs text-muted-foreground capitalize">{member.role}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium">{member.weeklyFocusMinutes} min</div>
-                      <div className="text-xs text-muted-foreground">this week</div>
-                    </div>
+          {activeTab === 'leaderboard' && (
+            <div className="space-y-2">
+              {leaderboard.map((member, index) => (
+                <div
+                  key={member.id}
+                  className={cn(
+                    "retro-game-card p-3 flex items-center gap-3",
+                    member.id === 'me' && "retro-active-challenge"
+                  )}
+                >
+                  {/* Rank Badge */}
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm retro-pixel-text",
+                    index === 0 && "bg-gradient-to-br from-yellow-500 to-orange-600 border-2 border-yellow-400 text-white",
+                    index === 1 && "bg-gradient-to-br from-gray-400 to-gray-500 border-2 border-gray-300 text-white",
+                    index === 2 && "bg-gradient-to-br from-orange-600 to-orange-700 border-2 border-orange-400 text-white",
+                    index > 2 && "bg-purple-900/50 border-2 border-purple-600/50 text-purple-400"
+                  )}>
+                    {index === 0 ? '👑' : index + 1}
                   </div>
-                ))}
-              </div>
-            </TabsContent>
-          </ScrollArea>
-        </Tabs>
+
+                  {/* Member Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white retro-pixel-text text-sm truncate">
+                        {member.name}
+                      </span>
+                      {member.role === 'leader' && (
+                        <Crown className="w-4 h-4 text-yellow-400" />
+                      )}
+                      {member.isOnline && (
+                        <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.6)]" />
+                      )}
+                    </div>
+                    <span className="text-xs text-purple-400 capitalize">{member.role}</span>
+                  </div>
+
+                  {/* Score */}
+                  <div className="text-right">
+                    <div className="font-bold text-cyan-400 retro-pixel-text">
+                      {member.weeklyFocusMinutes}
+                    </div>
+                    <div className="text-xs text-purple-400">min</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+
+        {/* Footer */}
+        <div className="p-3 border-t-2 border-purple-700/50 bg-purple-900/30 text-center">
+          <p className="text-xs text-purple-400 retro-pixel-text flex items-center justify-center gap-2">
+            <Star className="w-3 h-3" />
+            FOCUS TOGETHER, WIN TOGETHER
+            <Star className="w-3 h-3" />
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );
