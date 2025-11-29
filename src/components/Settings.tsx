@@ -9,13 +9,15 @@ import { SettingsAbout } from "@/components/settings/SettingsAbout";
 import { SettingsAccount } from "@/components/settings/SettingsAccount";
 import { SettingsProfile } from "@/components/settings/SettingsProfile";
 import { SettingsAnalytics } from "@/components/settings/SettingsAnalytics";
-import { Loader2, Palette, Clock, Volume2, Gamepad2, Database, Heart, Settings as SettingsIcon, UserCircle, BarChart3 } from "lucide-react";
+import { SettingsFocusMode } from "@/components/settings/SettingsFocusMode";
+import { Loader2, Palette, Clock, Volume2, Gamepad2, Database, Heart, Settings as SettingsIcon, UserCircle, BarChart3, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { id: "account", label: "Account", icon: UserCircle },
   { id: "appearance", label: "Theme", icon: Palette },
   { id: "timer", label: "Timer", icon: Clock },
+  { id: "focus", label: "Focus", icon: Shield },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "sound", label: "Sound", icon: Volume2 },
   { id: "game", label: "Game", icon: Gamepad2 },
@@ -126,6 +128,10 @@ export const Settings = () => {
             settings={settings}
             onUpdate={updateSettings}
           />
+        )}
+
+        {activeTab === "focus" && (
+          <SettingsFocusMode />
         )}
 
         {activeTab === "analytics" && (

@@ -5,7 +5,7 @@ import { getCoinExclusiveAnimals } from './AnimalDatabase';
 // SHOP ITEM TYPES
 // ═══════════════════════════════════════════════════════════════════════════
 
-export type ShopCategory = 'characters' | 'backgrounds' | 'badges' | 'boosters' | 'coins' | 'utilities';
+export type ShopCategory = 'premium' | 'characters' | 'backgrounds' | 'badges' | 'boosters' | 'coins' | 'utilities';
 
 export interface ShopItem {
   id: string;
@@ -429,6 +429,7 @@ export const getItemsByRarity = (rarity: 'common' | 'rare' | 'epic' | 'legendary
 
 // Shop categories for UI
 export const SHOP_CATEGORIES: { id: ShopCategory; name: string; icon: string }[] = [
+  { id: 'premium', name: 'Premium', icon: '👑' },
   { id: 'characters', name: 'Characters', icon: '🐾' },
   { id: 'backgrounds', name: 'Backgrounds', icon: '🖼️' },
   { id: 'badges', name: 'Badges', icon: '🏅' },

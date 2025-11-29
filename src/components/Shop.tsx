@@ -9,10 +9,17 @@ import {
   Star,
   Clock,
   Sparkles,
+  Crown,
+  Volume2,
+  Timer,
+  PenLine,
+  BarChart3,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
+import { usePremiumStatus, SUBSCRIPTION_PLANS } from "@/hooks/usePremiumStatus";
 import {
   ShopCategory,
   SHOP_CATEGORIES,
@@ -21,6 +28,7 @@ import {
   COIN_PACKS,
 } from "@/data/ShopData";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
+import { PremiumSubscription } from "@/components/PremiumSubscription";
 import { toast } from "sonner";
 
 const RARITY_COLORS = {
@@ -52,9 +60,10 @@ const RARITY_GLOW = {
 };
 
 export const Shop = () => {
-  const [activeCategory, setActiveCategory] = useState<ShopCategory>("characters");
+  const [activeCategory, setActiveCategory] = useState<ShopCategory>("premium");
   const [selectedItem, setSelectedItem] = useState<ShopItem | AnimalData | null>(null);
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const {
     inventory,
@@ -71,6 +80,8 @@ export const Shop = () => {
     activeBooster,
     getCurrentMultiplier,
   } = useCoinBooster();
+
+  const { isPremium, tier, currentPlan } = usePremiumStatus();
 
   const handlePurchase = () => {
     if (!selectedItem) return;
@@ -185,7 +196,151 @@ export const Shop = () => {
     );
   };
 
+  const renderPremiumSection = () => {
+    const PREMIUM_FEATURES = [
+      { icon: Volume2, title: 'All Ambient Sounds', description: 'Lo-fi beats, nature, white noise & more' },
+      { icon: Timer, title: 'Auto-Break Cycles', description: 'Automatic Pomodoro break transitions' },
+      { icon: PenLine, title: 'Session Notes', description: 'Reflect on your focus sessions' },
+      { icon: BarChart3, title: 'Advanced Analytics', description: 'Deep insights into your productivity' },
+      { icon: Shield, title: 'Website Blocking', description: 'Block distracting sites during focus' },
+      { icon: Crown, title: 'Exclusive Pets', description: 'Premium-only legendary creatures' },
+    ];
+
+    return (
+      <div className="space-y-4">
+        {/* Current Status */}
+        {isPremium ? (
+          <div className="bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-2xl p-4 border border-amber-300 dark:border-amber-700">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                <Crown className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-amber-800 dark:text-amber-300">
+                  {currentPlan?.name || 'Premium'} Member
+                </h3>
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Thank you for your support!
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              You have access to all premium features.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl p-4 border border-amber-200 dark:border-amber-800">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center animate-pulse">
+                <Crown className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Upgrade to Premium</h3>
+                <p className="text-xs text-muted-foreground">
+                  Unlock all features & supercharge your focus
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPremiumModal(true)}
+              className="w-full py-3 rounded-xl bg-gradient-to-b from-amber-400 to-orange-500 text-white font-bold shadow-lg hover:from-amber-500 hover:to-orange-600 transition-all active:scale-[0.98]"
+            >
+              View Plans - Starting at $4.99/mo
+            </button>
+          </div>
+        )}
+
+        {/* Features Grid */}
+        <div>
+          <h4 className="text-sm font-bold mb-3 px-1">Premium Features</h4>
+          <div className="grid grid-cols-2 gap-3">
+            {PREMIUM_FEATURES.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.title}
+                  className={cn(
+                    "p-3 rounded-xl border transition-all",
+                    isPremium
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                      : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                  )}
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Icon className={cn(
+                      "w-4 h-4",
+                      isPremium ? "text-green-600 dark:text-green-400" : "text-amber-500"
+                    )} />
+                    <span className="text-xs font-bold">{feature.title}</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    {feature.description}
+                  </p>
+                  {isPremium && (
+                    <div className="flex items-center gap-1 mt-2 text-green-600 dark:text-green-400">
+                      <Check className="w-3 h-3" />
+                      <span className="text-[10px] font-semibold">Unlocked</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Subscription Plans Preview */}
+        {!isPremium && (
+          <div>
+            <h4 className="text-sm font-bold mb-3 px-1">Plans</h4>
+            <div className="space-y-2">
+              {SUBSCRIPTION_PLANS.filter(p => p.period === 'yearly' || p.period === 'lifetime').slice(0, 3).map((plan) => (
+                <button
+                  key={plan.id}
+                  onClick={() => setShowPremiumModal(true)}
+                  className={cn(
+                    "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98]",
+                    plan.isPopular
+                      ? "bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 border-2 border-amber-300 dark:border-amber-700"
+                      : "bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">{plan.name}</span>
+                        {plan.isPopular && (
+                          <span className="px-2 py-0.5 bg-amber-500 text-white text-[9px] font-bold rounded-full">
+                            POPULAR
+                          </span>
+                        )}
+                        {plan.savings && (
+                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
+                            {plan.savings}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {plan.period === 'lifetime' ? 'One-time purchase' : `Billed ${plan.period}`}
+                      </p>
+                    </div>
+                    <span className="text-lg font-black text-amber-600 dark:text-amber-400">
+                      {plan.price}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderShopItems = () => {
+    if (activeCategory === "premium") {
+      return renderPremiumSection();
+    }
+
     if (activeCategory === "characters") {
       return renderCharacters();
     }
@@ -528,6 +683,12 @@ export const Shop = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Premium Subscription Modal */}
+      <PremiumSubscription
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+      />
     </div>
   );
 };

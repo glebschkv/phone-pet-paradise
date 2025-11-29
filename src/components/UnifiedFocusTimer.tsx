@@ -12,6 +12,7 @@ import {
 } from "./focus-timer/constants";
 import { useTimerPersistence } from "./focus-timer/hooks/useTimerPersistence";
 import { useTimerAudio } from "./focus-timer/hooks/useTimerAudio";
+import { useAmbientSound } from "@/hooks/useAmbientSound";
 import { FocusBackground } from "./focus-timer/backgrounds";
 import { BackgroundThemeSwitcher } from "./focus-timer/BackgroundThemeSwitcher";
 import { TimerDisplay } from "./focus-timer/TimerDisplay";
@@ -20,17 +21,23 @@ import { TimerPresetGrid } from "./focus-timer/TimerPresetGrid";
 import { TimerStats } from "./focus-timer/TimerStats";
 import { TaskIntentionModal } from "./focus-timer/TaskIntentionModal";
 import { FocusLockScreen } from "./focus-timer/FocusLockScreen";
+import { SessionNotesModal } from "./focus-timer/SessionNotesModal";
+import { AmbientSoundPicker } from "./focus-timer/AmbientSoundPicker";
+import { BreakTransitionModal } from "./focus-timer/BreakTransitionModal";
 import { Analytics } from "./analytics";
 import { Timer, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TimerView = 'timer' | 'stats';
 
+const AUTO_BREAK_STORAGE_KEY = 'petIsland_autoBreak';
+
 export const UnifiedFocusTimer = () => {
   const { toast } = useToast();
   const { awardXP, currentLevel } = useBackendAppState();
   const { playCompletionSound } = useTimerAudio();
   const { recordSession } = useAnalytics();
+  const { stop: stopAmbientSound, isPlaying: isAmbientPlaying } = useAmbientSound();
 
   const {
     timerState,
@@ -45,6 +52,15 @@ export const UnifiedFocusTimer = () => {
   const [currentView, setCurrentView] = useState<TimerView>('timer');
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [showLockScreen, setShowLockScreen] = useState(false);
+
+  // New state for enhanced features
+  const [showSessionNotesModal, setShowSessionNotesModal] = useState(false);
+  const [showBreakTransitionModal, setShowBreakTransitionModal] = useState(false);
+  const [lastSessionXP, setLastSessionXP] = useState(0);
+  const [autoBreakEnabled, setAutoBreakEnabled] = useState(() => {
+    const saved = localStorage.getItem(AUTO_BREAK_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : false;
+  });
 
   // Refs for stable timer management
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -126,6 +142,11 @@ export const UnifiedFocusTimer = () => {
 
     clearPersistence();
 
+    // Stop ambient sound when session ends
+    if (isAmbientPlaying) {
+      stopAmbientSound();
+    }
+
     if (timerState.soundEnabled) {
       playCompletionSound();
     }
@@ -153,14 +174,6 @@ export const UnifiedFocusTimer = () => {
       timerState.taskLabel
     );
 
-    toast({
-      title: `${selectedPreset.name} Complete!`,
-      description: reward
-        ? `+${reward.xpGained} XP${reward.coinReward ? ` & +${reward.coinReward.coinsGained} coins` : ''}${reward.leveledUp ? ' - Level Up!' : ''}`
-        : `${completedMinutes}-minute ${timerState.sessionType} session completed.`,
-      duration: 4000,
-    });
-
     // Reset display time and timer state
     setDisplayTime(timerState.sessionDuration);
     saveTimerState({
@@ -172,13 +185,73 @@ export const UnifiedFocusTimer = () => {
       taskLabel: undefined,
     });
 
-    // Suggest break after work sessions
+    // For work sessions, show session notes modal then break transition
     if (timerState.sessionType !== 'break') {
-      suggestBreak();
+      setLastSessionXP(xpEarned);
+      setShowSessionNotesModal(true);
+    } else {
+      // For break sessions, just show completion toast
+      toast({
+        title: 'Break Complete!',
+        description: 'Time to get back to work!',
+        duration: 3000,
+      });
     }
 
     isCompletingRef.current = false;
-  }, [timerState, selectedPreset, awardXP, toast, saveTimerState, clearPersistence, playCompletionSound, suggestBreak, recordSession]);
+  }, [timerState, awardXP, saveTimerState, clearPersistence, playCompletionSound, recordSession, isAmbientPlaying, stopAmbientSound, toast]);
+
+  // Handle session notes save
+  const handleSessionNotesSave = useCallback((notes: string, rating: number) => {
+    // TODO: Save notes to analytics/backend
+    console.log('Session notes:', { notes, rating });
+    setShowSessionNotesModal(false);
+    // Show break transition modal after notes
+    setShowBreakTransitionModal(true);
+  }, []);
+
+  // Handle starting a break
+  const handleStartBreak = useCallback((duration: number) => {
+    setShowBreakTransitionModal(false);
+
+    // Find or create the break preset
+    const breakPreset = TIMER_PRESETS.find(p => p.type === 'break' && p.duration === duration)
+      || TIMER_PRESETS.find(p => p.id === 'short-break');
+
+    if (breakPreset) {
+      setSelectedPreset(breakPreset);
+      const newTimeLeft = duration * 60;
+      setDisplayTime(newTimeLeft);
+
+      // Auto-start the break timer
+      const now = Date.now();
+      saveTimerState({
+        timeLeft: newTimeLeft,
+        sessionDuration: newTimeLeft,
+        sessionType: 'break',
+        isRunning: true,
+        startTime: now,
+        category: undefined,
+        taskLabel: undefined,
+      });
+    }
+  }, [setSelectedPreset, saveTimerState]);
+
+  // Handle skipping break
+  const handleSkipBreak = useCallback(() => {
+    setShowBreakTransitionModal(false);
+    toast({
+      title: 'Break skipped',
+      description: "Remember to take breaks regularly!",
+      duration: 2000,
+    });
+  }, [toast]);
+
+  // Toggle auto-break setting
+  const toggleAutoBreak = useCallback((enabled: boolean) => {
+    setAutoBreakEnabled(enabled);
+    localStorage.setItem(AUTO_BREAK_STORAGE_KEY, JSON.stringify(enabled));
+  }, []);
 
   // Sync displayTime with timerState when not running
   useEffect(() => {
@@ -482,9 +555,10 @@ export const UnifiedFocusTimer = () => {
       <FocusBackground theme={backgroundTheme} />
 
       <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-4 pb-32">
-        {/* View Toggle */}
-        <div className="mb-4">
+        {/* View Toggle & Ambient Sound */}
+        <div className="mb-4 flex items-center gap-3">
           <ViewToggle />
+          <AmbientSoundPicker />
         </div>
 
         <TimerDisplay
@@ -510,6 +584,31 @@ export const UnifiedFocusTimer = () => {
           onClose={() => setShowIntentionModal(false)}
           onStart={startTimerWithIntent}
           selectedPreset={selectedPreset}
+        />
+
+        {/* Session Notes Modal - shows after completing a work session */}
+        <SessionNotesModal
+          isOpen={showSessionNotesModal}
+          onClose={() => {
+            setShowSessionNotesModal(false);
+            setShowBreakTransitionModal(true);
+          }}
+          onSave={handleSessionNotesSave}
+          sessionDuration={timerState.sessionDuration}
+          xpEarned={lastSessionXP}
+          taskLabel={timerState.taskLabel}
+        />
+
+        {/* Break Transition Modal - shows after session notes */}
+        <BreakTransitionModal
+          isOpen={showBreakTransitionModal}
+          onClose={handleSkipBreak}
+          onStartBreak={handleStartBreak}
+          onSkipBreak={handleSkipBreak}
+          isLongBreak={timerState.completedSessions % 4 === 0}
+          completedSessions={timerState.completedSessions}
+          autoStartEnabled={autoBreakEnabled}
+          onToggleAutoStart={toggleAutoBreak}
         />
 
         <div className="mt-6">
