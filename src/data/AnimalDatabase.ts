@@ -45,7 +45,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Meadow',
     spriteConfig: {
       spritePath: '/assets/sprites/HARE_WALK.png',
-      frameCount: 4, // 112px / 28px = 4 frames
+      frameCount: 4,
       frameWidth: 28,
       frameHeight: 28,
       animationSpeed: 10
@@ -62,7 +62,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Meadow',
     spriteConfig: {
       spritePath: '/assets/sprites/Bird_Fly.png',
-      frameCount: 4, // 112px / 28px = 4 frames
+      frameCount: 4,
       frameWidth: 28,
       frameHeight: 28,
       animationSpeed: 12
@@ -79,26 +79,26 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Meadow',
     spriteConfig: {
       spritePath: '/assets/sprites/Lizard_Walk.png',
-      frameCount: 4, // 112px / 28px = 4 frames
+      frameCount: 4,
       frameWidth: 28,
       frameHeight: 28,
       animationSpeed: 8
     }
   },
   {
-    id: 'horse',
-    name: 'Wild Horse',
-    emoji: '🐴',
+    id: 'slime1',
+    name: 'Meadow Slime',
+    emoji: '🟢',
     rarity: 'rare',
     unlockLevel: 3,
-    description: 'A majestic horse with flowing mane, embodying freedom and determination.',
-    abilities: ['Gallop Focus', 'Endurance', 'Wild Spirit'],
+    description: 'A bouncy and cheerful slime that hops through the meadow spreading joy.',
+    abilities: ['Bounce', 'Jelly Shield', 'Happy Hop'],
     biome: 'Meadow',
     spriteConfig: {
-      spritePath: '/assets/sprites/Horse_Walk.png',
-      frameCount: 6, // 432px / 72px = 6 frames
-      frameWidth: 72,
-      frameHeight: 72,
+      spritePath: '/assets/sprites/Slime1_Walk_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 64,
+      frameHeight: 64,
       animationSpeed: 10
     }
   },
@@ -113,7 +113,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Meadow',
     spriteConfig: {
       spritePath: '/assets/sprites/DudeMonster_Walk2.png',
-      frameCount: 6, // 192px / 32px = 6 frames
+      frameCount: 6,
       frameWidth: 32,
       frameHeight: 32,
       animationSpeed: 10
@@ -135,7 +135,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Sunset',
     spriteConfig: {
       spritePath: '/assets/sprites/Camel_Walk.png',
-      frameCount: 6, // 432px / 72px = 6 frames
+      frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
       animationSpeed: 8
@@ -152,7 +152,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Sunset',
     spriteConfig: {
       spritePath: '/assets/sprites/ELK_WALK.png',
-      frameCount: 6, // 432px / 72px = 6 frames
+      frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
       animationSpeed: 9
@@ -169,27 +169,27 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Sunset',
     spriteConfig: {
       spritePath: '/assets/sprites/Turtle_Walk.png',
-      frameCount: 6, // 432px / 72px = 6 frames
+      frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
       animationSpeed: 6
     }
   },
   {
-    id: 'horse-jumping',
-    name: 'Sunset Stallion',
-    emoji: '🐎',
+    id: 'huge-mushroom',
+    name: 'Forest Fungus',
+    emoji: '🍄',
     rarity: 'epic',
     unlockLevel: 8,
-    description: 'A powerful stallion that leaps over obstacles with grace and power.',
-    abilities: ['Leap of Focus', 'Power Stride', 'Sunset Runner'],
+    description: 'A mystical walking mushroom from the enchanted forest, spreading spores of focus.',
+    abilities: ['Spore Cloud', 'Fungal Growth', 'Nature Bond'],
     biome: 'Sunset',
     spriteConfig: {
-      spritePath: '/assets/sprites/Horse_Jump.png',
-      frameCount: 6, // 432px / 72px = 6 frames
+      spritePath: '/assets/sprites/HugeMushroom_walk.png',
+      frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
-      animationSpeed: 11
+      animationSpeed: 8
     }
   },
 
@@ -208,7 +208,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Night',
     spriteConfig: {
       spritePath: '/assets/sprites/Bear_Walk.png',
-      frameCount: 6, // 432px / 72px = 6 frames
+      frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
       animationSpeed: 8
@@ -225,7 +225,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Night',
     spriteConfig: {
       spritePath: '/assets/sprites/SNAKE_Walk.png',
-      frameCount: 4, // 192px / 48px = 4 frames
+      frameCount: 4,
       frameWidth: 48,
       frameHeight: 48,
       animationSpeed: 9
@@ -242,26 +242,26 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Night',
     spriteConfig: {
       spritePath: '/assets/sprites/Whitehare_Walk.png',
-      frameCount: 4, // 112px / 28px = 4 frames
+      frameCount: 4,
       frameWidth: 28,
       frameHeight: 28,
       animationSpeed: 11
     }
   },
   {
-    id: 'monster-happy',
-    name: 'Night Sprite',
-    emoji: '👻',
+    id: 'vampire-bat',
+    name: 'Vampire Bat',
+    emoji: '🦇',
     rarity: 'rare',
     unlockLevel: 12,
-    description: 'A cheerful spirit that dances in the moonlight, spreading joy.',
-    abilities: ['Happy Dance', 'Night Joy', 'Sprite Magic'],
+    description: 'A mysterious bat that swoops through the night sky, guardian of the darkness.',
+    abilities: ['Night Flight', 'Echo Sense', 'Shadow Wing'],
     biome: 'Night',
     spriteConfig: {
-      spritePath: '/assets/sprites/DudeMonster_Happy.png',
-      frameCount: 6, // 192px / 32px = 6 frames
-      frameWidth: 32,
-      frameHeight: 32,
+      spritePath: '/assets/sprites/VampireBat_walk.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
       animationSpeed: 10
     }
   },
@@ -271,105 +271,105 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   // Background: Jungle Island
   // ═══════════════════════════════════════════════════════════════════════════
   {
-    id: 'jungle-bird',
-    name: 'Tropical Bird',
-    emoji: '🦜',
+    id: 'goblin-king',
+    name: 'Goblin King',
+    emoji: '👑',
     rarity: 'rare',
     unlockLevel: 13,
-    description: 'A vibrant tropical bird with colorful feathers and melodic songs.',
-    abilities: ['Jungle Song', 'Tropical Flight', 'Color Dance'],
+    description: 'The mischievous ruler of the forest goblins, wise in the ways of nature.',
+    abilities: ['Royal Command', 'Forest Trickery', 'Goblin Magic'],
     biome: 'Forest',
     spriteConfig: {
-      spritePath: '/assets/sprites/Bird_Fly.png',
-      frameCount: 4,
-      frameWidth: 28,
-      frameHeight: 28,
-      animationSpeed: 14
-    }
-  },
-  {
-    id: 'jungle-lizard',
-    name: 'Rainforest Gecko',
-    emoji: '🦎',
-    rarity: 'epic',
-    unlockLevel: 14,
-    description: 'A colorful gecko that climbs the tallest jungle trees.',
-    abilities: ['Climb Focus', 'Jungle Agility', 'Camouflage'],
-    biome: 'Forest',
-    spriteConfig: {
-      spritePath: '/assets/sprites/Lizard_Walk.png',
-      frameCount: 4,
-      frameWidth: 28,
-      frameHeight: 28,
-      animationSpeed: 10
-    }
-  },
-  {
-    id: 'jungle-snake',
-    name: 'Vine Snake',
-    emoji: '🐍',
-    rarity: 'epic',
-    unlockLevel: 15,
-    description: 'A slender snake that moves through jungle vines with precision.',
-    abilities: ['Vine Dance', 'Jungle Stealth', 'Swift Coil'],
-    biome: 'Forest',
-    spriteConfig: {
-      spritePath: '/assets/sprites/SNAKE_Walk.png',
-      frameCount: 4,
-      frameWidth: 48,
-      frameHeight: 48,
-      animationSpeed: 10
-    }
-  },
-  {
-    id: 'forest-monster',
-    name: 'Jungle Spirit',
-    emoji: '🌿',
-    rarity: 'legendary',
-    unlockLevel: 16,
-    description: 'A mystical forest spirit that protects the jungle and its inhabitants.',
-    abilities: ['Forest Protection', 'Spirit Guide', 'Nature Focus'],
-    biome: 'Forest',
-    spriteConfig: {
-      spritePath: '/assets/sprites/DudeMonster_Roll.png',
+      spritePath: '/assets/sprites/GoblinKing_walk.png',
       frameCount: 6,
-      frameWidth: 32,
-      frameHeight: 32,
+      frameWidth: 72,
+      frameHeight: 72,
       animationSpeed: 9
     }
   },
   {
-    id: 'jungle-turtle',
-    name: 'Ancient Tortoise',
-    emoji: '🐢',
-    rarity: 'legendary',
-    unlockLevel: 17,
-    description: 'An ancient tortoise that has witnessed centuries of jungle history.',
-    abilities: ['Ancient Wisdom', 'Slow Power', 'Time Focus'],
+    id: 'slime2',
+    name: 'Forest Slime',
+    emoji: '🔵',
+    rarity: 'epic',
+    unlockLevel: 14,
+    description: 'A blue slime that has adapted to the forest, more agile than its meadow cousin.',
+    abilities: ['Forest Bounce', 'Camouflage', 'Rapid Split'],
     biome: 'Forest',
     spriteConfig: {
-      spritePath: '/assets/sprites/Turtle_Walk.png',
-      frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 5
+      spritePath: '/assets/sprites/Slime2_Walk_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 11
     }
   },
   {
-    id: 'jungle-hare',
-    name: 'Forest Runner',
-    emoji: '🐰',
-    rarity: 'rare',
-    unlockLevel: 18,
-    description: 'A swift hare that dashes through the jungle underbrush.',
-    abilities: ['Quick Dash', 'Forest Speed', 'Undergrowth Run'],
+    id: 'mech',
+    name: 'Forest Mech',
+    emoji: '🤖',
+    rarity: 'epic',
+    unlockLevel: 15,
+    description: 'An ancient mechanical guardian awakened to protect the forest.',
+    abilities: ['Iron Defense', 'Laser Focus', 'Power Core'],
     biome: 'Forest',
     spriteConfig: {
-      spritePath: '/assets/sprites/HARE_WALK.png',
-      frameCount: 4,
-      frameWidth: 28,
-      frameHeight: 28,
-      animationSpeed: 12
+      spritePath: '/assets/sprites/Mech_walk.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'horse',
+    name: 'Wild Horse',
+    emoji: '🐴',
+    rarity: 'rare',
+    unlockLevel: 16,
+    description: 'A majestic horse with flowing mane, embodying freedom and determination.',
+    abilities: ['Gallop Focus', 'Endurance', 'Wild Spirit'],
+    biome: 'Forest',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Horse_Walk.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'slime3',
+    name: 'Ancient Slime',
+    emoji: '🟣',
+    rarity: 'legendary',
+    unlockLevel: 17,
+    description: 'A rare purple slime that has evolved over centuries, wielding mystical powers.',
+    abilities: ['Mystic Bounce', 'Ancient Knowledge', 'Power Absorption'],
+    biome: 'Forest',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Slime3_Walk_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'horse-jumping',
+    name: 'Sunset Stallion',
+    emoji: '🐎',
+    rarity: 'epic',
+    unlockLevel: 18,
+    description: 'A powerful stallion that leaps over obstacles with grace and power.',
+    abilities: ['Leap of Focus', 'Power Stride', 'Sunset Runner'],
+    biome: 'Forest',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Horse_Jump.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 11
     }
   },
 
@@ -395,20 +395,20 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     }
   },
   {
-    id: 'mountain-elk',
-    name: 'Mountain Elk',
-    emoji: '🦌',
+    id: 'metalshark',
+    name: 'Metal Shark',
+    emoji: '🦈',
     rarity: 'epic',
     unlockLevel: 20,
-    description: 'A powerful elk that roams the snowy mountain peaks.',
-    abilities: ['Peak Power', 'Mountain Stride', 'Snow King'],
+    description: 'A cybernetic shark enhanced with metal plating, apex predator of the frozen seas.',
+    abilities: ['Steel Bite', 'Sonar Scan', 'Armored Rush'],
     biome: 'Snow',
     spriteConfig: {
-      spritePath: '/assets/sprites/ELK_WALK.png',
+      spritePath: '/assets/sprites/metalshark_Swim.png',
       frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 8
+      frameWidth: 96,
+      frameHeight: 96,
+      animationSpeed: 10
     }
   },
   {
@@ -429,28 +429,11 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     }
   },
   {
-    id: 'snow-horse',
-    name: 'Frost Stallion',
-    emoji: '🐴',
-    rarity: 'legendary',
-    unlockLevel: 22,
-    description: 'A majestic stallion with a coat as white as freshly fallen snow.',
-    abilities: ['Frost Gallop', 'Snow Trail', 'Winter Spirit'],
-    biome: 'Snow',
-    spriteConfig: {
-      spritePath: '/assets/sprites/Horse_Walk.png',
-      frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 10
-    }
-  },
-  {
     id: 'ice-crab',
     name: 'Glacier Crab',
     emoji: '🦀',
     rarity: 'epic',
-    unlockLevel: 23,
+    unlockLevel: 22,
     description: 'A hardy crab that survives in the coldest waters of the arctic.',
     abilities: ['Ice Pincer', 'Glacier Walk', 'Cold Armor'],
     biome: 'Snow',
@@ -460,6 +443,23 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 96,
       frameHeight: 96,
       animationSpeed: 7
+    }
+  },
+  {
+    id: 'dragon1',
+    name: 'Fire Dragon',
+    emoji: '🐉',
+    rarity: 'legendary',
+    unlockLevel: 23,
+    description: 'A majestic dragon that breathes fire and commands the sky with ancient power.',
+    abilities: ['Fire Breath', 'Dragon Flight', 'Ancient Roar', 'Flame Shield'],
+    biome: 'Snow',
+    spriteConfig: {
+      spritePath: '/assets/sprites/DRAGON1_Walk.png',
+      frameCount: 12,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 12
     }
   },
   {
@@ -473,7 +473,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Snow',
     spriteConfig: {
       spritePath: '/assets/sprites/DudeMonster_Slide.png',
-      frameCount: 4, // 128px / 32px = 4 frames
+      frameCount: 4,
       frameWidth: 32,
       frameHeight: 32,
       animationSpeed: 11
@@ -497,20 +497,20 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     }
   },
   {
-    id: 'snow-camel',
-    name: 'Bactrian Camel',
-    emoji: '🐫',
+    id: 'slime-boss1',
+    name: 'King Slime',
+    emoji: '👑',
     rarity: 'epic',
     unlockLevel: 26,
-    description: 'A two-humped camel adapted to the harsh cold of the mountain steppes.',
-    abilities: ['Cold Endurance', 'Mountain Trek', 'Double Strength'],
+    description: 'The massive ruler of all slimes, commanding respect with its enormous size.',
+    abilities: ['Royal Bounce', 'Slime Army', 'Crown Shield', 'Mega Absorption'],
     biome: 'Snow',
     spriteConfig: {
-      spritePath: '/assets/sprites/Camel_Walk.png',
-      frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 7
+      spritePath: '/assets/sprites/Slime_boss1_Walk_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
     }
   },
 
@@ -519,20 +519,20 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   // Special rare variants with unique abilities
   // ═══════════════════════════════════════════════════════════════════════════
   {
-    id: 'alpha-bear',
-    name: 'Alpha Bear',
-    emoji: '🐻',
+    id: 'dragon2',
+    name: 'Ice Dragon',
+    emoji: '🐲',
     rarity: 'legendary',
     unlockLevel: 27,
-    description: 'The ultimate alpha predator, commanding respect from all creatures.',
-    abilities: ['Alpha Command', 'Ultimate Strength', 'Focus Master', 'Leader Aura'],
-    biome: 'Night',
+    description: 'An ancient dragon of frost and ice, commanding blizzards with a single breath.',
+    abilities: ['Ice Breath', 'Blizzard Storm', 'Frozen Wings', 'Glacier Shield'],
+    biome: 'Snow',
     spriteConfig: {
-      spritePath: '/assets/sprites/Bear_Attack.png',
-      frameCount: 4, // 288px / 72px = 4 frames
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 10
+      spritePath: '/assets/sprites/DRAGON2_Walk.png',
+      frameCount: 12,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 12
     }
   },
   {
@@ -545,7 +545,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Deep Domination', 'Tentacle Master', 'Deep Sea King', 'Ancient Power'],
     biome: 'Night',
     spriteConfig: {
-      spritePath: '/assets/sprites/OCTOPUS_Attack1.png',
+      spritePath: '/assets/sprites/OCTOPUS_Walk.png',
       frameCount: 6,
       frameWidth: 96,
       frameHeight: 96,
@@ -553,11 +553,28 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     }
   },
   {
+    id: 'slime-boss2',
+    name: 'Emperor Slime',
+    emoji: '👾',
+    rarity: 'legendary',
+    unlockLevel: 29,
+    description: 'The ultimate evolution of slime-kind, wielding power beyond imagination.',
+    abilities: ['Emperor Decree', 'Slime Tsunami', 'Absorption Field', 'Ultimate Split'],
+    biome: 'Night',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Slime_boss2_Walk_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
     id: 'mega-crab',
     name: 'Giant Crab',
     emoji: '🦀',
     rarity: 'legendary',
-    unlockLevel: 29,
+    unlockLevel: 30,
     description: 'A massive crab with impenetrable armor and crushing pincers.',
     abilities: ['Armor Master', 'Crushing Grip', 'Titan Defense', 'Beach Guardian'],
     biome: 'Sunset',
@@ -570,20 +587,20 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     }
   },
   {
-    id: 'mega-shark',
-    name: 'Megalodon',
-    emoji: '🦈',
+    id: 'dragon3',
+    name: 'Shadow Dragon',
+    emoji: '🖤',
     rarity: 'legendary',
-    unlockLevel: 30,
-    description: 'The prehistoric apex predator returns, dominating all lands.',
-    abilities: ['Prehistoric Power', 'Ultimate Hunter', 'Land Terror', 'Ancient Might'],
-    biome: 'Snow',
+    unlockLevel: 31,
+    description: 'A dragon of pure darkness, existing between dimensions and commanding shadow.',
+    abilities: ['Shadow Breath', 'Void Step', 'Dark Wings', 'Nightmare Aura'],
+    biome: 'Night',
     spriteConfig: {
-      spritePath: '/assets/sprites/SHARK_Attack1.png',
-      frameCount: 6,
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 11
+      spritePath: '/assets/sprites/DRAGON3_Walk.png',
+      frameCount: 12,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 12
     }
   },
   {
@@ -591,56 +608,39 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Serpent King',
     emoji: '🐍',
     rarity: 'legendary',
-    unlockLevel: 31,
+    unlockLevel: 32,
     description: 'The ruler of all serpents, wielding hypnotic power and ancient wisdom.',
     abilities: ['Hypnotic Gaze', 'Serpent Command', 'Venom Master', 'Ancient Coil'],
     biome: 'Night',
     spriteConfig: {
       spritePath: '/assets/sprites/SNAKE_Attack.png',
-      frameCount: 6, // 288px / 48px = 6 frames
+      frameCount: 6,
       frameWidth: 48,
       frameHeight: 48,
       animationSpeed: 10
     }
   },
   {
-    id: 'celestial-bird',
-    name: 'Phoenix',
-    emoji: '🔥',
-    rarity: 'legendary',
-    unlockLevel: 32,
-    description: 'A mythical bird reborn from flames, eternal and ever-powerful.',
-    abilities: ['Eternal Flame', 'Rebirth', 'Sky Blaze', 'Immortal Focus'],
-    biome: 'Sunset',
-    spriteConfig: {
-      spritePath: '/assets/sprites/Bird_Fly.png',
-      frameCount: 4,
-      frameWidth: 28,
-      frameHeight: 28,
-      animationSpeed: 16
-    }
-  },
-  {
-    id: 'unicorn',
-    name: 'Unicorn',
-    emoji: '🦄',
+    id: 'slime-boss3',
+    name: 'Divine Slime',
+    emoji: '✨',
     rarity: 'legendary',
     unlockLevel: 33,
-    description: 'A mythical horse with a magical horn, bringing pure focus and magic.',
-    abilities: ['Pure Magic', 'Healing Light', 'Rainbow Trail', 'Legendary Grace'],
+    description: 'A transcendent slime that has achieved divine status, radiating pure energy.',
+    abilities: ['Divine Bounce', 'Celestial Split', 'Holy Shield', 'Purification'],
     biome: 'Meadow',
     spriteConfig: {
-      spritePath: '/assets/sprites/Horse_Jump.png',
-      frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 12
+      spritePath: '/assets/sprites/Slime_boss3_Walk_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
     }
   },
   {
     id: 'cosmic-spirit',
     name: 'Cosmic Spirit',
-    emoji: '✨',
+    emoji: '🌟',
     rarity: 'legendary',
     unlockLevel: 34,
     description: 'The ultimate companion - a cosmic being of pure focus energy and infinite power.',
@@ -664,7 +664,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Golden Hare',
     emoji: '🐰',
     rarity: 'epic',
-    unlockLevel: 999, // Never unlocks via XP
+    unlockLevel: 999,
     description: 'A mystical hare with a coat of pure gold, radiating prosperity and fortune.',
     abilities: ['Golden Touch', 'Luck Boost', 'Coin Magnet', 'Prosperity Aura'],
     biome: 'Meadow',
@@ -690,7 +690,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     coinPrice: 3000,
     isExclusive: true,
     spriteConfig: {
-      spritePath: '/assets/sprites/SHARK_Walk.png',
+      spritePath: '/assets/sprites/metalshark_Swim.png',
       frameCount: 6,
       frameWidth: 96,
       frameHeight: 96,
@@ -698,60 +698,60 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     }
   },
   {
-    id: 'shadow-wolf',
-    name: 'Shadow Wolf',
-    emoji: '🐺',
+    id: 'flying-dragon',
+    name: 'Sky Dragon',
+    emoji: '🐉',
     rarity: 'legendary',
     unlockLevel: 999,
-    description: 'A mysterious wolf that moves through shadows, guardian of the night.',
-    abilities: ['Shadow Step', 'Night Vision', 'Pack Leader', 'Stealth Master'],
-    biome: 'Night',
-    coinPrice: 2500,
+    description: 'A magnificent dragon that soars through the clouds, master of the skies.',
+    abilities: ['Cloud Dance', 'Sky Dominion', 'Wind Breath', 'Aerial Grace'],
+    biome: 'Snow',
+    coinPrice: 5000,
     isExclusive: true,
     spriteConfig: {
-      spritePath: '/assets/sprites/Bear_Walk.png',
-      frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 9
+      spritePath: '/assets/sprites/DRAGON1_Flight.png',
+      frameCount: 12,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 14
     }
   },
   {
-    id: 'ember-phoenix',
-    name: 'Ember Phoenix',
+    id: 'fire-dragon',
+    name: 'Inferno Dragon',
     emoji: '🔥',
     rarity: 'legendary',
     unlockLevel: 999,
-    description: 'A blazing phoenix born from eternal flames, symbol of rebirth and power.',
-    abilities: ['Flame Wing', 'Rebirth', 'Fire Trail', 'Ash Rising'],
+    description: 'A blazing dragon born from volcanic flames, embodying destructive beauty.',
+    abilities: ['Inferno Breath', 'Lava Shield', 'Phoenix Rise', 'Eternal Flame'],
     biome: 'Sunset',
-    coinPrice: 4000,
+    coinPrice: 5500,
     isExclusive: true,
     spriteConfig: {
-      spritePath: '/assets/sprites/Bird_Fly.png',
-      frameCount: 4,
-      frameWidth: 28,
-      frameHeight: 28,
-      animationSpeed: 18
+      spritePath: '/assets/sprites/DRAGON2_Flight.png',
+      frameCount: 12,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 14
     }
   },
   {
     id: 'frost-dragon',
     name: 'Frost Dragon',
-    emoji: '🐉',
+    emoji: '❄️',
     rarity: 'legendary',
     unlockLevel: 999,
     description: 'An ancient dragon of ice and snow, breathing blizzards and commanding winter.',
     abilities: ['Ice Breath', 'Blizzard Call', 'Frost Shield', 'Winter King'],
     biome: 'Snow',
-    coinPrice: 5000,
+    coinPrice: 5500,
     isExclusive: true,
     spriteConfig: {
-      spritePath: '/assets/sprites/SNAKE_Walk.png',
-      frameCount: 4,
-      frameWidth: 48,
-      frameHeight: 48,
-      animationSpeed: 8
+      spritePath: '/assets/sprites/DRAGON3_Flight.png',
+      frameCount: 12,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 14
     }
   },
   {
@@ -812,21 +812,21 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     }
   },
   {
-    id: 'void-serpent',
-    name: 'Void Serpent',
-    emoji: '🌑',
+    id: 'mech-warrior',
+    name: 'Mech Warrior',
+    emoji: '🤖',
     rarity: 'legendary',
     unlockLevel: 999,
-    description: 'A serpent from the void between stars, embodying cosmic mystery.',
-    abilities: ['Void Coil', 'Dark Matter', 'Space Warp', 'Cosmic Venom'],
-    biome: 'Night',
-    coinPrice: 4500,
+    description: 'An elite mechanical warrior with advanced combat systems and focus enhancers.',
+    abilities: ['Laser Precision', 'Shield Matrix', 'Overclock', 'Target Lock'],
+    biome: 'Forest',
+    coinPrice: 4000,
     isExclusive: true,
     spriteConfig: {
-      spritePath: '/assets/sprites/SNAKE_Attack.png',
+      spritePath: '/assets/sprites/Mech_attack1.png',
       frameCount: 6,
-      frameWidth: 48,
-      frameHeight: 48,
+      frameWidth: 72,
+      frameHeight: 72,
       animationSpeed: 10
     }
   },
@@ -857,35 +857,35 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Meadow',
     unlockLevel: 0,
     description: 'A peaceful grassy realm where your journey begins. Gentle creatures roam freely.',
-    animals: ['hare', 'bird', 'lizard', 'horse', 'dude-monster'],
+    animals: ['hare', 'bird', 'lizard', 'slime1', 'dude-monster'],
     backgroundImage: '/assets/worlds/GRASSYPATH.png'
   },
   {
     name: 'Sunset',
     unlockLevel: 5,
     description: 'Golden hour meadows bathed in warm evening light. Home to enduring travelers.',
-    animals: ['camel', 'elk', 'turtle', 'horse-jumping'],
+    animals: ['camel', 'elk', 'turtle', 'huge-mushroom'],
     backgroundImage: '/assets/worlds/WINDMILL.png'
   },
   {
     name: 'Night',
     unlockLevel: 9,
     description: 'A mystical moonlit realm where nocturnal creatures thrive under the stars.',
-    animals: ['bear', 'snake', 'white-hare', 'monster-happy'],
+    animals: ['bear', 'snake', 'white-hare', 'vampire-bat'],
     backgroundImage: '/assets/worlds/PURPLE_NIGHTSKY.png'
   },
   {
     name: 'Forest',
     unlockLevel: 13,
     description: 'Deep enchanted jungle filled with ancient wisdom and colorful life.',
-    animals: ['jungle-bird', 'jungle-lizard', 'jungle-snake', 'forest-monster', 'jungle-turtle', 'jungle-hare'],
+    animals: ['goblin-king', 'slime2', 'mech', 'horse', 'slime3', 'horse-jumping'],
     backgroundImage: '/assets/worlds/JUNGLE_ISLAND.png'
   },
   {
     name: 'Snow',
     unlockLevel: 19,
     description: 'A magical winter wonderland of snow-capped peaks and arctic adventures.',
-    animals: ['arctic-hare', 'mountain-elk', 'polar-bear', 'snow-horse', 'ice-crab', 'frost-spirit', 'ice-shark', 'snow-camel'],
+    animals: ['arctic-hare', 'metalshark', 'polar-bear', 'ice-crab', 'dragon1', 'frost-spirit', 'ice-shark', 'slime-boss1'],
     backgroundImage: '/assets/worlds/SKYPLATFORM_WORLD.png'
   }
 ];
@@ -944,8 +944,8 @@ export const getAnimalsCountByRarity = (): Record<string, number> => {
   }, {} as Record<string, number>);
 };
 
-// Flying animals (birds) that should appear in the sky instead of walking
-const FLYING_ANIMAL_IDS = ['bird', 'jungle-bird', 'celestial-bird'];
+// Flying animals (birds and bats) that should appear in the sky instead of walking
+const FLYING_ANIMAL_IDS = ['bird', 'vampire-bat', 'flying-dragon', 'fire-dragon', 'frost-dragon'];
 
 export const isFlyingAnimal = (animalId: string): boolean => {
   return FLYING_ANIMAL_IDS.includes(animalId);
