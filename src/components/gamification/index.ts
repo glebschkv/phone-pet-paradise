@@ -1,4 +1,5 @@
 export { BattlePassModal } from './BattlePassModal';
+export { GuildPanel } from './GuildPanel';
 export { BossChallengeModal } from './BossChallengeModal';
 export { LuckyWheelModal } from './LuckyWheelModal';
 export { MilestoneCelebration } from './MilestoneCelebration';

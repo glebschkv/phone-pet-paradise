@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 // Hooks
 import { useBattlePass } from '@/hooks/useBattlePass';
+import { useGuildSystem } from '@/hooks/useGuildSystem';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { useComboSystem } from '@/hooks/useComboSystem';
@@ -12,23 +14,24 @@ import { useSpecialEvents } from '@/hooks/useSpecialEvents';
 
 // Components
 import { BattlePassModal } from './BattlePassModal';
+import { GuildPanel } from './GuildPanel';
 import { BossChallengeModal } from './BossChallengeModal';
 import { LuckyWheelModal } from './LuckyWheelModal';
 import { ComboDisplay } from './ComboDisplay';
-import { EventIndicator } from './SpecialEventBanner';
+import { SpecialEventBanner, EventIndicator } from './SpecialEventBanner';
 
 // Icons
 import {
   Crown,
+  Users,
   Swords,
   Sparkles,
   Flame,
+  Calendar,
   Gift,
   ChevronRight,
   Trophy,
   Target,
-  Star,
-  Zap,
 } from 'lucide-react';
 
 interface GamificationHubProps {
@@ -39,17 +42,20 @@ interface GamificationHubProps {
 export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubProps) => {
   // Modal states
   const [showBattlePass, setShowBattlePass] = useState(false);
+  const [showGuild, setShowGuild] = useState(false);
   const [showBossChallenge, setShowBossChallenge] = useState(false);
   const [showLuckyWheel, setShowLuckyWheel] = useState(false);
 
   // Hooks
   const { getProgress, currentSeason, getUnclaimedRewards } = useBattlePass();
+  const { state: guildState, isInGuild, getGuildProgress } = useGuildSystem();
   const { getActiveChallenge, allChallenges } = useBossChallenges();
   const { canSpinToday, getStats } = useLuckyWheel();
   const { state: comboState, currentTier } = useComboSystem();
-  const { activeEvents, isDoubleXPActive, isDoubleCoinsActive } = useSpecialEvents();
+  const { activeEvents, hasUnclaimedRewards: hasEventRewards, isDoubleXPActive, isDoubleCoinsActive } = useSpecialEvents();
 
   const battlePassProgress = getProgress();
+  const guildProgress = getGuildProgress();
   const activeChallenge = getActiveChallenge();
   const wheelStats = getStats();
   const unclaimedBattlePassRewards = getUnclaimedRewards();
@@ -63,48 +69,44 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-background to-muted/30">
-      {/* Header with retro pixel style */}
-      <div className="p-4 border-b-2 border-border bg-card/80 backdrop-blur-sm">
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="p-4 border-b">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
-              <Trophy className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Challenges</h1>
-              <p className="text-xs text-muted-foreground">Earn rewards & level up!</p>
-            </div>
-          </div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-yellow-500" />
+            Challenges
+          </h1>
           <EventIndicator />
         </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Complete challenges and earn bonus rewards
+        </p>
       </div>
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          {/* Active Events Banner */}
+          {/* Active Events Banner (if any) */}
           {activeEvents.length > 0 && (
             <Card className={cn(
-              "overflow-hidden border-2 retro-card",
+              "overflow-hidden",
               "bg-gradient-to-r",
               activeEvents[0].backgroundGradient
             )}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="text-4xl animate-bounce">{activeEvents[0].emoji}</div>
+                  <span className="text-3xl">{activeEvents[0].emoji}</span>
                   <div className="flex-1 text-white">
-                    <h3 className="font-bold text-lg">{activeEvents[0].name}</h3>
+                    <h3 className="font-bold">{activeEvents[0].name}</h3>
                     <p className="text-sm text-white/80">{activeEvents[0].description}</p>
                   </div>
                   {(isDoubleXPActive() || isDoubleCoinsActive()) && (
                     <div className="flex flex-col gap-1">
                       {isDoubleXPActive() && (
-                        <span className="bg-white/25 px-3 py-1 rounded-full text-xs font-bold text-white flex items-center gap-1">
-                          <Zap className="w-3 h-3" /> 2x XP
-                        </span>
+                        <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold text-white">2x XP</span>
                       )}
                       {isDoubleCoinsActive() && (
-                        <span className="bg-white/25 px-3 py-1 rounded-full text-xs font-bold text-white">2x Coins</span>
+                        <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold text-white">2x Coins</span>
                       )}
                     </div>
                   )}
@@ -118,90 +120,70 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
             <ComboDisplay variant="compact" />
           )}
 
-          {/* Daily Spin - Lucky Wheel (Featured) */}
+          {/* Lucky Wheel */}
           <Card
             className={cn(
-              "cursor-pointer transition-all hover:shadow-lg active:scale-[0.98] overflow-hidden border-2",
-              canSpinToday()
-                ? "ring-2 ring-purple-400 ring-offset-2 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50"
-                : "bg-card"
+              "cursor-pointer transition-all hover:shadow-md",
+              canSpinToday() && "ring-2 ring-purple-500 ring-offset-2"
             )}
             onClick={() => setShowLuckyWheel(true)}
           >
-            <CardContent className="p-0">
-              <div className="flex items-center gap-4 p-4">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
                 <div className={cn(
-                  "w-16 h-16 rounded-2xl flex items-center justify-center relative",
-                  "bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500",
-                  "shadow-lg shadow-purple-500/30"
+                  "w-14 h-14 rounded-xl flex items-center justify-center",
+                  "bg-gradient-to-br from-purple-500 to-pink-500",
+                  canSpinToday() && "animate-pulse"
                 )}>
-                  <Sparkles className="w-8 h-8 text-white" />
-                  {canSpinToday() && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-ping" />
-                  )}
+                  <Sparkles className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-lg">Daily Spin</h3>
-                    {canSpinToday() && (
-                      <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
-                        READY!
-                      </span>
-                    )}
-                  </div>
+                  <h3 className="font-bold">Lucky Wheel</h3>
                   <p className="text-sm text-muted-foreground">
-                    {canSpinToday() ? 'Spin for free rewards!' : `${wheelStats.totalSpins} spins completed`}
+                    {canSpinToday() ? 'Daily spin available!' : `${wheelStats.totalSpins} total spins`}
                   </p>
                 </div>
+                {canSpinToday() && (
+                  <div className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    FREE
+                  </div>
+                )}
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
-              {canSpinToday() && (
-                <div className="h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 animate-pulse" />
-              )}
             </CardContent>
           </Card>
 
-          {/* Season Pass */}
+          {/* Battle Pass */}
           <Card
             className={cn(
-              "cursor-pointer transition-all hover:shadow-lg active:scale-[0.98] overflow-hidden border-2",
-              unclaimedBattlePassRewards.length > 0 && "ring-2 ring-amber-400"
+              "cursor-pointer transition-all hover:shadow-md overflow-hidden",
+              unclaimedBattlePassRewards.length > 0 && "ring-2 ring-yellow-500"
             )}
             onClick={() => setShowBattlePass(true)}
           >
             <div className={cn(
-              "h-1.5 bg-gradient-to-r",
+              "h-2 bg-gradient-to-r",
               currentSeason?.backgroundGradient || "from-blue-500 to-purple-500"
             )} />
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                  <Crown className="w-8 h-8 text-white" />
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
+                  <Crown className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-lg">{currentSeason?.name || 'Season Pass'}</h3>
-                    {unclaimedBattlePassRewards.length > 0 && (
-                      <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <Gift className="w-3 h-3" />
-                        {unclaimedBattlePassRewards.length}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
-                    <Star className="w-3 h-3 text-amber-500" />
-                    <span>Tier {battlePassProgress.currentTier}/30</span>
-                    <span className="text-muted-foreground/50">•</span>
-                    <span>{battlePassProgress.daysRemaining}d left</span>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all"
-                      style={{ width: `${(battlePassProgress.currentTier / 30) * 100}%` }}
-                    />
+                  <h3 className="font-bold">{currentSeason?.name || 'Battle Pass'}</h3>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Tier {battlePassProgress.currentTier}</span>
+                    <span>·</span>
+                    <span>{battlePassProgress.daysRemaining} days left</span>
                   </div>
                 </div>
+                {unclaimedBattlePassRewards.length > 0 && (
+                  <div className="bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                    <Gift className="w-3 h-3" />
+                    {unclaimedBattlePassRewards.length}
+                  </div>
+                )}
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
             </CardContent>
@@ -210,100 +192,99 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           {/* Boss Challenges */}
           <Card
             className={cn(
-              "cursor-pointer transition-all hover:shadow-lg active:scale-[0.98] border-2",
-              activeChallenge.challenge && "ring-2 ring-red-400 boss-challenge-active"
+              "cursor-pointer transition-all hover:shadow-md",
+              activeChallenge.challenge && "ring-2 ring-red-500"
             )}
             onClick={() => setShowBossChallenge(true)}
           >
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 via-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-red-500/30">
-                  <Swords className="w-8 h-8 text-white" />
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+                  <Swords className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-lg">Boss Challenges</h3>
-                    {activeChallenge.challenge && (
-                      <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
-                        ACTIVE
-                      </span>
-                    )}
-                  </div>
+                  <h3 className="font-bold">Boss Challenges</h3>
                   <p className="text-sm text-muted-foreground">
                     {activeChallenge.challenge
-                      ? activeChallenge.challenge.name
+                      ? `Active: ${activeChallenge.challenge.name}`
                       : `${allChallenges.length} challenges available`}
                   </p>
-                  {activeChallenge.challenge && (
-                    <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full transition-all"
-                        style={{ width: `${activeChallenge.percentComplete}%` }}
-                      />
-                    </div>
-                  )}
                 </div>
-                {activeChallenge.challenge ? (
-                  <div className="text-lg font-bold text-orange-500">
+                {activeChallenge.challenge && (
+                  <div className="text-sm font-bold text-orange-500">
                     {Math.round(activeChallenge.percentComplete)}%
                   </div>
-                ) : (
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 )}
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
 
-          {/* Quick Stats Grid */}
+          {/* Guild */}
+          <Card
+            className="cursor-pointer transition-all hover:shadow-md"
+            onClick={() => setShowGuild(true)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                  {isInGuild ? (
+                    <span className="text-2xl">{guildState.currentGuild?.emoji}</span>
+                  ) : (
+                    <Users className="w-7 h-7 text-white" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold">
+                    {isInGuild ? guildState.currentGuild?.name : 'Join a Guild'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {isInGuild
+                      ? `Level ${guildProgress?.level} · ${guildState.myContribution} min this week`
+                      : 'Team up with others for group goals'}
+                  </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Stats */}
           <div className="grid grid-cols-2 gap-3">
-            <Card className="border-2 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30">
+            <Card>
               <CardContent className="p-4 text-center">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center shadow-md">
-                  <Flame className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-3xl font-bold" style={{ color: currentTier.color }}>
-                  {comboState.currentCombo}
-                </div>
-                <div className="text-xs text-muted-foreground font-medium">Combo Streak</div>
-                <div className="text-xs mt-1 font-bold" style={{ color: currentTier.color }}>
-                  {currentTier.multiplier}x bonus
+                <Flame className="w-6 h-6 mx-auto mb-2 text-orange-500" />
+                <div className="text-2xl font-bold">{comboState.currentCombo}</div>
+                <div className="text-xs text-muted-foreground">Current Combo</div>
+                <div className="text-xs mt-1" style={{ color: currentTier.color }}>
+                  {currentTier.multiplier}x multiplier
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-2 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
+            <Card>
               <CardContent className="p-4 text-center">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-md">
-                  <Target className="w-6 h-6 text-white" />
+                <Target className="w-6 h-6 mx-auto mb-2 text-green-500" />
+                <div className="text-2xl font-bold">{comboState.highestCombo}</div>
+                <div className="text-xs text-muted-foreground">Best Combo</div>
+                <div className="text-xs mt-1 text-muted-foreground">
+                  All time record
                 </div>
-                <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                  {comboState.highestCombo}
-                </div>
-                <div className="text-xs text-muted-foreground font-medium">Best Combo</div>
-                <div className="text-xs mt-1 text-muted-foreground">Personal record</div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Tips Card */}
-          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/20">
+          {/* Info section */}
+          <Card className="bg-muted/50">
             <CardContent className="p-4">
-              <h4 className="font-bold mb-3 flex items-center gap-2 text-primary">
-                <Zap className="w-4 h-4" />
-                Pro Tips
+              <h4 className="font-medium mb-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                How Combo Works
               </h4>
-              <ul className="text-sm text-muted-foreground space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">•</span>
-                  <span>Complete focus sessions to build combo streaks</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">•</span>
-                  <span>Higher combos = bigger XP & coin rewards</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">•</span>
-                  <span>Don't forget to spin the wheel daily!</span>
-                </li>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Complete focus sessions to build your combo</li>
+                <li>• Higher combos = bigger XP & coin bonuses</li>
+                <li>• Combo expires after 3 hours of inactivity</li>
+                <li>• Reach 10 combo for 2x legendary multiplier!</li>
               </ul>
             </CardContent>
           </Card>
@@ -315,6 +296,10 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
         isOpen={showBattlePass}
         onClose={() => setShowBattlePass(false)}
         onClaimReward={handleRewardClaim}
+      />
+      <GuildPanel
+        isOpen={showGuild}
+        onClose={() => setShowGuild(false)}
       />
       <BossChallengeModal
         isOpen={showBossChallenge}
