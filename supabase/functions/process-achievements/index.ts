@@ -147,11 +147,15 @@ serve(async (req) => {
       .select('duration_minutes')
       .eq('user_id', user.id);
 
+    // Handle sessions error - but don't fail completely, use 0 as fallback
+    // This allows achievements to still be checked even if sessions table has issues
+    let totalFocusMinutes = 0;
     if (sessionsError) {
       console.error('Failed to get sessions for focus time calculation:', sessionsError);
+      // Continue with 0 focus minutes - focus-time achievements won't unlock but others can
+    } else if (sessions) {
+      totalFocusMinutes = sessions.reduce((sum, session) => sum + session.duration_minutes, 0);
     }
-
-    const totalFocusMinutes = sessions?.reduce((sum, session) => sum + session.duration_minutes, 0) || 0;
 
     // Check each achievement
     for (const achievement of ACHIEVEMENT_DEFINITIONS) {

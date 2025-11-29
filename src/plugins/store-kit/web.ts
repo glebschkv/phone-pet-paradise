@@ -9,15 +9,20 @@ import type {
 } from './index';
 import { SUBSCRIPTION_PLANS } from '@/hooks/usePremiumStatus';
 
+// Development-only logging
+const isDev = import.meta.env.DEV;
+const log = (...args: unknown[]) => isDev && console.log('[StoreKit Web]', ...args);
+
 /**
  * Web fallback for StoreKit plugin.
- * Simulates purchases for development/testing.
+ * Simulates purchases for development/testing ONLY.
+ * In production on native devices, the native StoreKit plugin handles actual purchases.
  */
 export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
   private mockPurchases: Map<string, { purchaseDate: number; expirationDate?: number }> = new Map();
 
   async getProducts(options: { productIds: string[] }): Promise<{ products: StoreKitProduct[] }> {
-    console.log('[StoreKit Web] Getting products:', options.productIds);
+    log('Getting products:', options.productIds);
 
     // Return mock products based on our subscription plans
     const products: StoreKitProduct[] = options.productIds.map(id => {
@@ -53,9 +58,17 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
   }
 
   async purchase(options: { productId: string }): Promise<PurchaseResult> {
-    console.log('[StoreKit Web] Purchasing:', options.productId);
+    log('Purchasing:', options.productId);
 
-    // Simulate purchase flow
+    // In production web builds, purchases should go through the native app
+    if (import.meta.env.PROD) {
+      return {
+        success: false,
+        message: 'In-app purchases are only available in the native app.',
+      };
+    }
+
+    // Development: Simulate purchase flow
     const plan = SUBSCRIPTION_PLANS.find(p => p.iapProductId === options.productId);
 
     const now = Date.now();
@@ -75,9 +88,12 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
       expirationDate
     });
 
+    // Generate a mock transaction ID (in production, this comes from Apple)
+    const transactionId = `dev_${now}_${Math.random().toString(36).substring(7)}`;
+
     return {
       success: true,
-      transactionId: `mock_${Date.now()}`,
+      transactionId,
       productId: options.productId,
       purchaseDate: now,
       expirationDate: expirationDate || null
@@ -85,11 +101,11 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
   }
 
   async restorePurchases(): Promise<RestoreResult> {
-    console.log('[StoreKit Web] Restoring purchases');
+    log('Restoring purchases');
 
     const purchases = Array.from(this.mockPurchases.entries()).map(([productId, data]) => ({
       productId,
-      transactionId: `mock_restored_${Date.now()}`,
+      transactionId: `dev_restored_${Date.now()}`,
       purchaseDate: data.purchaseDate,
       expirationDate: data.expirationDate || null
     }));
@@ -102,7 +118,7 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
   }
 
   async getSubscriptionStatus(): Promise<SubscriptionStatus> {
-    console.log('[StoreKit Web] Getting subscription status');
+    log('Getting subscription status');
 
     const now = Date.now();
     const activeSubscriptions: Array<{
@@ -121,7 +137,7 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
     this.mockPurchases.forEach((data, productId) => {
       const purchase = {
         productId,
-        transactionId: `mock_${data.purchaseDate}`,
+        transactionId: `dev_${data.purchaseDate}`,
         purchaseDate: data.purchaseDate,
         expirationDate: data.expirationDate || null
       };
@@ -145,11 +161,11 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
   }
 
   async getPurchaseHistory(): Promise<{ history: PurchaseHistoryItem[] }> {
-    console.log('[StoreKit Web] Getting purchase history');
+    log('Getting purchase history');
 
     const history = Array.from(this.mockPurchases.entries()).map(([productId, data]) => ({
       productId,
-      transactionId: `mock_${data.purchaseDate}`,
+      transactionId: `dev_${data.purchaseDate}`,
       purchaseDate: data.purchaseDate,
       expirationDate: data.expirationDate || null,
       revocationDate: null
@@ -159,7 +175,7 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
   }
 
   async manageSubscriptions(): Promise<{ success: boolean }> {
-    console.log('[StoreKit Web] Opening subscription management');
+    log('Opening subscription management');
     // In web, we can't open App Store subscription management
     // Could redirect to a web portal if you have one
     window.open('https://apps.apple.com/account/subscriptions', '_blank');

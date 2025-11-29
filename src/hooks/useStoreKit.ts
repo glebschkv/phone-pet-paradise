@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { StoreKit, StoreKitProduct, PurchaseResult, SubscriptionStatus } from '@/plugins/store-kit';
 import { SUBSCRIPTION_PLANS } from './usePremiumStatus';
 import { useToast } from './use-toast';
+import { storeKitLogger as logger } from '@/lib/logger';
 
 const PREMIUM_STORAGE_KEY = 'petIsland_premium';
 
@@ -55,9 +56,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
       const result = await StoreKit.getProducts({ productIds: ALL_PRODUCT_IDS });
       setProducts(result.products);
 
-      console.log('[StoreKit] Loaded products:', result.products.length);
+      logger.debug('Loaded products:', result.products.length);
     } catch (err) {
-      console.error('[StoreKit] Failed to load products:', err);
+      logger.error('Failed to load products:', err);
       setError('Failed to load products. Please try again.');
     } finally {
       setIsLoading(false);
@@ -92,9 +93,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
         localStorage.removeItem(PREMIUM_STORAGE_KEY);
       }
 
-      console.log('[StoreKit] Subscription status:', status);
+      logger.debug('Subscription status:', status);
     } catch (err) {
-      console.error('[StoreKit] Failed to check subscription:', err);
+      logger.error('Failed to check subscription:', err);
     }
   }, []);
 
@@ -104,7 +105,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setIsPurchasing(true);
       setError(null);
 
-      console.log('[StoreKit] Starting purchase:', productId);
+      logger.debug('Starting purchase:', productId);
       const result = await StoreKit.purchase({ productId });
 
       if (result.success) {
@@ -117,7 +118,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
         await checkSubscriptionStatus();
       } else if (result.cancelled) {
         // User cancelled - no toast needed
-        console.log('[StoreKit] Purchase cancelled by user');
+        logger.debug('Purchase cancelled by user');
       } else if (result.pending) {
         toast({
           title: 'Purchase Pending',
@@ -149,7 +150,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setIsLoading(true);
       setError(null);
 
-      console.log('[StoreKit] Restoring purchases...');
+      logger.debug('Restoring purchases...');
       const result = await StoreKit.restorePurchases();
 
       if (result.success && result.restoredCount > 0) {
@@ -187,7 +188,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
     try {
       await StoreKit.manageSubscriptions();
     } catch (err) {
-      console.error('[StoreKit] Failed to open subscription management:', err);
+      logger.error('Failed to open subscription management:', err);
       toast({
         title: 'Error',
         description: 'Failed to open subscription management.',
@@ -215,10 +216,12 @@ export const useStoreKit = (): UseStoreKitReturn => {
 
     if (Capacitor.isNativePlatform()) {
       StoreKit.addListener('transactionUpdated', (data) => {
-        console.log('[StoreKit] Transaction updated:', data);
+        logger.debug('Transaction updated:', data);
         checkSubscriptionStatus();
       }).then(({ remove }) => {
         removeListener = remove;
+      }).catch((err) => {
+        logger.error('Failed to add transaction listener:', err);
       });
     }
 

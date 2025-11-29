@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Mail, Lock, Sparkles, User, ArrowRight, Loader2 } from 'lucide-react';
+import { getAppBaseUrl, isValidEmail, validatePassword, sanitizeErrorMessage } from '@/lib/apiUtils';
 
 type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot-password';
 
@@ -27,14 +28,18 @@ export default function Auth() {
 
   // Get the current URL for redirect (works for both web and Capacitor)
   const getRedirectUrl = () => {
-    // Use the Lovable URL for now, easy to change later
-    return 'https://354c50c5-7606-4f42-9b59-577c9adb3ef7.lovableproject.com';
+    return getAppBaseUrl();
   };
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       toast.error('Please enter your email');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      toast.error('Please enter a valid email address');
       return;
     }
 
@@ -53,8 +58,8 @@ export default function Auth() {
         description: 'We sent you a magic link to sign in.',
       });
       setMode('welcome');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send magic link');
+    } catch (error: unknown) {
+      toast.error(sanitizeErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -64,6 +69,11 @@ export default function Auth() {
     e.preventDefault();
     if (!email || !password) {
       toast.error('Please fill in all fields');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      toast.error('Please enter a valid email address');
       return;
     }
 
@@ -78,8 +88,8 @@ export default function Auth() {
 
       toast.success('Welcome back!');
       navigate('/');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+    } catch (error: unknown) {
+      toast.error(sanitizeErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -92,8 +102,14 @@ export default function Auth() {
       return;
     }
 
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    if (!isValidEmail(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      toast.error(passwordValidation.message);
       return;
     }
 
@@ -113,8 +129,8 @@ export default function Auth() {
         description: 'Check your email to confirm your account.',
       });
       setMode('welcome');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to create account');
+    } catch (error: unknown) {
+      toast.error(sanitizeErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -124,6 +140,11 @@ export default function Auth() {
     e.preventDefault();
     if (!email) {
       toast.error('Please enter your email');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      toast.error('Please enter a valid email address');
       return;
     }
 
@@ -139,8 +160,8 @@ export default function Auth() {
         description: 'Check your email for a link to reset your password.',
       });
       setMode('welcome');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send reset email');
+    } catch (error: unknown) {
+      toast.error(sanitizeErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

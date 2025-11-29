@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { useToast } from '@/hooks/use-toast';
+import { notificationLogger as logger } from '@/lib/logger';
 
 interface NotificationPermissions {
   pushEnabled: boolean;
@@ -31,6 +32,9 @@ export const useNotifications = () => {
   });
   const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
+
+  // Store listener cleanup functions
+  const listenerCleanupRef = useRef<Array<() => Promise<void>>>([]);
 
   const initializeNotifications = useCallback(async () => {
     if (isInitialized) return;
@@ -72,17 +76,17 @@ export const useNotifications = () => {
       }
 
       // Setup notification listeners
-      setupNotificationListeners();
-      
+      await setupNotificationListeners();
+
       setIsInitialized(true);
-      
+
       toast({
         title: "Notifications Ready",
         description: "You'll receive helpful reminders and rewards notifications",
       });
 
     } catch (error) {
-      console.error('Error initializing notifications:', error);
+      logger.error('Error initializing notifications:', error);
       toast({
         title: "Notification Setup Failed",
         description: "Some notification features may not work",
@@ -92,29 +96,42 @@ export const useNotifications = () => {
     }
   }, [isInitialized, toast]);
 
-  const setupNotificationListeners = useCallback(() => {
+  const setupNotificationListeners = useCallback(async () => {
+    // Clear any existing listeners first
+    for (const cleanup of listenerCleanupRef.current) {
+      try {
+        await cleanup();
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+    listenerCleanupRef.current = [];
+
     // Push notification listeners
-    PushNotifications.addListener('registration', (token) => {
-      console.log('Push registration success, token: ' + token.value);
+    const registrationListener = await PushNotifications.addListener('registration', (token) => {
+      logger.debug('Push registration success, token:', token.value);
     });
+    listenerCleanupRef.current.push(() => registrationListener.remove());
 
-    PushNotifications.addListener('registrationError', (error) => {
-      console.error('Push registration error: ' + JSON.stringify(error));
+    const registrationErrorListener = await PushNotifications.addListener('registrationError', (error) => {
+      logger.error('Push registration error:', JSON.stringify(error));
     });
+    listenerCleanupRef.current.push(() => registrationErrorListener.remove());
 
-    PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      console.log('Push notification received: ', notification);
-      
+    const pushReceivedListener = await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      logger.debug('Push notification received:', notification);
+
       // Show in-app notification for background received notifications
       toast({
         title: notification.title || "New Notification",
         description: notification.body || "You have a new notification",
       });
     });
+    listenerCleanupRef.current.push(() => pushReceivedListener.remove());
 
-    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-      console.log('Push notification action performed', notification);
-      
+    const pushActionListener = await PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+      logger.debug('Push notification action performed', notification);
+
       // Handle notification tap actions
       if (notification.actionId === 'open_app') {
         // App is already open, no action needed
@@ -125,25 +142,28 @@ export const useNotifications = () => {
         }));
       }
     });
+    listenerCleanupRef.current.push(() => pushActionListener.remove());
 
     // Local notification listeners
-    LocalNotifications.addListener('localNotificationReceived', (notification) => {
-      console.log('Local notification received:', notification);
+    const localReceivedListener = await LocalNotifications.addListener('localNotificationReceived', (notification) => {
+      logger.debug('Local notification received:', notification);
     });
+    listenerCleanupRef.current.push(() => localReceivedListener.remove());
 
-    LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-      console.log('Local notification action performed:', notification);
-      
+    const localActionListener = await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+      logger.debug('Local notification action performed:', notification);
+
       // Handle local notification actions
       window.dispatchEvent(new CustomEvent('notification-action', {
         detail: { action: notification.actionId, data: notification.notification }
       }));
     });
+    listenerCleanupRef.current.push(() => localActionListener.remove());
   }, [toast]);
 
   const scheduleLocalNotification = useCallback(async (options: NotificationOptions) => {
     if (!permissions.localEnabled) {
-      console.warn('Local notifications not permitted');
+      logger.warn('Local notifications not permitted');
       return;
     }
 
@@ -162,7 +182,7 @@ export const useNotifications = () => {
               sound: 'default',
               attachments: options.attachments || [],
               actionTypeId: 'default',
-              extra: { 
+              extra: {
                 source: 'pet-paradise',
                 timestamp: Date.now()
               },
@@ -188,9 +208,9 @@ export const useNotifications = () => {
         }
       }
 
-      console.log('Notification scheduled:', options.title);
+      logger.debug('Notification scheduled:', options.title);
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      logger.error('Error scheduling notification:', error);
     }
   }, [permissions.localEnabled]);
 
@@ -249,15 +269,25 @@ export const useNotifications = () => {
       if (Capacitor.isNativePlatform()) {
         await LocalNotifications.cancel({ notifications: [] });
       }
-      console.log('All notifications cancelled');
+      logger.debug('All notifications cancelled');
     } catch (error) {
-      console.error('Error cancelling notifications:', error);
+      logger.error('Error cancelling notifications:', error);
     }
   }, []);
 
-  // Initialize on mount
+  // Initialize on mount and cleanup on unmount
   useEffect(() => {
     initializeNotifications();
+
+    // Cleanup function to remove all listeners
+    return () => {
+      for (const cleanup of listenerCleanupRef.current) {
+        cleanup().catch(() => {
+          // Ignore cleanup errors on unmount
+        });
+      }
+      listenerCleanupRef.current = [];
+    };
   }, [initializeNotifications]);
 
   return {

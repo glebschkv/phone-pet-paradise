@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ANIMAL_DATABASE, BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
+import { xpLogger as logger } from '@/lib/logger';
+import { safeJsonParse } from '@/lib/apiUtils';
 
 export interface XPReward {
   xpGained: number;
@@ -183,8 +185,11 @@ const normalizeAnimalList = (list: string[] | undefined): string[] => {
 export const useXPSystem = () => {
   // Get proper starting animals (level 0 and 1) - Start at level 0 to ensure Black Dog is included
   const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
-  console.log('Starting animals for level 0:', startingAnimals);
-  
+  logger.debug('Starting animals for level 0:', startingAnimals);
+
+  // Use ref to track latest state for event handlers (fixes stale closure)
+  const xpStateRef = useRef<XPSystemState | null>(null);
+
   const [xpState, setXPState] = useState<XPSystemState>({
     currentXP: 0,
     currentLevel: 0, // Start at level 0 to include Meadow Hare
@@ -198,16 +203,16 @@ export const useXPSystem = () => {
 // Load saved state from localStorage
 useEffect(() => {
   const savedData = localStorage.getItem(STORAGE_KEY);
+  const defaultStartingAnimals = getUnlockedAnimals(0).map(a => a.name);
 
   if (savedData) {
-    try {
-      const parsed = JSON.parse(savedData);
-      console.log('Loading saved XP state:', parsed);
+    const parsed = safeJsonParse<Partial<XPSystemState> & { currentXP?: number }>(savedData, {});
+    logger.debug('Loading saved XP state:', parsed);
 
+    if (parsed && typeof parsed.currentXP === 'number') {
       // Normalize animal names and ensure starting animals are included
-      const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
       const savedAnimals = normalizeAnimalList(parsed.unlockedAnimals || []);
-      const allAnimals = Array.from(new Set([...startingAnimals, ...savedAnimals]));
+      const allAnimals = Array.from(new Set([...defaultStartingAnimals, ...savedAnimals]));
 
       // Recalculate level from saved XP to ensure consistency
       let level = 0;
@@ -229,11 +234,11 @@ useEffect(() => {
         .map(biome => biome.name);
 
       // Validate currentBiome against available biomes
-      const currentBiome = availableBiomes.includes(parsed.currentBiome)
-        ? parsed.currentBiome
+      const currentBiome = availableBiomes.includes(parsed.currentBiome || '')
+        ? parsed.currentBiome!
         : availableBiomes[availableBiomes.length - 1] || 'Meadow';
 
-      setXPState({
+      const newState = {
         currentXP: parsed.currentXP || 0,
         currentLevel: level,
         xpToNextLevel: Math.max(0, xpToNextLevel),
@@ -241,44 +246,49 @@ useEffect(() => {
         unlockedAnimals: allAnimals,
         currentBiome,
         availableBiomes,
-      });
+      };
+      setXPState(newState);
+      xpStateRef.current = newState;
 
-      console.log(`Restored XP state: Level ${level}, ${parsed.currentXP} XP, ${allAnimals.length} animals`);
-    } catch (error) {
-      console.error('Failed to load saved XP state:', error);
-      // Fall back to defaults
-      const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
-      setXPState({
+      logger.debug(`Restored XP state: Level ${level}, ${parsed.currentXP} XP, ${allAnimals.length} animals`);
+    } else {
+      // Invalid data - fall back to defaults
+      logger.warn('Invalid saved XP data, starting fresh');
+      const newState = {
         currentXP: 0,
         currentLevel: 0,
-        xpToNextLevel: 15, // Level 1 requires 15 XP
+        xpToNextLevel: 15,
         totalXPForCurrentLevel: 0,
-        unlockedAnimals: startingAnimals,
+        unlockedAnimals: defaultStartingAnimals,
         currentBiome: 'Meadow',
         availableBiomes: ['Meadow'],
-      });
+      };
+      setXPState(newState);
+      xpStateRef.current = newState;
     }
   } else {
     // No saved data - initialize with defaults
-    const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
-    console.log('No saved XP state, starting fresh with animals:', startingAnimals);
-    setXPState({
+    logger.debug('No saved XP state, starting fresh with animals:', defaultStartingAnimals);
+    const newState = {
       currentXP: 0,
       currentLevel: 0,
       xpToNextLevel: 15, // Level 1 requires 15 XP
       totalXPForCurrentLevel: 0,
-      unlockedAnimals: startingAnimals,
+      unlockedAnimals: defaultStartingAnimals,
       currentBiome: 'Meadow',
       availableBiomes: ['Meadow'],
-    });
+    };
+    setXPState(newState);
+    xpStateRef.current = newState;
   }
 }, []);
 
   // Listen for XP updates from other hook instances (cross-component sync)
   useEffect(() => {
     const handleXPUpdate = (event: CustomEvent<XPSystemState>) => {
-      console.log('XP state updated from another component:', event.detail);
+      logger.debug('XP state updated from another component:', event.detail);
       setXPState(event.detail);
+      xpStateRef.current = event.detail;
     };
 
     // Listen for custom events from same window (other hook instances)
@@ -287,13 +297,10 @@ useEffect(() => {
     // Listen for storage events from other tabs/windows
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === STORAGE_KEY && event.newValue) {
-        try {
-          const parsed = JSON.parse(event.newValue);
-          console.log('XP state updated from storage event:', parsed);
-          setXPState(parsed);
-        } catch (error) {
-          console.error('Failed to parse XP state from storage event:', error);
-        }
+        const parsed = safeJsonParse<XPSystemState>(event.newValue, xpStateRef.current || xpState);
+        logger.debug('XP state updated from storage event:', parsed);
+        setXPState(parsed);
+        xpStateRef.current = parsed;
       }
     };
 
@@ -303,12 +310,12 @@ useEffect(() => {
       window.removeEventListener(XP_UPDATE_EVENT, handleXPUpdate as EventListener);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [xpState]);
 
   // Listen for animal purchase events (from shop)
   useEffect(() => {
     const handleAnimalPurchased = (event: CustomEvent<{ animalId: string; animalName: string }>) => {
-      console.log('Animal purchased:', event.detail);
+      logger.debug('Animal purchased:', event.detail);
       const { animalName } = event.detail;
 
       setXPState(prev => {
@@ -321,6 +328,7 @@ useEffect(() => {
           unlockedAnimals: [...prev.unlockedAnimals, animalName],
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedState));
+        xpStateRef.current = updatedState;
         window.dispatchEvent(new CustomEvent(XP_UPDATE_EVENT, { detail: updatedState }));
         return updatedState;
       });
@@ -340,6 +348,7 @@ useEffect(() => {
       const normalizedAnimals = normalizeAnimalList(merged.unlockedAnimals);
       const updatedState = { ...merged, unlockedAnimals: normalizedAnimals };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedState));
+      xpStateRef.current = updatedState;
 
       // Dispatch custom event to notify other hook instances in the same window
       window.dispatchEvent(new CustomEvent(XP_UPDATE_EVENT, { detail: updatedState }));

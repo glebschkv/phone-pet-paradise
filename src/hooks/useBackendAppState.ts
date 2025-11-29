@@ -13,6 +13,8 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getUnlockedAnimals } from '@/data/AnimalDatabase';
+import { syncLogger as logger } from '@/lib/logger';
+import { withRetry } from '@/lib/apiUtils';
 
 // Event name for cross-component XP sync
 const XP_UPDATE_EVENT = 'petIsland_xpUpdate';
@@ -52,8 +54,9 @@ export const useBackendAppState = () => {
           table: 'user_progress'
         },
         (payload) => {
-          console.log('Real-time progress update:', payload);
-          // Data will be automatically refreshed by useSupabaseData
+          logger.debug('Real-time progress update:', payload);
+          // Actually refresh data from Supabase
+          supabaseData.loadUserData();
         }
       )
       .on(
@@ -64,10 +67,12 @@ export const useBackendAppState = () => {
           table: 'achievements'
         },
         (payload) => {
-          console.log('Real-time achievement unlock:', payload);
+          logger.debug('Real-time achievement unlock:', payload);
           toast.success('🏆 Achievement Unlocked!', {
             description: payload.new.title
           });
+          // Refresh achievements data
+          achievements.loadAchievements?.();
         }
       )
       .subscribe();
@@ -75,21 +80,21 @@ export const useBackendAppState = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, supabaseData, achievements]);
 
   // Award XP and coins, trigger all related systems
   const awardXP = useCallback(async (sessionMinutes: number) => {
     // Award coins with booster multiplier
     const boosterMultiplier = coinBooster.getCurrentMultiplier();
     const coinReward = coinSystem.awardCoins(sessionMinutes, boosterMultiplier);
-    console.log('Coin reward:', coinReward);
+    logger.debug('Coin reward:', coinReward);
 
     // Use local XP system when not authenticated
     if (!isAuthenticated) {
-      console.log('Using local XP system (not authenticated)');
+      logger.debug('Using local XP system (not authenticated)');
       try {
         const reward = localXPSystem.awardXP(sessionMinutes);
-        console.log('Local XP reward:', reward);
+        logger.debug('Local XP reward:', reward);
 
         // Show notifications for level up
         if (reward.leveledUp) {
@@ -111,21 +116,22 @@ export const useBackendAppState = () => {
           coinReward
         };
       } catch (error) {
-        console.error('Error awarding local XP:', error);
+        logger.error('Error awarding local XP:', error);
         return null;
       }
     }
 
     setIsLoading(true);
     try {
-      // Call Edge Function for server-side XP calculation
-      const { data: xpResult, error: xpError } = await supabase.functions.invoke('calculate-xp', {
-        body: { sessionMinutes }
-      });
+      // Call Edge Function for server-side XP calculation with retry
+      const { data: xpResult, error: xpError } = await withRetry(
+        () => supabase.functions.invoke('calculate-xp', { body: { sessionMinutes } }),
+        { maxRetries: 2 }
+      );
 
       if (xpError) throw xpError;
 
-      console.log('XP calculation result:', xpResult);
+      logger.debug('XP calculation result:', xpResult);
 
       // Record streak progress
       const streakReward = await streaks.recordSession();
@@ -133,18 +139,21 @@ export const useBackendAppState = () => {
       // Update quest progress
       await quests.updateQuestProgress('focus_time', sessionMinutes);
 
-      // Check for achievements
-      const { data: achievementResult, error: achievementError } = await supabase.functions.invoke('process-achievements', {
-        body: {
-          triggerType: 'session_complete',
-          sessionMinutes
-        }
-      });
+      // Check for achievements with retry
+      const { data: achievementResult, error: achievementError } = await withRetry(
+        () => supabase.functions.invoke('process-achievements', {
+          body: {
+            triggerType: 'session_complete',
+            sessionMinutes
+          }
+        }),
+        { maxRetries: 2 }
+      );
 
       if (achievementError) {
-        console.error('Achievement processing error:', achievementError);
+        logger.error('Achievement processing error:', achievementError);
       } else {
-        console.log('Achievement processing result:', achievementResult);
+        logger.debug('Achievement processing result:', achievementResult);
       }
 
       // Update bond system for active pets
@@ -171,7 +180,7 @@ export const useBackendAppState = () => {
 
       // Dispatch event to notify other hook instances
       window.dispatchEvent(new CustomEvent(XP_UPDATE_EVENT, { detail: xpStateUpdate }));
-      console.log('Dispatched XP update event for authenticated user:', xpStateUpdate);
+      logger.debug('Dispatched XP update event for authenticated user:', xpStateUpdate);
 
       return {
         xpGained: xpResult.xpGained,
@@ -184,7 +193,7 @@ export const useBackendAppState = () => {
       };
 
     } catch (error) {
-      console.error('Error awarding XP:', error);
+      logger.error('Error awarding XP:', error);
       toast.error('Failed to save session progress');
       return null;
     } finally {
