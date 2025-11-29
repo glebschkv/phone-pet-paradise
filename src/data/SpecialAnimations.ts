@@ -327,6 +327,332 @@ export const SPECIAL_ANIMATIONS: Record<string, SpecialAnimationConfig[]> = {
       animationSpeed: 8,
       playOnce: true
     }
+  ],
+
+  // Dragon 1 Walk special animations
+  '/assets/sprites/DRAGON1_Walk.png': [
+    {
+      spritePath: '/assets/sprites/DRAGON1_Idle.png',
+      frameCount: 7,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/DRAGON1_Special.png',
+      frameCount: 12,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Dragon 2 Walk special animations
+  '/assets/sprites/DRAGON2_Walk.png': [
+    {
+      spritePath: '/assets/sprites/DRAGON2_Idle.png',
+      frameCount: 7,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/DRAGON2_Special.png',
+      frameCount: 12,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Dragon 3 Walk special animations
+  '/assets/sprites/DRAGON3_Walk.png': [
+    {
+      spritePath: '/assets/sprites/DRAGON3_Idle.png',
+      frameCount: 7,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/DRAGON3_Special.png',
+      frameCount: 12,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Dragon Flight special animations (for flying dragons)
+  '/assets/sprites/DRAGON1_Flight.png': [
+    {
+      spritePath: '/assets/sprites/DRAGON1_Idle.png',
+      frameCount: 7,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  '/assets/sprites/DRAGON2_Flight.png': [
+    {
+      spritePath: '/assets/sprites/DRAGON2_Idle.png',
+      frameCount: 7,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  '/assets/sprites/DRAGON3_Flight.png': [
+    {
+      spritePath: '/assets/sprites/DRAGON3_Idle.png',
+      frameCount: 7,
+      frameWidth: 256,
+      frameHeight: 256,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Slime 1 Walk special animations
+  '/assets/sprites/Slime1_Walk_without_shadow.png': [
+    {
+      spritePath: '/assets/sprites/Slime1_Idle_without_shadow.png',
+      frameCount: 6,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Slime1_Run_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 14,
+      playOnce: true
+    }
+  ],
+
+  // Slime 2 Walk special animations
+  '/assets/sprites/Slime2_Walk_without_shadow.png': [
+    {
+      spritePath: '/assets/sprites/Slime2_Idle_without_shadow.png',
+      frameCount: 6,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Slime2_Run_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 14,
+      playOnce: true
+    }
+  ],
+
+  // Slime 3 Walk special animations
+  '/assets/sprites/Slime3_Walk_without_shadow.png': [
+    {
+      spritePath: '/assets/sprites/Slime3_Idle_without_shadow.png',
+      frameCount: 6,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Slime3_Run_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 14,
+      playOnce: true
+    }
+  ],
+
+  // Slime Boss 1 Walk special animations
+  '/assets/sprites/Slime_boss1_Walk_without_shadow.png': [
+    {
+      spritePath: '/assets/sprites/Slime_boss1_Idle_without_shadow.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 7,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Slime_boss1_Run_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Slime Boss 2 Walk special animations
+  '/assets/sprites/Slime_boss2_Walk_without_shadow.png': [
+    {
+      spritePath: '/assets/sprites/Slime_boss2_Idle_without_shadow.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 7,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Slime_boss2_Run_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Slime Boss 3 Walk special animations
+  '/assets/sprites/Slime_boss3_Walk_without_shadow.png': [
+    {
+      spritePath: '/assets/sprites/Slime_boss3_Idle_without_shadow.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 7,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Slime_boss3_Run_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Vampire Bat Walk special animations
+  '/assets/sprites/VampireBat_walk.png': [
+    {
+      spritePath: '/assets/sprites/VampireBat_idle.png',
+      frameCount: 4,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 6,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/VampireBat_sneer.png',
+      frameCount: 4,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Goblin King Walk special animations
+  '/assets/sprites/GoblinKing_walk.png': [
+    {
+      spritePath: '/assets/sprites/GoblinKing_idle.png',
+      frameCount: 4,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 6,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/GoblinKing_sneer.png',
+      frameCount: 4,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Mech Walk special animations
+  '/assets/sprites/Mech_walk.png': [
+    {
+      spritePath: '/assets/sprites/Mech_idle.png',
+      frameCount: 4,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 6,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Mech_sneer.png',
+      frameCount: 4,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Mech Attack special animation (for Mech Warrior)
+  '/assets/sprites/Mech_attack1.png': [
+    {
+      spritePath: '/assets/sprites/Mech_idle.png',
+      frameCount: 4,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 6,
+      playOnce: true
+    }
+  ],
+
+  // HugeMushroom Walk special animations
+  '/assets/sprites/HugeMushroom_walk.png': [
+    {
+      spritePath: '/assets/sprites/HugeMushroom_idle.png',
+      frameCount: 4,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 6,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/HugeMushroom_sneer.png',
+      frameCount: 4,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Metal Shark Swim special animations
+  '/assets/sprites/metalshark_Swim.png': [
+    {
+      spritePath: '/assets/sprites/metalshark_Idle.png',
+      frameCount: 4,
+      frameWidth: 96,
+      frameHeight: 96,
+      animationSpeed: 6,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/metalshark_Swim2.png',
+      frameCount: 6,
+      frameWidth: 96,
+      frameHeight: 96,
+      animationSpeed: 10,
+      playOnce: true
+    }
   ]
 };
 
