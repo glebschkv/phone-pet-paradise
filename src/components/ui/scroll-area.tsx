@@ -13,7 +13,7 @@ const ScrollArea = React.forwardRef<
     {...props}
   >
     <ScrollAreaPrimitive.Viewport
-      className="h-full w-full rounded-[inherit] overscroll-contain"
+      className="h-full w-full rounded-[inherit] overscroll-contain overflow-auto"
       style={{
         WebkitOverflowScrolling: 'touch',
         touchAction: 'pan-y',
