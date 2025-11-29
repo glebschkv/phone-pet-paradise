@@ -45,12 +45,16 @@ const ImageBackground = memo(({ imagePath, fallbackGradient, children }: {
     // Preload the image
     const img = new Image();
     img.onload = () => {
+      console.log(`[Background] Image loaded successfully: ${imagePath}`);
       setImageLoaded(true);
     };
-    img.onerror = () => {
+    img.onerror = (e) => {
+      console.error(`[Background] Failed to load image: ${imagePath}`, e);
       setImageError(true);
     };
     img.src = imagePath;
+
+    console.log(`[Background] Starting to load: ${imagePath}`);
 
     return () => {
       img.onload = null;
@@ -588,6 +592,9 @@ RuinsHomeBackground.displayName = 'RuinsHomeBackground';
 // Deep Ocean Background
 const DeepOceanHomeBackground = memo(() => {
   const biome = getBiomeByName('Deep Ocean');
+
+  console.log('[DeepOcean] Biome data:', biome);
+  console.log('[DeepOcean] Background image path:', biome?.backgroundImage);
 
   if (biome?.backgroundImage) {
     return (
