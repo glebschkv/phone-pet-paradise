@@ -83,8 +83,8 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-4 space-y-4 pb-6">
           {/* Active Events Banner */}
           {activeEvents.length > 0 && (
             <div className="retro-game-card p-4 retro-active-challenge">
@@ -126,7 +126,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           {/* Lucky Wheel - Arcade Style */}
           <button
             className={cn(
-              "w-full retro-game-card p-4 cursor-pointer transition-all text-left",
+              "w-full retro-game-card p-4 cursor-pointer transition-all text-left touch-manipulation select-none active:scale-[0.98]",
               canSpinToday() && "retro-active-challenge"
             )}
             onClick={() => setShowLuckyWheel(true)}
@@ -163,7 +163,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           {/* Battle Pass - Season Pass Style */}
           <button
             className={cn(
-              "w-full retro-game-card overflow-hidden cursor-pointer transition-all text-left",
+              "w-full retro-game-card overflow-hidden cursor-pointer transition-all text-left touch-manipulation select-none active:scale-[0.98]",
               unclaimedBattlePassRewards.length > 0 && "retro-active-challenge"
             )}
             onClick={() => setShowBattlePass(true)}
@@ -204,7 +204,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           {/* Boss Challenges - Boss Battle Style */}
           <button
             className={cn(
-              "w-full retro-game-card p-4 cursor-pointer transition-all text-left",
+              "w-full retro-game-card p-4 cursor-pointer transition-all text-left touch-manipulation select-none active:scale-[0.98]",
               activeChallenge.challenge && "retro-active-challenge"
             )}
             onClick={() => setShowBossChallenge(true)}

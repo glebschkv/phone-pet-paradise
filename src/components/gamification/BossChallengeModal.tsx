@@ -63,7 +63,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal">
+      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal flex flex-col">
         {/* Retro Header */}
         <div className="retro-modal-header">
           <DialogHeader>
@@ -132,28 +132,30 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
         )}
 
         {/* Difficulty Tabs */}
-        <div className="px-4 pt-4">
+        <div className="px-4 pt-4 flex-shrink-0">
           <div className="flex gap-1 bg-purple-900/30 p-1 rounded-lg">
             {difficulties.map(diff => (
               <button
                 key={diff}
                 onClick={() => setActiveTab(diff)}
                 className={cn(
-                  "flex-1 py-2 px-3 rounded-md text-xs font-bold uppercase transition-all retro-pixel-text",
+                  "flex-1 py-3 px-2 sm:px-3 rounded-md text-[10px] sm:text-xs font-bold uppercase transition-all retro-pixel-text",
+                  "touch-manipulation select-none active:scale-95",
                   activeTab === diff
                     ? cn("text-white", getDifficultyClass(diff))
                     : "text-purple-400 hover:text-purple-300 hover:bg-purple-800/30"
                 )}
               >
-                {getDifficultyIcon(diff)} {diff}
+                <span className="block sm:inline">{getDifficultyIcon(diff)}</span>
+                <span className="block sm:inline sm:ml-1">{diff}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Challenge List */}
-        <ScrollArea className="h-[320px] px-4 py-3">
-          <div className="space-y-3">
+        <ScrollArea className="flex-1 min-h-0 max-h-[40vh] sm:max-h-[320px] px-4 py-3">
+          <div className="space-y-3 pb-2">
             {getChallengesByDifficulty(activeTab).map(({ challenge, status }) => (
               <div
                 key={challenge.id}
@@ -235,9 +237,12 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                       </Button>
                     ) : (
                       <button
-                        onClick={() => startChallenge(challenge.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startChallenge(challenge.id);
+                        }}
                         className={cn(
-                          "retro-arcade-btn px-4 py-2 text-xs",
+                          "retro-arcade-btn px-4 py-3 text-xs touch-manipulation select-none active:scale-95",
                           activeTab === 'normal' && "retro-arcade-btn-green",
                           activeTab === 'hard' && "retro-arcade-btn-yellow",
                           activeTab === 'extreme' && "",

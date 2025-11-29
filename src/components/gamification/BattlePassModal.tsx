@@ -43,7 +43,7 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal">
+      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal flex flex-col">
         {/* Retro Header */}
         <div className="retro-modal-header relative overflow-hidden">
           {/* Animated Background Stars */}
@@ -96,7 +96,7 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
 
           {/* Premium Upgrade Button */}
           {!state.isPremium && (
-            <button className="w-full mt-3 retro-arcade-btn retro-arcade-btn-yellow py-2 text-sm flex items-center justify-center gap-2">
+            <button className="w-full mt-3 retro-arcade-btn retro-arcade-btn-yellow py-3 text-sm flex items-center justify-center gap-2 touch-manipulation select-none active:scale-95">
               <Sparkles className="w-4 h-4" />
               UNLOCK PREMIUM REWARDS
             </button>
@@ -104,8 +104,8 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
         </div>
 
         {/* Tiers List */}
-        <ScrollArea className="h-[380px] px-4 py-3">
-          <div className="space-y-3">
+        <ScrollArea className="flex-1 min-h-0 max-h-[45vh] sm:max-h-[380px] px-4 py-3">
+          <div className="space-y-3 pb-2">
             {currentSeason.tiers.map((tier) => {
               const isUnlocked = tier.tier <= progress.currentTier;
               const isCurrent = tier.tier === progress.currentTier;
@@ -156,7 +156,7 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
                               e.stopPropagation();
                               handleClaimReward(tier.tier, false);
                             }}
-                            className="retro-arcade-btn retro-arcade-btn-green px-2 py-1 text-[10px]"
+                            className="retro-arcade-btn retro-arcade-btn-green px-3 py-2 text-[10px] touch-manipulation select-none active:scale-95"
                           >
                             <Gift className="w-3 h-3" />
                           </button>
@@ -189,7 +189,7 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
                                 e.stopPropagation();
                                 handleClaimReward(tier.tier, true);
                               }}
-                              className="retro-arcade-btn retro-arcade-btn-yellow px-2 py-1 text-[10px]"
+                              className="retro-arcade-btn retro-arcade-btn-yellow px-3 py-2 text-[10px] touch-manipulation select-none active:scale-95"
                             >
                               <Gift className="w-3 h-3" />
                             </button>
@@ -207,8 +207,8 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
         </ScrollArea>
 
         {/* Footer Navigation */}
-        <div className="flex justify-between items-center p-3 border-t-2 border-purple-700/50 bg-purple-900/30">
-          <Button variant="ghost" size="sm" className="text-purple-400 hover:text-purple-300">
+        <div className="flex justify-between items-center p-3 border-t-2 border-purple-700/50 bg-purple-900/30 flex-shrink-0">
+          <Button variant="ghost" size="sm" className="text-purple-400 hover:text-purple-300 touch-manipulation active:scale-95 py-3 px-4">
             <ChevronLeft className="w-4 h-4 mr-1" />
             <span className="retro-pixel-text text-xs">PREV</span>
           </Button>
@@ -217,7 +217,7 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
               ⭐ SEASON {currentSeason.id} ⭐
             </span>
           </div>
-          <Button variant="ghost" size="sm" className="text-purple-400 hover:text-purple-300">
+          <Button variant="ghost" size="sm" className="text-purple-400 hover:text-purple-300 touch-manipulation active:scale-95 py-3 px-4">
             <span className="retro-pixel-text text-xs">NEXT</span>
             <ChevronRight className="w-4 h-4 ml-1" />
           </Button>

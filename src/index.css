@@ -186,7 +186,33 @@
   .touch-manipulation {
     touch-action: manipulation;
   }
-  
+
+  /* Mobile scroll improvements for dialogs and modals */
+  [data-radix-scroll-area-viewport] {
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent body scroll when modal is open */
+  body[data-scroll-locked] {
+    touch-action: none;
+  }
+
+  /* Better touch targets for buttons in scrollable areas */
+  .retro-game-card button,
+  .retro-arcade-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Ensure smooth momentum scrolling on iOS */
+  .scroll-touch {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+
   /* Mobile-optimized backdrop blur */
   .backdrop-blur-ios {
     backdrop-filter: blur(20px);

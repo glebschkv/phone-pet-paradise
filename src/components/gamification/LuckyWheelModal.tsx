@@ -220,7 +220,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                   {currentPrize.rarity}
                 </p>
                 <button
-                  className="mt-4 retro-arcade-btn retro-arcade-btn-green px-6 py-2 text-sm flex items-center gap-2 mx-auto"
+                  className="mt-4 retro-arcade-btn retro-arcade-btn-green px-6 py-3 text-sm flex items-center gap-2 mx-auto touch-manipulation select-none active:scale-95"
                   onClick={() => setShowResult(false)}
                 >
                   <Gift className="w-4 h-4" />
@@ -236,8 +236,8 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
           {canSpin ? (
             <button
               className={cn(
-                "w-full retro-arcade-btn retro-arcade-btn-yellow py-4 text-lg flex items-center justify-center gap-2",
-                localSpinning && "opacity-50 cursor-not-allowed"
+                "w-full retro-arcade-btn retro-arcade-btn-yellow py-4 text-lg flex items-center justify-center gap-2 touch-manipulation select-none",
+                localSpinning ? "opacity-50 cursor-not-allowed" : "active:scale-95"
               )}
               onClick={handleSpin}
               disabled={localSpinning}
