@@ -12,6 +12,7 @@ import {
   Sparkles,
   Crown,
   ChevronRight,
+  Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
@@ -226,6 +227,9 @@ export const Shop = () => {
     purchaseItem,
     purchaseCharacter,
     purchaseBackgroundBundle,
+    purchaseStarterBundle,
+    equipBadge,
+    equipBackground,
     coinBalance,
     canAfford,
   } = useShop();
@@ -393,35 +397,62 @@ export const Shop = () => {
             <span>🎁</span> Special Bundles
           </h4>
           <div className="space-y-2">
-            {STARTER_BUNDLES.map((bundle) => (
-              <button
-                key={bundle.id}
-                onClick={() => toast.info("In-app purchases coming soon!")}
-                className={cn(
-                  "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2",
-                  "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20",
-                  "border-purple-200 dark:border-purple-700"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">{bundle.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold">{bundle.name}</span>
-                      <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
-                        SAVE {bundle.savings}
-                      </span>
+            {STARTER_BUNDLES.map((bundle) => {
+              // Check if user already has all bundle contents
+              const hasCharacter = bundle.contents.characterId ? inventory.ownedCharacters.includes(bundle.contents.characterId) : true;
+              const hasBadge = bundle.contents.badgeId ? inventory.ownedBadges.includes(bundle.contents.badgeId) : true;
+              const alreadyPurchased = hasCharacter && hasBadge;
+
+              return (
+                <button
+                  key={bundle.id}
+                  onClick={() => {
+                    if (alreadyPurchased) {
+                      toast.info("You already have all items from this bundle!");
+                      return;
+                    }
+                    const result = purchaseStarterBundle(bundle.id);
+                    if (result.success) {
+                      toast.success(result.message);
+                    } else {
+                      toast.error(result.message);
+                    }
+                  }}
+                  className={cn(
+                    "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2",
+                    alreadyPurchased
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
+                      : "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-700"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{bundle.icon}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">{bundle.name}</span>
+                        {alreadyPurchased ? (
+                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center gap-1">
+                            <Check className="w-2.5 h-2.5" /> OWNED
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
+                            SAVE {bundle.savings}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        {bundle.description}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                      {bundle.description}
-                    </p>
+                    {!alreadyPurchased && (
+                      <span className="text-lg font-black text-purple-600 dark:text-purple-400">
+                        {bundle.iapPrice}
+                      </span>
+                    )}
                   </div>
-                  <span className="text-lg font-black text-purple-600 dark:text-purple-400">
-                    {bundle.iapPrice}
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -597,8 +628,74 @@ export const Shop = () => {
     const backgroundsWithPreviews = PREMIUM_BACKGROUNDS.filter(bg => bg.previewImage);
     const backgroundsWithoutPreviews = PREMIUM_BACKGROUNDS.filter(bg => !bg.previewImage);
 
+    const handleEquipBackground = (bgId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (inventory.equippedBackground === bgId) {
+        // Unequip
+        equipBackground(null);
+        toast.success("Background unequipped");
+      } else {
+        equipBackground(bgId);
+        toast.success("Background equipped!");
+        // Dispatch event for home screen to pick up
+        window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: { backgroundId: bgId } }));
+      }
+    };
+
+    const handleEquipBadge = (badgeId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (inventory.equippedBadge === badgeId) {
+        // Unequip
+        equipBadge(null);
+        toast.success("Badge unequipped");
+      } else {
+        equipBadge(badgeId);
+        toast.success("Badge equipped!");
+      }
+    };
+
     return (
       <div className="space-y-4">
+        {/* Currently Equipped Section */}
+        {(inventory.equippedBackground || inventory.equippedBadge) && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-3 border border-purple-200 dark:border-purple-700">
+            <h4 className="text-xs font-bold mb-2 flex items-center gap-1.5">
+              <Palette className="w-3.5 h-3.5 text-purple-500" />
+              Currently Equipped
+            </h4>
+            <div className="flex gap-2 flex-wrap">
+              {inventory.equippedBackground && (
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-white dark:bg-gray-800 rounded-lg text-xs">
+                  <span>🖼️</span>
+                  <span className="font-medium">
+                    {PREMIUM_BACKGROUNDS.find(bg => bg.id === inventory.equippedBackground)?.name || 'Background'}
+                  </span>
+                  <button
+                    onClick={(e) => handleEquipBackground(inventory.equippedBackground!, e)}
+                    className="ml-1 text-gray-400 hover:text-red-500"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+              {inventory.equippedBadge && (
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-white dark:bg-gray-800 rounded-lg text-xs">
+                  <span>{PROFILE_BADGES.find(b => b.id === inventory.equippedBadge)?.icon || '🏅'}</span>
+                  <span className="font-medium">
+                    {PROFILE_BADGES.find(b => b.id === inventory.equippedBadge)?.name || 'Badge'}
+                  </span>
+                  <button
+                    onClick={(e) => handleEquipBadge(inventory.equippedBadge!, e)}
+                    className="ml-1 text-gray-400 hover:text-red-500"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Backgrounds with Previews Section */}
         {backgroundsWithPreviews.length > 0 && (
           <div>
@@ -609,16 +706,23 @@ export const Shop = () => {
               {backgroundsWithPreviews.map((bg) => {
                 const owned = isOwned(bg.id, 'customize');
                 const affordable = canAfford(bg.coinPrice || 0);
+                const isEquipped = inventory.equippedBackground === bg.id;
                 return (
                   <button
                     key={bg.id}
                     onClick={() => {
-                      setSelectedItem(bg);
-                      if (!owned) setShowPurchaseConfirm(true);
+                      if (owned) {
+                        handleEquipBackground(bg.id, { stopPropagation: () => {} } as React.MouseEvent);
+                      } else {
+                        setSelectedItem(bg);
+                        setShowPurchaseConfirm(true);
+                      }
                     }}
                     className={cn(
                       "relative rounded-xl border-2 overflow-hidden transition-all active:scale-95",
-                      owned
+                      isEquipped
+                        ? "border-purple-400 dark:border-purple-500 ring-2 ring-purple-300"
+                        : owned
                         ? "border-green-300 dark:border-green-700"
                         : RARITY_BORDER[bg.rarity || 'common']
                     )}
@@ -626,7 +730,15 @@ export const Shop = () => {
                     {/* Background Preview Image */}
                     <div className="relative h-20 overflow-hidden">
                       <BackgroundPreview imagePath={bg.previewImage!} size="large" className="border-0 rounded-none" />
-                      {owned && (
+                      {isEquipped && (
+                        <div className="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
+                          <div className="bg-purple-500 rounded-full px-2 py-0.5 flex items-center gap-1">
+                            <Palette className="w-3 h-3 text-white" />
+                            <span className="text-[10px] font-bold text-white">EQUIPPED</span>
+                          </div>
+                        </div>
+                      )}
+                      {owned && !isEquipped && (
                         <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
                           <div className="bg-green-500 rounded-full p-1">
                             <Check className="w-4 h-4 text-white" />
@@ -648,10 +760,15 @@ export const Shop = () => {
                     {/* Info */}
                     <div className={cn(
                       "p-2",
+                      isEquipped ? "bg-purple-50 dark:bg-purple-900/20" :
                       owned ? "bg-green-50 dark:bg-green-900/20" : RARITY_BG[bg.rarity || 'common']
                     )}>
                       <span className="text-[10px] font-bold block leading-tight truncate">{bg.name}</span>
-                      {!owned && (
+                      {owned ? (
+                        <div className="text-[9px] font-medium text-center mt-1 text-purple-600 dark:text-purple-400">
+                          {isEquipped ? "Tap to unequip" : "Tap to equip"}
+                        </div>
+                      ) : (
                         <div className={cn(
                           "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
                           affordable ? "text-amber-600" : "text-red-500"
@@ -678,16 +795,23 @@ export const Shop = () => {
               {backgroundsWithoutPreviews.map((bg) => {
                 const owned = isOwned(bg.id, 'customize');
                 const affordable = canAfford(bg.coinPrice || 0);
+                const isEquipped = inventory.equippedBackground === bg.id;
                 return (
                   <button
                     key={bg.id}
                     onClick={() => {
-                      setSelectedItem(bg);
-                      if (!owned) setShowPurchaseConfirm(true);
+                      if (owned) {
+                        handleEquipBackground(bg.id, { stopPropagation: () => {} } as React.MouseEvent);
+                      } else {
+                        setSelectedItem(bg);
+                        setShowPurchaseConfirm(true);
+                      }
                     }}
                     className={cn(
                       "relative p-2 rounded-xl border-2 text-center transition-all active:scale-95",
-                      owned
+                      isEquipped
+                        ? "bg-purple-50 dark:bg-purple-900/20 border-purple-400 ring-2 ring-purple-300"
+                        : owned
                         ? "bg-green-50 dark:bg-green-900/20 border-green-300"
                         : RARITY_BG[bg.rarity || 'common'],
                       !owned && RARITY_BORDER[bg.rarity || 'common']
@@ -698,14 +822,22 @@ export const Shop = () => {
                         <Clock className="w-2.5 h-2.5 text-white" />
                       </div>
                     )}
-                    {owned && (
+                    {isEquipped ? (
+                      <div className="absolute top-1 right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
+                        <Palette className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    ) : owned && (
                       <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
                         <Check className="w-2.5 h-2.5 text-white" />
                       </div>
                     )}
                     <span className="text-2xl block mb-1">{bg.icon}</span>
                     <span className="text-[10px] font-bold block leading-tight">{bg.name}</span>
-                    {!owned && (
+                    {owned ? (
+                      <div className="text-[8px] font-medium mt-1 text-purple-600 dark:text-purple-400">
+                        {isEquipped ? "Unequip" : "Equip"}
+                      </div>
+                    ) : (
                       <div className={cn(
                         "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
                         affordable ? "text-amber-600" : "text-red-500"
@@ -730,29 +862,44 @@ export const Shop = () => {
             {PROFILE_BADGES.map((badge) => {
               const owned = isOwned(badge.id, 'customize');
               const affordable = canAfford(badge.coinPrice || 0);
+              const isEquipped = inventory.equippedBadge === badge.id;
               return (
                 <button
                   key={badge.id}
                   onClick={() => {
-                    setSelectedItem(badge);
-                    if (!owned) setShowPurchaseConfirm(true);
+                    if (owned) {
+                      handleEquipBadge(badge.id, { stopPropagation: () => {} } as React.MouseEvent);
+                    } else {
+                      setSelectedItem(badge);
+                      setShowPurchaseConfirm(true);
+                    }
                   }}
                   className={cn(
                     "relative p-2 rounded-xl border-2 text-center transition-all active:scale-95",
-                    owned
+                    isEquipped
+                      ? "bg-purple-50 dark:bg-purple-900/20 border-purple-400 ring-2 ring-purple-300"
+                      : owned
                       ? "bg-green-50 dark:bg-green-900/20 border-green-300"
                       : RARITY_BG[badge.rarity || 'common'],
                     !owned && RARITY_BORDER[badge.rarity || 'common']
                   )}
                 >
-                  {owned && (
+                  {isEquipped ? (
+                    <div className="absolute top-1 right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
+                      <Palette className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  ) : owned && (
                     <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
                       <Check className="w-2.5 h-2.5 text-white" />
                     </div>
                   )}
                   <span className="text-2xl block mb-1">{badge.icon}</span>
                   <span className="text-[10px] font-bold block leading-tight">{badge.name}</span>
-                  {!owned && (
+                  {owned ? (
+                    <div className="text-[8px] font-medium mt-1 text-purple-600 dark:text-purple-400">
+                      {isEquipped ? "Unequip" : "Equip"}
+                    </div>
+                  ) : (
                     <div className={cn(
                       "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
                       affordable ? "text-amber-600" : "text-red-500"

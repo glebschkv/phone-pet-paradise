@@ -10,6 +10,8 @@ import {
   UTILITY_ITEMS,
   BACKGROUND_BUNDLES,
   BackgroundBundle,
+  STARTER_BUNDLES,
+  StarterBundle,
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 
@@ -179,6 +181,101 @@ export const useShop = () => {
     return { success: true, message: `${badge.name} purchased!`, item: badge };
   }, [inventory, coinSystem, saveInventory]);
 
+  // Unlock a character (without payment - used for bundles and rewards)
+  const unlockCharacter = useCallback((characterId: string): boolean => {
+    const animal = getAnimalById(characterId);
+    if (!animal) {
+      return false;
+    }
+
+    if (inventory.ownedCharacters.includes(characterId)) {
+      return true; // Already owned
+    }
+
+    const newInventory = {
+      ...inventory,
+      ownedCharacters: [...inventory.ownedCharacters, characterId],
+    };
+    saveInventory(newInventory);
+
+    // Dispatch event to unlock the animal in the XP system
+    window.dispatchEvent(new CustomEvent('petIsland_animalPurchased', {
+      detail: { animalId: characterId, animalName: animal.name }
+    }));
+
+    return true;
+  }, [inventory, saveInventory]);
+
+  // Unlock a badge (without payment - used for bundles and rewards)
+  const unlockBadge = useCallback((badgeId: string): boolean => {
+    const badge = PROFILE_BADGES.find(b => b.id === badgeId);
+    if (!badge) {
+      return false;
+    }
+
+    if (inventory.ownedBadges.includes(badgeId)) {
+      return true; // Already owned
+    }
+
+    const newInventory = {
+      ...inventory,
+      ownedBadges: [...inventory.ownedBadges, badgeId],
+    };
+    saveInventory(newInventory);
+
+    return true;
+  }, [inventory, saveInventory]);
+
+  // Purchase a starter bundle (IAP simulation - grants all contents)
+  const purchaseStarterBundle = useCallback((bundleId: string): PurchaseResult => {
+    const bundle = STARTER_BUNDLES.find(b => b.id === bundleId);
+    if (!bundle) {
+      return { success: false, message: 'Bundle not found' };
+    }
+
+    const results: string[] = [];
+
+    // Grant coins
+    if (bundle.contents.coins > 0) {
+      coinSystem.addCoins(bundle.contents.coins);
+      results.push(`${bundle.contents.coins} coins`);
+    }
+
+    // Activate booster (if no booster is currently active)
+    if (bundle.contents.boosterId) {
+      if (!boosterSystem.isBoosterActive()) {
+        boosterSystem.activateBooster(bundle.contents.boosterId);
+        const booster = boosterSystem.getBoosterType(bundle.contents.boosterId);
+        results.push(booster?.name || 'Booster');
+      } else {
+        results.push('Booster (saved for later - one already active)');
+      }
+    }
+
+    // Unlock character
+    if (bundle.contents.characterId) {
+      const animal = getAnimalById(bundle.contents.characterId);
+      if (animal) {
+        unlockCharacter(bundle.contents.characterId);
+        results.push(animal.name);
+      }
+    }
+
+    // Unlock badge
+    if (bundle.contents.badgeId) {
+      const badge = PROFILE_BADGES.find(b => b.id === bundle.contents.badgeId);
+      if (badge) {
+        unlockBadge(bundle.contents.badgeId);
+        results.push(badge.name);
+      }
+    }
+
+    return {
+      success: true,
+      message: `${bundle.name} purchased! Received: ${results.join(', ')}`
+    };
+  }, [coinSystem, boosterSystem, unlockCharacter, unlockBadge]);
+
   // Purchase a background bundle
   const purchaseBackgroundBundle = useCallback((bundleId: string): PurchaseResult => {
     const bundle = BACKGROUND_BUNDLES.find(b => b.id === bundleId);
@@ -317,9 +414,12 @@ export const useShop = () => {
     purchaseCharacter,
     purchaseBackground,
     purchaseBackgroundBundle,
+    purchaseStarterBundle,
     purchaseBadge,
     purchaseBooster,
     purchaseStreakFreeze,
+    unlockCharacter,
+    unlockBadge,
     equipBadge,
     equipBackground,
     resetShop,
