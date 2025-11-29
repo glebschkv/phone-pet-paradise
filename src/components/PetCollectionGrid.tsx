@@ -351,8 +351,11 @@ export const PetCollectionGrid = () => {
               }}>
                 {/* Show animated sprite for unlocked pets, emoji for locked */}
                 {isAnimalUnlocked(selectedPet.id) && selectedPet.spriteConfig ? (
-                  <div className="mb-3 flex items-center justify-center min-h-[100px]">
-                    <SpritePreview animal={selectedPet} />
+                  <div className="mb-3 flex items-center justify-center h-[180px] overflow-hidden">
+                    <SpritePreview
+                      animal={selectedPet}
+                      scale={Math.min(4, 180 / Math.max(selectedPet.spriteConfig.frameWidth, selectedPet.spriteConfig.frameHeight))}
+                    />
                   </div>
                 ) : (
                   <div className="text-5xl mb-3">
