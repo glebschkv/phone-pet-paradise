@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Coins,
   ShoppingBag,
@@ -602,7 +603,7 @@ export const Shop = () => {
   };
 
   return (
-    <div className="retro-shop-container min-h-screen pb-24">
+    <div className="retro-shop-container h-full flex flex-col">
       <div className="retro-corner retro-corner-tl" />
       <div className="retro-corner retro-corner-tr" />
 
@@ -667,10 +668,12 @@ export const Shop = () => {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-3 pt-3">
-        {renderContent()}
-      </div>
+      {/* Content - Scrollable area that stops at taskbar */}
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="px-3 pt-3 pb-6">
+          {renderContent()}
+        </div>
+      </ScrollArea>
 
       {/* Purchase Confirmation Modal */}
       <Dialog open={showPurchaseConfirm} onOpenChange={setShowPurchaseConfirm}>
