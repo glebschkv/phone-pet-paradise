@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { cn } from '@/lib/utils';
-import { Swords, Clock, Trophy, XCircle, CheckCircle, Lock, Flame } from 'lucide-react';
+import { Swords, Clock, Trophy, XCircle, CheckCircle, Lock, Flame, Skull, Zap } from 'lucide-react';
 import { BossChallenge } from '@/data/GamificationData';
 
 interface BossChallengeModalProps {
@@ -26,21 +24,30 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
   const [activeTab, setActiveTab] = useState<BossChallenge['difficulty']>('normal');
   const activeChallenge = getActiveChallenge();
 
-  const getDifficultyColor = (difficulty: BossChallenge['difficulty']) => {
+  const getDifficultyClass = (difficulty: BossChallenge['difficulty']) => {
     switch (difficulty) {
-      case 'normal': return 'text-green-500 bg-green-500/10';
-      case 'hard': return 'text-orange-500 bg-orange-500/10';
-      case 'extreme': return 'text-red-500 bg-red-500/10';
-      case 'legendary': return 'text-yellow-500 bg-yellow-500/10';
+      case 'normal': return 'retro-difficulty-normal';
+      case 'hard': return 'retro-difficulty-hard';
+      case 'extreme': return 'retro-difficulty-extreme';
+      case 'legendary': return 'retro-difficulty-legendary';
     }
   };
 
-  const getDifficultyGradient = (difficulty: BossChallenge['difficulty']) => {
+  const getDifficultyIcon = (difficulty: BossChallenge['difficulty']) => {
     switch (difficulty) {
-      case 'normal': return 'from-green-600 to-emerald-600';
-      case 'hard': return 'from-orange-500 to-red-500';
-      case 'extreme': return 'from-red-600 to-pink-600';
-      case 'legendary': return 'from-yellow-500 to-orange-500';
+      case 'normal': return '⚔️';
+      case 'hard': return '🔥';
+      case 'extreme': return '💀';
+      case 'legendary': return '👑';
+    }
+  };
+
+  const getHealthBarClass = (difficulty: BossChallenge['difficulty']) => {
+    switch (difficulty) {
+      case 'normal': return '';
+      case 'hard': return 'retro-health-bar-yellow';
+      case 'extreme': return 'retro-health-bar-red';
+      case 'legendary': return 'retro-health-bar-purple';
     }
   };
 
@@ -52,167 +59,219 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
     return `${hours}h`;
   };
 
+  const difficulties: BossChallenge['difficulty'][] = ['normal', 'hard', 'extreme', 'legendary'];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden">
-        {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-red-600 to-orange-600">
+      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal">
+        {/* Retro Header */}
+        <div className="retro-modal-header">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl flex items-center gap-2">
-              <Swords className="w-6 h-6" />
-              Boss Challenges
+            <DialogTitle className="text-white text-xl flex items-center gap-3 retro-pixel-text">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center border-2 border-red-400">
+                <Skull className="w-5 h-5 text-white" />
+              </div>
+              <span className="retro-neon-pink">BOSS BATTLES</span>
             </DialogTitle>
           </DialogHeader>
-          <p className="text-white/80 text-sm mt-1">
-            Complete difficult focus challenges for massive rewards!
+          <p className="text-purple-200/80 text-sm mt-2 ml-13">
+            Defeat powerful focus bosses for legendary rewards!
           </p>
         </div>
 
-        {/* Active challenge banner */}
+        {/* Active Challenge Banner */}
         {activeChallenge.challenge && (
-          <div className={cn(
-            "mx-4 mt-4 p-4 rounded-lg bg-gradient-to-r",
-            getDifficultyGradient(activeChallenge.challenge.difficulty)
-          )}>
-            <div className="flex items-start justify-between">
+          <div className="mx-4 mt-4 retro-game-card p-4 retro-active-challenge">
+            <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">{activeChallenge.challenge.emoji}</span>
+                <div className="w-14 h-14 retro-icon-badge">
+                  <span className="text-3xl">{activeChallenge.challenge.emoji}</span>
+                </div>
                 <div>
-                  <h3 className="text-white font-bold">{activeChallenge.challenge.name}</h3>
-                  <p className="text-white/80 text-sm">{activeChallenge.challenge.description}</p>
+                  <div className="flex items-center gap-2">
+                    <span className={cn("retro-difficulty-badge", getDifficultyClass(activeChallenge.challenge.difficulty))}>
+                      {getDifficultyIcon(activeChallenge.challenge.difficulty)} {activeChallenge.challenge.difficulty}
+                    </span>
+                  </div>
+                  <h3 className="text-white font-bold mt-1 retro-pixel-text">
+                    {activeChallenge.challenge.name}
+                  </h3>
                 </div>
               </div>
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-white/80 hover:text-white hover:bg-white/20"
+                className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
                 onClick={abandonChallenge}
               >
                 <XCircle className="w-5 h-5" />
               </Button>
             </div>
-            <div className="mt-3">
-              <div className="flex justify-between text-white/80 text-xs mb-1">
-                <span>Progress</span>
-                <span>{Math.round(activeChallenge.percentComplete)}%</span>
+
+            {/* Boss Health Bar */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-cyan-400 retro-pixel-text">BOSS HP</span>
+                <span className="retro-neon-orange">{Math.round(100 - activeChallenge.percentComplete)}%</span>
               </div>
-              <Progress value={activeChallenge.percentComplete} className="h-3 bg-white/20" />
+              <div className={cn("retro-health-bar", getHealthBarClass(activeChallenge.challenge.difficulty))}>
+                <div
+                  className="retro-health-bar-fill"
+                  style={{ width: `${100 - activeChallenge.percentComplete}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-purple-300/60">
+                <span>Your Progress: {Math.round(activeChallenge.percentComplete)}%</span>
+                <span className="flex items-center gap-1">
+                  <Flame className="w-3 h-3 text-orange-400" />
+                  FIGHTING
+                </span>
+              </div>
             </div>
           </div>
         )}
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as BossChallenge['difficulty'])} className="flex-1">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 px-4">
-            {(['normal', 'hard', 'extreme', 'legendary'] as const).map(diff => (
-              <TabsTrigger
+        {/* Difficulty Tabs */}
+        <div className="px-4 pt-4">
+          <div className="flex gap-1 bg-purple-900/30 p-1 rounded-lg">
+            {difficulties.map(diff => (
+              <button
                 key={diff}
-                value={diff}
+                onClick={() => setActiveTab(diff)}
                 className={cn(
-                  "rounded-none border-b-2 border-transparent capitalize",
-                  "data-[state=active]:border-current",
-                  getDifficultyColor(diff).split(' ')[0]
+                  "flex-1 py-2 px-3 rounded-md text-xs font-bold uppercase transition-all retro-pixel-text",
+                  activeTab === diff
+                    ? cn("text-white", getDifficultyClass(diff))
+                    : "text-purple-400 hover:text-purple-300 hover:bg-purple-800/30"
                 )}
               >
-                {diff}
-              </TabsTrigger>
+                {getDifficultyIcon(diff)} {diff}
+              </button>
             ))}
-          </TabsList>
+          </div>
+        </div>
 
-          <ScrollArea className="h-[350px]">
-            {(['normal', 'hard', 'extreme', 'legendary'] as const).map(difficulty => (
-              <TabsContent key={difficulty} value={difficulty} className="p-4 m-0 space-y-3">
-                {getChallengesByDifficulty(difficulty).map(({ challenge, status }) => (
-                  <div
-                    key={challenge.id}
-                    className={cn(
-                      "p-4 rounded-lg border transition-all",
-                      status.isActive && "ring-2 ring-primary",
-                      status.isCompleted && "bg-green-500/10 border-green-500/30"
-                    )}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={cn(
-                        "w-12 h-12 rounded-lg flex items-center justify-center text-2xl",
-                        getDifficultyColor(difficulty)
-                      )}>
-                        {challenge.emoji}
-                      </div>
+        {/* Challenge List */}
+        <ScrollArea className="h-[320px] px-4 py-3">
+          <div className="space-y-3">
+            {getChallengesByDifficulty(activeTab).map(({ challenge, status }) => (
+              <div
+                key={challenge.id}
+                className={cn(
+                  "retro-game-card p-4 transition-all",
+                  status.isActive && "retro-active-challenge",
+                  status.isCompleted && "border-green-500/50"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  {/* Boss Icon */}
+                  <div className={cn(
+                    "w-14 h-14 retro-icon-badge shrink-0",
+                    status.isCompleted && "opacity-50"
+                  )}>
+                    <span className="text-2xl">{challenge.emoji}</span>
+                  </div>
 
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold">{challenge.name}</h4>
-                          {status.isCompleted && <CheckCircle className="w-4 h-4 text-green-500" />}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{challenge.description}</p>
-
-                        {/* Rewards */}
-                        <div className="flex items-center gap-3 mt-2 text-xs">
-                          <span className="flex items-center gap-1 text-yellow-500">
-                            <Trophy className="w-3 h-3" />
-                            {challenge.rewards.xp} XP
-                          </span>
-                          <span className="flex items-center gap-1 text-amber-500">
-                            🪙 {challenge.rewards.coins}
-                          </span>
-                          {challenge.rewards.badge && (
-                            <span className="flex items-center gap-1 text-purple-500">
-                              🏅 Badge
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Cooldown info */}
-                        {status.cooldownRemaining > 0 && (
-                          <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                            <Clock className="w-3 h-3" />
-                            Cooldown: {formatCooldown(status.cooldownRemaining)}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Action button */}
-                      <div className="ml-2">
-                        {status.isActive ? (
-                          <div className="flex items-center gap-1 text-primary">
-                            <Flame className="w-5 h-5 animate-pulse" />
-                          </div>
-                        ) : status.cooldownRemaining > 0 ? (
-                          <Lock className="w-5 h-5 text-muted-foreground" />
-                        ) : activeChallenge.challenge ? (
-                          <Button size="sm" variant="ghost" disabled>
-                            Busy
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            onClick={() => startChallenge(challenge.id)}
-                            className={cn("bg-gradient-to-r", getDifficultyGradient(difficulty))}
-                          >
-                            Start
-                          </Button>
-                        )}
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    {/* Title & Status */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-bold text-white retro-pixel-text text-sm">
+                        {challenge.name}
+                      </h4>
+                      {status.isCompleted && (
+                        <span className="flex items-center gap-1 text-green-400 text-xs">
+                          <CheckCircle className="w-3 h-3" />
+                          DEFEATED
+                        </span>
+                      )}
                     </div>
 
-                    {/* Progress bar for active challenge */}
-                    {status.isActive && status.progress && (
-                      <div className="mt-3">
-                        <Progress
-                          value={(status.progress.currentProgress / challenge.requirement.value) * 100}
-                          className="h-2"
-                        />
+                    <p className="text-xs text-purple-300/70 mt-1 line-clamp-2">
+                      {challenge.description}
+                    </p>
+
+                    {/* Rewards */}
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="retro-reward-item text-xs">
+                        <Trophy className="w-3 h-3 text-yellow-400" />
+                        <span className="retro-neon-yellow">{challenge.rewards.xp} XP</span>
+                      </span>
+                      <span className="retro-reward-item text-xs">
+                        <span>🪙</span>
+                        <span className="text-amber-400">{challenge.rewards.coins}</span>
+                      </span>
+                      {challenge.rewards.badge && (
+                        <span className="retro-reward-item epic text-xs">
+                          <span>🏅</span>
+                          <span>Badge</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Cooldown */}
+                    {status.cooldownRemaining > 0 && (
+                      <div className="flex items-center gap-1 mt-2 text-xs text-purple-400">
+                        <Clock className="w-3 h-3" />
+                        Respawns in {formatCooldown(status.cooldownRemaining)}
                       </div>
                     )}
                   </div>
-                ))}
-              </TabsContent>
-            ))}
-          </ScrollArea>
-        </Tabs>
 
-        {/* Info footer */}
-        <div className="p-3 border-t bg-muted/50 text-xs text-muted-foreground text-center">
-          Complete focus sessions to progress. Only one challenge can be active at a time.
+                  {/* Action Button */}
+                  <div className="shrink-0">
+                    {status.isActive ? (
+                      <div className="flex items-center gap-1 text-orange-400">
+                        <Flame className="w-5 h-5 animate-pulse" />
+                      </div>
+                    ) : status.cooldownRemaining > 0 ? (
+                      <Lock className="w-5 h-5 text-purple-500" />
+                    ) : activeChallenge.challenge ? (
+                      <Button
+                        size="sm"
+                        disabled
+                        className="opacity-50 bg-purple-800 text-purple-400"
+                      >
+                        BUSY
+                      </Button>
+                    ) : (
+                      <button
+                        onClick={() => startChallenge(challenge.id)}
+                        className={cn(
+                          "retro-arcade-btn px-4 py-2 text-xs",
+                          activeTab === 'normal' && "retro-arcade-btn-green",
+                          activeTab === 'hard' && "retro-arcade-btn-yellow",
+                          activeTab === 'extreme' && "",
+                          activeTab === 'legendary' && "retro-arcade-btn-purple"
+                        )}
+                      >
+                        <Zap className="w-3 h-3 inline mr-1" />
+                        FIGHT
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Progress Bar for Active */}
+                {status.isActive && status.progress && (
+                  <div className="mt-3">
+                    <div className={cn("retro-health-bar h-2", getHealthBarClass(activeTab))}>
+                      <div
+                        className="retro-health-bar-fill"
+                        style={{ width: `${(status.progress.currentProgress / challenge.requirement.value) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+
+        {/* Footer */}
+        <div className="p-3 border-t-2 border-purple-700/50 bg-purple-900/30">
+          <p className="text-xs text-center text-purple-400 retro-pixel-text">
+            ⚡ COMPLETE FOCUS SESSIONS TO DEAL DAMAGE ⚡
+          </p>
         </div>
       </DialogContent>
     </Dialog>

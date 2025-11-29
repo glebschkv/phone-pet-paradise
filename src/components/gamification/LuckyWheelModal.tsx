@@ -1,9 +1,8 @@
 import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { cn } from '@/lib/utils';
-import { Sparkles, Clock, History, Gift } from 'lucide-react';
+import { Sparkles, Clock, History, Gift, Star, Zap } from 'lucide-react';
 import { LuckyWheelPrize } from '@/data/GamificationData';
 
 interface LuckyWheelModalProps {
@@ -72,41 +71,71 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
 
   const getRarityGlow = (rarity: string) => {
     switch (rarity) {
-      case 'legendary': return 'shadow-[0_0_30px_rgba(251,191,36,0.5)]';
-      case 'epic': return 'shadow-[0_0_20px_rgba(168,85,247,0.4)]';
-      case 'rare': return 'shadow-[0_0_15px_rgba(59,130,246,0.3)]';
+      case 'legendary': return 'shadow-[0_0_30px_rgba(251,191,36,0.8)]';
+      case 'epic': return 'shadow-[0_0_20px_rgba(168,85,247,0.6)]';
+      case 'rare': return 'shadow-[0_0_15px_rgba(59,130,246,0.5)]';
       default: return '';
+    }
+  };
+
+  const getRarityBorder = (rarity: string) => {
+    switch (rarity) {
+      case 'legendary': return 'border-yellow-400';
+      case 'epic': return 'border-purple-400';
+      case 'rare': return 'border-blue-400';
+      default: return 'border-purple-600/50';
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm p-0 overflow-hidden">
-        {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-purple-600 to-pink-600">
+      <DialogContent className="max-w-sm p-0 overflow-hidden retro-modal">
+        {/* Retro Header */}
+        <div className="retro-modal-header">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl flex items-center gap-2">
-              <Sparkles className="w-6 h-6" />
-              Lucky Wheel
+            <DialogTitle className="text-white text-xl flex items-center gap-3 retro-pixel-text">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center border-2 border-pink-400">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="retro-neon-pink">LUCKY SPIN</span>
             </DialogTitle>
           </DialogHeader>
-          <p className="text-white/80 text-sm mt-1">
-            Spin daily for free rewards!
+          <p className="text-purple-200/80 text-sm mt-2">
+            Spin daily for awesome prizes!
           </p>
         </div>
 
-        {/* Wheel */}
-        <div className="relative p-4 flex flex-col items-center">
-          {/* Pointer */}
-          <div className="absolute top-2 z-10">
-            <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-yellow-400 drop-shadow-lg" />
+        {/* Wheel Section */}
+        <div className="relative p-6 flex flex-col items-center bg-gradient-to-b from-purple-900/50 to-transparent">
+          {/* Decorative Lights */}
+          <div className="absolute top-4 left-0 right-0 flex justify-center gap-3">
+            {[...Array(7)].map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "w-3 h-3 rounded-full",
+                  localSpinning
+                    ? "animate-pulse bg-yellow-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]"
+                    : i % 2 === 0
+                    ? "bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]"
+                    : "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                )}
+                style={{ animationDelay: `${i * 0.1}s` }}
+              />
+            ))}
           </div>
 
-          {/* Wheel container */}
-          <div className="relative w-64 h-64">
+          {/* Pointer */}
+          <div className="absolute top-12 z-10 retro-wheel-pointer">
+            <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-yellow-400" />
+            <Star className="absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-5 text-yellow-300" />
+          </div>
+
+          {/* Wheel Container */}
+          <div className="relative w-60 h-60 mt-6">
             <div
               className={cn(
-                "w-full h-full rounded-full border-4 border-yellow-400 overflow-hidden",
+                "w-full h-full rounded-full overflow-hidden retro-wheel",
                 "transition-transform duration-[4000ms] ease-out",
                 getRarityGlow(currentPrize?.rarity || '')
               )}
@@ -129,15 +158,15 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                   const largeArc = angle > 180 ? 1 : 0;
 
                   const midAngle = ((startAngle + endAngle) / 2 - 90) * (Math.PI / 180);
-                  const textX = 50 + 30 * Math.cos(midAngle);
-                  const textY = 50 + 30 * Math.sin(midAngle);
+                  const textX = 50 + 32 * Math.cos(midAngle);
+                  const textY = 50 + 32 * Math.sin(midAngle);
 
                   return (
                     <g key={segment.id}>
                       <path
                         d={`M50,50 L${x1},${y1} A50,50 0 ${largeArc},1 ${x2},${y2} Z`}
                         fill={segment.color}
-                        stroke="white"
+                        stroke="rgba(255,255,255,0.3)"
                         strokeWidth="0.5"
                       />
                       <text
@@ -145,7 +174,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                         y={textY}
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        className="text-[8px] fill-white font-bold"
+                        className="text-[10px] fill-white font-bold"
                         transform={`rotate(${(startAngle + endAngle) / 2}, ${textX}, ${textY})`}
                       >
                         {segment.emoji}
@@ -153,81 +182,96 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                     </g>
                   );
                 })}
-                {/* Center circle */}
-                <circle cx="50" cy="50" r="8" fill="white" stroke="#fbbf24" strokeWidth="2" />
+                {/* Center Hub */}
+                <circle cx="50" cy="50" r="10" fill="url(#centerGradient)" stroke="#fbbf24" strokeWidth="3" />
+                <defs>
+                  <radialGradient id="centerGradient">
+                    <stop offset="0%" stopColor="#fbbf24" />
+                    <stop offset="100%" stopColor="#f59e0b" />
+                  </radialGradient>
+                </defs>
               </svg>
             </div>
           </div>
 
-          {/* Result display */}
+          {/* Result Overlay */}
           {showResult && currentPrize && (
             <div className={cn(
-              "absolute inset-0 bg-black/80 flex flex-col items-center justify-center",
+              "absolute inset-0 bg-purple-950/95 flex flex-col items-center justify-center",
               "animate-in fade-in zoom-in duration-300"
             )}>
-              <div className={cn(
-                "text-6xl mb-2",
-                currentPrize.rarity === 'legendary' && "animate-bounce"
-              )}>
-                {currentPrize.emoji}
+              <div className="retro-game-card p-6 text-center">
+                <div className={cn(
+                  "text-6xl mb-3",
+                  currentPrize.rarity === 'legendary' && "animate-bounce"
+                )}>
+                  {currentPrize.emoji}
+                </div>
+                <h3 className="text-xl font-bold text-white retro-pixel-text">
+                  {currentPrize.name}
+                </h3>
+                <p className={cn(
+                  "text-sm capitalize mt-2 retro-pixel-text",
+                  currentPrize.rarity === 'legendary' && "retro-neon-yellow",
+                  currentPrize.rarity === 'epic' && "retro-neon-pink",
+                  currentPrize.rarity === 'rare' && "retro-neon-text",
+                  currentPrize.rarity === 'common' && "text-purple-400"
+                )}>
+                  {currentPrize.rarity}
+                </p>
+                <button
+                  className="mt-4 retro-arcade-btn retro-arcade-btn-green px-6 py-2 text-sm flex items-center gap-2 mx-auto"
+                  onClick={() => setShowResult(false)}
+                >
+                  <Gift className="w-4 h-4" />
+                  COLLECT
+                </button>
               </div>
-              <h3 className="text-xl font-bold text-white">{currentPrize.name}</h3>
-              <p className={cn(
-                "text-sm capitalize mt-1",
-                currentPrize.rarity === 'legendary' && "text-yellow-400",
-                currentPrize.rarity === 'epic' && "text-purple-400",
-                currentPrize.rarity === 'rare' && "text-blue-400",
-                currentPrize.rarity === 'common' && "text-gray-400"
-              )}>
-                {currentPrize.rarity}
-              </p>
-              <Button
-                className="mt-4"
-                onClick={() => setShowResult(false)}
-              >
-                <Gift className="w-4 h-4 mr-2" />
-                Collect
-              </Button>
             </div>
           )}
         </div>
 
-        {/* Spin button */}
-        <div className="px-4 pb-4">
+        {/* Spin Button */}
+        <div className="px-6 pb-4">
           {canSpin ? (
-            <Button
-              className="w-full h-12 text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
+            <button
+              className={cn(
+                "w-full retro-arcade-btn retro-arcade-btn-yellow py-4 text-lg flex items-center justify-center gap-2",
+                localSpinning && "opacity-50 cursor-not-allowed"
+              )}
               onClick={handleSpin}
               disabled={localSpinning}
             >
               {localSpinning ? (
-                <span className="animate-pulse">Spinning...</span>
+                <span className="animate-pulse retro-pixel-text">SPINNING...</span>
               ) : (
                 <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  SPIN!
+                  <Zap className="w-5 h-5" />
+                  <span className="retro-pixel-text">SPIN!</span>
                 </>
               )}
-            </Button>
+            </button>
           ) : (
-            <div className="text-center p-3 bg-muted rounded-lg">
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <div className="retro-game-card p-4 text-center">
+              <div className="flex items-center justify-center gap-2 text-purple-400">
                 <Clock className="w-4 h-4" />
-                <span>Next spin in {timeUntilNext.hours}h {timeUntilNext.minutes}m</span>
+                <span className="retro-pixel-text">
+                  Next spin in {timeUntilNext.hours}h {timeUntilNext.minutes}m
+                </span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Stats and history */}
-        <div className="p-4 border-t bg-muted/50">
+        {/* Stats and History */}
+        <div className="p-4 border-t-2 border-purple-700/50 bg-purple-900/30">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium flex items-center gap-1">
+            <span className="text-sm font-medium flex items-center gap-1 text-cyan-400 retro-pixel-text">
               <History className="w-4 h-4" />
-              Recent Wins
+              RECENT WINS
             </span>
-            <span className="text-xs text-muted-foreground">
-              {stats.totalSpins} total spins
+            <span className="text-xs text-purple-400 retro-pixel-text">
+              {stats.totalSpins} spins
             </span>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2">
@@ -237,17 +281,15 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                   key={index}
                   className={cn(
                     "flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center text-xl",
-                    result.prize.rarity === 'legendary' && "bg-yellow-500/20 border border-yellow-500/50",
-                    result.prize.rarity === 'epic' && "bg-purple-500/20 border border-purple-500/50",
-                    result.prize.rarity === 'rare' && "bg-blue-500/20 border border-blue-500/50",
-                    result.prize.rarity === 'common' && "bg-gray-500/20 border border-gray-500/50"
+                    "retro-icon-badge",
+                    getRarityBorder(result.prize.rarity)
                   )}
                 >
                   {result.prize.emoji}
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No spins yet. Try your luck!</p>
+              <p className="text-sm text-purple-400 retro-pixel-text">No spins yet!</p>
             )}
           </div>
         </div>

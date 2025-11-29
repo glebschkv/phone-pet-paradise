@@ -634,50 +634,12 @@
     color: hsl(25 80% 35%);
   }
 
-  /* Floating Controls Container (Biome + Settings) */
-  .top-bar-float {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-    padding-right: 4px;
-  }
-
-  /* Legacy support */
+  /* Biome Floating Selector */
   .biome-float {
     display: flex;
     justify-content: flex-end;
     margin-top: 8px;
     padding-right: 4px;
-  }
-
-  /* Settings Circle Button */
-  .settings-circle-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    background: hsl(var(--card) / 0.6);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid hsl(var(--border) / 0.2);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px hsl(0 0% 0% / 0.04);
-    color: hsl(var(--muted-foreground));
-  }
-
-  .settings-circle-btn:hover {
-    background: hsl(var(--card) / 0.8);
-    color: hsl(var(--foreground));
-  }
-
-  .settings-circle-btn:active {
-    transform: scale(0.92);
   }
 
   .biome-pill {
@@ -1468,6 +1430,692 @@
     animation: guild-contribute 0.5s ease-out forwards;
   }
 
+  /* ============================================
+     RETRO ARCADE CHALLENGES THEME
+     ============================================ */
+
+  /* Retro Arcade Container */
+  .retro-arcade-container {
+    background: linear-gradient(180deg,
+      hsl(260 30% 12%) 0%,
+      hsl(280 25% 8%) 100%
+    );
+    position: relative;
+    overflow: hidden;
+  }
+
+  .retro-arcade-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      hsl(0 0% 0% / 0.03) 2px,
+      hsl(0 0% 0% / 0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Pixel Border Box */
+  .retro-pixel-box {
+    position: relative;
+    background: linear-gradient(180deg,
+      hsl(260 20% 18%) 0%,
+      hsl(260 25% 14%) 100%
+    );
+    border: 3px solid hsl(280 60% 50%);
+    box-shadow:
+      inset 0 0 0 2px hsl(260 40% 25%),
+      0 4px 0 hsl(280 60% 30%),
+      0 0 20px hsl(280 80% 50% / 0.3);
+  }
+
+  /* Neon Glow Text */
+  .retro-neon-text {
+    color: hsl(180 100% 70%);
+    text-shadow:
+      0 0 5px hsl(180 100% 70%),
+      0 0 10px hsl(180 100% 60%),
+      0 0 20px hsl(180 100% 50%),
+      0 0 40px hsl(180 100% 40%);
+  }
+
+  .retro-neon-pink {
+    color: hsl(320 100% 70%);
+    text-shadow:
+      0 0 5px hsl(320 100% 70%),
+      0 0 10px hsl(320 100% 60%),
+      0 0 20px hsl(320 100% 50%);
+  }
+
+  .retro-neon-yellow {
+    color: hsl(50 100% 60%);
+    text-shadow:
+      0 0 5px hsl(50 100% 60%),
+      0 0 10px hsl(50 100% 50%),
+      0 0 20px hsl(50 100% 40%);
+  }
+
+  .retro-neon-green {
+    color: hsl(120 100% 60%);
+    text-shadow:
+      0 0 5px hsl(120 100% 60%),
+      0 0 10px hsl(120 100% 50%),
+      0 0 15px hsl(120 100% 40%);
+  }
+
+  .retro-neon-orange {
+    color: hsl(30 100% 60%);
+    text-shadow:
+      0 0 5px hsl(30 100% 60%),
+      0 0 10px hsl(30 100% 50%),
+      0 0 15px hsl(30 100% 40%);
+  }
+
+  /* Retro Arcade Button */
+  .retro-arcade-btn {
+    position: relative;
+    background: linear-gradient(180deg,
+      hsl(350 80% 55%) 0%,
+      hsl(350 85% 45%) 50%,
+      hsl(350 90% 35%) 100%
+    );
+    border: 3px solid hsl(350 70% 65%);
+    border-radius: 8px;
+    box-shadow:
+      0 6px 0 hsl(350 90% 25%),
+      inset 0 2px 0 hsl(350 60% 70%),
+      0 0 15px hsl(350 100% 50% / 0.4);
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: white;
+    text-shadow: 0 2px 0 hsl(350 100% 20%);
+    transition: all 0.1s ease;
+  }
+
+  .retro-arcade-btn:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 0 hsl(350 90% 25%),
+      inset 0 2px 0 hsl(350 60% 70%),
+      0 0 25px hsl(350 100% 50% / 0.6);
+  }
+
+  .retro-arcade-btn:active {
+    transform: translateY(4px);
+    box-shadow:
+      0 2px 0 hsl(350 90% 25%),
+      inset 0 2px 0 hsl(350 60% 70%),
+      0 0 10px hsl(350 100% 50% / 0.3);
+  }
+
+  .retro-arcade-btn-green {
+    background: linear-gradient(180deg,
+      hsl(120 70% 45%) 0%,
+      hsl(120 75% 35%) 50%,
+      hsl(120 80% 25%) 100%
+    );
+    border-color: hsl(120 60% 55%);
+    box-shadow:
+      0 6px 0 hsl(120 80% 18%),
+      inset 0 2px 0 hsl(120 50% 60%),
+      0 0 15px hsl(120 100% 40% / 0.4);
+  }
+
+  .retro-arcade-btn-yellow {
+    background: linear-gradient(180deg,
+      hsl(45 90% 55%) 0%,
+      hsl(45 95% 45%) 50%,
+      hsl(45 100% 35%) 100%
+    );
+    border-color: hsl(45 80% 65%);
+    box-shadow:
+      0 6px 0 hsl(45 100% 25%),
+      inset 0 2px 0 hsl(45 70% 70%),
+      0 0 15px hsl(45 100% 50% / 0.4);
+    color: hsl(45 100% 10%);
+    text-shadow: 0 1px 0 hsl(45 100% 70%);
+  }
+
+  .retro-arcade-btn-purple {
+    background: linear-gradient(180deg,
+      hsl(280 70% 55%) 0%,
+      hsl(280 75% 45%) 50%,
+      hsl(280 80% 35%) 100%
+    );
+    border-color: hsl(280 60% 65%);
+    box-shadow:
+      0 6px 0 hsl(280 80% 25%),
+      inset 0 2px 0 hsl(280 50% 70%),
+      0 0 15px hsl(280 100% 50% / 0.4);
+  }
+
+  /* Retro Progress Bar (Health Bar Style) */
+  .retro-health-bar {
+    position: relative;
+    height: 20px;
+    background: hsl(0 0% 10%);
+    border: 3px solid hsl(0 0% 30%);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow:
+      inset 0 2px 4px hsl(0 0% 0% / 0.5),
+      0 2px 0 hsl(0 0% 20%);
+  }
+
+  .retro-health-bar-fill {
+    height: 100%;
+    background: linear-gradient(180deg,
+      hsl(120 80% 55%) 0%,
+      hsl(120 70% 45%) 40%,
+      hsl(120 80% 35%) 100%
+    );
+    box-shadow: inset 0 -2px 4px hsl(120 100% 20%);
+    transition: width 0.3s ease;
+    position: relative;
+  }
+
+  .retro-health-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    right: 4px;
+    height: 4px;
+    background: linear-gradient(90deg,
+      hsl(120 80% 70%) 0%,
+      transparent 100%
+    );
+    border-radius: 2px;
+  }
+
+  .retro-health-bar-red .retro-health-bar-fill {
+    background: linear-gradient(180deg,
+      hsl(0 80% 55%) 0%,
+      hsl(0 70% 45%) 40%,
+      hsl(0 80% 35%) 100%
+    );
+    box-shadow: inset 0 -2px 4px hsl(0 100% 20%);
+  }
+
+  .retro-health-bar-yellow .retro-health-bar-fill {
+    background: linear-gradient(180deg,
+      hsl(45 90% 55%) 0%,
+      hsl(45 80% 45%) 40%,
+      hsl(45 90% 35%) 100%
+    );
+    box-shadow: inset 0 -2px 4px hsl(45 100% 20%);
+  }
+
+  .retro-health-bar-purple .retro-health-bar-fill {
+    background: linear-gradient(180deg,
+      hsl(280 80% 60%) 0%,
+      hsl(280 70% 50%) 40%,
+      hsl(280 80% 40%) 100%
+    );
+    box-shadow: inset 0 -2px 4px hsl(280 100% 20%);
+  }
+
+  /* Retro Card (Game Menu Item) */
+  .retro-game-card {
+    position: relative;
+    background: linear-gradient(180deg,
+      hsl(260 25% 20%) 0%,
+      hsl(260 30% 15%) 100%
+    );
+    border: 3px solid hsl(260 40% 40%);
+    border-radius: 8px;
+    box-shadow:
+      0 4px 0 hsl(260 50% 20%),
+      inset 0 1px 0 hsl(260 30% 35%),
+      0 0 0 1px hsl(260 60% 50% / 0.3);
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .retro-game-card:hover {
+    transform: translateY(-2px);
+    border-color: hsl(180 60% 50%);
+    box-shadow:
+      0 6px 0 hsl(260 50% 20%),
+      inset 0 1px 0 hsl(260 30% 35%),
+      0 0 15px hsl(180 100% 50% / 0.3);
+  }
+
+  .retro-game-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(180 100% 70% / 0.5) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Retro Icon Badge */
+  .retro-icon-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg,
+      hsl(260 40% 30%) 0%,
+      hsl(280 35% 25%) 100%
+    );
+    border: 2px solid hsl(280 50% 50%);
+    border-radius: 8px;
+    box-shadow:
+      inset 0 2px 0 hsl(280 30% 40%),
+      inset 0 -2px 0 hsl(280 50% 15%),
+      0 0 10px hsl(280 80% 50% / 0.3);
+  }
+
+  /* Retro Tab Buttons */
+  .retro-tab {
+    position: relative;
+    padding: 8px 16px;
+    background: linear-gradient(180deg,
+      hsl(260 30% 25%) 0%,
+      hsl(260 35% 18%) 100%
+    );
+    border: 2px solid hsl(260 40% 35%);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    color: hsl(260 20% 60%);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+  }
+
+  .retro-tab:hover {
+    background: linear-gradient(180deg,
+      hsl(260 35% 30%) 0%,
+      hsl(260 40% 22%) 100%
+    );
+    color: hsl(260 30% 75%);
+  }
+
+  .retro-tab.active {
+    background: linear-gradient(180deg,
+      hsl(180 50% 40%) 0%,
+      hsl(180 55% 30%) 100%
+    );
+    border-color: hsl(180 60% 50%);
+    color: hsl(180 100% 90%);
+    box-shadow:
+      0 0 10px hsl(180 100% 50% / 0.4),
+      inset 0 1px 0 hsl(180 40% 60%);
+  }
+
+  /* Retro Score Display */
+  .retro-score-display {
+    font-family: 'Courier New', monospace;
+    font-weight: 800;
+    font-size: 24px;
+    color: hsl(50 100% 60%);
+    text-shadow:
+      0 0 5px hsl(50 100% 50%),
+      0 0 10px hsl(50 100% 40%),
+      2px 2px 0 hsl(50 100% 20%);
+    letter-spacing: 2px;
+  }
+
+  /* Retro Difficulty Badge */
+  .retro-difficulty-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .retro-difficulty-normal {
+    background: linear-gradient(180deg, hsl(120 60% 45%) 0%, hsl(120 65% 35%) 100%);
+    border: 2px solid hsl(120 50% 55%);
+    color: white;
+    box-shadow: 0 2px 0 hsl(120 70% 25%);
+  }
+
+  .retro-difficulty-hard {
+    background: linear-gradient(180deg, hsl(30 80% 50%) 0%, hsl(30 85% 40%) 100%);
+    border: 2px solid hsl(30 70% 60%);
+    color: white;
+    box-shadow: 0 2px 0 hsl(30 90% 30%);
+  }
+
+  .retro-difficulty-extreme {
+    background: linear-gradient(180deg, hsl(350 80% 50%) 0%, hsl(350 85% 40%) 100%);
+    border: 2px solid hsl(350 70% 60%);
+    color: white;
+    box-shadow: 0 2px 0 hsl(350 90% 30%);
+  }
+
+  .retro-difficulty-legendary {
+    background: linear-gradient(180deg, hsl(280 70% 55%) 0%, hsl(280 75% 45%) 100%);
+    border: 2px solid hsl(280 60% 65%);
+    color: white;
+    box-shadow: 0 2px 0 hsl(280 80% 35%);
+    animation: legendary-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes legendary-pulse {
+    0%, 100% {
+      box-shadow: 0 2px 0 hsl(280 80% 35%), 0 0 10px hsl(280 100% 50% / 0.5);
+    }
+    50% {
+      box-shadow: 0 2px 0 hsl(280 80% 35%), 0 0 20px hsl(280 100% 50% / 0.8);
+    }
+  }
+
+  /* Retro Wheel */
+  .retro-wheel {
+    border: 6px solid hsl(50 100% 50%);
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 4px hsl(30 80% 40%),
+      0 0 30px hsl(50 100% 50% / 0.5),
+      inset 0 0 30px hsl(0 0% 0% / 0.3);
+  }
+
+  .retro-wheel-pointer {
+    filter: drop-shadow(0 0 10px hsl(50 100% 50%));
+  }
+
+  /* Retro Combo Counter */
+  .retro-combo-counter {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg,
+      hsl(30 90% 50%) 0%,
+      hsl(25 95% 40%) 50%,
+      hsl(20 100% 30%) 100%
+    );
+    border: 4px solid hsl(45 100% 55%);
+    border-radius: 12px;
+    box-shadow:
+      0 4px 0 hsl(20 100% 20%),
+      0 0 20px hsl(30 100% 50% / 0.5),
+      inset 0 2px 0 hsl(45 100% 70%);
+  }
+
+  .retro-combo-number {
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    font-size: 32px;
+    color: white;
+    text-shadow:
+      0 0 10px hsl(50 100% 70%),
+      0 0 20px hsl(50 100% 50%),
+      3px 3px 0 hsl(20 100% 25%);
+  }
+
+  .retro-combo-label {
+    font-weight: 800;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: hsl(50 100% 85%);
+  }
+
+  /* Retro Guild Banner */
+  .retro-guild-banner {
+    position: relative;
+    background: linear-gradient(180deg,
+      hsl(260 50% 35%) 0%,
+      hsl(280 45% 25%) 100%
+    );
+    border: 3px solid hsl(280 60% 50%);
+    border-radius: 8px;
+    box-shadow:
+      0 4px 0 hsl(280 70% 20%),
+      0 0 20px hsl(280 80% 50% / 0.3),
+      inset 0 2px 0 hsl(280 40% 50%);
+    overflow: hidden;
+  }
+
+  .retro-guild-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(0 0% 100% / 0.1) 50%,
+      transparent 100%
+    );
+    animation: shine-sweep 3s ease-in-out infinite;
+  }
+
+  @keyframes shine-sweep {
+    0% { left: -100%; }
+    50%, 100% { left: 200%; }
+  }
+
+  /* Retro Battle Pass Tier */
+  .retro-tier-node {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(180deg,
+      hsl(260 30% 25%) 0%,
+      hsl(260 35% 18%) 100%
+    );
+    border: 3px solid hsl(260 40% 35%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .retro-tier-node.unlocked {
+    background: linear-gradient(180deg,
+      hsl(120 50% 40%) 0%,
+      hsl(120 55% 30%) 100%
+    );
+    border-color: hsl(120 60% 50%);
+    box-shadow: 0 0 15px hsl(120 100% 40% / 0.5);
+  }
+
+  .retro-tier-node.current {
+    background: linear-gradient(180deg,
+      hsl(50 80% 50%) 0%,
+      hsl(45 85% 40%) 100%
+    );
+    border-color: hsl(50 100% 60%);
+    box-shadow: 0 0 20px hsl(50 100% 50% / 0.6);
+    animation: current-tier-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes current-tier-pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 15px hsl(50 100% 50% / 0.5);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px hsl(50 100% 50% / 0.8);
+    }
+  }
+
+  .retro-tier-connector {
+    height: 4px;
+    background: hsl(260 40% 30%);
+    border-radius: 2px;
+  }
+
+  .retro-tier-connector.filled {
+    background: linear-gradient(90deg,
+      hsl(120 60% 45%) 0%,
+      hsl(120 65% 40%) 100%
+    );
+    box-shadow: 0 0 8px hsl(120 100% 40% / 0.5);
+  }
+
+  /* Retro Modal */
+  .retro-modal {
+    background: linear-gradient(180deg,
+      hsl(260 30% 15%) 0%,
+      hsl(280 25% 10%) 100%
+    );
+    border: 4px solid hsl(280 50% 45%);
+    border-radius: 12px;
+    box-shadow:
+      0 0 0 2px hsl(260 40% 25%),
+      0 8px 0 hsl(280 60% 20%),
+      0 0 40px hsl(280 80% 40% / 0.4);
+  }
+
+  .retro-modal-header {
+    background: linear-gradient(180deg,
+      hsl(280 50% 40%) 0%,
+      hsl(280 55% 30%) 100%
+    );
+    border-bottom: 3px solid hsl(280 60% 25%);
+    padding: 16px;
+  }
+
+  /* Scanline Overlay */
+  .retro-scanlines {
+    position: relative;
+  }
+
+  .retro-scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 1px,
+      hsl(0 0% 0% / 0.05) 1px,
+      hsl(0 0% 0% / 0.05) 2px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Retro Reward Item */
+  .retro-reward-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: linear-gradient(180deg,
+      hsl(260 25% 22%) 0%,
+      hsl(260 30% 16%) 100%
+    );
+    border: 2px solid hsl(260 35% 35%);
+    border-radius: 6px;
+    font-size: 12px;
+    color: hsl(260 20% 80%);
+  }
+
+  .retro-reward-item.legendary {
+    border-color: hsl(50 100% 50%);
+    background: linear-gradient(180deg,
+      hsl(50 40% 25%) 0%,
+      hsl(45 35% 18%) 100%
+    );
+    box-shadow: 0 0 10px hsl(50 100% 50% / 0.3);
+  }
+
+  .retro-reward-item.epic {
+    border-color: hsl(280 80% 55%);
+    background: linear-gradient(180deg,
+      hsl(280 35% 25%) 0%,
+      hsl(280 30% 18%) 100%
+    );
+    box-shadow: 0 0 10px hsl(280 100% 50% / 0.3);
+  }
+
+  /* CRT Flicker Effect */
+  @keyframes crt-flicker {
+    0% { opacity: 0.97; }
+    5% { opacity: 1; }
+    10% { opacity: 0.98; }
+    15% { opacity: 1; }
+    100% { opacity: 1; }
+  }
+
+  .retro-crt-flicker {
+    animation: crt-flicker 0.15s infinite;
+  }
+
+  /* Pixel Font Style */
+  .retro-pixel-text {
+    font-family: 'Courier New', 'Monaco', monospace;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  /* Retro Stats Grid */
+  .retro-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .retro-stat-box {
+    background: linear-gradient(180deg,
+      hsl(260 25% 18%) 0%,
+      hsl(260 30% 12%) 100%
+    );
+    border: 2px solid hsl(260 40% 35%);
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .retro-stat-value {
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    font-size: 24px;
+    color: hsl(180 100% 70%);
+    text-shadow: 0 0 10px hsl(180 100% 50% / 0.5);
+  }
+
+  .retro-stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: hsl(260 20% 55%);
+    margin-top: 4px;
+  }
+
+  /* Active Challenge Glow */
+  @keyframes active-challenge-glow {
+    0%, 100% {
+      box-shadow: 0 0 15px hsl(30 100% 50% / 0.5), 0 4px 0 hsl(30 100% 25%);
+    }
+    50% {
+      box-shadow: 0 0 30px hsl(30 100% 50% / 0.8), 0 4px 0 hsl(30 100% 25%);
+    }
+  }
+
+  .retro-active-challenge {
+    animation: active-challenge-glow 2s ease-in-out infinite;
+    border-color: hsl(30 100% 50%) !important;
+  }
+
   /* ═══════════════════════════════════════════════════════════════════════════
      RETRO SHOP STYLES - Pixel Art Arcade Theme
      ═══════════════════════════════════════════════════════════════════════════ */
@@ -1774,10 +2422,10 @@
     box-shadow:
       0 2px 0 hsl(350 70% 30%),
       inset 0 1px 0 hsl(350 90% 70% / 0.3);
-    animation: badge-pulse 2s ease-in-out infinite;
+    animation: shop-badge-pulse 2s ease-in-out infinite;
   }
 
-  @keyframes badge-pulse {
+  @keyframes shop-badge-pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.8; }
   }
@@ -1858,33 +2506,6 @@
       0 3px 0 hsl(220 80% 30%),
       0 4px 12px hsl(210 90% 50% / 0.3),
       inset 0 2px 4px hsl(200 100% 80% / 0.3);
-  }
-
-  /* Modal styles */
-  .retro-modal {
-    background: hsl(var(--card));
-    border: 4px solid hsl(var(--border));
-    border-radius: 16px;
-    box-shadow:
-      0 6px 0 hsl(var(--border) / 0.6),
-      0 12px 40px hsl(0 0% 0% / 0.25);
-    overflow: hidden;
-  }
-
-  .retro-modal-header {
-    background: linear-gradient(180deg,
-      hsl(45 80% 88%) 0%,
-      hsl(40 60% 92%) 100%
-    );
-    position: relative;
-    border-bottom: 3px solid hsl(var(--border));
-  }
-
-  .dark .retro-modal-header {
-    background: linear-gradient(180deg,
-      hsl(40 40% 20%) 0%,
-      hsl(35 30% 15%) 100%
-    );
   }
 
   .retro-rarity-badge {
