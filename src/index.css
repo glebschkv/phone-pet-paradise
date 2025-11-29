@@ -204,16 +204,10 @@
     overflow-y: auto !important;
   }
 
-  /* Fix boss battle modal scroll when active challenge is shown */
-  .retro-modal .h-full[data-radix-scroll-area-root] {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .retro-modal .h-full [data-radix-scroll-area-viewport] {
-    flex: 1;
-    min-height: 0;
+  /* Native scroll containers in modals - for flex children that need to scroll */
+  .retro-modal .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
 
   /* Prevent body scroll when modal is open */

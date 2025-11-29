@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { cn } from '@/lib/utils';
 import { Swords, Clock, Trophy, XCircle, CheckCircle, Lock, Flame, Skull, Zap } from 'lucide-react';
@@ -154,9 +153,8 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
         </div>
 
         {/* Challenge List */}
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <ScrollArea className="h-full">
-            <div className="space-y-3 px-4 py-3 pb-4">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 pb-4">
+          <div className="space-y-3">
             {getChallengesByDifficulty(activeTab).map(({ challenge, status }) => (
               <div
                 key={challenge.id}
@@ -270,8 +268,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                 )}
               </div>
             ))}
-            </div>
-          </ScrollArea>
+          </div>
         </div>
 
         {/* Footer - Fixed at bottom */}
