@@ -1,6 +1,6 @@
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
-import { Flame, Coins, Heart, Sparkles, ChevronDown, Settings } from "lucide-react";
+import { Heart, ChevronDown, Settings } from "lucide-react";
 import { useState } from "react";
 import {
   Popover,
@@ -59,132 +59,119 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
 
   return (
     <div className="status-bar-container">
-      {/* Clean Single Row Layout */}
-      <div className="status-bar">
-        {/* Left: Tappable Level Badge with Stats Popover */}
-        <Popover open={statsOpen} onOpenChange={setStatsOpen}>
-          <PopoverTrigger asChild>
-            <button className="level-badge-btn" aria-label="View stats">
-              <div className="level-badge-ring">
-                <svg className="level-progress-svg" viewBox="0 0 40 40">
-                  <circle
-                    className="level-progress-bg"
-                    cx="20"
-                    cy="20"
-                    r="17"
-                    fill="none"
-                    strokeWidth="3"
-                  />
-                  <circle
-                    className="level-progress-fill"
-                    cx="20"
-                    cy="20"
-                    r="17"
-                    fill="none"
-                    strokeWidth="3"
-                    strokeDasharray={`${progress * 1.068} 106.8`}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <span className="level-number">{currentLevel}</span>
-              </div>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="stats-popover" align="start" sideOffset={8}>
-            <div className="stats-popover-content">
-              <div className="stats-header">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>Your Progress</span>
-              </div>
-
-              <div className="stats-grid">
-                <div className="stat-row">
-                  <span className="stat-label">Level</span>
-                  <span className="stat-val">{currentLevel}</span>
+      {/* Game-style unified top bar */}
+      <div className="game-top-bar">
+        {/* Left section: Level + Biome */}
+        <div className="top-bar-left">
+          {/* Level Badge with Stats Popover */}
+          <Popover open={statsOpen} onOpenChange={setStatsOpen}>
+            <PopoverTrigger asChild>
+              <button className="level-badge-btn" aria-label="View stats">
+                <div className="level-badge-inner">
+                  <span className="level-star">★</span>
+                  <span className="level-number">{currentLevel}</span>
                 </div>
-                <div className="stat-row">
-                  <span className="stat-label">XP</span>
-                  <span className="stat-val">{currentXP} / {currentXP + xpToNextLevel}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Pets Collected</span>
-                  <span className="stat-val">
-                    <Heart className="w-3.5 h-3.5 text-pink-500 fill-current inline mr-1" />
-                    {unlockedAnimals.length}
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-label">Best Streak</span>
-                  <span className="stat-val">{streakData.longestStreak} days</span>
-                </div>
-              </div>
-
-              {/* XP Progress Bar */}
-              <div className="xp-progress-container">
-                <div className="xp-progress-bar">
+                <div className="level-progress-track">
                   <div
-                    className="xp-progress-fill"
+                    className="level-progress-fill"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <span className="xp-progress-label">{Math.round(progress)}% to next level</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="stats-popover" align="start" sideOffset={8}>
+              <div className="stats-popover-content">
+                <div className="stats-header">
+                  <span className="stats-header-star">★</span>
+                  <span>Your Progress</span>
+                </div>
+
+                <div className="stats-grid">
+                  <div className="stat-row">
+                    <span className="stat-label">Level</span>
+                    <span className="stat-val">{currentLevel}</span>
+                  </div>
+                  <div className="stat-row">
+                    <span className="stat-label">XP</span>
+                    <span className="stat-val">{currentXP} / {currentXP + xpToNextLevel}</span>
+                  </div>
+                  <div className="stat-row">
+                    <span className="stat-label">Pets Collected</span>
+                    <span className="stat-val">
+                      <Heart className="w-3.5 h-3.5 text-pink-500 fill-current inline mr-1" />
+                      {unlockedAnimals.length}
+                    </span>
+                  </div>
+                  <div className="stat-row">
+                    <span className="stat-label">Best Streak</span>
+                    <span className="stat-val">{streakData.longestStreak} days</span>
+                  </div>
+                </div>
+
+                {/* XP Progress Bar */}
+                <div className="xp-progress-container">
+                  <div className="xp-progress-bar">
+                    <div
+                      className="xp-progress-fill"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <span className="xp-progress-label">{Math.round(progress)}% to next level</span>
+                </div>
               </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverContent>
+          </Popover>
 
-        {/* Center: Coin Balance - Primary Currency */}
-        <div className="coin-display">
-          <div className="coin-icon-wrap">
-            <Coins className="w-5 h-5" />
-          </div>
-          <span className="coin-amount">{coinSystem.balance.toLocaleString()}</span>
-        </div>
-
-        {/* Right: Streak Counter */}
-        <div className={`streak-display ${hasActiveStreak ? 'active' : ''}`}>
-          <Flame className={`w-5 h-5 ${hasActiveStreak ? 'streak-fire-active' : 'streak-fire-idle'}`} />
-          <span className="streak-count">{streakData.currentStreak}</span>
-        </div>
-      </div>
-
-      {/* Floating Controls - Biome Selector & Settings */}
-      <div className="top-bar-float">
-        {/* Biome Selector */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="biome-pill">
-              <span className="biome-emoji-icon">{currentBiomeEmoji}</span>
-              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="biome-menu">
-            {availableBiomes.map((biome) => {
-              const config = BIOME_CONFIG[biome];
-              const isActive = biome === currentBiome;
-              return (
-                <DropdownMenuItem
-                  key={biome}
-                  onClick={() => handleSwitchBiome(biome)}
-                  className={`biome-menu-item ${isActive ? 'selected' : ''}`}
-                >
-                  <span className="text-base">{config?.emoji || '🌍'}</span>
-                  <span>{biome}</span>
-                  {isActive && <span className="biome-check">✓</span>}
-                </DropdownMenuItem>
+          {/* Biome Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="biome-btn">
+                <span className="biome-emoji">{currentBiomeEmoji}</span>
+                <ChevronDown className="w-3 h-3 biome-chevron" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="biome-menu">
+              {availableBiomes.map((biome) => {
+                const config = BIOME_CONFIG[biome];
+                const isActive = biome === currentBiome;
+                return (
+                  <DropdownMenuItem
+                    key={biome}
+                    onClick={() => handleSwitchBiome(biome)}
+                    className={`biome-menu-item ${isActive ? 'selected' : ''}`}
+                  >
+                    <span className="text-base">{config?.emoji || '🌍'}</span>
+                    <span>{biome}</span>
+                    {isActive && <span className="biome-check">✓</span>}
+                  </DropdownMenuItem>
               );
             })}
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
 
-        {/* Settings Button */}
-        <button
-          onClick={onSettingsClick}
-          className="settings-circle-btn"
-          aria-label="Open settings"
-        >
-          <Settings className="w-4 h-4" />
-        </button>
+        {/* Center section: Coins */}
+        <div className="stat-chip coin-chip">
+          <span className="chip-icon coin-icon">◉</span>
+          <span className="chip-value">{coinSystem.balance.toLocaleString()}</span>
+        </div>
+
+        {/* Right section: Streak + Settings */}
+        <div className="top-bar-right">
+          <div className={`stat-chip streak-chip ${hasActiveStreak ? 'active' : ''}`}>
+            <span className="chip-icon streak-icon">🔥</span>
+            <span className="chip-value">{streakData.currentStreak}</span>
+          </div>
+
+          {/* Settings Button */}
+          <button
+            onClick={onSettingsClick}
+            className="settings-btn"
+            aria-label="Open settings"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
