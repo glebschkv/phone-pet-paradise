@@ -181,7 +181,7 @@ const BundlePreviewCarousel = ({ images }: { images: string[] }) => {
   }, [images.length]);
 
   return (
-    <div className="relative w-full h-20 overflow-hidden rounded-xl">
+    <div className="relative w-full h-32 overflow-hidden rounded-xl">
       {images.map((img, idx) => (
         <div
           key={img}
@@ -999,7 +999,7 @@ export const Shop = () => {
             <>
               <div className="retro-modal-header p-6 text-center">
                 <div className="retro-scanlines opacity-30" />
-                <div className="h-28 mb-3 flex items-center justify-center overflow-hidden">
+                <div className="h-36 mb-3 flex items-center justify-center overflow-hidden">
                   {'spriteConfig' in selectedItem && selectedItem.spriteConfig ? (
                     <SpritePreview
                       animal={selectedItem as AnimalData}
