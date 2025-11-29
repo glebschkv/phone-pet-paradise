@@ -848,6 +848,120 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 72,
       animationSpeed: 11
     }
+  },
+  {
+    id: 'royal-slime',
+    name: 'Royal Slime',
+    emoji: '👑',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A magnificent slime wearing a golden crown, commanding respect from all slime-kind.',
+    abilities: ['Royal Bounce', 'Crown Shield', 'Slime Army', 'Mega Absorption'],
+    biome: 'Snow',
+    coinPrice: 2500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Slime_boss1_Walk_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'emperor-slime',
+    name: 'Emperor Slime',
+    emoji: '👾',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'The ultimate evolution of slime royalty, wielding power beyond imagination.',
+    abilities: ['Emperor Decree', 'Slime Tsunami', 'Absorption Field', 'Ultimate Split'],
+    biome: 'Night',
+    coinPrice: 4500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Slime_boss2_Walk_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'divine-slime',
+    name: 'Divine Slime',
+    emoji: '✨',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A transcendent slime that has achieved divine status, radiating pure celestial energy.',
+    abilities: ['Divine Bounce', 'Celestial Split', 'Holy Shield', 'Purification'],
+    biome: 'Meadow',
+    coinPrice: 6000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Slime_boss3_Walk_without_shadow.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'shadow-kraken',
+    name: 'Shadow Kraken',
+    emoji: '🦑',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A massive octopus shrouded in darkness, master of the abyssal depths.',
+    abilities: ['Deep Domination', 'Tentacle Master', 'Ink Cloud', 'Ancient Power'],
+    biome: 'Night',
+    coinPrice: 5000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/OCTOPUS_Walk.png',
+      frameCount: 6,
+      frameWidth: 96,
+      frameHeight: 96,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'titan-crab',
+    name: 'Titan Crab',
+    emoji: '🦀',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'An enormous crab with impenetrable armor and devastating pincers.',
+    abilities: ['Armor Master', 'Crushing Grip', 'Titan Defense', 'Beach Guardian'],
+    biome: 'Sunset',
+    coinPrice: 4000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/CRAB_Special.png',
+      frameCount: 6,
+      frameWidth: 96,
+      frameHeight: 96,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'arctic-predator',
+    name: 'Arctic Predator',
+    emoji: '🦈',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A fearsome shark that hunts beneath the frozen seas, terror of the arctic.',
+    abilities: ['Ice Hunter', 'Frozen Strike', 'Arctic Predator', 'Blizzard Bite'],
+    biome: 'Snow',
+    coinPrice: 3500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/SHARK_Walk.png',
+      frameCount: 6,
+      frameWidth: 96,
+      frameHeight: 96,
+      animationSpeed: 9
+    }
   }
 ];
 

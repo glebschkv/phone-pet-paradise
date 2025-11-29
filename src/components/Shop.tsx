@@ -319,11 +319,11 @@ export const Shop = () => {
                       : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                   )}
                 >
-                  <div className="h-10 mb-1 flex items-center justify-center overflow-hidden">
+                  <div className="h-12 mb-1 flex items-center justify-center overflow-hidden">
                     {pet.spriteConfig ? (
                       <SpritePreview
                         animal={pet}
-                        scale={Math.min(1.3, 40 / pet.spriteConfig.frameHeight)}
+                        scale={Math.min(1.5, 48 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
                       />
                     ) : (
                       <span className="text-3xl">{pet.emoji}</span>
@@ -386,11 +386,11 @@ export const Shop = () => {
               )}
 
               <div className="relative pt-3 pb-2 px-3 flex flex-col items-center">
-                <div className="h-12 mb-2 flex items-center justify-center overflow-hidden">
+                <div className="h-16 mb-2 flex items-center justify-center overflow-hidden">
                   {character.spriteConfig ? (
                     <SpritePreview
                       animal={character}
-                      scale={Math.min(1.5, 48 / character.spriteConfig.frameHeight)}
+                      scale={Math.min(2, 64 / Math.max(character.spriteConfig.frameWidth, character.spriteConfig.frameHeight))}
                     />
                   ) : (
                     <span className="text-4xl retro-pixel-shadow">{character.emoji}</span>
@@ -757,11 +757,11 @@ export const Shop = () => {
             <>
               <div className="retro-modal-header p-6 text-center">
                 <div className="retro-scanlines opacity-30" />
-                <div className="h-24 mb-3 flex items-center justify-center overflow-hidden">
+                <div className="h-28 mb-3 flex items-center justify-center overflow-hidden">
                   {'spriteConfig' in selectedItem && selectedItem.spriteConfig ? (
                     <SpritePreview
                       animal={selectedItem as AnimalData}
-                      scale={Math.min(3, 96 / (selectedItem as AnimalData).spriteConfig!.frameHeight)}
+                      scale={Math.min(3, 112 / Math.max((selectedItem as AnimalData).spriteConfig!.frameWidth, (selectedItem as AnimalData).spriteConfig!.frameHeight))}
                     />
                   ) : (
                     <span className="text-6xl retro-pixel-shadow animate-bounce">
