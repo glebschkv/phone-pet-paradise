@@ -98,7 +98,7 @@ export const GameUI = () => {
   return (
     <div className="fixed inset-0 pointer-events-none z-40">
       {/* Unified Top Status Bar */}
-      <TopStatusBar currentTab={currentTab} />
+      <TopStatusBar currentTab={currentTab} onSettingsClick={() => setCurrentTab("settings")} />
 
       {/* Full Screen Content */}
       {currentTab !== "home" && (
