@@ -14,6 +14,9 @@ import {
   Sunset,
   Moon,
   Home,
+  Building2,
+  Columns,
+  Waves,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCollection } from "@/hooks/useCollection";
@@ -86,6 +89,9 @@ const BIOME_ICONS = {
   'Night': Moon,
   'Forest': TreePine,
   'Snow': Snowflake,
+  'City': Building2,
+  'Ruins': Columns,
+  'Deep Ocean': Waves,
 };
 
 // Map biome names to background theme IDs
@@ -95,6 +101,9 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
   'Night': 'night',
   'Forest': 'forest',
   'Snow': 'snow',
+  'City': 'day',
+  'Ruins': 'sunset',
+  'Deep Ocean': 'night',
 };
 
 const RARITY_STARS = {

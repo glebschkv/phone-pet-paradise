@@ -1012,6 +1012,27 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A magical winter wonderland of snow-capped peaks and arctic adventures.',
     animals: ['arctic-hare', 'metalshark', 'polar-bear', 'ice-crab', 'dragon1', 'frost-spirit', 'ice-shark', 'slime-boss1'],
     backgroundImage: '/assets/worlds/SKYPLATFORM_WORLD.png'
+  },
+  {
+    name: 'City',
+    unlockLevel: 24,
+    description: 'A bustling urban landscape where nature meets civilization.',
+    animals: [],
+    backgroundImage: '/assets/worlds/CITYFORPEOPLE.png'
+  },
+  {
+    name: 'Ruins',
+    unlockLevel: 29,
+    description: 'Ancient crumbling structures shrouded in mystery and forgotten secrets.',
+    animals: [],
+    backgroundImage: '/assets/worlds/RUINS.png'
+  },
+  {
+    name: 'Deep Ocean',
+    unlockLevel: 35,
+    description: 'The mysterious depths of the ocean where legendary creatures dwell.',
+    animals: [],
+    backgroundImage: '/assets/worlds/DEEP OCEAN.png'
   }
 ];
 
