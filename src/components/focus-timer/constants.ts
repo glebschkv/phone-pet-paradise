@@ -1,4 +1,5 @@
 import { Clock, Brain, Coffee, Sun, Sunset, Moon, TreePine, Snowflake, LucideIcon } from "lucide-react";
+import { FocusCategory } from "@/types/analytics";
 
 export const STORAGE_KEY = 'petIsland_unifiedTimer';
 export const BACKGROUND_THEME_KEY = 'petIsland_focusBackground';
@@ -28,6 +29,9 @@ export interface TimerState {
   sessionType: SessionType;
   completedSessions: number;
   soundEnabled: boolean;
+  // Task/intention tracking
+  category?: FocusCategory;
+  taskLabel?: string;
 }
 
 export interface TimerPreset {

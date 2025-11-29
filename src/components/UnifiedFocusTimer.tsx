@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { FocusCategory } from "@/types/analytics";
 import {
   TimerPreset,
   TIMER_PRESETS,
@@ -17,6 +18,8 @@ import { TimerDisplay } from "./focus-timer/TimerDisplay";
 import { TimerControls } from "./focus-timer/TimerControls";
 import { TimerPresetGrid } from "./focus-timer/TimerPresetGrid";
 import { TimerStats } from "./focus-timer/TimerStats";
+import { TaskIntentionModal } from "./focus-timer/TaskIntentionModal";
+import { FocusLockScreen } from "./focus-timer/FocusLockScreen";
 import { Analytics } from "./analytics";
 import { Timer, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -40,6 +43,8 @@ export const UnifiedFocusTimer = () => {
   const [backgroundTheme, setBackgroundTheme] = useState<string>('sky');
   const [displayTime, setDisplayTime] = useState<number>(timerState.timeLeft);
   const [currentView, setCurrentView] = useState<TimerView>('timer');
+  const [showIntentionModal, setShowIntentionModal] = useState(false);
+  const [showLockScreen, setShowLockScreen] = useState(false);
 
   // Refs for stable timer management
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -137,13 +142,15 @@ export const UnifiedFocusTimer = () => {
       }
     }
 
-    // Record session to analytics
+    // Record session to analytics with category info
     recordSession(
       timerState.sessionType,
       timerState.sessionDuration,
       timerState.sessionDuration, // Full duration completed
       'completed',
-      xpEarned
+      xpEarned,
+      timerState.category,
+      timerState.taskLabel
     );
 
     toast({
@@ -161,6 +168,8 @@ export const UnifiedFocusTimer = () => {
       timeLeft: timerState.sessionDuration,
       startTime: null,
       completedSessions: timerState.completedSessions + 1,
+      category: undefined,
+      taskLabel: undefined,
     });
 
     // Suggest break after work sessions
@@ -224,7 +233,10 @@ export const UnifiedFocusTimer = () => {
   // Page visibility API to handle app focus/blur
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (!document.hidden && timerState.isRunning && timerState.startTime) {
+      if (document.hidden && timerState.isRunning && timerState.sessionType !== 'break') {
+        // App going to background during work session - show lock screen
+        setShowLockScreen(true);
+      } else if (!document.hidden && timerState.isRunning && timerState.startTime) {
         // App coming to foreground - recalculate time
         const now = Date.now();
         const elapsedMs = now - timerState.startTime;
@@ -234,6 +246,9 @@ export const UnifiedFocusTimer = () => {
         setDisplayTime(newTimeLeft);
         saveTimerState({ timeLeft: newTimeLeft });
 
+        // Hide lock screen
+        setShowLockScreen(false);
+
         if (newTimeLeft === 0) {
           handleComplete();
         }
@@ -242,16 +257,38 @@ export const UnifiedFocusTimer = () => {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, saveTimerState, handleComplete]);
+  }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, timerState.sessionType, saveTimerState, handleComplete]);
 
-  const startTimer = useCallback(() => {
+  // Request to start timer - shows intention modal for work sessions
+  const requestStartTimer = useCallback(() => {
+    // For break sessions, start immediately without modal
+    if (selectedPreset.type === 'break') {
+      const now = Date.now();
+      setDisplayTime(timerState.timeLeft);
+      saveTimerState({
+        isRunning: true,
+        startTime: now,
+        sessionDuration: timerState.timeLeft,
+        category: undefined,
+        taskLabel: undefined,
+      });
+    } else {
+      // Show intention modal for work sessions
+      setShowIntentionModal(true);
+    }
+  }, [saveTimerState, timerState.timeLeft, selectedPreset.type]);
+
+  // Actually start timer with category info
+  const startTimerWithIntent = useCallback((category: FocusCategory, taskLabel?: string) => {
+    setShowIntentionModal(false);
     const now = Date.now();
     setDisplayTime(timerState.timeLeft);
     saveTimerState({
       isRunning: true,
       startTime: now,
-      // Calculate sessionDuration based on current timeLeft for resumed timers
       sessionDuration: timerState.timeLeft,
+      category,
+      taskLabel,
     });
   }, [saveTimerState, timerState.timeLeft]);
 
@@ -294,7 +331,9 @@ export const UnifiedFocusTimer = () => {
         timerState.sessionDuration,
         elapsedSeconds,
         'abandoned',
-        0
+        0,
+        timerState.category,
+        timerState.taskLabel
       );
     }
 
@@ -311,6 +350,8 @@ export const UnifiedFocusTimer = () => {
       timeLeft: fullDuration,
       sessionDuration: fullDuration,
       startTime: null,
+      category: undefined,
+      taskLabel: undefined,
     });
   }, [clearPersistence, saveTimerState, selectedPreset.duration, timerState, recordSession]);
 
@@ -366,7 +407,9 @@ export const UnifiedFocusTimer = () => {
         timerState.sessionDuration,
         elapsedSeconds,
         'skipped',
-        xpEarned
+        xpEarned,
+        timerState.category,
+        timerState.taskLabel
       );
     }
 
@@ -377,6 +420,8 @@ export const UnifiedFocusTimer = () => {
       timeLeft: fullDuration,
       sessionDuration: fullDuration,
       startTime: null,
+      category: undefined,
+      taskLabel: undefined,
     });
   }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, recordSession]);
 
@@ -453,10 +498,18 @@ export const UnifiedFocusTimer = () => {
 
         <TimerControls
           isRunning={timerState.isRunning}
-          onStart={startTimer}
+          onStart={requestStartTimer}
           onPause={pauseTimer}
           onStop={stopTimer}
           onSkip={skipTimer}
+        />
+
+        {/* Task Intention Modal */}
+        <TaskIntentionModal
+          isOpen={showIntentionModal}
+          onClose={() => setShowIntentionModal(false)}
+          onStart={startTimerWithIntent}
+          selectedPreset={selectedPreset}
         />
 
         <div className="mt-6">
@@ -475,6 +528,19 @@ export const UnifiedFocusTimer = () => {
           onThemeChange={changeBackgroundTheme}
         />
       </div>
+
+      {/* Focus Lock Screen - shows when app loses focus during work session */}
+      <FocusLockScreen
+        isVisible={showLockScreen}
+        timeRemaining={displayTime}
+        category={timerState.category}
+        taskLabel={timerState.taskLabel}
+        onReturnToApp={() => setShowLockScreen(false)}
+        onAbandonSession={() => {
+          setShowLockScreen(false);
+          stopTimer();
+        }}
+      />
     </div>
   );
 };
