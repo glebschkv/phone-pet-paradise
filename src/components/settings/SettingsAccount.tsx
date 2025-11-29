@@ -5,14 +5,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { User, Mail, LogOut, Trash2, Shield, UserCircle, Loader2 } from "lucide-react";
+import { User, Mail, LogOut, Trash2, Shield, UserCircle, Loader2, Crown, RefreshCw, ExternalLink } from "lucide-react";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useStoreKit } from "@/hooks/useStoreKit";
+import { Capacitor } from "@capacitor/core";
 
 export const SettingsAccount = () => {
   const { user, isGuestMode, signOut, session } = useAuth();
   const navigate = useNavigate();
+  const { isPremium, currentPlan, restorePurchases: restoreMock } = usePremiumStatus();
+  const storeKit = useStoreKit();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [isManaging, setIsManaging] = useState(false);
+
+  const isNative = Capacitor.isNativePlatform();
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -21,6 +30,42 @@ export const SettingsAccount = () => {
 
   const handleSignIn = () => {
     navigate('/auth');
+  };
+
+  const handleManageSubscriptions = async () => {
+    setIsManaging(true);
+    try {
+      if (isNative) {
+        await storeKit.manageSubscriptions();
+      } else {
+        // On web, open Apple's subscription management page
+        window.open('https://apps.apple.com/account/subscriptions', '_blank');
+      }
+    } catch (error) {
+      toast.error('Failed to open subscription management');
+    } finally {
+      setIsManaging(false);
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    setIsRestoring(true);
+    try {
+      if (isNative) {
+        await storeKit.restorePurchases();
+      } else {
+        const result = restoreMock();
+        if (result.success) {
+          toast.success(result.message);
+        } else {
+          toast.info(result.message);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to restore purchases');
+    } finally {
+      setIsRestoring(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -61,6 +106,79 @@ export const SettingsAccount = () => {
 
   return (
     <div className="space-y-3">
+      {/* Subscription Management */}
+      <div className="retro-card p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Crown className="w-4 h-4 text-amber-500" />
+          <Label className="text-sm font-bold">Subscription</Label>
+        </div>
+
+        <div className="space-y-3">
+          {/* Current Status */}
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border/50">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+              isPremium
+                ? 'bg-gradient-to-br from-amber-400 to-orange-400'
+                : 'bg-muted'
+            }`}>
+              <Crown className={`w-5 h-5 ${isPremium ? 'text-white' : 'text-muted-foreground'}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">
+                {isPremium ? currentPlan?.name || 'Premium' : 'Free Plan'}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                {isPremium
+                  ? currentPlan?.period === 'lifetime'
+                    ? 'Lifetime access'
+                    : `${currentPlan?.period === 'yearly' ? 'Annual' : 'Monthly'} subscription`
+                  : 'Limited features'}
+              </p>
+            </div>
+            {isPremium && (
+              <span className="px-2 py-1 text-[10px] font-medium bg-amber-100 text-amber-700 rounded-full">
+                Active
+              </span>
+            )}
+          </div>
+
+          {/* Manage Subscription Button - for premium users */}
+          {isPremium && (
+            <button
+              onClick={handleManageSubscriptions}
+              disabled={isManaging}
+              className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 font-semibold"
+              style={{ boxShadow: '0 2px 0 hsl(35 80% 35%)' }}
+            >
+              {isManaging ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <ExternalLink className="w-4 h-4" />
+              )}
+              <span className="text-sm">
+                {isManaging ? 'Opening...' : 'Manage Subscription'}
+              </span>
+            </button>
+          )}
+
+          {/* Restore Purchases Button */}
+          <button
+            onClick={handleRestorePurchases}
+            disabled={isRestoring}
+            className="w-full p-3 retro-stat-pill rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRestoring ? 'animate-spin' : ''}`} />
+            <span className="text-sm font-semibold">
+              {isRestoring ? 'Restoring...' : 'Restore Purchases'}
+            </span>
+          </button>
+
+          <p className="text-[10px] text-muted-foreground text-center">
+            Made a purchase on another device? Tap restore to recover it.
+          </p>
+        </div>
+      </div>
+
       {/* Account Info */}
       <div className="retro-card p-4">
         <div className="flex items-center gap-2 mb-4">
