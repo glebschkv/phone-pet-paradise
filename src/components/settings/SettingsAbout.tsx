@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Heart, ExternalLink, MessageCircle, Star, Sparkles, Clock, Grid3X3, Trophy, Shield, FileText } from "lucide-react";
+import { Heart, ExternalLink, MessageCircle, Star, Sparkles, Clock, Grid3X3, Trophy, Shield, FileText, ScrollText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const SettingsAbout = () => {
@@ -99,6 +99,15 @@ export const SettingsAbout = () => {
           >
             <FileText className="w-5 h-5" />
             <span className="text-sm font-semibold flex-1 text-left">Privacy Policy</span>
+            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+          </button>
+
+          <button
+            onClick={() => navigate('/terms')}
+            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
+          >
+            <ScrollText className="w-5 h-5" />
+            <span className="text-sm font-semibold flex-1 text-left">Terms of Service</span>
             <ExternalLink className="w-4 h-4 text-muted-foreground" />
           </button>
 
