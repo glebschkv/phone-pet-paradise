@@ -65,7 +65,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal flex flex-col">
         {/* Retro Header */}
-        <div className="retro-modal-header">
+        <div className="retro-modal-header flex-shrink-0">
           <DialogHeader>
             <DialogTitle className="text-white text-xl flex items-center gap-3 retro-pixel-text">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center border-2 border-red-400">
@@ -81,7 +81,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
 
         {/* Active Challenge Banner */}
         {activeChallenge.challenge && (
-          <div className="mx-4 mt-4 retro-game-card p-4 retro-active-challenge">
+          <div className="mx-4 mt-4 retro-game-card p-4 retro-active-challenge flex-shrink-0">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 retro-icon-badge">
@@ -154,8 +154,8 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
         </div>
 
         {/* Challenge List */}
-        <ScrollArea className="flex-1 min-h-0 max-h-[40vh] sm:max-h-[320px] px-4 py-3">
-          <div className="space-y-3 pb-2">
+        <ScrollArea className="flex-1 min-h-0 overflow-y-auto">
+          <div className="space-y-3 px-4 py-3 pb-4">
             {getChallengesByDifficulty(activeTab).map(({ challenge, status }) => (
               <div
                 key={challenge.id}
@@ -272,8 +272,8 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
           </div>
         </ScrollArea>
 
-        {/* Footer */}
-        <div className="p-3 border-t-2 border-purple-700/50 bg-purple-900/30">
+        {/* Footer - Fixed at bottom */}
+        <div className="flex-shrink-0 p-3 border-t-2 border-purple-700/50 bg-purple-900/30">
           <p className="text-xs text-center text-purple-400 retro-pixel-text">
             ⚡ COMPLETE FOCUS SESSIONS TO DEAL DAMAGE ⚡
           </p>
