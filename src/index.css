@@ -137,6 +137,11 @@
     @apply border-border;
   }
 
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
     /* iOS-style smooth font rendering */
@@ -146,8 +151,6 @@
     /* Disable text size adjustment on mobile */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    /* Prevent horizontal scroll on mobile */
-    overflow-x: hidden;
     /* Optimize touch scrolling */
     -webkit-overflow-scrolling: touch;
     /* Prevent zoom on double tap */
