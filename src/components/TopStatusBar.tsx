@@ -1,6 +1,6 @@
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
-import { Flame, Coins, Heart, Sparkles, ChevronDown } from "lucide-react";
+import { Flame, Coins, Heart, Sparkles, ChevronDown, Settings } from "lucide-react";
 import { useState } from "react";
 import {
   Popover,
@@ -26,9 +26,10 @@ const BIOME_CONFIG: Record<string, { bg: string; emoji: string }> = {
 
 interface TopStatusBarProps {
   currentTab: string;
+  onSettingsClick?: () => void;
 }
 
-export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
+export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps) => {
   const [statsOpen, setStatsOpen] = useState(false);
   const {
     currentLevel,
@@ -147,8 +148,9 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
         </div>
       </div>
 
-      {/* Biome Selector - Subtle Floating Pill */}
-      <div className="biome-float">
+      {/* Floating Controls - Biome Selector & Settings */}
+      <div className="top-bar-float">
+        {/* Biome Selector */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="biome-pill">
@@ -174,6 +176,15 @@ export const TopStatusBar = ({ currentTab }: TopStatusBarProps) => {
             })}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Settings Button */}
+        <button
+          onClick={onSettingsClick}
+          className="settings-circle-btn"
+          aria-label="Open settings"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

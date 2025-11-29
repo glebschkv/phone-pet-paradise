@@ -634,12 +634,50 @@
     color: hsl(25 80% 35%);
   }
 
-  /* Biome Floating Selector */
+  /* Floating Controls Container (Biome + Settings) */
+  .top-bar-float {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding-right: 4px;
+  }
+
+  /* Legacy support */
   .biome-float {
     display: flex;
     justify-content: flex-end;
     margin-top: 8px;
     padding-right: 4px;
+  }
+
+  /* Settings Circle Button */
+  .settings-circle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border) / 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px hsl(0 0% 0% / 0.04);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .settings-circle-btn:hover {
+    background: hsl(var(--card) / 0.8);
+    color: hsl(var(--foreground));
+  }
+
+  .settings-circle-btn:active {
+    transform: scale(0.92);
   }
 
   .biome-pill {
