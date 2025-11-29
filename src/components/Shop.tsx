@@ -25,16 +25,30 @@ import { toast } from "sonner";
 
 const RARITY_COLORS = {
   common: "from-slate-400 to-slate-500",
-  rare: "from-blue-400 to-blue-500",
-  epic: "from-purple-400 to-purple-500",
-  legendary: "from-amber-400 to-amber-500",
+  rare: "from-blue-400 to-blue-600",
+  epic: "from-purple-400 to-purple-600",
+  legendary: "from-amber-400 to-orange-500",
 };
 
-const RARITY_BORDERS = {
-  common: "border-slate-300",
-  rare: "border-blue-300",
-  epic: "border-purple-300",
-  legendary: "border-amber-300",
+const RARITY_BG = {
+  common: "bg-slate-100 dark:bg-slate-800",
+  rare: "bg-blue-50 dark:bg-blue-900/30",
+  epic: "bg-purple-50 dark:bg-purple-900/30",
+  legendary: "bg-amber-50 dark:bg-amber-900/30",
+};
+
+const RARITY_BORDER = {
+  common: "border-slate-300 dark:border-slate-600",
+  rare: "border-blue-300 dark:border-blue-500",
+  epic: "border-purple-300 dark:border-purple-500",
+  legendary: "border-amber-300 dark:border-amber-500",
+};
+
+const RARITY_GLOW = {
+  common: "",
+  rare: "shadow-blue-200/50 dark:shadow-blue-500/20",
+  epic: "shadow-purple-200/50 dark:shadow-purple-500/20",
+  legendary: "shadow-amber-200/50 dark:shadow-amber-500/30",
 };
 
 export const Shop = () => {
@@ -78,6 +92,19 @@ export const Shop = () => {
     }
   };
 
+  const getRarityStars = (rarity: string) => {
+    const count = rarity === 'common' ? 1 : rarity === 'rare' ? 2 : rarity === 'epic' ? 3 : 4;
+    return [...Array(count)].map((_, i) => (
+      <Star
+        key={i}
+        className={cn(
+          "w-3 h-3",
+          rarity === 'legendary' ? "text-amber-400 fill-amber-400 animate-pulse" : "text-amber-400 fill-amber-400"
+        )}
+      />
+    ));
+  };
+
   const renderCharacters = () => {
     const characters = getCoinExclusiveAnimals();
 
@@ -95,62 +122,62 @@ export const Shop = () => {
                 if (!owned) setShowPurchaseConfirm(true);
               }}
               className={cn(
-                "rounded-xl p-4 flex flex-col items-center relative transition-all active:scale-95",
-                "border-2",
-                owned ? "bg-green-50 border-green-200" : "bg-card",
-                !owned && RARITY_BORDERS[character.rarity]
+                "retro-shop-card group relative overflow-hidden",
+                "transition-all duration-200 active:scale-95",
+                owned && "retro-shop-card-owned",
+                !owned && RARITY_BG[character.rarity],
+                !owned && RARITY_BORDER[character.rarity],
+                !owned && character.rarity !== 'common' && `shadow-lg ${RARITY_GLOW[character.rarity]}`
               )}
-              style={{
-                boxShadow: '0 3px 0 hsl(var(--border) / 0.6)',
-              }}
             >
-              {/* Owned badge */}
-              {owned && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                  <Check className="w-4 h-4 text-white" />
-                </div>
-              )}
+              {/* Scanline overlay */}
+              <div className="retro-scanlines" />
 
-              {/* Rarity gradient header */}
+              {/* Rarity stripe */}
               <div className={cn(
-                "absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-gradient-to-r",
+                "absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r",
                 RARITY_COLORS[character.rarity]
               )} />
 
-              {/* Character emoji */}
-              <div className="text-4xl mb-2 mt-1">
-                {character.emoji}
-              </div>
-
-              {/* Stars */}
-              <div className="flex gap-0.5 mb-1">
-                {[...Array(character.rarity === 'common' ? 1 : character.rarity === 'rare' ? 2 : character.rarity === 'epic' ? 3 : 4)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-3 h-3 text-amber-400 fill-amber-400"
-                  />
-                ))}
-              </div>
-
-              {/* Name */}
-              <span className="text-xs font-bold text-center mb-2">
-                {character.name}
-              </span>
-
-              {/* Price or Owned */}
-              {owned ? (
-                <span className="text-xs font-semibold text-green-600">
-                  Owned
-                </span>
-              ) : (
-                <div className={cn(
-                  "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold",
-                  affordable ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"
-                )}>
-                  <Coins className="w-3 h-3" />
-                  {character.coinPrice?.toLocaleString()}
+              {/* Owned badge */}
+              {owned && (
+                <div className="absolute top-2 right-2 retro-badge-owned">
+                  <Check className="w-3.5 h-3.5 text-white" />
                 </div>
               )}
+
+              {/* Character display */}
+              <div className="relative pt-3 pb-2 px-3 flex flex-col items-center">
+                {/* Character emoji with pixel shadow */}
+                <div className="text-4xl mb-2 retro-pixel-shadow">
+                  {character.emoji}
+                </div>
+
+                {/* Stars */}
+                <div className="flex gap-0.5 mb-1.5">
+                  {getRarityStars(character.rarity)}
+                </div>
+
+                {/* Name with retro font */}
+                <span className="text-xs font-black text-center tracking-tight uppercase mb-2">
+                  {character.name}
+                </span>
+
+                {/* Price tag */}
+                {owned ? (
+                  <div className="retro-price-tag-owned">
+                    <span className="text-[10px] font-black uppercase">Owned</span>
+                  </div>
+                ) : (
+                  <div className={cn(
+                    "retro-price-tag",
+                    affordable ? "retro-price-tag-afford" : "retro-price-tag-expensive"
+                  )}>
+                    <Coins className="w-3.5 h-3.5" />
+                    <span className="text-xs font-black">{character.coinPrice?.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
             </button>
           );
         })}
@@ -188,67 +215,79 @@ export const Shop = () => {
               }}
               disabled={isBooster && boosterActive && !owned}
               className={cn(
-                "rounded-xl p-4 flex flex-col items-center relative transition-all active:scale-95",
-                "border-2",
-                owned ? "bg-green-50 border-green-200" : "bg-card border-border",
-                (isBooster && boosterActive) && "opacity-50",
-                item.rarity && !owned && RARITY_BORDERS[item.rarity]
+                "retro-shop-card group relative overflow-hidden",
+                "transition-all duration-200 active:scale-95",
+                owned && "retro-shop-card-owned",
+                !owned && item.rarity && RARITY_BG[item.rarity],
+                !owned && item.rarity && RARITY_BORDER[item.rarity],
+                !owned && item.rarity && item.rarity !== 'common' && `shadow-lg ${RARITY_GLOW[item.rarity]}`,
+                (isBooster && boosterActive) && "opacity-50 cursor-not-allowed"
               )}
-              style={{
-                boxShadow: '0 3px 0 hsl(var(--border) / 0.6)',
-              }}
             >
+              {/* Scanline overlay */}
+              <div className="retro-scanlines" />
+
+              {/* Rarity stripe */}
+              {item.rarity && (
+                <div className={cn(
+                  "absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r",
+                  RARITY_COLORS[item.rarity]
+                )} />
+              )}
+
               {/* Owned badge */}
               {owned && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                  <Check className="w-4 h-4 text-white" />
+                <div className="absolute top-2 right-2 retro-badge-owned">
+                  <Check className="w-3.5 h-3.5 text-white" />
                 </div>
               )}
 
               {/* Limited badge */}
               {item.isLimited && (
-                <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded">
-                  LIMITED
+                <div className="absolute top-2 left-2 retro-badge-limited">
+                  <span className="text-[8px] font-black uppercase tracking-wider">Limited</span>
                 </div>
               )}
 
-              {/* Rarity gradient header */}
-              {item.rarity && (
-                <div className={cn(
-                  "absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-gradient-to-r",
-                  RARITY_COLORS[item.rarity]
-                )} />
-              )}
+              {/* Item display */}
+              <div className="relative pt-3 pb-2 px-3 flex flex-col items-center">
+                {/* Icon */}
+                <div className="text-3xl mb-2 retro-pixel-shadow">
+                  {item.icon}
+                </div>
 
-              {/* Icon */}
-              <div className="text-3xl mb-2 mt-1">
-                {item.icon}
-              </div>
+                {/* Stars */}
+                {item.rarity && (
+                  <div className="flex gap-0.5 mb-1">
+                    {getRarityStars(item.rarity)}
+                  </div>
+                )}
 
-              {/* Name */}
-              <span className="text-xs font-bold text-center mb-1">
-                {item.name}
-              </span>
-
-              {/* Description */}
-              <span className="text-[10px] text-muted-foreground text-center mb-2 line-clamp-2">
-                {item.description}
-              </span>
-
-              {/* Price */}
-              {owned ? (
-                <span className="text-xs font-semibold text-green-600">
-                  Owned
+                {/* Name */}
+                <span className="text-[10px] font-black text-center tracking-tight uppercase mb-1">
+                  {item.name}
                 </span>
-              ) : item.coinPrice ? (
-                <div className={cn(
-                  "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold",
-                  affordable ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"
-                )}>
-                  <Coins className="w-3 h-3" />
-                  {item.coinPrice.toLocaleString()}
-                </div>
-              ) : null}
+
+                {/* Description */}
+                <span className="text-[9px] text-muted-foreground text-center mb-2 line-clamp-2 leading-tight px-1">
+                  {item.description}
+                </span>
+
+                {/* Price */}
+                {owned ? (
+                  <div className="retro-price-tag-owned">
+                    <span className="text-[10px] font-black uppercase">Owned</span>
+                  </div>
+                ) : item.coinPrice ? (
+                  <div className={cn(
+                    "retro-price-tag",
+                    affordable ? "retro-price-tag-afford" : "retro-price-tag-expensive"
+                  )}>
+                    <Coins className="w-3.5 h-3.5" />
+                    <span className="text-xs font-black">{item.coinPrice.toLocaleString()}</span>
+                  </div>
+                ) : null}
+              </div>
             </button>
           );
         })}
@@ -266,50 +305,56 @@ export const Shop = () => {
               toast.info("In-app purchases coming soon!");
             }}
             className={cn(
-              "w-full rounded-xl p-4 flex items-center gap-4 relative transition-all active:scale-[0.98]",
-              "border-2 bg-card",
-              pack.rarity && RARITY_BORDERS[pack.rarity]
+              "retro-shop-card-horizontal w-full relative overflow-hidden",
+              "transition-all duration-200 active:scale-[0.98]",
+              pack.rarity && RARITY_BG[pack.rarity],
+              pack.rarity && RARITY_BORDER[pack.rarity]
             )}
-            style={{
-              boxShadow: '0 3px 0 hsl(var(--border) / 0.6)',
-            }}
           >
-            {/* Best value badge */}
-            {pack.isBestValue && (
-              <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-bold rounded-full shadow">
-                BEST VALUE
-              </div>
-            )}
+            {/* Scanline overlay */}
+            <div className="retro-scanlines" />
 
-            {/* Rarity gradient header */}
+            {/* Rarity stripe */}
             {pack.rarity && (
               <div className={cn(
-                "absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-gradient-to-r",
+                "absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r",
                 RARITY_COLORS[pack.rarity]
               )} />
             )}
 
-            {/* Icon */}
-            <div className="text-4xl">
-              {pack.icon}
-            </div>
-
-            {/* Info */}
-            <div className="flex-1 text-left">
-              <div className="font-bold text-sm">{pack.name}</div>
-              <div className="text-amber-600 font-bold">
-                {pack.coinAmount.toLocaleString()} coins
-                {pack.bonusCoins && (
-                  <span className="text-green-600 ml-1">
-                    +{pack.bonusCoins.toLocaleString()} bonus!
-                  </span>
-                )}
+            {/* Best value badge */}
+            {pack.isBestValue && (
+              <div className="absolute -top-1 -right-1 retro-badge-best-value">
+                <span className="text-[9px] font-black uppercase">Best Value</span>
               </div>
-            </div>
+            )}
 
-            {/* Price */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-bold">
-              {pack.iapPrice}
+            <div className="relative flex items-center gap-4 p-4 pt-5">
+              {/* Icon */}
+              <div className="text-4xl retro-pixel-shadow flex-shrink-0">
+                {pack.icon}
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 text-left">
+                <div className="font-black text-sm uppercase tracking-tight">{pack.name}</div>
+                <div className="flex items-center gap-1 mt-1">
+                  <Coins className="w-4 h-4 text-amber-500" />
+                  <span className="text-amber-600 dark:text-amber-400 font-black">
+                    {pack.coinAmount.toLocaleString()}
+                  </span>
+                  {pack.bonusCoins && (
+                    <span className="text-green-600 dark:text-green-400 font-bold text-sm ml-1">
+                      +{pack.bonusCoins.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Price */}
+              <div className="retro-iap-button">
+                <span className="font-black">{pack.iapPrice}</span>
+              </div>
             </div>
           </button>
         ))}
@@ -318,28 +363,30 @@ export const Shop = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24" style={{
-      background: 'linear-gradient(180deg, hsl(45 60% 90%) 0%, hsl(45 40% 95%) 50%, hsl(200 30% 95%) 100%)'
-    }}>
-      {/* Header with coin balance */}
-      <div className="retro-card mx-3 mt-3 p-4">
-        <div className="flex items-center justify-between">
+    <div className="retro-shop-container min-h-screen pb-24">
+      {/* Decorative pixel corners */}
+      <div className="retro-corner retro-corner-tl" />
+      <div className="retro-corner retro-corner-tr" />
+
+      {/* Header */}
+      <div className="retro-shop-header mx-3 mt-3">
+        <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="retro-shop-icon">
               <ShoppingBag className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="text-lg font-bold">Shop</div>
-              <div className="text-xs text-muted-foreground">
-                Exclusive items & characters
-              </div>
+              <h1 className="text-lg font-black uppercase tracking-tight">Shop</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                Exclusive Items & Pets
+              </p>
             </div>
           </div>
 
           {/* Coin balance */}
-          <div className="flex items-center gap-2 bg-gradient-to-r from-amber-100 to-amber-200 px-4 py-2 rounded-full border-2 border-amber-300">
+          <div className="retro-coin-display">
             <Coins className="w-5 h-5 text-amber-600" />
-            <span className="font-bold text-amber-700">
+            <span className="font-black text-amber-700 dark:text-amber-400">
               {coinBalance.toLocaleString()}
             </span>
           </div>
@@ -347,35 +394,35 @@ export const Shop = () => {
 
         {/* Active booster indicator */}
         {isBoosterActive() && activeBooster && (
-          <div className="mt-3 flex items-center gap-2 bg-gradient-to-r from-purple-100 to-purple-200 px-3 py-2 rounded-lg border border-purple-300">
-            <Zap className="w-4 h-4 text-purple-600" />
-            <span className="text-sm font-semibold text-purple-700">
-              {getCurrentMultiplier()}x Coin Boost Active
-            </span>
-            <div className="flex items-center gap-1 ml-auto text-xs text-purple-600">
+          <div className="retro-booster-banner mx-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-purple-600 animate-pulse" />
+              <span className="text-sm font-bold text-purple-700 dark:text-purple-300">
+                {getCurrentMultiplier()}x Boost Active!
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
               <Clock className="w-3 h-3" />
-              {getTimeRemainingFormatted()}
+              <span className="font-mono font-bold">{getTimeRemainingFormatted()}</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Category tabs */}
-      <div className="mx-3 mt-3 overflow-x-auto">
+      <div className="mx-3 mt-3 overflow-x-auto scrollbar-hide">
         <div className="flex gap-2 pb-2">
           {SHOP_CATEGORIES.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
               className={cn(
-                "flex items-center gap-1.5 px-4 py-2 rounded-full font-semibold text-sm whitespace-nowrap transition-all",
-                activeCategory === category.id
-                  ? "bg-gradient-to-r from-amber-400 to-amber-500 text-white shadow-md"
-                  : "bg-card border-2 border-border text-muted-foreground"
+                "retro-category-tab",
+                activeCategory === category.id && "retro-category-tab-active"
               )}
             >
-              <span>{category.icon}</span>
-              <span>{category.name}</span>
+              <span className="text-base">{category.icon}</span>
+              <span className="text-xs font-bold uppercase tracking-tight">{category.name}</span>
             </button>
           ))}
         </div>
@@ -388,53 +435,61 @@ export const Shop = () => {
 
       {/* Purchase Confirmation Modal */}
       <Dialog open={showPurchaseConfirm} onOpenChange={setShowPurchaseConfirm}>
-        <DialogContent className="max-w-xs retro-card border-2 border-border p-0 overflow-hidden">
+        <DialogContent className="retro-modal max-w-xs p-0 overflow-hidden border-0">
           {selectedItem && (
             <>
-              <div className="p-6 text-center" style={{
-                background: 'linear-gradient(180deg, hsl(45 80% 90%) 0%, hsl(var(--card)) 100%)'
-              }}>
-                {/* Item icon/emoji */}
-                <div className="text-5xl mb-3">
+              {/* Modal header with gradient */}
+              <div className="retro-modal-header p-6 text-center">
+                {/* Scanlines */}
+                <div className="retro-scanlines opacity-30" />
+
+                {/* Item icon */}
+                <div className="text-6xl mb-3 retro-pixel-shadow animate-bounce">
                   {'emoji' in selectedItem ? selectedItem.emoji : selectedItem.icon}
                 </div>
 
                 <DialogHeader>
-                  <DialogTitle className="text-lg font-bold">
+                  <DialogTitle className="text-xl font-black uppercase tracking-tight">
                     {selectedItem.name}
                   </DialogTitle>
                 </DialogHeader>
 
                 {/* Rarity badge */}
                 {'rarity' in selectedItem && selectedItem.rarity && (
-                  <div className="flex justify-center mt-2">
+                  <div className="flex justify-center mt-3">
                     <span className={cn(
-                      "px-3 py-1 rounded-full text-xs font-bold capitalize text-white",
+                      "retro-rarity-badge",
                       `bg-gradient-to-r ${RARITY_COLORS[selectedItem.rarity]}`
                     )}>
-                      {selectedItem.rarity}
+                      {getRarityStars(selectedItem.rarity)}
+                      <span className="ml-1 text-xs font-black uppercase">
+                        {selectedItem.rarity}
+                      </span>
                     </span>
                   </div>
                 )}
               </div>
 
-              <div className="p-4 space-y-4">
-                <p className="text-sm text-muted-foreground text-center">
+              {/* Modal body */}
+              <div className="p-4 space-y-4 bg-card">
+                <p className="text-sm text-muted-foreground text-center leading-relaxed">
                   {selectedItem.description}
                 </p>
 
                 {/* Price display */}
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-muted-foreground">Price:</span>
-                  <div className="flex items-center gap-1 text-amber-600 font-bold text-lg">
-                    <Coins className="w-5 h-5" />
-                    {('coinPrice' in selectedItem ? selectedItem.coinPrice : 0)?.toLocaleString()}
+                <div className="retro-price-display">
+                  <span className="text-muted-foreground text-sm">Price:</span>
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-5 h-5 text-amber-500" />
+                    <span className="text-xl font-black text-amber-600 dark:text-amber-400">
+                      {('coinPrice' in selectedItem ? selectedItem.coinPrice : 0)?.toLocaleString()}
+                    </span>
                   </div>
                 </div>
 
                 {/* Balance after purchase */}
-                <div className="text-center text-sm text-muted-foreground">
-                  Balance after: {(coinBalance - ('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)).toLocaleString()} coins
+                <div className="text-center text-xs text-muted-foreground">
+                  Balance after: <span className="font-bold">{(coinBalance - ('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)).toLocaleString()}</span> coins
                 </div>
 
                 {/* Purchase button */}
@@ -442,21 +497,21 @@ export const Shop = () => {
                   onClick={handlePurchase}
                   disabled={!canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)}
                   className={cn(
-                    "w-full py-3 rounded-lg font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2",
+                    "retro-purchase-button w-full",
                     canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)
-                      ? "bg-gradient-to-r from-green-500 to-green-600 text-white"
-                      : "bg-muted text-muted-foreground cursor-not-allowed"
+                      ? "retro-purchase-button-active"
+                      : "retro-purchase-button-disabled"
                   )}
                 >
                   {canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0) ? (
                     <>
-                      <Sparkles className="w-4 h-4" />
-                      Purchase
+                      <Sparkles className="w-5 h-5" />
+                      <span className="font-black uppercase tracking-wide">Purchase</span>
                     </>
                   ) : (
                     <>
-                      <Lock className="w-4 h-4" />
-                      Not Enough Coins
+                      <Lock className="w-5 h-5" />
+                      <span className="font-black uppercase tracking-wide">Not Enough</span>
                     </>
                   )}
                 </button>
@@ -464,9 +519,9 @@ export const Shop = () => {
                 {/* Cancel button */}
                 <button
                   onClick={() => setShowPurchaseConfirm(false)}
-                  className="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="retro-cancel-button w-full"
                 >
-                  Cancel
+                  <span className="text-sm font-bold uppercase">Cancel</span>
                 </button>
               </div>
             </>
