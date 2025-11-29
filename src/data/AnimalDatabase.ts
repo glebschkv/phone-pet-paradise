@@ -96,7 +96,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A bouncy and cheerful slime that hops through the meadow spreading joy.',
     abilities: ['Bounce', 'Jelly Shield', 'Happy Hop'],
     biome: 'Meadow',
-    groundOffset: -8,
+    groundOffset: -18,
     spriteConfig: {
       spritePath: '/assets/sprites/Slime1_Walk_without_shadow.png',
       frameCount: 8,
@@ -299,7 +299,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A blue slime that has adapted to the forest, more agile than its meadow cousin.',
     abilities: ['Forest Bounce', 'Camouflage', 'Rapid Split'],
     biome: 'Forest',
-    groundOffset: -8,
+    groundOffset: -18,
     spriteConfig: {
       spritePath: '/assets/sprites/Slime2_Walk_without_shadow.png',
       frameCount: 8,
@@ -351,7 +351,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A rare purple slime that has evolved over centuries, wielding mystical powers.',
     abilities: ['Mystic Bounce', 'Ancient Knowledge', 'Power Absorption'],
     biome: 'Forest',
-    groundOffset: -8,
+    groundOffset: -18,
     spriteConfig: {
       spritePath: '/assets/sprites/Slime3_Walk_without_shadow.png',
       frameCount: 8,
@@ -510,7 +510,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'The massive ruler of all slimes, commanding respect with its enormous size.',
     abilities: ['Royal Bounce', 'Slime Army', 'Crown Shield', 'Mega Absorption'],
     biome: 'Snow',
-    groundOffset: -5,
+    groundOffset: -12,
     spriteConfig: {
       spritePath: '/assets/sprites/Slime_boss1_Walk_without_shadow.png',
       frameCount: 8,
@@ -567,7 +567,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'The ultimate evolution of slime-kind, wielding power beyond imagination.',
     abilities: ['Emperor Decree', 'Slime Tsunami', 'Absorption Field', 'Ultimate Split'],
     biome: 'Night',
-    groundOffset: -5,
+    groundOffset: -12,
     spriteConfig: {
       spritePath: '/assets/sprites/Slime_boss2_Walk_without_shadow.png',
       frameCount: 8,
@@ -636,7 +636,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A transcendent slime that has achieved divine status, radiating pure energy.',
     abilities: ['Divine Bounce', 'Celestial Split', 'Holy Shield', 'Purification'],
     biome: 'Meadow',
-    groundOffset: -5,
+    groundOffset: -12,
     spriteConfig: {
       spritePath: '/assets/sprites/Slime_boss3_Walk_without_shadow.png',
       frameCount: 8,
@@ -868,7 +868,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Snow',
     coinPrice: 2500,
     isExclusive: true,
-    groundOffset: -5,
+    groundOffset: -12,
     spriteConfig: {
       spritePath: '/assets/sprites/Slime_boss1_Walk_without_shadow.png',
       frameCount: 8,
@@ -888,7 +888,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Night',
     coinPrice: 4500,
     isExclusive: true,
-    groundOffset: -5,
+    groundOffset: -12,
     spriteConfig: {
       spritePath: '/assets/sprites/Slime_boss2_Walk_without_shadow.png',
       frameCount: 8,
@@ -908,7 +908,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Meadow',
     coinPrice: 6000,
     isExclusive: true,
-    groundOffset: -5,
+    groundOffset: -12,
     spriteConfig: {
       spritePath: '/assets/sprites/Slime_boss3_Walk_without_shadow.png',
       frameCount: 8,
