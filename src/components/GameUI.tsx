@@ -7,7 +7,6 @@ import { IOSTabBar } from "@/components/IOSTabBar";
 import { PetCollectionGrid } from "@/components/PetCollectionGrid";
 import { Settings } from "@/components/Settings";
 import { Shop } from "@/components/Shop";
-import { Analytics } from "@/components/analytics";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -53,8 +52,6 @@ export const GameUI = () => {
         return <UnifiedFocusTimer />;
       case "collection":
         return <PetCollectionGrid />;
-      case "analytics":
-        return <Analytics />;
       case "shop":
         return <Shop />;
       case "settings":

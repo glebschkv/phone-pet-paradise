@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { Timer, Home, ShoppingBag, Grid3X3, Settings, Sparkles, ChevronUp, ChevronDown, BarChart3 } from "lucide-react";
+import { Timer, Home, ShoppingBag, Grid3X3, Settings, Sparkles, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TabBarProps {
@@ -14,7 +14,6 @@ const tabs = [
   { id: "home", icon: Home, label: "Home" },
   { id: "timer", icon: Timer, label: "Focus", isCenter: true },
   { id: "collection", icon: Grid3X3, label: "Pets" },
-  { id: "analytics", icon: BarChart3, label: "Stats" },
   { id: "shop", icon: ShoppingBag, label: "Shop" },
   { id: "settings", icon: Settings, label: "Settings" },
 ];
@@ -24,8 +23,8 @@ const orderedTabs = [
   tabs[0], // Home
   tabs[2], // Collection
   tabs[1], // Timer (center)
-  tabs[3], // Analytics
-  tabs[5], // Settings
+  tabs[3], // Shop
+  tabs[4], // Settings
 ];
 
 export const IOSTabBar = ({ activeTab, onTabChange, isCompact = false, onCompactChange }: TabBarProps) => {

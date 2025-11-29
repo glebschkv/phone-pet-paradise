@@ -42,16 +42,8 @@ export const Analytics = () => {
   const last7Days = getDailyStatsRange(7);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
-        <div className="flex items-center gap-2 px-4 py-3">
-          <BarChart3 className="w-5 h-5 text-primary" />
-          <h1 className="text-lg font-bold">Analytics</h1>
-        </div>
-      </div>
-
-      <div className="px-4 py-4 space-y-4">
+    <div className="pb-24">
+      <div className="px-4 py-2 space-y-4">
         {/* Stat Cards */}
         <AnalyticsStatCards
           todayFocusTime={todayStats.totalFocusTime}

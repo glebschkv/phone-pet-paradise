@@ -17,6 +17,11 @@ import { TimerDisplay } from "./focus-timer/TimerDisplay";
 import { TimerControls } from "./focus-timer/TimerControls";
 import { TimerPresetGrid } from "./focus-timer/TimerPresetGrid";
 import { TimerStats } from "./focus-timer/TimerStats";
+import { Analytics } from "./analytics";
+import { Timer, BarChart3 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type TimerView = 'timer' | 'stats';
 
 export const UnifiedFocusTimer = () => {
   const { toast } = useToast();
@@ -34,6 +39,7 @@ export const UnifiedFocusTimer = () => {
 
   const [backgroundTheme, setBackgroundTheme] = useState<string>('sky');
   const [displayTime, setDisplayTime] = useState<number>(timerState.timeLeft);
+  const [currentView, setCurrentView] = useState<TimerView>('timer');
 
   // Refs for stable timer management
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -378,11 +384,64 @@ export const UnifiedFocusTimer = () => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });
   }, [saveTimerState, timerState.soundEnabled]);
 
+  // View toggle component
+  const ViewToggle = () => (
+    <div className="flex gap-1 p-1 bg-black/20 backdrop-blur-sm rounded-xl">
+      <button
+        onClick={() => setCurrentView('timer')}
+        className={cn(
+          "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
+          currentView === 'timer'
+            ? "bg-white text-gray-900 shadow-md"
+            : "text-white/80 hover:text-white hover:bg-white/10"
+        )}
+      >
+        <Timer className="w-4 h-4" />
+        Timer
+      </button>
+      <button
+        onClick={() => setCurrentView('stats')}
+        className={cn(
+          "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
+          currentView === 'stats'
+            ? "bg-white text-gray-900 shadow-md"
+            : "text-white/80 hover:text-white hover:bg-white/10"
+        )}
+      >
+        <BarChart3 className="w-4 h-4" />
+        Stats
+      </button>
+    </div>
+  );
+
+  // Render stats view
+  if (currentView === 'stats') {
+    return (
+      <div className="min-h-screen w-full relative overflow-hidden">
+        <FocusBackground theme={backgroundTheme} />
+        <div className="relative z-10">
+          {/* View Toggle - Fixed at top */}
+          <div className="sticky top-0 z-20 flex justify-center pt-4 pb-2">
+            <ViewToggle />
+          </div>
+          {/* Analytics Content */}
+          <Analytics />
+        </div>
+      </div>
+    );
+  }
+
+  // Render timer view
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
       <FocusBackground theme={backgroundTheme} />
 
-      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-16 pb-32">
+      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-4 pb-32">
+        {/* View Toggle */}
+        <div className="mb-4">
+          <ViewToggle />
+        </div>
+
         <TimerDisplay
           preset={selectedPreset}
           timeLeft={displayTime}
