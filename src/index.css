@@ -1292,4 +1292,141 @@
   .biome-option {
     /* Deprecated - use new styles */
   }
+
+  /* ---- GAMIFICATION CELEBRATIONS ---- */
+
+  /* Celebration particle animation */
+  @keyframes celebration-particle {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(500px) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  .animate-celebration-particle {
+    animation: celebration-particle 2s ease-out forwards;
+  }
+
+  /* Combo fire animation */
+  @keyframes combo-fire {
+    0%, 100% {
+      transform: scale(1);
+      filter: brightness(1);
+    }
+    50% {
+      transform: scale(1.1);
+      filter: brightness(1.2);
+    }
+  }
+
+  .combo-fire-animate {
+    animation: combo-fire 0.5s ease-in-out;
+  }
+
+  /* Lucky wheel spin animation */
+  @keyframes wheel-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .wheel-spinning {
+    animation: wheel-spin 0.5s linear infinite;
+  }
+
+  /* Battle pass tier unlock animation */
+  @keyframes tier-unlock {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 hsl(45 100% 50% / 0.7);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 0 10px hsl(45 100% 50% / 0);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 hsl(45 100% 50% / 0);
+    }
+  }
+
+  .tier-unlock-animate {
+    animation: tier-unlock 0.6s ease-out;
+  }
+
+  /* Boss challenge active pulse */
+  @keyframes boss-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(350 80% 50% / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px hsl(350 80% 50% / 0);
+    }
+  }
+
+  .boss-challenge-active {
+    animation: boss-pulse 1.5s ease-in-out infinite;
+  }
+
+  /* Event banner glow */
+  @keyframes event-glow {
+    0%, 100% {
+      box-shadow: 0 0 10px hsl(var(--primary) / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.5);
+    }
+  }
+
+  .event-banner-glow {
+    animation: event-glow 2s ease-in-out infinite;
+  }
+
+  /* Jackpot celebration */
+  @keyframes jackpot-shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+
+  .jackpot-animate {
+    animation: jackpot-shake 0.8s ease-in-out;
+  }
+
+  /* Rainbow text effect for legendary items */
+  @keyframes rainbow-shift {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+  }
+
+  .rainbow-text {
+    animation: rainbow-shift 3s linear infinite;
+  }
+
+  /* Guild contribution pulse */
+  @keyframes guild-contribute {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  .guild-contribute-pulse {
+    animation: guild-contribute 0.5s ease-out forwards;
+  }
 }

@@ -61,6 +61,15 @@ export const STORAGE_KEYS = {
   ANALYTICS_DAILY_STATS: 'pet_paradise_analytics_daily_stats',
   ANALYTICS_SETTINGS: 'pet_paradise_analytics_settings',
   ANALYTICS_RECORDS: 'pet_paradise_analytics_records',
+
+  // Advanced Gamification
+  BATTLE_PASS: 'pet_paradise_battle_pass',
+  GUILD_DATA: 'pet_paradise_guild_data',
+  BOSS_CHALLENGES: 'pet_paradise_boss_challenges',
+  LUCKY_WHEEL: 'pet_paradise_lucky_wheel',
+  COMBO_SYSTEM: 'pet_paradise_combo_system',
+  SPECIAL_EVENTS: 'pet_paradise_special_events',
+  MILESTONES: 'pet_paradise_milestones',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

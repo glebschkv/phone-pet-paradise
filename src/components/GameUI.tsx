@@ -7,6 +7,10 @@ import { IOSTabBar } from "@/components/IOSTabBar";
 import { PetCollectionGrid } from "@/components/PetCollectionGrid";
 import { Settings } from "@/components/Settings";
 import { Shop } from "@/components/Shop";
+import { GamificationHub, MilestoneCelebration } from "@/components/gamification";
+import { useXPSystem } from "@/hooks/useXPSystem";
+import { useCoinSystem } from "@/hooks/useCoinSystem";
+import { useMilestoneCelebrations } from "@/hooks/useMilestoneCelebrations";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -22,6 +26,34 @@ export const GameUI = () => {
     dailyLoginRewards,
     handleClaimDailyReward,
   } = useAppStateTracking();
+
+  // Gamification hooks
+  const { addDirectXP } = useXPSystem();
+  const { addCoins } = useCoinSystem();
+  const { checkMilestone } = useMilestoneCelebrations();
+
+  // Handlers for gamification rewards
+  const handleXPReward = (amount: number) => {
+    const result = addDirectXP(amount);
+    toast.success(`+${amount} XP earned!`);
+    if (result.leveledUp) {
+      checkMilestone('level', result.newLevel);
+    }
+  };
+
+  const handleCoinReward = (amount: number) => {
+    addCoins(amount);
+    toast.success(`+${amount} Coins earned!`);
+  };
+
+  const handleMilestoneClaim = (milestone: { rewards?: { xp?: number; coins?: number } }) => {
+    if (milestone.rewards?.xp) {
+      addDirectXP(milestone.rewards.xp);
+    }
+    if (milestone.rewards?.coins) {
+      addCoins(milestone.rewards.coins);
+    }
+  };
 
   const handleDailyRewardClaim = () => {
     const { dailyReward, xpReward } = handleClaimDailyReward();
@@ -52,6 +84,8 @@ export const GameUI = () => {
         return <UnifiedFocusTimer />;
       case "collection":
         return <PetCollectionGrid />;
+      case "challenges":
+        return <GamificationHub onXPReward={handleXPReward} onCoinReward={handleCoinReward} />;
       case "shop":
         return <Shop />;
       case "settings":
@@ -99,6 +133,9 @@ export const GameUI = () => {
         currentStreak={dailyLoginRewards.loginState.currentStreak}
         allRewards={dailyLoginRewards.dailyRewards}
       />
+
+      {/* Milestone Celebration */}
+      <MilestoneCelebration onClaimReward={handleMilestoneClaim} />
     </div>
   );
 };
