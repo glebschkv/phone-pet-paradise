@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useBattlePass } from '@/hooks/useBattlePass';
+import { SEASONS } from '@/data/GamificationData';
 import { cn } from '@/lib/utils';
 import { Lock, Check, Gift, Crown, ChevronLeft, ChevronRight, Star, Sparkles } from 'lucide-react';
 
@@ -13,11 +14,49 @@ interface BattlePassModalProps {
 }
 
 export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassModalProps) => {
-  const { state, currentSeason, claimTierReward, getProgress, isTierClaimed } = useBattlePass();
+  const { state, currentSeason, claimTierReward, getProgress, isTierClaimed, upgradeToPremium } = useBattlePass();
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
+  const [viewingSeasonIndex, setViewingSeasonIndex] = useState<number>(() => {
+    // Start with the current season
+    const currentIndex = SEASONS.findIndex(s => s.id === currentSeason?.id);
+    return currentIndex >= 0 ? currentIndex : 0;
+  });
   const progress = getProgress();
 
-  if (!currentSeason) {
+  // Get the season being viewed
+  const viewingSeason = SEASONS[viewingSeasonIndex];
+  const isViewingCurrentSeason = viewingSeason?.id === currentSeason?.id;
+
+  // Navigation functions
+  const canGoPrev = viewingSeasonIndex > 0;
+  const canGoNext = viewingSeasonIndex < SEASONS.length - 1;
+
+  const goToPrevSeason = () => {
+    if (canGoPrev) {
+      setViewingSeasonIndex(prev => prev - 1);
+    }
+  };
+
+  const goToNextSeason = () => {
+    if (canGoNext) {
+      setViewingSeasonIndex(prev => prev + 1);
+    }
+  };
+
+  // Calculate days remaining for the viewing season
+  const viewingSeasonDaysRemaining = useMemo(() => {
+    if (!viewingSeason) return 0;
+    const endDate = new Date(viewingSeason.endDate);
+    const now = new Date();
+    return Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  }, [viewingSeason]);
+
+  // Handle premium upgrade
+  const handlePremiumUpgrade = () => {
+    upgradeToPremium();
+  };
+
+  if (!currentSeason || !viewingSeason) {
     return null;
   }
 
@@ -68,35 +107,53 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center border-2 border-yellow-400">
                 <Crown className="w-5 h-5 text-white" />
               </div>
-              <span className="retro-neon-yellow">{currentSeason.name.toUpperCase()}</span>
+              <span className="retro-neon-yellow">{viewingSeason.name.toUpperCase()}</span>
             </DialogTitle>
           </DialogHeader>
 
           <p className="text-purple-200/80 text-sm mt-2 relative">
-            {currentSeason.description}
+            {viewingSeason.description}
           </p>
 
-          {/* XP Progress Bar */}
-          <div className="mt-4 space-y-2 relative">
-            <div className="flex justify-between text-xs">
-              <span className="text-cyan-400 retro-pixel-text">LEVEL {progress.currentTier}</span>
-              <span className="text-purple-300">{progress.daysRemaining} days left</span>
+          {/* XP Progress Bar - Only show for current season */}
+          {isViewingCurrentSeason ? (
+            <div className="mt-4 space-y-2 relative">
+              <div className="flex justify-between text-xs">
+                <span className="text-cyan-400 retro-pixel-text">LEVEL {progress.currentTier}</span>
+                <span className="text-purple-300">{progress.daysRemaining} days left</span>
+              </div>
+              <div className="retro-health-bar retro-health-bar-purple">
+                <div
+                  className="retro-health-bar-fill"
+                  style={{ width: `${progress.progressPercent}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-purple-300/60">
+                <span className="retro-neon-text">{progress.currentXP} XP</span>
+                <span>{progress.xpToNextTier} XP to next level</span>
+              </div>
             </div>
-            <div className="retro-health-bar retro-health-bar-purple">
-              <div
-                className="retro-health-bar-fill"
-                style={{ width: `${progress.progressPercent}%` }}
-              />
+          ) : (
+            <div className="mt-4 space-y-2 relative">
+              <div className="flex justify-between text-xs">
+                <span className="text-purple-400 retro-pixel-text">
+                  {viewingSeasonDaysRemaining > 0 ? 'UPCOMING SEASON' : 'PAST SEASON'}
+                </span>
+                <span className="text-purple-300">
+                  {viewingSeasonDaysRemaining > 0
+                    ? `Starts in ${viewingSeasonDaysRemaining} days`
+                    : 'Season ended'}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between text-xs text-purple-300/60">
-              <span className="retro-neon-text">{progress.currentXP} XP</span>
-              <span>{progress.xpToNextTier} XP to next level</span>
-            </div>
-          </div>
+          )}
 
-          {/* Premium Upgrade Button */}
-          {!state.isPremium && (
-            <button className="w-full mt-3 retro-arcade-btn retro-arcade-btn-yellow py-3 text-sm flex items-center justify-center gap-2 touch-manipulation select-none active:scale-95">
+          {/* Premium Upgrade Button - Only show for current season */}
+          {isViewingCurrentSeason && !state.isPremium && (
+            <button
+              onClick={handlePremiumUpgrade}
+              className="w-full mt-3 retro-arcade-btn retro-arcade-btn-yellow py-3 text-sm flex items-center justify-center gap-2 touch-manipulation select-none active:scale-95"
+            >
               <Sparkles className="w-4 h-4" />
               UNLOCK PREMIUM REWARDS
             </button>
@@ -106,11 +163,13 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
         {/* Tiers List */}
         <ScrollArea className="flex-1 min-h-0 max-h-[45vh] sm:max-h-[380px] px-4 py-3">
           <div className="space-y-3 pb-2">
-            {currentSeason.tiers.map((tier) => {
-              const isUnlocked = tier.tier <= progress.currentTier;
-              const isCurrent = tier.tier === progress.currentTier;
-              const freeRewardClaimed = isTierClaimed(tier.tier, false);
-              const premiumRewardClaimed = isTierClaimed(tier.tier, true);
+            {viewingSeason.tiers.map((tier) => {
+              // Only show unlocked status for current season
+              const isUnlocked = isViewingCurrentSeason && tier.tier <= progress.currentTier;
+              const isCurrent = isViewingCurrentSeason && tier.tier === progress.currentTier;
+              const freeRewardClaimed = isViewingCurrentSeason && isTierClaimed(tier.tier, false);
+              const premiumRewardClaimed = isViewingCurrentSeason && isTierClaimed(tier.tier, true);
+              const canClaimRewards = isViewingCurrentSeason;
 
               return (
                 <div
@@ -150,7 +209,7 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
                         <span className="flex-1 text-sm truncate text-white">
                           {tier.freeReward.itemName}
                         </span>
-                        {isUnlocked && !freeRewardClaimed ? (
+                        {canClaimRewards && isUnlocked && !freeRewardClaimed ? (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -170,32 +229,41 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
                     {tier.premiumReward && (
                       <div className="flex-1">
                         <div className={cn(
-                          "retro-reward-item relative",
+                          "retro-reward-item relative overflow-hidden",
                           getRarityClass(tier.premiumReward.rarity),
-                          state.isPremium && isUnlocked && !premiumRewardClaimed && "ring-2 ring-yellow-400"
+                          canClaimRewards && state.isPremium && isUnlocked && !premiumRewardClaimed && "ring-2 ring-yellow-400"
                         )}>
-                          {!state.isPremium && (
-                            <div className="absolute inset-0 bg-purple-900/80 rounded flex items-center justify-center">
-                              <Lock className="w-4 h-4 text-yellow-400" />
-                            </div>
+                          {!state.isPremium ? (
+                            <>
+                              <div className="absolute inset-0 bg-purple-900/95 rounded flex items-center justify-center z-10">
+                                <Lock className="w-4 h-4 text-yellow-400" />
+                              </div>
+                              <span className="text-xl opacity-30">{tier.premiumReward.icon}</span>
+                              <span className="flex-1 text-sm truncate text-purple-400/50">
+                                {tier.premiumReward.itemName}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-xl">{tier.premiumReward.icon}</span>
+                              <span className="flex-1 text-sm truncate text-white">
+                                {tier.premiumReward.itemName}
+                              </span>
+                              {canClaimRewards && isUnlocked && !premiumRewardClaimed ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleClaimReward(tier.tier, true);
+                                  }}
+                                  className="retro-arcade-btn retro-arcade-btn-yellow px-3 py-2 text-[10px] touch-manipulation select-none active:scale-95"
+                                >
+                                  <Gift className="w-3 h-3" />
+                                </button>
+                              ) : premiumRewardClaimed ? (
+                                <Check className="w-4 h-4 text-green-400" />
+                              ) : null}
+                            </>
                           )}
-                          <span className="text-xl">{tier.premiumReward.icon}</span>
-                          <span className="flex-1 text-sm truncate text-white">
-                            {tier.premiumReward.itemName}
-                          </span>
-                          {state.isPremium && isUnlocked && !premiumRewardClaimed ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleClaimReward(tier.tier, true);
-                              }}
-                              className="retro-arcade-btn retro-arcade-btn-yellow px-3 py-2 text-[10px] touch-manipulation select-none active:scale-95"
-                            >
-                              <Gift className="w-3 h-3" />
-                            </button>
-                          ) : premiumRewardClaimed ? (
-                            <Check className="w-4 h-4 text-green-400" />
-                          ) : null}
                         </div>
                       </div>
                     )}
@@ -208,16 +276,38 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
 
         {/* Footer Navigation */}
         <div className="flex justify-between items-center p-3 border-t-2 border-purple-700/50 bg-purple-900/30 flex-shrink-0">
-          <Button variant="ghost" size="sm" className="text-purple-400 hover:text-purple-300 touch-manipulation active:scale-95 py-3 px-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={goToPrevSeason}
+            disabled={!canGoPrev}
+            className={cn(
+              "touch-manipulation active:scale-95 py-3 px-4",
+              canGoPrev
+                ? "text-purple-400 hover:text-purple-300"
+                : "text-purple-600/50 cursor-not-allowed"
+            )}
+          >
             <ChevronLeft className="w-4 h-4 mr-1" />
             <span className="retro-pixel-text text-xs">PREV</span>
           </Button>
           <div className="text-center">
             <span className="text-xs text-purple-400 retro-pixel-text">
-              ⭐ SEASON {currentSeason.id} ⭐
+              ⭐ SEASON {viewingSeason.id} ⭐
             </span>
           </div>
-          <Button variant="ghost" size="sm" className="text-purple-400 hover:text-purple-300 touch-manipulation active:scale-95 py-3 px-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={goToNextSeason}
+            disabled={!canGoNext}
+            className={cn(
+              "touch-manipulation active:scale-95 py-3 px-4",
+              canGoNext
+                ? "text-purple-400 hover:text-purple-300"
+                : "text-purple-600/50 cursor-not-allowed"
+            )}
+          >
             <span className="retro-pixel-text text-xs">NEXT</span>
             <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
