@@ -89,12 +89,12 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   },
   {
     id: 'slime1',
-    name: 'Meadow Slime',
-    emoji: '🟢',
+    name: 'Shadow Slime',
+    emoji: '🖤',
     rarity: 'rare',
     unlockLevel: 3,
-    description: 'A bouncy and cheerful slime that hops through the meadow spreading joy.',
-    abilities: ['Bounce', 'Jelly Shield', 'Happy Hop'],
+    description: 'A mysterious dark slime with glowing red eyes that lurks in shadowy meadows.',
+    abilities: ['Shadow Hop', 'Dark Shield', 'Stealth Bounce'],
     biome: 'Meadow',
     groundOffset: -18,
     spriteConfig: {
@@ -202,12 +202,12 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   // ═══════════════════════════════════════════════════════════════════════════
   {
     id: 'bear',
-    name: 'Night Bear',
-    emoji: '🐻',
+    name: 'Polar Bear',
+    emoji: '🐻‍❄️',
     rarity: 'epic',
     unlockLevel: 9,
-    description: 'A powerful bear that roams the night with strength and determination.',
-    abilities: ['Bear Strength', 'Night Watch', 'Powerful Focus'],
+    description: 'A majestic white bear from the frozen lands, embodying strength and resilience.',
+    abilities: ['Arctic Strength', 'Ice Guard', 'Powerful Focus'],
     biome: 'Night',
     spriteConfig: {
       spritePath: '/assets/sprites/Bear_Walk.png',
@@ -292,12 +292,12 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   },
   {
     id: 'slime2',
-    name: 'Forest Slime',
-    emoji: '🔵',
+    name: 'Flame Slime',
+    emoji: '🔥',
     rarity: 'epic',
     unlockLevel: 14,
-    description: 'A blue slime that has adapted to the forest, more agile than its meadow cousin.',
-    abilities: ['Forest Bounce', 'Camouflage', 'Rapid Split'],
+    description: 'A fiery slime engulfed in flames, leaving a trail of embers wherever it bounces.',
+    abilities: ['Flame Burst', 'Heat Wave', 'Ember Trail'],
     biome: 'Forest',
     groundOffset: -18,
     spriteConfig: {
@@ -383,23 +383,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   // Background: Sky Platform World
   // ═══════════════════════════════════════════════════════════════════════════
   {
-    id: 'arctic-hare',
-    name: 'Arctic Hare',
-    emoji: '🐇',
-    rarity: 'rare',
-    unlockLevel: 19,
-    description: 'A pure white hare perfectly adapted to the frozen tundra.',
-    abilities: ['Snow Camouflage', 'Ice Speed', 'Arctic Focus'],
-    biome: 'Snow',
-    spriteConfig: {
-      spritePath: '/assets/sprites/Whitehare_Walk.png',
-      frameCount: 4,
-      frameWidth: 28,
-      frameHeight: 28,
-      animationSpeed: 11
-    }
-  },
-  {
     id: 'metalshark',
     name: 'Metal Shark',
     emoji: '🦈',
@@ -414,23 +397,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 96,
       frameHeight: 96,
       animationSpeed: 10
-    }
-  },
-  {
-    id: 'polar-bear',
-    name: 'Polar Bear',
-    emoji: '🐻‍❄️',
-    rarity: 'legendary',
-    unlockLevel: 21,
-    description: 'The mighty ruler of the arctic, a symbol of strength and endurance.',
-    abilities: ['Arctic Strength', 'Ice Master', 'Polar Power'],
-    biome: 'Snow',
-    spriteConfig: {
-      spritePath: '/assets/sprites/Bear_Walk.png',
-      frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 7
     }
   },
   {
@@ -526,12 +492,12 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   // ═══════════════════════════════════════════════════════════════════════════
   {
     id: 'dragon2',
-    name: 'Ice Dragon',
+    name: 'Golden Dragon',
     emoji: '🐲',
     rarity: 'legendary',
     unlockLevel: 27,
-    description: 'An ancient dragon of frost and ice, commanding blizzards with a single breath.',
-    abilities: ['Ice Breath', 'Blizzard Storm', 'Frozen Wings', 'Glacier Shield'],
+    description: 'A radiant dragon with scales of pure gold, commanding light and prosperity.',
+    abilities: ['Solar Breath', 'Golden Aura', 'Radiant Wings', 'Treasure Shield'],
     biome: 'Snow',
     spriteConfig: {
       spritePath: '/assets/sprites/DRAGON2_Walk.png',
@@ -560,12 +526,12 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   },
   {
     id: 'slime-boss2',
-    name: 'Emperor Slime',
-    emoji: '👾',
+    name: 'Earth Slime',
+    emoji: '🌿',
     rarity: 'legendary',
     unlockLevel: 29,
-    description: 'The ultimate evolution of slime-kind, wielding power beyond imagination.',
-    abilities: ['Emperor Decree', 'Slime Tsunami', 'Absorption Field', 'Ultimate Split'],
+    description: 'A massive slime infused with nature, sprouting plants and leaves from its body.',
+    abilities: ['Nature Growth', 'Root Shield', 'Verdant Wave', 'Forest Bond'],
     biome: 'Night',
     groundOffset: -12,
     spriteConfig: {
@@ -668,44 +634,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   // These cannot be unlocked through XP progression
   // ═══════════════════════════════════════════════════════════════════════════
   {
-    id: 'golden-hare',
-    name: 'Golden Hare',
-    emoji: '🐰',
-    rarity: 'epic',
-    unlockLevel: 999,
-    description: 'A mystical hare with a coat of pure gold, radiating prosperity and fortune.',
-    abilities: ['Golden Touch', 'Luck Boost', 'Coin Magnet', 'Prosperity Aura'],
-    biome: 'Meadow',
-    coinPrice: 1500,
-    isExclusive: true,
-    spriteConfig: {
-      spritePath: '/assets/sprites/HARE_WALK.png',
-      frameCount: 4,
-      frameWidth: 28,
-      frameHeight: 28,
-      animationSpeed: 10
-    }
-  },
-  {
-    id: 'crystal-shark',
-    name: 'Crystal Shark',
-    emoji: '💎',
-    rarity: 'legendary',
-    unlockLevel: 999,
-    description: 'A magnificent shark made of living crystal, refracting light into rainbows.',
-    abilities: ['Crystal Armor', 'Prism Strike', 'Diamond Focus', 'Gem Collector'],
-    biome: 'Snow',
-    coinPrice: 3000,
-    isExclusive: true,
-    spriteConfig: {
-      spritePath: '/assets/sprites/metalshark_Swim.png',
-      frameCount: 6,
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 10
-    }
-  },
-  {
     id: 'flying-dragon',
     name: 'Sky Dragon',
     emoji: '🐉',
@@ -763,63 +691,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     }
   },
   {
-    id: 'neon-octopus',
-    name: 'Neon Octopus',
-    emoji: '🦑',
-    rarity: 'epic',
-    unlockLevel: 999,
-    description: 'A bioluminescent octopus glowing with electric colors from the deep abyss.',
-    abilities: ['Neon Glow', 'Electric Pulse', 'Deep Light', 'Ink Flash'],
-    biome: 'Night',
-    coinPrice: 2000,
-    isExclusive: true,
-    spriteConfig: {
-      spritePath: '/assets/sprites/OCTOPUS_Walk.png',
-      frameCount: 6,
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 9
-    }
-  },
-  {
-    id: 'spirit-deer',
-    name: 'Spirit Deer',
-    emoji: '🦌',
-    rarity: 'legendary',
-    unlockLevel: 999,
-    description: 'A celestial deer with starlight antlers, guide of lost souls.',
-    abilities: ['Star Guide', 'Spirit Walk', 'Celestial Light', 'Soul Comfort'],
-    biome: 'Forest',
-    coinPrice: 3500,
-    isExclusive: true,
-    spriteConfig: {
-      spritePath: '/assets/sprites/ELK_WALK.png',
-      frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 8
-    }
-  },
-  {
-    id: 'rainbow-turtle',
-    name: 'Rainbow Turtle',
-    emoji: '🐢',
-    rarity: 'epic',
-    unlockLevel: 999,
-    description: 'A magical turtle with a shell that shimmers in all colors of the rainbow.',
-    abilities: ['Rainbow Shell', 'Color Shift', 'Prismatic Defense', 'Joy Spread'],
-    biome: 'Meadow',
-    coinPrice: 1800,
-    isExclusive: true,
-    spriteConfig: {
-      spritePath: '/assets/sprites/Turtle_Walk.png',
-      frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 6
-    }
-  },
-  {
     id: 'mech-warrior',
     name: 'Mech Warrior',
     emoji: '🤖',
@@ -838,142 +709,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       animationSpeed: 10
     }
   },
-  {
-    id: 'aurora-horse',
-    name: 'Aurora Horse',
-    emoji: '🌈',
-    rarity: 'legendary',
-    unlockLevel: 999,
-    description: 'A majestic horse with a mane of northern lights, galloping across the sky.',
-    abilities: ['Aurora Trail', 'Sky Gallop', 'Light Dance', 'Dream Runner'],
-    biome: 'Snow',
-    coinPrice: 4000,
-    isExclusive: true,
-    spriteConfig: {
-      spritePath: '/assets/sprites/Horse_Jump.png',
-      frameCount: 6,
-      frameWidth: 72,
-      frameHeight: 72,
-      animationSpeed: 11
-    }
-  },
-  {
-    id: 'royal-slime',
-    name: 'Royal Slime',
-    emoji: '👑',
-    rarity: 'epic',
-    unlockLevel: 999,
-    description: 'A magnificent slime wearing a golden crown, commanding respect from all slime-kind.',
-    abilities: ['Royal Bounce', 'Crown Shield', 'Slime Army', 'Mega Absorption'],
-    biome: 'Snow',
-    coinPrice: 2500,
-    isExclusive: true,
-    groundOffset: -12,
-    spriteConfig: {
-      spritePath: '/assets/sprites/Slime_boss1_Walk_without_shadow.png',
-      frameCount: 8,
-      frameWidth: 128,
-      frameHeight: 128,
-      animationSpeed: 9
-    }
-  },
-  {
-    id: 'emperor-slime',
-    name: 'Emperor Slime',
-    emoji: '👾',
-    rarity: 'legendary',
-    unlockLevel: 999,
-    description: 'The ultimate evolution of slime royalty, wielding power beyond imagination.',
-    abilities: ['Emperor Decree', 'Slime Tsunami', 'Absorption Field', 'Ultimate Split'],
-    biome: 'Night',
-    coinPrice: 4500,
-    isExclusive: true,
-    groundOffset: -12,
-    spriteConfig: {
-      spritePath: '/assets/sprites/Slime_boss2_Walk_without_shadow.png',
-      frameCount: 8,
-      frameWidth: 128,
-      frameHeight: 128,
-      animationSpeed: 10
-    }
-  },
-  {
-    id: 'divine-slime',
-    name: 'Divine Slime',
-    emoji: '✨',
-    rarity: 'legendary',
-    unlockLevel: 999,
-    description: 'A transcendent slime that has achieved divine status, radiating pure celestial energy.',
-    abilities: ['Divine Bounce', 'Celestial Split', 'Holy Shield', 'Purification'],
-    biome: 'Meadow',
-    coinPrice: 6000,
-    isExclusive: true,
-    groundOffset: -12,
-    spriteConfig: {
-      spritePath: '/assets/sprites/Slime_boss3_Walk_without_shadow.png',
-      frameCount: 8,
-      frameWidth: 128,
-      frameHeight: 128,
-      animationSpeed: 10
-    }
-  },
-  {
-    id: 'shadow-kraken',
-    name: 'Shadow Kraken',
-    emoji: '🦑',
-    rarity: 'legendary',
-    unlockLevel: 999,
-    description: 'A massive octopus shrouded in darkness, master of the abyssal depths.',
-    abilities: ['Deep Domination', 'Tentacle Master', 'Ink Cloud', 'Ancient Power'],
-    biome: 'Night',
-    coinPrice: 5000,
-    isExclusive: true,
-    spriteConfig: {
-      spritePath: '/assets/sprites/OCTOPUS_Walk.png',
-      frameCount: 6,
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 9
-    }
-  },
-  {
-    id: 'titan-crab',
-    name: 'Titan Crab',
-    emoji: '🦀',
-    rarity: 'legendary',
-    unlockLevel: 999,
-    description: 'An enormous crab with impenetrable armor and devastating pincers.',
-    abilities: ['Armor Master', 'Crushing Grip', 'Titan Defense', 'Beach Guardian'],
-    biome: 'Sunset',
-    coinPrice: 4000,
-    isExclusive: true,
-    spriteConfig: {
-      spritePath: '/assets/sprites/CRAB_Special.png',
-      frameCount: 6,
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 8
-    }
-  },
-  {
-    id: 'arctic-predator',
-    name: 'Arctic Predator',
-    emoji: '🦈',
-    rarity: 'legendary',
-    unlockLevel: 999,
-    description: 'A fearsome shark that hunts beneath the frozen seas, terror of the arctic.',
-    abilities: ['Ice Hunter', 'Frozen Strike', 'Arctic Predator', 'Blizzard Bite'],
-    biome: 'Snow',
-    coinPrice: 3500,
-    isExclusive: true,
-    spriteConfig: {
-      spritePath: '/assets/sprites/SHARK_Walk.png',
-      frameCount: 6,
-      frameWidth: 96,
-      frameHeight: 96,
-      animationSpeed: 9
-    }
-  }
 ];
 
 // Biome configuration with background images
@@ -1010,7 +745,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Snow',
     unlockLevel: 19,
     description: 'A magical winter wonderland of snow-capped peaks and arctic adventures.',
-    animals: ['arctic-hare', 'metalshark', 'polar-bear', 'ice-crab', 'dragon1', 'frost-spirit', 'ice-shark', 'slime-boss1'],
+    animals: ['metalshark', 'ice-crab', 'dragon1', 'frost-spirit', 'ice-shark', 'slime-boss1'],
     backgroundImage: '/assets/worlds/SKYPLATFORM_WORLD.png'
   },
   {
