@@ -83,12 +83,11 @@ export const useShop = () => {
   // Check if item is owned
   const isOwned = useCallback((itemId: string, category: ShopCategory): boolean => {
     switch (category) {
-      case 'characters':
+      case 'pets':
         return inventory.ownedCharacters.includes(itemId);
-      case 'backgrounds':
-        return inventory.ownedBackgrounds.includes(itemId);
-      case 'badges':
-        return inventory.ownedBadges.includes(itemId);
+      case 'customize':
+        // Check both backgrounds and badges
+        return inventory.ownedBackgrounds.includes(itemId) || inventory.ownedBadges.includes(itemId);
       default:
         return false;
     }
@@ -218,15 +217,19 @@ export const useShop = () => {
   // Generic purchase function
   const purchaseItem = useCallback((itemId: string, category: ShopCategory): PurchaseResult => {
     switch (category) {
-      case 'characters':
+      case 'pets':
         return purchaseCharacter(itemId);
-      case 'backgrounds':
-        return purchaseBackground(itemId);
-      case 'badges':
+      case 'customize':
+        // Try background first, then badge
+        if (itemId.startsWith('bg-')) {
+          return purchaseBackground(itemId);
+        }
         return purchaseBadge(itemId);
-      case 'boosters':
-        return purchaseBooster(itemId);
-      case 'utilities':
+      case 'powerups':
+        // Handle boosters and utility items
+        if (itemId.includes('boost') || itemId.includes('pass')) {
+          return purchaseBooster(itemId);
+        }
         const utilityItem = UTILITY_ITEMS.find(u => u.id === itemId);
         if (utilityItem && utilityItem.coinPrice) {
           return purchaseStreakFreeze(utilityItem.quantity, utilityItem.coinPrice);

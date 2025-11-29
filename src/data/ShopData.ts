@@ -5,7 +5,7 @@ import { getCoinExclusiveAnimals } from './AnimalDatabase';
 // SHOP ITEM TYPES
 // ═══════════════════════════════════════════════════════════════════════════
 
-export type ShopCategory = 'premium' | 'characters' | 'backgrounds' | 'badges' | 'boosters' | 'coins' | 'utilities';
+export type ShopCategory = 'featured' | 'pets' | 'customize' | 'powerups';
 
 export interface ShopItem {
   id: string;
@@ -369,35 +369,35 @@ export const getAllShopItems = (): ShopItem[] => {
 
 export const getShopItemsByCategory = (category: ShopCategory): ShopItem[] => {
   switch (category) {
-    case 'characters':
+    case 'featured':
+      // Featured tab shows bundles and limited time items
+      return [...STARTER_BUNDLES, ...getLimitedTimeItems()];
+    case 'pets':
       return getCoinExclusiveAnimals().map(animal => ({
         id: animal.id,
         name: animal.name,
         description: animal.description,
-        category: 'characters' as ShopCategory,
+        category: 'pets' as ShopCategory,
         coinPrice: animal.coinPrice,
         icon: animal.emoji,
         rarity: animal.rarity,
       }));
-    case 'backgrounds':
-      return PREMIUM_BACKGROUNDS;
-    case 'badges':
-      return PROFILE_BADGES;
-    case 'utilities':
-      return UTILITY_ITEMS;
-    case 'boosters':
-      return BOOSTER_TYPES.map(booster => ({
+    case 'customize':
+      // Combine backgrounds and badges
+      return [...PREMIUM_BACKGROUNDS, ...PROFILE_BADGES];
+    case 'powerups':
+      // Combine boosters, utility items, and coins
+      const boosters = BOOSTER_TYPES.map(booster => ({
         id: booster.id,
         name: booster.name,
         description: booster.description,
-        category: 'boosters' as ShopCategory,
+        category: 'powerups' as ShopCategory,
         coinPrice: booster.coinPrice,
         iapPrice: booster.iapPrice,
         icon: booster.id === 'focus_boost' ? '⚡' : booster.id === 'super_boost' ? '🚀' : '📅',
-        rarity: booster.id === 'weekly_pass' ? 'epic' : booster.id === 'super_boost' ? 'rare' : 'common',
+        rarity: (booster.id === 'weekly_pass' ? 'epic' : booster.id === 'super_boost' ? 'rare' : 'common') as 'common' | 'rare' | 'epic' | 'legendary',
       }));
-    case 'coins':
-      return [...COIN_PACKS, ...STARTER_BUNDLES];
+      return [...boosters, ...UTILITY_ITEMS, ...COIN_PACKS];
     default:
       return [];
   }
@@ -427,13 +427,10 @@ export const getItemsByRarity = (rarity: 'common' | 'rare' | 'epic' | 'legendary
   return getAllShopItems().filter(item => item.rarity === rarity);
 };
 
-// Shop categories for UI
+// Shop categories for UI - Streamlined for better UX
 export const SHOP_CATEGORIES: { id: ShopCategory; name: string; icon: string }[] = [
-  { id: 'premium', name: 'Premium', icon: '👑' },
-  { id: 'characters', name: 'Characters', icon: '🐾' },
-  { id: 'backgrounds', name: 'Backgrounds', icon: '🖼️' },
-  { id: 'badges', name: 'Badges', icon: '🏅' },
-  { id: 'boosters', name: 'Boosters', icon: '⚡' },
-  { id: 'utilities', name: 'Items', icon: '🎒' },
-  { id: 'coins', name: 'Coins', icon: '🪙' },
+  { id: 'featured', name: 'Featured', icon: '⭐' },
+  { id: 'pets', name: 'Pets', icon: '🐾' },
+  { id: 'customize', name: 'Customize', icon: '🎨' },
+  { id: 'powerups', name: 'Power-Ups', icon: '⚡' },
 ];
