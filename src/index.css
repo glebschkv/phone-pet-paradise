@@ -2019,6 +2019,36 @@
     padding: 16px;
   }
 
+  /* Boss Battle Modal - Optimized scroll layout */
+  .boss-modal-container {
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    max-height: 85dvh; /* Use dynamic viewport height for mobile browsers */
+    overflow: hidden;
+  }
+
+  .boss-scroll-container {
+    flex: 1 1 0;
+    min-height: 0; /* Critical for flex children to allow shrinking */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+    touch-action: pan-y;
+    padding-bottom: 8px;
+  }
+
+  /* Disable hover transforms on cards inside scroll containers (prevents jank) */
+  .boss-card-no-hover {
+    transform: none !important;
+  }
+
+  .boss-card-no-hover:hover {
+    transform: none !important;
+  }
+
   /* Scanline Overlay */
   .retro-scanlines {
     position: relative;

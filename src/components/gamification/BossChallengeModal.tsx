@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { cn } from '@/lib/utils';
-import { Swords, Clock, Trophy, XCircle, CheckCircle, Lock, Flame, Skull, Zap } from 'lucide-react';
+import { Clock, Trophy, XCircle, CheckCircle, Lock, Flame, Skull, Zap } from 'lucide-react';
 import { BossChallenge } from '@/data/GamificationData';
 
 interface BossChallengeModalProps {
@@ -23,6 +22,14 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
 
   const [activeTab, setActiveTab] = useState<BossChallenge['difficulty']>('normal');
   const activeChallenge = getActiveChallenge();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Reset scroll position when tab changes
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [activeTab]);
 
   const getDifficultyClass = (difficulty: BossChallenge['difficulty']) => {
     switch (difficulty) {
@@ -63,9 +70,9 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal flex flex-col">
-        {/* Retro Header */}
-        <div className="retro-modal-header">
+      <DialogContent className="max-w-lg p-0 retro-modal boss-modal-container">
+        {/* Retro Header - Fixed */}
+        <div className="retro-modal-header flex-shrink-0">
           <DialogHeader>
             <DialogTitle className="text-white text-xl flex items-center gap-3 retro-pixel-text">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center border-2 border-red-400">
@@ -79,59 +86,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
           </p>
         </div>
 
-        {/* Active Challenge Banner */}
-        {activeChallenge.challenge && (
-          <div className="mx-4 mt-4 retro-game-card p-4 retro-active-challenge">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 retro-icon-badge">
-                  <span className="text-3xl">{activeChallenge.challenge.emoji}</span>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className={cn("retro-difficulty-badge", getDifficultyClass(activeChallenge.challenge.difficulty))}>
-                      {getDifficultyIcon(activeChallenge.challenge.difficulty)} {activeChallenge.challenge.difficulty}
-                    </span>
-                  </div>
-                  <h3 className="text-white font-bold mt-1 retro-pixel-text">
-                    {activeChallenge.challenge.name}
-                  </h3>
-                </div>
-              </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                onClick={abandonChallenge}
-              >
-                <XCircle className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {/* Boss Health Bar */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-cyan-400 retro-pixel-text">BOSS HP</span>
-                <span className="retro-neon-orange">{Math.round(100 - activeChallenge.percentComplete)}%</span>
-              </div>
-              <div className={cn("retro-health-bar", getHealthBarClass(activeChallenge.challenge.difficulty))}>
-                <div
-                  className="retro-health-bar-fill"
-                  style={{ width: `${100 - activeChallenge.percentComplete}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-purple-300/60">
-                <span>Your Progress: {Math.round(activeChallenge.percentComplete)}%</span>
-                <span className="flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-orange-400" />
-                  FIGHTING
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Difficulty Tabs */}
+        {/* Difficulty Tabs - Fixed */}
         <div className="px-4 pt-4 flex-shrink-0">
           <div className="flex gap-1 bg-purple-900/30 p-1 rounded-lg">
             {difficulties.map(diff => (
@@ -139,8 +94,8 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                 key={diff}
                 onClick={() => setActiveTab(diff)}
                 className={cn(
-                  "flex-1 py-3 px-2 sm:px-3 rounded-md text-[10px] sm:text-xs font-bold uppercase transition-all retro-pixel-text",
-                  "touch-manipulation select-none active:scale-95",
+                  "flex-1 py-3 px-2 sm:px-3 rounded-md text-[10px] sm:text-xs font-bold uppercase transition-colors retro-pixel-text",
+                  "touch-manipulation select-none",
                   activeTab === diff
                     ? cn("text-white", getDifficultyClass(diff))
                     : "text-purple-400 hover:text-purple-300 hover:bg-purple-800/30"
@@ -153,14 +108,70 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
           </div>
         </div>
 
-        {/* Challenge List */}
-        <ScrollArea className="flex-1 min-h-0 max-h-[40vh] sm:max-h-[320px] px-4 py-3">
-          <div className="space-y-3 pb-2">
+        {/* Scrollable Content Area */}
+        <div
+          ref={scrollRef}
+          className="boss-scroll-container"
+        >
+          {/* Active Challenge Banner */}
+          {activeChallenge.challenge && (
+            <div className="mx-4 mt-4 retro-game-card boss-card-no-hover p-4 retro-active-challenge">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 retro-icon-badge">
+                    <span className="text-3xl">{activeChallenge.challenge.emoji}</span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={cn("retro-difficulty-badge", getDifficultyClass(activeChallenge.challenge.difficulty))}>
+                        {getDifficultyIcon(activeChallenge.challenge.difficulty)} {activeChallenge.challenge.difficulty}
+                      </span>
+                    </div>
+                    <h3 className="text-white font-bold mt-1 retro-pixel-text">
+                      {activeChallenge.challenge.name}
+                    </h3>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                  onClick={abandonChallenge}
+                >
+                  <XCircle className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Boss Health Bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-cyan-400 retro-pixel-text">BOSS HP</span>
+                  <span className="retro-neon-orange">{Math.round(100 - activeChallenge.percentComplete)}%</span>
+                </div>
+                <div className={cn("retro-health-bar", getHealthBarClass(activeChallenge.challenge.difficulty))}>
+                  <div
+                    className="retro-health-bar-fill"
+                    style={{ width: `${100 - activeChallenge.percentComplete}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-purple-300/60">
+                  <span>Your Progress: {Math.round(activeChallenge.percentComplete)}%</span>
+                  <span className="flex items-center gap-1">
+                    <Flame className="w-3 h-3 text-orange-400" />
+                    FIGHTING
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Challenge List */}
+          <div className="px-4 py-3 space-y-3">
             {getChallengesByDifficulty(activeTab).map(({ challenge, status }) => (
               <div
                 key={challenge.id}
                 className={cn(
-                  "retro-game-card p-4 transition-all",
+                  "retro-game-card boss-card-no-hover p-4",
                   status.isActive && "retro-active-challenge",
                   status.isCompleted && "border-green-500/50"
                 )}
@@ -193,7 +204,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                     </p>
 
                     {/* Rewards */}
-                    <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-2 sm:gap-3 mt-2 flex-wrap">
                       <span className="retro-reward-item text-xs">
                         <Trophy className="w-3 h-3 text-yellow-400" />
                         <span className="retro-neon-yellow">{challenge.rewards.xp} XP</span>
@@ -220,7 +231,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                   </div>
 
                   {/* Action Button */}
-                  <div className="shrink-0">
+                  <div className="shrink-0 self-center">
                     {status.isActive ? (
                       <div className="flex items-center gap-1 text-orange-400">
                         <Flame className="w-5 h-5 animate-pulse" />
@@ -242,7 +253,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                           startChallenge(challenge.id);
                         }}
                         className={cn(
-                          "retro-arcade-btn px-4 py-3 text-xs touch-manipulation select-none active:scale-95",
+                          "retro-arcade-btn px-4 py-3 text-xs touch-manipulation select-none",
                           activeTab === 'normal' && "retro-arcade-btn-green",
                           activeTab === 'hard' && "retro-arcade-btn-yellow",
                           activeTab === 'extreme' && "",
@@ -270,10 +281,10 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
               </div>
             ))}
           </div>
-        </ScrollArea>
+        </div>
 
-        {/* Footer */}
-        <div className="p-3 border-t-2 border-purple-700/50 bg-purple-900/30">
+        {/* Footer - Fixed */}
+        <div className="p-3 border-t-2 border-purple-700/50 bg-purple-900/30 flex-shrink-0">
           <p className="text-xs text-center text-purple-400 retro-pixel-text">
             ⚡ COMPLETE FOCUS SESSIONS TO DEAL DAMAGE ⚡
           </p>
