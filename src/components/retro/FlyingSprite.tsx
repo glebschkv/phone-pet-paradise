@@ -20,7 +20,7 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
   const [currentPosition, setCurrentPosition] = useState(startPosition);
   const [currentFrame, setCurrentFrame] = useState(0);
 
-  // State for special animations
+  // State for special animations (only for triggering re-renders when sprite changes)
   const [activeSpecialAnimation, setActiveSpecialAnimation] = useState<SpecialAnimationConfig | null>(null);
 
   // Refs for animation state
@@ -29,6 +29,8 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
   const specialAnimationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const specialFrameCountRef = useRef(0);
   const isPlayingSpecialRef = useRef(false);
+  // Ref to track special animation without causing effect restarts
+  const activeSpecialAnimationRef = useRef<SpecialAnimationConfig | null>(null);
 
   const spriteConfig = animal.spriteConfig;
 
@@ -80,6 +82,7 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
           if (specialAnim) {
             isPlayingSpecialRef.current = true;
             specialFrameCountRef.current = 0;
+            activeSpecialAnimationRef.current = specialAnim;
             setActiveSpecialAnimation(specialAnim);
             setCurrentFrame(0);
           }
@@ -107,14 +110,16 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
     let lastTime = performance.now();
 
     const animate = (currentTime: number) => {
-      const deltaTime = currentTime - lastTime;
+      // Clamp deltaTime to prevent large jumps after tab switches (max 100ms)
+      const deltaTime = Math.min(currentTime - lastTime, 100);
       lastTime = currentTime;
 
-      // Get the current config inside the loop to handle animation switches
-      const loopAnimConfig = isPlayingSpecialRef.current && activeSpecialAnimation
+      // Get the current config inside the loop using ref to avoid stale closure issues
+      const specialAnim = activeSpecialAnimationRef.current;
+      const loopAnimConfig = isPlayingSpecialRef.current && specialAnim
         ? {
-            frameCount: activeSpecialAnimation.frameCount,
-            animationSpeed: activeSpecialAnimation.animationSpeed || animationSpeed
+            frameCount: specialAnim.frameCount,
+            animationSpeed: specialAnim.animationSpeed || animationSpeed
           }
         : { frameCount, animationSpeed };
 
@@ -123,23 +128,24 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
       // Update sprite frame
       frameTimeRef.current += deltaTime;
       if (frameTimeRef.current >= loopFrameDuration) {
-        setCurrentFrame(prev => {
-          const nextFrame = (prev + 1) % loopAnimConfig.frameCount;
-
-          // Check if special animation has completed one full cycle
-          if (isPlayingSpecialRef.current) {
-            specialFrameCountRef.current++;
-            if (specialFrameCountRef.current >= loopAnimConfig.frameCount) {
-              // Special animation finished, return to normal
-              isPlayingSpecialRef.current = false;
-              specialFrameCountRef.current = 0;
-              setActiveSpecialAnimation(null);
-              return 0; // Reset to first frame of normal animation
-            }
+        // Check if special animation has completed one full cycle BEFORE frame update
+        if (isPlayingSpecialRef.current) {
+          specialFrameCountRef.current++;
+          if (specialFrameCountRef.current >= loopAnimConfig.frameCount) {
+            // Special animation finished, update refs synchronously first
+            isPlayingSpecialRef.current = false;
+            specialFrameCountRef.current = 0;
+            activeSpecialAnimationRef.current = null;
+            // Then update state for re-render (won't restart the animation loop)
+            setActiveSpecialAnimation(null);
+            setCurrentFrame(0);
+            frameTimeRef.current = 0;
+            animationFrame = requestAnimationFrame(animate);
+            return;
           }
+        }
 
-          return nextFrame;
-        });
+        setCurrentFrame(prev => (prev + 1) % loopAnimConfig.frameCount);
         frameTimeRef.current = 0;
       }
 
@@ -179,7 +185,8 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
     return () => {
       if (animationFrame) cancelAnimationFrame(animationFrame);
     };
-  }, [spriteConfig, speed, animalId, positionRegistry, activeSpecialAnimation, frameCount, animationSpeed]);
+    // Note: activeSpecialAnimation removed from deps - we use activeSpecialAnimationRef to avoid animation loop restarts
+  }, [spriteConfig, speed, animalId, positionRegistry, frameCount, animationSpeed]);
 
   // Early return AFTER all hooks
   if (!spriteConfig) return null;
