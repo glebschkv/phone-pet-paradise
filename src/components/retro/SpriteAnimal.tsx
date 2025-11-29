@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useRef, useCallback } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
 import { PositionRegistry } from './useAnimalPositions';
 import { getRandomSpecialAnimation, hasSpecialAnimations, SpecialAnimationConfig } from '@/data/SpecialAnimations';
@@ -21,56 +21,29 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
 
   // State for special animations
   const [activeSpecialAnimation, setActiveSpecialAnimation] = useState<SpecialAnimationConfig | null>(null);
-  const [isPlayingSpecial, setIsPlayingSpecial] = useState(false);
 
   // Refs for animation state
   const frameTimeRef = useRef(0);
   const positionRef = useRef(position);
-  const specialAnimationTimerRef = useRef<number | null>(null);
+  const specialAnimationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const specialFrameCountRef = useRef(0);
+  const isPlayingSpecialRef = useRef(false);
 
   const spriteConfig = animal.spriteConfig;
-  if (!spriteConfig) return null;
 
-  const { spritePath, frameCount, frameWidth, frameHeight, animationSpeed = 10, frameRow = 0 } = spriteConfig;
+  // Get sprite config values (use defaults if no config)
+  const spritePath = spriteConfig?.spritePath ?? '';
+  const frameCount = spriteConfig?.frameCount ?? 1;
+  const frameWidth = spriteConfig?.frameWidth ?? 32;
+  const frameHeight = spriteConfig?.frameHeight ?? 32;
+  const animationSpeed = spriteConfig?.animationSpeed ?? 10;
+  const frameRow = spriteConfig?.frameRow ?? 0;
 
   // Check if this animal has special animations available
-  const canPlaySpecialAnimations = hasSpecialAnimations(spritePath);
-
-  // Get a random interval for the next special animation
-  const getRandomInterval = useCallback(() => {
-    return Math.random() * (SPECIAL_ANIMATION_MAX_INTERVAL - SPECIAL_ANIMATION_MIN_INTERVAL) + SPECIAL_ANIMATION_MIN_INTERVAL;
-  }, []);
-
-  // Trigger a random special animation
-  const triggerSpecialAnimation = useCallback(() => {
-    if (!canPlaySpecialAnimations || isPlayingSpecial) return;
-
-    const specialAnim = getRandomSpecialAnimation(spritePath);
-    if (specialAnim) {
-      setActiveSpecialAnimation(specialAnim);
-      setIsPlayingSpecial(true);
-      setCurrentFrame(0);
-      specialFrameCountRef.current = 0;
-    }
-  }, [canPlaySpecialAnimations, isPlayingSpecial, spritePath]);
-
-  // Schedule the next special animation
-  const scheduleNextSpecialAnimation = useCallback(() => {
-    if (!canPlaySpecialAnimations) return;
-
-    if (specialAnimationTimerRef.current) {
-      clearTimeout(specialAnimationTimerRef.current);
-    }
-
-    const interval = getRandomInterval();
-    specialAnimationTimerRef.current = window.setTimeout(() => {
-      triggerSpecialAnimation();
-    }, interval);
-  }, [canPlaySpecialAnimations, getRandomInterval, triggerSpecialAnimation]);
+  const canPlaySpecialAnimations = spriteConfig ? hasSpecialAnimations(spritePath) : false;
 
   // Current animation config (either special or base)
-  const currentAnimConfig = isPlayingSpecial && activeSpecialAnimation
+  const currentAnimConfig = isPlayingSpecialRef.current && activeSpecialAnimation
     ? {
         spritePath: activeSpecialAnimation.spritePath,
         frameCount: activeSpecialAnimation.frameCount,
@@ -89,23 +62,49 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
     return () => {
       positionRegistry.removePosition(animalId);
     };
-  }, [animalId, positionRegistry]);
+  }, [animalId, position, positionRegistry]);
 
   // Set up special animation timer
   useEffect(() => {
-    if (canPlaySpecialAnimations) {
-      scheduleNextSpecialAnimation();
-    }
+    if (!canPlaySpecialAnimations) return;
+
+    const scheduleNextSpecialAnimation = () => {
+      if (specialAnimationTimerRef.current) {
+        clearTimeout(specialAnimationTimerRef.current);
+      }
+
+      const interval = Math.random() * (SPECIAL_ANIMATION_MAX_INTERVAL - SPECIAL_ANIMATION_MIN_INTERVAL) + SPECIAL_ANIMATION_MIN_INTERVAL;
+
+      specialAnimationTimerRef.current = setTimeout(() => {
+        // Only trigger if not already playing a special animation
+        if (!isPlayingSpecialRef.current) {
+          const specialAnim = getRandomSpecialAnimation(spritePath);
+          if (specialAnim) {
+            isPlayingSpecialRef.current = true;
+            specialFrameCountRef.current = 0;
+            setActiveSpecialAnimation(specialAnim);
+            setCurrentFrame(0);
+          }
+        }
+        // Schedule the next one
+        scheduleNextSpecialAnimation();
+      }, interval);
+    };
+
+    // Start the scheduling
+    scheduleNextSpecialAnimation();
 
     return () => {
       if (specialAnimationTimerRef.current) {
         clearTimeout(specialAnimationTimerRef.current);
       }
     };
-  }, [canPlaySpecialAnimations, scheduleNextSpecialAnimation]);
+  }, [canPlaySpecialAnimations, spritePath]);
 
   // Combined animation loop for both position and sprite frames
   useEffect(() => {
+    if (!spriteConfig) return;
+
     let animationFrame: number;
     let lastTime = performance.now();
 
@@ -113,22 +112,30 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
       const deltaTime = currentTime - lastTime;
       lastTime = currentTime;
 
+      // Get the current config inside the loop to handle animation switches
+      const loopAnimConfig = isPlayingSpecialRef.current && activeSpecialAnimation
+        ? {
+            frameCount: activeSpecialAnimation.frameCount,
+            animationSpeed: activeSpecialAnimation.animationSpeed || animationSpeed
+          }
+        : { frameCount, animationSpeed };
+
+      const loopFrameDuration = 1000 / loopAnimConfig.animationSpeed;
+
       // Update sprite frame based on time
       frameTimeRef.current += deltaTime;
-      if (frameTimeRef.current >= frameDuration) {
+      if (frameTimeRef.current >= loopFrameDuration) {
         setCurrentFrame(prev => {
-          const nextFrame = (prev + 1) % currentAnimConfig.frameCount;
+          const nextFrame = (prev + 1) % loopAnimConfig.frameCount;
 
           // Check if special animation has completed one full cycle
-          if (isPlayingSpecial && activeSpecialAnimation) {
+          if (isPlayingSpecialRef.current) {
             specialFrameCountRef.current++;
-            if (specialFrameCountRef.current >= currentAnimConfig.frameCount) {
+            if (specialFrameCountRef.current >= loopAnimConfig.frameCount) {
               // Special animation finished, return to normal
-              setIsPlayingSpecial(false);
-              setActiveSpecialAnimation(null);
+              isPlayingSpecialRef.current = false;
               specialFrameCountRef.current = 0;
-              // Schedule the next special animation
-              scheduleNextSpecialAnimation();
+              setActiveSpecialAnimation(null);
               return 0; // Reset to first frame of normal animation
             }
           }
@@ -176,7 +183,10 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
         cancelAnimationFrame(animationFrame);
       }
     };
-  }, [speed, frameDuration, currentAnimConfig.frameCount, animalId, positionRegistry, isPlayingSpecial, activeSpecialAnimation, scheduleNextSpecialAnimation]);
+  }, [spriteConfig, speed, animalId, positionRegistry, activeSpecialAnimation, frameCount, animationSpeed]);
+
+  // Early return AFTER all hooks
+  if (!spriteConfig) return null;
 
   // Scale up the sprite for better visibility (2.5x for crisp pixels)
   const scale = 2.5;
