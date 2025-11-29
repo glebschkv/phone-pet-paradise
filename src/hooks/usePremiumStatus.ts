@@ -33,7 +33,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'No ads',
       'Priority support',
     ],
-    iapProductId: 'com.petparadise.premium.monthly',
+    iapProductId: 'co.nomoinc.nomo.premium.monthly',
   },
   {
     id: 'premium-yearly',
@@ -50,7 +50,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'No ads',
       'Priority support',
     ],
-    iapProductId: 'com.petparadise.premium.yearly',
+    iapProductId: 'co.nomoinc.nomo.premium.yearly',
     savings: 'Save 33%',
     isPopular: true,
   },
@@ -69,7 +69,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Cloud sync across devices',
       'Weekly XP bonus (20%)',
     ],
-    iapProductId: 'com.petparadise.premiumplus.monthly',
+    iapProductId: 'co.nomoinc.nomo.premiumplus.monthly',
   },
   {
     id: 'premium-plus-yearly',
@@ -86,7 +86,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Cloud sync across devices',
       'Weekly XP bonus (20%)',
     ],
-    iapProductId: 'com.petparadise.premiumplus.yearly',
+    iapProductId: 'co.nomoinc.nomo.premiumplus.yearly',
     savings: 'Save 33%',
   },
   {
@@ -103,7 +103,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Exclusive "Founder" badge',
       'Special founder-only pet',
     ],
-    iapProductId: 'com.petparadise.lifetime',
+    iapProductId: 'co.nomoinc.nomo.lifetime',
     savings: 'Best Value',
   },
 ];

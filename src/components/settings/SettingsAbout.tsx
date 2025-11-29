@@ -1,7 +1,9 @@
 import { Badge } from "@/components/ui/badge";
-import { Heart, ExternalLink, Github, MessageCircle, Star, Sparkles, Clock, Grid3X3, Trophy } from "lucide-react";
+import { Heart, ExternalLink, MessageCircle, Star, Sparkles, Clock, Grid3X3, Trophy, Shield, FileText, ScrollText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const SettingsAbout = () => {
+  const navigate = useNavigate();
   const appVersion = "1.0.0";
   const buildDate = new Date().toLocaleDateString();
 
@@ -32,10 +34,10 @@ export const SettingsAbout = () => {
           margin: '-1rem -1rem 1rem -1rem',
           padding: '1.5rem 1rem'
         }}>
-          <div className="text-5xl mb-3">🐾</div>
-          <h2 className="text-lg font-bold">Phone Pet Paradise</h2>
+          <div className="text-5xl mb-3">📵</div>
+          <h2 className="text-lg font-bold">NoMo Phone</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Focus timer with virtual pet companions
+            Put down your phone, grow your island
           </p>
           <div className="flex items-center justify-center gap-2 mt-3">
             <Badge className="retro-stat-pill text-[10px] font-bold px-2 py-1">
@@ -48,7 +50,7 @@ export const SettingsAbout = () => {
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
-          Transform your productivity journey into an engaging pet-raising adventure.
+          Stay focused, earn rewards, and build your pet paradise.
         </p>
       </div>
 
@@ -84,37 +86,46 @@ export const SettingsAbout = () => {
         </div>
       </div>
 
-      {/* Community Links */}
+      {/* Legal */}
       <div className="retro-card p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Heart className="w-4 h-4 text-red-500" />
-          <span className="text-sm font-bold">Community</span>
+          <Shield className="w-4 h-4 text-blue-500" />
+          <span className="text-sm font-bold">Legal</span>
         </div>
         <div className="space-y-2">
           <button
-            onClick={() => openLink('https://github.com/lovable-dev/phone-pet-paradise')}
+            onClick={() => navigate('/privacy')}
             className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
           >
-            <Github className="w-5 h-5" />
-            <span className="text-sm font-semibold flex-1 text-left">View on GitHub</span>
+            <FileText className="w-5 h-5" />
+            <span className="text-sm font-semibold flex-1 text-left">Privacy Policy</span>
             <ExternalLink className="w-4 h-4 text-muted-foreground" />
           </button>
 
           <button
-            onClick={() => openLink('https://discord.gg/lovable')}
+            onClick={() => navigate('/terms')}
+            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
+          >
+            <ScrollText className="w-5 h-5" />
+            <span className="text-sm font-semibold flex-1 text-left">Terms of Service</span>
+            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+          </button>
+
+          <button
+            onClick={() => openLink('mailto:suchkov.gleb@icloud.com')}
             className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
           >
             <MessageCircle className="w-5 h-5" />
-            <span className="text-sm font-semibold flex-1 text-left">Join Discord</span>
+            <span className="text-sm font-semibold flex-1 text-left">Contact Support</span>
             <ExternalLink className="w-4 h-4 text-muted-foreground" />
           </button>
 
           <button
-            onClick={() => openLink('https://lovable.dev')}
-            className="w-full p-3 rounded-lg flex items-center gap-3 transition-all active:scale-95 bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 border-2 border-amber-500"
+            onClick={() => openLink('https://nomoinc.co')}
+            className="w-full p-3 rounded-lg flex items-center gap-3 transition-all active:scale-95 bg-gradient-to-b from-blue-400 to-blue-500 text-white border-2 border-blue-600"
           >
-            <Star className="w-5 h-5" />
-            <span className="text-sm font-bold flex-1 text-left">Built with Lovable</span>
+            <Heart className="w-5 h-5" />
+            <span className="text-sm font-bold flex-1 text-left">Visit NoMo Inc.</span>
             <ExternalLink className="w-4 h-4" />
           </button>
         </div>
@@ -147,7 +158,7 @@ export const SettingsAbout = () => {
       {/* Footer */}
       <div className="retro-stat-pill p-3 text-center">
         <p className="text-[10px] text-muted-foreground">
-          Made with love for productivity enthusiasts
+          &copy; {new Date().getFullYear()} NoMo Inc. All rights reserved.
         </p>
       </div>
     </div>

@@ -2,6 +2,10 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { STORAGE_KEYS } from './lib/storage-keys'
+import { initializeErrorReporting } from './lib/errorReporting'
+
+// Initialize error reporting early
+initializeErrorReporting();
 
 // Initialize theme from settings
 const initializeTheme = () => {

@@ -16,7 +16,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePremiumStatus, SUBSCRIPTION_PLANS, SubscriptionPlan } from '@/hooks/usePremiumStatus';
+import { useStoreKit } from '@/hooks/useStoreKit';
 import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
 import {
   Dialog,
   DialogContent,
@@ -50,36 +52,61 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
 
 export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProps) => {
   const { isPremium, currentPlan, purchaseSubscription, restorePurchases, tier } = usePremiumStatus();
+  const storeKit = useStoreKit();
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+
+  const isNative = Capacitor.isNativePlatform();
 
   const handlePurchase = async (plan: SubscriptionPlan) => {
     setIsProcessing(true);
-    // Simulate purchase process
-    await new Promise(resolve => setTimeout(resolve, 1500));
 
-    const result = purchaseSubscription(plan.id);
-    setIsProcessing(false);
+    if (isNative) {
+      // Use real StoreKit
+      const result = await storeKit.purchaseProduct(plan.iapProductId);
+      setIsProcessing(false);
 
-    if (result.success) {
-      toast.success(result.message);
-      onClose();
+      if (result.success) {
+        toast.success('Purchase successful!');
+        onClose();
+      } else if (!result.cancelled) {
+        toast.error(result.message || 'Purchase failed');
+      }
     } else {
-      toast.error(result.message);
+      // Fallback for web/dev
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = purchaseSubscription(plan.id);
+      setIsProcessing(false);
+
+      if (result.success) {
+        toast.success(result.message);
+        onClose();
+      } else {
+        toast.error(result.message);
+      }
     }
   };
 
   const handleRestore = async () => {
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsRestoring(true);
 
-    const result = restorePurchases();
-    setIsProcessing(false);
-
-    if (result.success) {
-      toast.success(result.message);
+    if (isNative) {
+      // Use real StoreKit
+      const success = await storeKit.restorePurchases();
+      setIsRestoring(false);
+      // Toast is handled by useStoreKit
     } else {
-      toast.info(result.message);
+      // Fallback for web/dev
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = restorePurchases();
+      setIsRestoring(false);
+
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.info(result.message);
+      }
     }
   };
 
@@ -310,18 +337,22 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
             </div>
           )}
 
-          {/* Restore Purchases */}
-          <button
-            onClick={handleRestore}
-            disabled={isProcessing}
-            className="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Restore Purchases
-          </button>
+          {/* Restore Purchases - Made prominent per Apple guidelines */}
+          <div className="border-t pt-4 mt-2">
+            <button
+              onClick={handleRestore}
+              disabled={isRestoring || isProcessing}
+              className="w-full py-3 rounded-xl font-semibold border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all flex items-center justify-center gap-2"
+            >
+              <RefreshCw className={cn("w-4 h-4", isRestoring && "animate-spin")} />
+              {isRestoring ? 'Restoring...' : 'Restore Previous Purchases'}
+            </button>
+          </div>
 
           {/* Terms */}
           <p className="text-[10px] text-center text-muted-foreground">
-            Subscriptions auto-renew unless cancelled. Manage subscriptions in your device settings.
+            Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period.
+            Manage subscriptions in your Apple ID account settings.
           </p>
         </div>
       </DialogContent>

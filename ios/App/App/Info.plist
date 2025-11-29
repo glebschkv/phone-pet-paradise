@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Phone Pet Paradise</string>
+	<string>NoMo Phone</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,14 +26,14 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
+	<!-- iPhone: Portrait only -->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- iPad: All orientations -->
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -43,13 +43,33 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<!-- Screen Time API Usage Description -->
+
+	<!-- Privacy Usage Descriptions -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>NoMo uses this to provide personalized focus insights and improve your experience.</string>
+	<key>NSFamilyControlsUsageDescription</key>
+	<string>NoMo uses Screen Time to track when you're away from your phone, rewarding you for staying focused.</string>
+
+	<!-- Push Notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+		<string>processing</string>
+	</array>
+
+	<!-- Screen Time API Usage -->
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>DeviceActivityMonitor</string>
 	</array>
-	<!-- Required for DeviceActivity framework -->
+
+	<!-- Live Activities (disabled for now) -->
 	<key>NSSupportsLiveActivities</key>
 	<false/>
+
+	<!-- Minimum iOS Version -->
+	<key>MinimumOSVersion</key>
+	<string>15.0</string>
 </dict>
 </plist>

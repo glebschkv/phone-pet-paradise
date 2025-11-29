@@ -10,7 +10,7 @@ import Capacitor
  *
  * SETUP INSTRUCTIONS:
  * 1. Enable App Groups capability in Xcode for both main app and widget extension
- * 2. Use the same App Group identifier: "group.com.phonepetparadise.app"
+ * 2. Use the same App Group identifier: "group.co.nomoinc.nomo"
  * 3. Create a Widget Extension target in Xcode
  * 4. Use the WidgetData struct in the widget to read shared data
  */
@@ -25,7 +25,7 @@ public class WidgetDataPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "refreshWidgets", returnType: CAPPluginReturnPromise)
     ]
 
-    private let appGroupId = "group.com.phonepetparadise.app"
+    private let appGroupId = "group.co.nomoinc.nomo"
     private let dataKey = "widget_data"
 
     /**
@@ -154,7 +154,7 @@ struct WidgetSharedData: Codable {
  * Helper class to read widget data in Widget Extension
  */
 class WidgetDataReader {
-    private static let appGroupId = "group.com.phonepetparadise.app"
+    private static let appGroupId = "group.co.nomoinc.nomo"
     private static let dataKey = "widget_data"
 
     static func load() -> WidgetSharedData? {
