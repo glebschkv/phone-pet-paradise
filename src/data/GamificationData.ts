@@ -76,35 +76,71 @@ const getFreeRewardForTier = (tier: number, _theme: SeasonTheme): BattlePassRewa
 };
 
 const getPremiumRewardForTier = (tier: number, theme: SeasonTheme): BattlePassReward => {
-  // Tier 30 is the exclusive pet
+  const themeName = theme.charAt(0).toUpperCase() + theme.slice(1);
+
+  // Tier 30 - Ultimate legendary pet
   if (tier === 30) {
     return {
       type: 'pet',
       itemId: `${theme}-legendary`,
-      itemName: `${theme.charAt(0).toUpperCase() + theme.slice(1)} Guardian`,
+      itemName: `${themeName} Guardian`,
       rarity: 'legendary',
       icon: '🏆'
     };
   }
+  // Tier 25 - Exclusive legendary badge
+  if (tier === 25) {
+    return {
+      type: 'badge',
+      itemId: `${theme}-legend`,
+      itemName: `${themeName} Legend Badge`,
+      rarity: 'legendary',
+      icon: '👑'
+    };
+  }
+  // Tier 20 - Epic background
   if (tier === 20) {
     return {
       type: 'background',
       itemId: `${theme}-bg`,
-      itemName: `${theme.charAt(0).toUpperCase() + theme.slice(1)} Paradise`,
+      itemName: `${themeName} Paradise`,
       rarity: 'epic',
       icon: '🎨'
     };
   }
+  // Tier 15 - Premium boosters
   if (tier === 15) {
-    return { type: 'booster', amount: 3, itemName: '3x Coin Booster (24h)', rarity: 'epic', icon: '🚀' };
+    return { type: 'booster', amount: 5, itemName: '5x Coin Booster Bundle', rarity: 'epic', icon: '🚀' };
   }
+  // Tier 10 - Season badge + coins
+  if (tier === 10) {
+    return {
+      type: 'badge',
+      itemId: `${theme}-early`,
+      itemName: `${themeName} Pioneer Badge`,
+      rarity: 'epic',
+      icon: '🌟'
+    };
+  }
+  // Tier 5 - Starter bonus
+  if (tier === 5) {
+    return { type: 'coins', amount: 500, itemName: '500 Coins Bundle', rarity: 'rare', icon: '💰' };
+  }
+  // Every 5th tier gets epic rewards
   if (tier % 5 === 0) {
-    return { type: 'badge', itemId: `tier-${tier}`, itemName: `Tier ${tier} Badge`, rarity: 'rare', icon: '🎖️' };
+    return { type: 'streak_freeze', amount: 2, itemName: '2x Streak Freeze', rarity: 'epic', icon: '🧊' };
+  }
+  // Alternating premium rewards
+  if (tier % 4 === 0) {
+    return { type: 'coins', amount: 300, itemName: '300 Coins', rarity: 'rare', icon: '💎' };
+  }
+  if (tier % 3 === 0) {
+    return { type: 'booster', amount: 1, itemName: '2x XP Booster', rarity: 'rare', icon: '⚡' };
   }
   if (tier % 2 === 0) {
-    return { type: 'coins', amount: 150, itemName: '150 Coins', rarity: 'rare', icon: '💎' };
+    return { type: 'coins', amount: 200, itemName: '200 Coins', rarity: 'rare', icon: '💰' };
   }
-  return { type: 'xp', amount: 100, itemName: '100 XP', rarity: 'common', icon: '✨' };
+  return { type: 'xp', amount: 150, itemName: '150 XP', rarity: 'common', icon: '✨' };
 };
 
 // Current active season (would be managed dynamically in production)
@@ -405,14 +441,15 @@ export interface LuckyWheelPrize {
 }
 
 export const LUCKY_WHEEL_PRIZES: LuckyWheelPrize[] = [
-  { id: 'coins-50', name: '50 Coins', emoji: '🪙', type: 'coins', amount: 50, probability: 25, rarity: 'common', color: '#64748b' },
-  { id: 'coins-100', name: '100 Coins', emoji: '💰', type: 'coins', amount: 100, probability: 20, rarity: 'common', color: '#71717a' },
-  { id: 'xp-25', name: '25 XP', emoji: '⭐', type: 'xp', amount: 25, probability: 20, rarity: 'common', color: '#6366f1' },
-  { id: 'xp-50', name: '50 XP', emoji: '✨', type: 'xp', amount: 50, probability: 12, rarity: 'rare', color: '#8b5cf6' },
-  { id: 'coins-250', name: '250 Coins', emoji: '💎', type: 'coins', amount: 250, probability: 10, rarity: 'rare', color: '#0ea5e9' },
-  { id: 'streak-freeze', name: 'Streak Freeze', emoji: '🧊', type: 'streak_freeze', amount: 1, probability: 5, rarity: 'epic', color: '#06b6d4' },
-  { id: 'booster', name: '2x Coin Booster', emoji: '🚀', type: 'booster', amount: 1, probability: 4, rarity: 'epic', color: '#10b981' },
-  { id: 'mystery-box', name: 'Mystery Box', emoji: '🎁', type: 'mystery_box', probability: 3, rarity: 'epic', color: '#f59e0b' },
+  { id: 'coins-75', name: '75 Coins', emoji: '🪙', type: 'coins', amount: 75, probability: 20, rarity: 'common', color: '#94a3b8' },
+  { id: 'coins-150', name: '150 Coins', emoji: '💰', type: 'coins', amount: 150, probability: 18, rarity: 'common', color: '#78716c' },
+  { id: 'xp-50', name: '50 XP', emoji: '⭐', type: 'xp', amount: 50, probability: 18, rarity: 'common', color: '#8b5cf6' },
+  { id: 'xp-100', name: '100 XP', emoji: '✨', type: 'xp', amount: 100, probability: 14, rarity: 'rare', color: '#a855f7' },
+  { id: 'coins-300', name: '300 Coins', emoji: '💎', type: 'coins', amount: 300, probability: 10, rarity: 'rare', color: '#3b82f6' },
+  { id: 'streak-freeze', name: 'Streak Freeze', emoji: '🧊', type: 'streak_freeze', amount: 1, probability: 7, rarity: 'epic', color: '#06b6d4' },
+  { id: 'booster', name: '2x XP Booster', emoji: '🚀', type: 'booster', amount: 1, probability: 6, rarity: 'epic', color: '#10b981' },
+  { id: 'mystery-box', name: 'Mystery Box', emoji: '🎁', type: 'mystery_box', probability: 4, rarity: 'epic', color: '#f59e0b' },
+  { id: 'mega-coins', name: '500 Coins!', emoji: '💵', type: 'coins', amount: 500, probability: 2, rarity: 'legendary', color: '#fbbf24' },
   { id: 'jackpot', name: 'JACKPOT!', emoji: '🎰', type: 'jackpot', amount: 1000, probability: 1, rarity: 'legendary', color: '#ef4444' },
 ];
 
