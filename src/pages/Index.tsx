@@ -21,6 +21,9 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
   'Night': 'night',
   'Forest': 'forest',
   'Snow': 'snow',
+  'City': 'city',
+  'Ruins': 'ruins',
+  'Deep Ocean': 'deepocean',
 };
 
 const Index = () => {

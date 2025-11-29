@@ -22,6 +22,9 @@ const BIOME_CONFIG: Record<string, { bg: string; emoji: string }> = {
   'Night': { bg: 'night', emoji: '🌙' },
   'Forest': { bg: 'forest', emoji: '🌲' },
   'Snow': { bg: 'snow', emoji: '❄️' },
+  'City': { bg: 'city', emoji: '🏙️' },
+  'Ruins': { bg: 'ruins', emoji: '🏛️' },
+  'Deep Ocean': { bg: 'deepocean', emoji: '🌊' },
 };
 
 interface TopStatusBarProps {
