@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import {
   TimerPreset,
   TIMER_PRESETS,
@@ -21,6 +22,7 @@ export const UnifiedFocusTimer = () => {
   const { toast } = useToast();
   const { awardXP, currentLevel } = useBackendAppState();
   const { playCompletionSound } = useTimerAudio();
+  const { recordSession } = useAnalytics();
 
   const {
     timerState,
@@ -119,13 +121,24 @@ export const UnifiedFocusTimer = () => {
 
     // Award XP for work sessions (minimum 25 minutes)
     let reward = null;
+    let xpEarned = 0;
     if (timerState.sessionType !== 'break' && completedMinutes >= 25) {
       try {
         reward = await awardXP(completedMinutes);
+        xpEarned = reward?.xpGained || 0;
       } catch (error) {
         console.error('Failed to award XP:', error);
       }
     }
+
+    // Record session to analytics
+    recordSession(
+      timerState.sessionType,
+      timerState.sessionDuration,
+      timerState.sessionDuration, // Full duration completed
+      'completed',
+      xpEarned
+    );
 
     toast({
       title: `${selectedPreset.name} Complete!`,
@@ -150,7 +163,7 @@ export const UnifiedFocusTimer = () => {
     }
 
     isCompletingRef.current = false;
-  }, [timerState, selectedPreset, awardXP, toast, saveTimerState, clearPersistence, playCompletionSound, suggestBreak]);
+  }, [timerState, selectedPreset, awardXP, toast, saveTimerState, clearPersistence, playCompletionSound, suggestBreak, recordSession]);
 
   // Sync displayTime with timerState when not running
   useEffect(() => {
@@ -258,6 +271,27 @@ export const UnifiedFocusTimer = () => {
   }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, selectedPreset.duration]);
 
   const stopTimer = useCallback(() => {
+    // Calculate actual time worked before stopping
+    let elapsedSeconds = 0;
+    if (timerState.startTime) {
+      const now = Date.now();
+      const elapsedMs = now - timerState.startTime;
+      elapsedSeconds = Math.floor(elapsedMs / 1000);
+    } else {
+      elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
+    }
+
+    // Record as abandoned if timer was running and some time elapsed
+    if (timerState.isRunning && elapsedSeconds > 60) {
+      recordSession(
+        timerState.sessionType,
+        timerState.sessionDuration,
+        elapsedSeconds,
+        'abandoned',
+        0
+      );
+    }
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -272,7 +306,7 @@ export const UnifiedFocusTimer = () => {
       sessionDuration: fullDuration,
       startTime: null,
     });
-  }, [clearPersistence, saveTimerState, selectedPreset.duration]);
+  }, [clearPersistence, saveTimerState, selectedPreset.duration, timerState, recordSession]);
 
   const skipTimer = useCallback(async () => {
     // Calculate actual time worked
@@ -294,12 +328,14 @@ export const UnifiedFocusTimer = () => {
 
     clearPersistence();
 
+    let xpEarned = 0;
     if (timerState.sessionType !== 'break' && completedMinutes >= 25) {
       try {
         const reward = await awardXP(completedMinutes);
+        xpEarned = reward?.xpGained || 0;
         toast({
           title: "Session Skipped",
-          description: `+${reward?.xpGained || 0} XP for ${completedMinutes} minutes of focus!`,
+          description: `+${xpEarned} XP for ${completedMinutes} minutes of focus!`,
           duration: 3000,
         });
       } catch {
@@ -317,6 +353,17 @@ export const UnifiedFocusTimer = () => {
       });
     }
 
+    // Record skipped session to analytics
+    if (elapsedSeconds > 60) {
+      recordSession(
+        timerState.sessionType,
+        timerState.sessionDuration,
+        elapsedSeconds,
+        'skipped',
+        xpEarned
+      );
+    }
+
     const fullDuration = selectedPreset.duration * 60;
     setDisplayTime(fullDuration);
     saveTimerState({
@@ -325,7 +372,7 @@ export const UnifiedFocusTimer = () => {
       sessionDuration: fullDuration,
       startTime: null,
     });
-  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration]);
+  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, recordSession]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });

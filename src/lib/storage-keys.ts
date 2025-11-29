@@ -55,6 +55,12 @@ export const STORAGE_KEYS = {
   // Backup
   BACKUP_METADATA: 'pet_paradise_backup_metadata',
   LAST_AUTO_BACKUP: 'pet_paradise_last_auto_backup',
+
+  // Analytics
+  ANALYTICS_SESSIONS: 'pet_paradise_analytics_sessions',
+  ANALYTICS_DAILY_STATS: 'pet_paradise_analytics_daily_stats',
+  ANALYTICS_SETTINGS: 'pet_paradise_analytics_settings',
+  ANALYTICS_RECORDS: 'pet_paradise_analytics_records',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
