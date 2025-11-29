@@ -44,17 +44,7 @@ export const STORAGE_KEYS = {
   ACHIEVEMENT_SYSTEM_DATA: 'pet_paradise_achievement_system',
 
   // Settings
-  SETTINGS: 'pet_paradise_settings',
   APP_SETTINGS: 'pet_paradise_app_settings',
-  PERFORMANCE_SETTINGS: 'pet_paradise_performance',
-
-  // Background Processing
-  BACKGROUND_SESSION: 'pet_paradise_background_session',
-  LAST_INTERACTION: 'pet_paradise_last_interaction',
-
-  // Backup
-  BACKUP_METADATA: 'pet_paradise_backup_metadata',
-  LAST_AUTO_BACKUP: 'pet_paradise_last_auto_backup',
 
   // Analytics
   ANALYTICS_SESSIONS: 'pet_paradise_analytics_sessions',

@@ -1,18 +1,19 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import { STORAGE_KEYS } from './lib/storage-keys'
 
 // Initialize theme from settings
 const initializeTheme = () => {
   try {
-    const savedSettings = localStorage.getItem('app-settings');
+    const savedSettings = localStorage.getItem(STORAGE_KEYS.APP_SETTINGS);
     if (savedSettings) {
       const settings = JSON.parse(savedSettings);
       const theme = settings.theme || 'system';
-      
+
       const root = document.documentElement;
       root.classList.remove('light', 'dark');
-      
+
       if (theme === 'system') {
         const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         root.classList.add(systemTheme);

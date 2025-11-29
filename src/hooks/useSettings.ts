@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 
 export interface AppSettings {
   // Appearance
   theme: 'light' | 'dark' | 'system';
-  primaryColor: string;
-  
+
   // Timer
   defaultFocusTime: number; // in minutes
   shortBreakTime: number;
@@ -30,7 +30,6 @@ export interface AppSettings {
 
 const defaultSettings: AppSettings = {
   theme: 'system',
-  primaryColor: 'default',
   defaultFocusTime: 25,
   shortBreakTime: 5,
   longBreakTime: 15,
@@ -54,10 +53,9 @@ export const useSettings = () => {
   // Load settings from localStorage on mount
   useEffect(() => {
     try {
-      const savedSettings = localStorage.getItem('app-settings');
+      const savedSettings = storage.get<AppSettings>(STORAGE_KEYS.APP_SETTINGS);
       if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        setSettings({ ...defaultSettings, ...parsed });
+        setSettings({ ...defaultSettings, ...savedSettings });
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -76,13 +74,13 @@ export const useSettings = () => {
     try {
       const updatedSettings = { ...settings, ...newSettings };
       setSettings(updatedSettings);
-      localStorage.setItem('app-settings', JSON.stringify(updatedSettings));
-      
+      storage.set(STORAGE_KEYS.APP_SETTINGS, updatedSettings);
+
       // Apply theme changes immediately
       if (newSettings.theme) {
         applyTheme(newSettings.theme);
       }
-      
+
       toast({
         title: "Settings Saved",
         description: "Your preferences have been updated.",
@@ -113,7 +111,7 @@ export const useSettings = () => {
   // Reset to defaults
   const resetSettings = () => {
     setSettings(defaultSettings);
-    localStorage.removeItem('app-settings');
+    storage.remove(STORAGE_KEYS.APP_SETTINGS);
     applyTheme(defaultSettings.theme);
     toast({
       title: "Settings Reset",
