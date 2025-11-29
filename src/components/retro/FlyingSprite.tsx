@@ -54,11 +54,17 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
         speed
       );
 
-      // Update position with adjusted speed
+      // Get separation offset to push apart from nearby animals
+      const separationOffset = positionRegistry.getSeparationOffset(
+        animalId,
+        positionRef.current
+      );
+
+      // Update position with adjusted speed and separation
       const adjustedSpeed = speed * speedMultiplier;
       const movement = (adjustedSpeed * (deltaTime / 1000)) / window.innerWidth;
 
-      let newPosition = positionRef.current + movement;
+      let newPosition = positionRef.current + movement + separationOffset;
 
       // Wrap around when off screen
       if (newPosition > 1.2) {

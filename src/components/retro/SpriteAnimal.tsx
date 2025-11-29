@@ -57,11 +57,17 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
         speed
       );
 
-      // Update position with adjusted speed
+      // Get separation offset to push apart from nearby animals
+      const separationOffset = positionRegistry.getSeparationOffset(
+        animalId,
+        positionRef.current
+      );
+
+      // Update position with adjusted speed and separation
       const adjustedSpeed = speed * speedMultiplier;
       const movement = (adjustedSpeed * (deltaTime / 1000)) / window.innerWidth;
 
-      let newPosition = positionRef.current + movement;
+      let newPosition = positionRef.current + movement + separationOffset;
 
       // When fully off-screen right, wrap to off-screen left
       if (newPosition > 1.15) {
