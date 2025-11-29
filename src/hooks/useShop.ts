@@ -8,6 +8,8 @@ import {
   PREMIUM_BACKGROUNDS,
   PROFILE_BADGES,
   UTILITY_ITEMS,
+  BACKGROUND_BUNDLES,
+  BackgroundBundle,
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 
@@ -177,6 +179,43 @@ export const useShop = () => {
     return { success: true, message: `${badge.name} purchased!`, item: badge };
   }, [inventory, coinSystem, saveInventory]);
 
+  // Purchase a background bundle
+  const purchaseBackgroundBundle = useCallback((bundleId: string): PurchaseResult => {
+    const bundle = BACKGROUND_BUNDLES.find(b => b.id === bundleId);
+    if (!bundle) {
+      return { success: false, message: 'Bundle not found' };
+    }
+
+    // Check if all backgrounds are already owned
+    const allOwned = bundle.backgroundIds.every(id => inventory.ownedBackgrounds.includes(id));
+    if (allOwned) {
+      return { success: false, message: 'You already own all backgrounds in this bundle' };
+    }
+
+    if (!bundle.coinPrice || !coinSystem.canAfford(bundle.coinPrice)) {
+      return { success: false, message: 'Not enough coins' };
+    }
+
+    coinSystem.spendCoins(bundle.coinPrice);
+
+    // Add all backgrounds from the bundle that aren't already owned
+    const newBackgrounds = bundle.backgroundIds.filter(id => !inventory.ownedBackgrounds.includes(id));
+    const newInventory = {
+      ...inventory,
+      ownedBackgrounds: [...inventory.ownedBackgrounds, ...newBackgrounds],
+    };
+    saveInventory(newInventory);
+
+    return { success: true, message: `${bundle.name} purchased! ${newBackgrounds.length} backgrounds added!` };
+  }, [inventory, coinSystem, saveInventory]);
+
+  // Check if bundle is owned (all backgrounds in bundle are owned)
+  const isBundleOwned = useCallback((bundleId: string): boolean => {
+    const bundle = BACKGROUND_BUNDLES.find(b => b.id === bundleId);
+    if (!bundle) return false;
+    return bundle.backgroundIds.every(id => inventory.ownedBackgrounds.includes(id));
+  }, [inventory]);
+
   // Purchase a booster
   const purchaseBooster = useCallback((boosterId: string): PurchaseResult => {
     const booster = boosterSystem.getBoosterType(boosterId);
@@ -273,9 +312,11 @@ export const useShop = () => {
   return {
     inventory,
     isOwned,
+    isBundleOwned,
     purchaseItem,
     purchaseCharacter,
     purchaseBackground,
+    purchaseBackgroundBundle,
     purchaseBadge,
     purchaseBooster,
     purchaseStreakFreeze,
