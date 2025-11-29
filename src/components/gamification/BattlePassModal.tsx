@@ -82,9 +82,9 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[85vh] p-0 overflow-hidden retro-modal flex flex-col">
+      <DialogContent className="max-w-lg h-[85vh] max-h-[85vh] p-0 overflow-hidden retro-modal flex flex-col">
         {/* Retro Header */}
-        <div className="retro-modal-header relative overflow-hidden">
+        <div className="retro-modal-header relative overflow-hidden flex-shrink-0">
           {/* Animated Background Stars */}
           <div className="absolute inset-0 overflow-hidden">
             {[...Array(5)].map((_, i) => (
@@ -161,7 +161,7 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
         </div>
 
         {/* Tiers List */}
-        <ScrollArea className="flex-1 min-h-0 max-h-[45vh] sm:max-h-[380px] px-4 py-3">
+        <ScrollArea className="flex-1 min-h-0 overflow-hidden px-4 py-3">
           <div className="space-y-3 pb-2">
             {viewingSeason.tiers.map((tier) => {
               // Only show unlocked status for current season
