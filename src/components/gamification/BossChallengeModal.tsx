@@ -193,17 +193,17 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                     </p>
 
                     {/* Rewards */}
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className="retro-reward-item text-xs">
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      <span className="retro-reward-item compact text-xs">
                         <Trophy className="w-3 h-3 text-yellow-400" />
                         <span className="retro-neon-yellow">{challenge.rewards.xp} XP</span>
                       </span>
-                      <span className="retro-reward-item text-xs">
+                      <span className="retro-reward-item compact text-xs">
                         <span>🪙</span>
                         <span className="text-amber-400">{challenge.rewards.coins}</span>
                       </span>
                       {challenge.rewards.badge && (
-                        <span className="retro-reward-item epic text-xs">
+                        <span className="retro-reward-item compact epic text-xs">
                           <span>🏅</span>
                           <span>Badge</span>
                         </span>
