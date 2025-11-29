@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Search,
   Heart,
@@ -138,7 +139,7 @@ export const PetCollectionGrid = () => {
   const filteredPets = filterAnimals(searchQuery, "all", "all");
 
   return (
-    <div className="min-h-screen pb-24" style={{
+    <div className="h-full flex flex-col" style={{
       background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
     }}>
       {/* Header */}
@@ -187,158 +188,161 @@ export const PetCollectionGrid = () => {
         )}
       </div>
 
-      {activeTab === "pets" && (
-        <div className="px-3 pt-3">
-          {/* Grid */}
-          <div className="grid grid-cols-3 gap-2">
-            {filteredPets.map((pet) => {
-              const isLocked = !isAnimalUnlocked(pet.id);
-              const isFavorited = isAnimalFavorite(pet.id);
-              const stars = RARITY_STARS[pet.rarity];
+      {/* Content - Scrollable area that stops at taskbar */}
+      <ScrollArea className="flex-1 min-h-0">
+        {activeTab === "pets" && (
+          <div className="px-3 pt-3 pb-6">
+            {/* Grid */}
+            <div className="grid grid-cols-3 gap-2">
+              {filteredPets.map((pet) => {
+                const isLocked = !isAnimalUnlocked(pet.id);
+                const isFavorited = isAnimalFavorite(pet.id);
+                const stars = RARITY_STARS[pet.rarity];
 
-              const isHomeActive = isAnimalHomeActive(pet.id);
+                const isHomeActive = isAnimalHomeActive(pet.id);
+
+                return (
+                  <button
+                    key={pet.id}
+                    onClick={() => setSelectedPet(pet)}
+                    className={cn(
+                      "rounded-lg p-3 flex flex-col items-center relative transition-all active:scale-95",
+                      isLocked ? "bg-muted/50" : "bg-card"
+                    )}
+                    style={{
+                      border: '2px solid hsl(var(--border))',
+                      boxShadow: isLocked
+                        ? 'none'
+                        : '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+                    }}
+                  >
+                    {/* Favorite heart */}
+                    {!isLocked && isFavorited && (
+                      <div className="absolute top-1.5 left-1.5">
+                        <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                      </div>
+                    )}
+
+                    {/* Home active indicator */}
+                    {!isLocked && isHomeActive && (
+                      <div className="absolute top-1.5 right-1.5">
+                        <Home className="w-4 h-4 text-green-500 fill-green-500/30" />
+                      </div>
+                    )}
+
+                    {/* Level badge for locked */}
+                    {isLocked && (
+                      <div className="absolute top-1.5 right-1.5 retro-stat-pill px-1.5 py-0.5">
+                        <span className="text-[9px] font-bold">Lv.{pet.unlockLevel}</span>
+                      </div>
+                    )}
+
+                    {/* Sprite or Lock */}
+                    <div className={cn(
+                      "mb-1.5 h-12 flex items-center justify-center overflow-hidden",
+                      isLocked && "opacity-30 grayscale"
+                    )}>
+                      {isLocked ? (
+                        <Lock className="w-7 h-7 text-muted-foreground" />
+                      ) : pet.spriteConfig ? (
+                        <SpritePreview
+                          animal={pet}
+                          scale={Math.min(1.5, 48 / pet.spriteConfig.frameHeight)}
+                        />
+                      ) : (
+                        <span className="text-4xl">{pet.emoji}</span>
+                      )}
+                    </div>
+
+                    {/* Stars for rarity */}
+                    <div className="flex gap-0.5 mb-1">
+                      {[...Array(stars)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={cn(
+                            "w-3 h-3",
+                            isLocked
+                              ? "text-muted-foreground/40"
+                              : "text-amber-400 fill-amber-400"
+                          )}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Name */}
+                    <span className={cn(
+                      "text-[11px] font-semibold truncate w-full text-center",
+                      isLocked ? "text-muted-foreground" : "text-foreground"
+                    )}>
+                      {isLocked ? "???" : pet.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "worlds" && (
+          <div className="px-3 pt-3 pb-6 space-y-2">
+            {BIOME_DATABASE.map((biome) => {
+              const Icon = BIOME_ICONS[biome.name as keyof typeof BIOME_ICONS] || Sun;
+              const isActive = biome.name === currentBiome;
+              const isUnlocked = biome.unlockLevel <= currentLevel;
 
               return (
-                <button
-                  key={pet.id}
-                  onClick={() => setSelectedPet(pet)}
+                <div
+                  key={biome.name}
                   className={cn(
-                    "rounded-lg p-3 flex flex-col items-center relative transition-all active:scale-95",
-                    isLocked ? "bg-muted/50" : "bg-card"
+                    "retro-card p-4 transition-all",
+                    isActive && "ring-2 ring-primary",
+                    !isUnlocked && "opacity-50"
                   )}
-                  style={{
-                    border: '2px solid hsl(var(--border))',
-                    boxShadow: isLocked
-                      ? 'none'
-                      : '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
-                  }}
                 >
-                  {/* Favorite heart */}
-                  {!isLocked && isFavorited && (
-                    <div className="absolute top-1.5 left-1.5">
-                      <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-11 h-11 rounded-lg flex items-center justify-center",
+                        isActive ? "retro-level-badge" : "retro-stat-pill"
+                      )}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm">
+                          {isUnlocked ? biome.name : "???"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {isUnlocked ? (
+                            isActive ? 'Currently here' : `Level ${biome.unlockLevel}+`
+                          ) : (
+                            `Unlock at Lv.${biome.unlockLevel}`
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  )}
 
-                  {/* Home active indicator */}
-                  {!isLocked && isHomeActive && (
-                    <div className="absolute top-1.5 right-1.5">
-                      <Home className="w-4 h-4 text-green-500 fill-green-500/30" />
-                    </div>
-                  )}
+                    {isUnlocked && !isActive && (
+                      <button
+                        onClick={() => handleSwitchBiome(biome.name)}
+                        className="retro-stat-pill px-4 py-2 text-sm font-semibold active:scale-95 transition-all"
+                      >
+                        Visit
+                      </button>
+                    )}
 
-                  {/* Level badge for locked */}
-                  {isLocked && (
-                    <div className="absolute top-1.5 right-1.5 retro-stat-pill px-1.5 py-0.5">
-                      <span className="text-[9px] font-bold">Lv.{pet.unlockLevel}</span>
-                    </div>
-                  )}
-
-                  {/* Sprite or Lock */}
-                  <div className={cn(
-                    "mb-1.5 h-12 flex items-center justify-center overflow-hidden",
-                    isLocked && "opacity-30 grayscale"
-                  )}>
-                    {isLocked ? (
-                      <Lock className="w-7 h-7 text-muted-foreground" />
-                    ) : pet.spriteConfig ? (
-                      <SpritePreview
-                        animal={pet}
-                        scale={Math.min(1.5, 48 / pet.spriteConfig.frameHeight)}
-                      />
-                    ) : (
-                      <span className="text-4xl">{pet.emoji}</span>
+                    {isActive && (
+                      <div className="retro-level-badge px-3 py-1.5 text-xs font-bold flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        Here
+                      </div>
                     )}
                   </div>
-
-                  {/* Stars for rarity */}
-                  <div className="flex gap-0.5 mb-1">
-                    {[...Array(stars)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={cn(
-                          "w-3 h-3",
-                          isLocked
-                            ? "text-muted-foreground/40"
-                            : "text-amber-400 fill-amber-400"
-                        )}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Name */}
-                  <span className={cn(
-                    "text-[11px] font-semibold truncate w-full text-center",
-                    isLocked ? "text-muted-foreground" : "text-foreground"
-                  )}>
-                    {isLocked ? "???" : pet.name}
-                  </span>
-                </button>
+                </div>
               );
             })}
           </div>
-        </div>
-      )}
-
-      {activeTab === "worlds" && (
-        <div className="px-3 pt-3 space-y-2">
-          {BIOME_DATABASE.map((biome) => {
-            const Icon = BIOME_ICONS[biome.name as keyof typeof BIOME_ICONS] || Sun;
-            const isActive = biome.name === currentBiome;
-            const isUnlocked = biome.unlockLevel <= currentLevel;
-
-            return (
-              <div
-                key={biome.name}
-                className={cn(
-                  "retro-card p-4 transition-all",
-                  isActive && "ring-2 ring-primary",
-                  !isUnlocked && "opacity-50"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-11 h-11 rounded-lg flex items-center justify-center",
-                      isActive ? "retro-level-badge" : "retro-stat-pill"
-                    )}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-sm">
-                        {isUnlocked ? biome.name : "???"}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {isUnlocked ? (
-                          isActive ? 'Currently here' : `Level ${biome.unlockLevel}+`
-                        ) : (
-                          `Unlock at Lv.${biome.unlockLevel}`
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {isUnlocked && !isActive && (
-                    <button
-                      onClick={() => handleSwitchBiome(biome.name)}
-                      className="retro-stat-pill px-4 py-2 text-sm font-semibold active:scale-95 transition-all"
-                    >
-                      Visit
-                    </button>
-                  )}
-
-                  {isActive && (
-                    <div className="retro-level-badge px-3 py-1.5 text-xs font-bold flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      Here
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+        )}
+      </ScrollArea>
 
       {/* Pet Detail Modal */}
       <Dialog open={!!selectedPet} onOpenChange={() => setSelectedPet(null)}>
