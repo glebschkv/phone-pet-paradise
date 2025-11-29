@@ -7,6 +7,7 @@ import { SettingsGame } from "@/components/settings/SettingsGame";
 import { SettingsData } from "@/components/settings/SettingsData";
 import { SettingsAbout } from "@/components/settings/SettingsAbout";
 import { SettingsAccount } from "@/components/settings/SettingsAccount";
+import { SettingsProfile } from "@/components/settings/SettingsProfile";
 import { SettingsAnalytics } from "@/components/settings/SettingsAnalytics";
 import { Loader2, Palette, Clock, Volume2, Gamepad2, Database, Heart, Settings as SettingsIcon, UserCircle, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -107,7 +108,10 @@ export const Settings = () => {
       {/* Content */}
       <div className="px-3">
         {activeTab === "account" && (
-          <SettingsAccount />
+          <div className="space-y-3">
+            <SettingsProfile />
+            <SettingsAccount />
+          </div>
         )}
 
         {activeTab === "appearance" && (

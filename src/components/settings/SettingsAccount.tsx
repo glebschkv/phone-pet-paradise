@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { User, Mail, LogOut, Trash2, Shield, UserCircle } from "lucide-react";
+import { toast } from "sonner";
+import { User, Mail, LogOut, Trash2, Shield, UserCircle, Loader2 } from "lucide-react";
 
 export const SettingsAccount = () => {
-  const { user, isGuestMode, signOut } = useAuth();
+  const { user, isGuestMode, signOut, session } = useAuth();
   const navigate = useNavigate();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -17,6 +21,42 @@ export const SettingsAccount = () => {
 
   const handleSignIn = () => {
     navigate('/auth');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!session?.access_token) {
+      toast.error('You must be signed in to delete your account');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to delete account');
+      }
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to delete account');
+      }
+
+      toast.success('Account deleted successfully');
+      setDeleteDialogOpen(false);
+
+      // Clear local storage and redirect
+      localStorage.clear();
+      window.location.href = '/auth';
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      toast.error(error.message || 'Failed to delete account. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -140,11 +180,20 @@ export const SettingsAccount = () => {
             <Label className="text-sm font-bold text-destructive">Danger Zone</Label>
           </div>
 
-          <AlertDialog>
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <AlertDialogTrigger asChild>
-              <button className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-destructive/10 text-destructive border border-destructive/30">
-                <Trash2 className="w-4 h-4" />
-                <span className="text-sm font-semibold">Delete Account</span>
+              <button
+                className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-destructive/10 text-destructive border border-destructive/30"
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                <span className="text-sm font-semibold">
+                  {isDeleting ? 'Deleting...' : 'Delete Account'}
+                </span>
               </button>
             </AlertDialogTrigger>
             <AlertDialogContent className="retro-card border-2 max-w-xs mx-4">
@@ -157,18 +206,28 @@ export const SettingsAccount = () => {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="gap-2">
-                <AlertDialogCancel className="retro-stat-pill px-3 py-2 text-xs font-semibold">
+                <AlertDialogCancel
+                  className="retro-stat-pill px-3 py-2 text-xs font-semibold"
+                  disabled={isDeleting}
+                >
                   Cancel
                 </AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={() => {
-                    // TODO: Implement account deletion
-                    // This requires a Supabase Edge Function to delete user data
-                    alert('Account deletion will be implemented with backend support');
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDeleteAccount();
                   }}
+                  disabled={isDeleting}
                   className="bg-destructive text-destructive-foreground px-3 py-2 text-xs font-bold rounded-lg"
                 >
-                  Delete Forever
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin inline" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete Forever'
+                  )}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

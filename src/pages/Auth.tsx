@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Mail, Lock, Sparkles, User, ArrowRight, Loader2 } from 'lucide-react';
 
-type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup';
+type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot-password';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -115,6 +115,32 @@ export default function Auth() {
       setMode('welcome');
     } catch (error: any) {
       toast.error(error.message || 'Failed to create account');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error('Please enter your email');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${getRedirectUrl()}/auth?mode=reset-password`,
+      });
+
+      if (error) throw error;
+
+      toast.success('Password reset email sent!', {
+        description: 'Check your email for a link to reset your password.',
+      });
+      setMode('welcome');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send reset email');
     } finally {
       setIsLoading(false);
     }
@@ -331,7 +357,16 @@ export default function Auth() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <button
+                  type="button"
+                  onClick={() => { setMode('forgot-password'); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -444,6 +479,74 @@ export default function Auth() {
 
           <p className="text-center text-xs text-muted-foreground">
             Already have an account?{' '}
+            <button
+              onClick={() => { resetForm(); setMode('email-password'); }}
+              className="text-primary hover:underline font-medium"
+            >
+              Sign in
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Forgot Password form
+  if (mode === 'forgot-password') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+        background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
+      }}>
+        <div className="w-full max-w-sm space-y-6">
+          <button
+            onClick={() => setMode('email-password')}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Back
+          </button>
+
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Lock className="w-7 h-7 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold">Reset Password</h2>
+            <p className="text-sm text-muted-foreground">
+              Enter your email and we'll send you a link to reset your password
+            </p>
+          </div>
+
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12 rounded-xl"
+                disabled={isLoading}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-12 rounded-xl font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                'Send Reset Link'
+              )}
+            </Button>
+          </form>
+
+          <p className="text-center text-xs text-muted-foreground">
+            Remember your password?{' '}
             <button
               onClick={() => { resetForm(); setMode('email-password'); }}
               className="text-primary hover:underline font-medium"
