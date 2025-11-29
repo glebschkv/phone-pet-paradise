@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -57,6 +57,65 @@ const RARITY_GLOW = {
   rare: "shadow-blue-200/50 dark:shadow-blue-500/20",
   epic: "shadow-purple-200/50 dark:shadow-purple-500/20",
   legendary: "shadow-amber-200/50 dark:shadow-amber-500/30",
+};
+
+// Animated sprite preview component for shop
+const SpritePreview = ({ animal, scale = 4 }: { animal: AnimalData; scale?: number }) => {
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const frameTimeRef = useRef(0);
+  const spriteConfig = animal.spriteConfig;
+
+  useEffect(() => {
+    if (!spriteConfig) return;
+
+    const { frameCount, animationSpeed = 10 } = spriteConfig;
+    const frameDuration = 1000 / animationSpeed;
+
+    let animationFrame: number;
+    let lastTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const deltaTime = currentTime - lastTime;
+      lastTime = currentTime;
+
+      frameTimeRef.current += deltaTime;
+      if (frameTimeRef.current >= frameDuration) {
+        setCurrentFrame(prev => (prev + 1) % frameCount);
+        frameTimeRef.current = 0;
+      }
+
+      animationFrame = requestAnimationFrame(animate);
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+    };
+  }, [spriteConfig]);
+
+  if (!spriteConfig) return null;
+
+  const { spritePath, frameCount, frameWidth, frameHeight, frameRow = 0 } = spriteConfig;
+  const scaledWidth = frameWidth * scale;
+  const scaledHeight = frameHeight * scale;
+  const backgroundPositionX = -(currentFrame * frameWidth * scale);
+  const backgroundPositionY = -(frameRow * frameHeight * scale);
+
+  return (
+    <div
+      className="mx-auto"
+      style={{
+        width: `${scaledWidth}px`,
+        height: `${scaledHeight}px`,
+        backgroundImage: `url(${spritePath})`,
+        backgroundSize: `${frameCount * scaledWidth}px auto`,
+        backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
+        backgroundRepeat: 'no-repeat',
+        imageRendering: 'pixelated',
+      }}
+    />
+  );
 };
 
 export const Shop = () => {
@@ -260,7 +319,16 @@ export const Shop = () => {
                       : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                   )}
                 >
-                  <span className="text-3xl block mb-1">{pet.emoji}</span>
+                  <div className="h-10 mb-1 flex items-center justify-center overflow-hidden">
+                    {pet.spriteConfig ? (
+                      <SpritePreview
+                        animal={pet}
+                        scale={Math.min(1.3, 40 / pet.spriteConfig.frameHeight)}
+                      />
+                    ) : (
+                      <span className="text-3xl">{pet.emoji}</span>
+                    )}
+                  </div>
                   <span className="text-xs font-bold block">{pet.name}</span>
                   {owned ? (
                     <span className="text-[10px] text-green-600 dark:text-green-400 font-semibold">Owned</span>
@@ -318,8 +386,15 @@ export const Shop = () => {
               )}
 
               <div className="relative pt-3 pb-2 px-3 flex flex-col items-center">
-                <div className="text-4xl mb-2 retro-pixel-shadow">
-                  {character.emoji}
+                <div className="h-12 mb-2 flex items-center justify-center overflow-hidden">
+                  {character.spriteConfig ? (
+                    <SpritePreview
+                      animal={character}
+                      scale={Math.min(1.5, 48 / character.spriteConfig.frameHeight)}
+                    />
+                  ) : (
+                    <span className="text-4xl retro-pixel-shadow">{character.emoji}</span>
+                  )}
                 </div>
                 <div className="flex gap-0.5 mb-1.5">
                   {getRarityStars(character.rarity)}
@@ -682,8 +757,17 @@ export const Shop = () => {
             <>
               <div className="retro-modal-header p-6 text-center">
                 <div className="retro-scanlines opacity-30" />
-                <div className="text-6xl mb-3 retro-pixel-shadow animate-bounce">
-                  {'emoji' in selectedItem ? selectedItem.emoji : selectedItem.icon}
+                <div className="h-24 mb-3 flex items-center justify-center overflow-hidden">
+                  {'spriteConfig' in selectedItem && selectedItem.spriteConfig ? (
+                    <SpritePreview
+                      animal={selectedItem as AnimalData}
+                      scale={Math.min(3, 96 / (selectedItem as AnimalData).spriteConfig!.frameHeight)}
+                    />
+                  ) : (
+                    <span className="text-6xl retro-pixel-shadow animate-bounce">
+                      {'emoji' in selectedItem ? selectedItem.emoji : selectedItem.icon}
+                    </span>
+                  )}
                 </div>
                 <DialogHeader>
                   <DialogTitle className="text-xl font-black uppercase tracking-tight">
