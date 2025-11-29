@@ -26,6 +26,9 @@ import {
   STARTER_BUNDLES,
   PREMIUM_BACKGROUNDS,
   PROFILE_BADGES,
+  BACKGROUND_BUNDLES,
+  BackgroundBundle,
+  PremiumBackground,
 } from "@/data/ShopData";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
 import { PremiumSubscription } from "@/components/PremiumSubscription";
@@ -118,6 +121,98 @@ const SpritePreview = ({ animal, scale = 4 }: { animal: AnimalData; scale?: numb
   );
 };
 
+// Background preview component for shop
+const BackgroundPreview = ({
+  imagePath,
+  size = 'medium',
+  className = ''
+}: {
+  imagePath: string;
+  size?: 'small' | 'medium' | 'large';
+  className?: string;
+}) => {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  const sizeClasses = {
+    small: 'w-12 h-8',
+    medium: 'w-20 h-14',
+    large: 'w-full h-24',
+  };
+
+  return (
+    <div className={cn(
+      "relative overflow-hidden rounded-lg border-2 border-white/20",
+      sizeClasses[size],
+      className
+    )}>
+      {!loaded && !error && (
+        <div className="absolute inset-0 bg-gradient-to-br from-sky-200 to-blue-300 animate-pulse" />
+      )}
+      {error && (
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+          <span className="text-xl">🖼️</span>
+        </div>
+      )}
+      <img
+        src={imagePath}
+        alt="Background preview"
+        className={cn(
+          "w-full h-full object-cover transition-opacity duration-300",
+          loaded ? "opacity-100" : "opacity-0"
+        )}
+        style={{ imageRendering: 'pixelated' }}
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+      />
+    </div>
+  );
+};
+
+// Bundle preview carousel component
+const BundlePreviewCarousel = ({ images }: { images: string[] }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [images.length]);
+
+  return (
+    <div className="relative w-full h-20 overflow-hidden rounded-xl">
+      {images.map((img, idx) => (
+        <div
+          key={img}
+          className={cn(
+            "absolute inset-0 transition-opacity duration-500",
+            idx === currentIndex ? "opacity-100" : "opacity-0"
+          )}
+        >
+          <img
+            src={img}
+            alt={`Preview ${idx + 1}`}
+            className="w-full h-full object-cover"
+            style={{ imageRendering: 'pixelated' }}
+          />
+        </div>
+      ))}
+      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
+        {images.map((_, idx) => (
+          <div
+            key={idx}
+            className={cn(
+              "w-1.5 h-1.5 rounded-full transition-all",
+              idx === currentIndex ? "bg-white w-3" : "bg-white/50"
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const Shop = () => {
   const [activeCategory, setActiveCategory] = useState<ShopCategory>("featured");
   const [selectedItem, setSelectedItem] = useState<ShopItem | AnimalData | null>(null);
@@ -127,8 +222,10 @@ export const Shop = () => {
   const {
     inventory,
     isOwned,
+    isBundleOwned,
     purchaseItem,
     purchaseCharacter,
+    purchaseBackgroundBundle,
     coinBalance,
     canAfford,
   } = useShop();
@@ -148,6 +245,9 @@ export const Shop = () => {
     let result;
     if ('biome' in selectedItem) {
       result = purchaseCharacter(selectedItem.id);
+    } else if ('backgroundIds' in selectedItem) {
+      // Handle bundle purchase
+      result = purchaseBackgroundBundle(selectedItem.id);
     } else {
       result = purchaseItem(selectedItem.id, activeCategory);
     }
@@ -219,6 +319,73 @@ export const Shop = () => {
             </div>
           </div>
         )}
+
+        {/* Background Bundles */}
+        <div>
+          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+            <span>🖼️</span> Background Bundles
+          </h4>
+          <div className="space-y-2">
+            {BACKGROUND_BUNDLES.map((bundle) => {
+              const owned = isBundleOwned(bundle.id);
+              const affordable = canAfford(bundle.coinPrice || 0);
+              return (
+                <button
+                  key={bundle.id}
+                  onClick={() => {
+                    if (!owned) {
+                      setSelectedItem(bundle);
+                      setShowPurchaseConfirm(true);
+                    }
+                  }}
+                  className={cn(
+                    "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden",
+                    owned
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
+                      : "bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border-sky-200 dark:border-sky-700"
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-16">
+                      <BundlePreviewCarousel images={bundle.previewImages} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-sm">{bundle.name}</span>
+                        {owned ? (
+                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center gap-1">
+                            <Check className="w-2.5 h-2.5" /> OWNED
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
+                            SAVE {bundle.savings}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        {bundle.description}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] text-muted-foreground line-through">
+                          {bundle.totalValue.toLocaleString()}
+                        </span>
+                        {!owned && (
+                          <div className={cn(
+                            "flex items-center gap-1 text-xs font-bold",
+                            affordable ? "text-amber-600" : "text-red-500"
+                          )}>
+                            <Coins className="w-3 h-3" />
+                            {bundle.coinPrice?.toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Special Bundles */}
         <div>
@@ -426,58 +593,133 @@ export const Shop = () => {
 
   // Customize tab - Backgrounds + Badges
   const renderCustomize = () => {
+    // Separate backgrounds with previews from those without
+    const backgroundsWithPreviews = PREMIUM_BACKGROUNDS.filter(bg => bg.previewImage);
+    const backgroundsWithoutPreviews = PREMIUM_BACKGROUNDS.filter(bg => !bg.previewImage);
+
     return (
       <div className="space-y-4">
-        {/* Backgrounds Section */}
-        <div>
-          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <span>🖼️</span> Backgrounds
-          </h4>
-          <div className="grid grid-cols-3 gap-2">
-            {PREMIUM_BACKGROUNDS.map((bg) => {
-              const owned = isOwned(bg.id, 'customize');
-              const affordable = canAfford(bg.coinPrice || 0);
-              return (
-                <button
-                  key={bg.id}
-                  onClick={() => {
-                    setSelectedItem(bg);
-                    if (!owned) setShowPurchaseConfirm(true);
-                  }}
-                  className={cn(
-                    "relative p-2 rounded-xl border-2 text-center transition-all active:scale-95",
-                    owned
-                      ? "bg-green-50 dark:bg-green-900/20 border-green-300"
-                      : RARITY_BG[bg.rarity || 'common'],
-                    !owned && RARITY_BORDER[bg.rarity || 'common']
-                  )}
-                >
-                  {bg.isLimited && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                      <Clock className="w-2.5 h-2.5 text-white" />
+        {/* Backgrounds with Previews Section */}
+        {backgroundsWithPreviews.length > 0 && (
+          <div>
+            <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+              <span>🌤️</span> Sky Collection
+            </h4>
+            <div className="grid grid-cols-2 gap-2">
+              {backgroundsWithPreviews.map((bg) => {
+                const owned = isOwned(bg.id, 'customize');
+                const affordable = canAfford(bg.coinPrice || 0);
+                return (
+                  <button
+                    key={bg.id}
+                    onClick={() => {
+                      setSelectedItem(bg);
+                      if (!owned) setShowPurchaseConfirm(true);
+                    }}
+                    className={cn(
+                      "relative rounded-xl border-2 overflow-hidden transition-all active:scale-95",
+                      owned
+                        ? "border-green-300 dark:border-green-700"
+                        : RARITY_BORDER[bg.rarity || 'common']
+                    )}
+                  >
+                    {/* Background Preview Image */}
+                    <div className="relative h-20 overflow-hidden">
+                      <BackgroundPreview imagePath={bg.previewImage!} size="large" className="border-0 rounded-none" />
+                      {owned && (
+                        <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
+                          <div className="bg-green-500 rounded-full p-1">
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                        </div>
+                      )}
+                      {bg.bundleId && !owned && (
+                        <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-sky-500 text-white text-[8px] font-bold rounded">
+                          BUNDLE
+                        </div>
+                      )}
+                      <div className={cn(
+                        "absolute top-1 right-1 h-2 w-2 rounded-full",
+                        bg.rarity === 'legendary' ? "bg-amber-400" :
+                        bg.rarity === 'epic' ? "bg-purple-400" :
+                        bg.rarity === 'rare' ? "bg-blue-400" : "bg-gray-400"
+                      )} />
                     </div>
-                  )}
-                  {owned && (
-                    <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                  <span className="text-2xl block mb-1">{bg.icon}</span>
-                  <span className="text-[10px] font-bold block leading-tight">{bg.name}</span>
-                  {!owned && (
+                    {/* Info */}
                     <div className={cn(
-                      "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
-                      affordable ? "text-amber-600" : "text-red-500"
+                      "p-2",
+                      owned ? "bg-green-50 dark:bg-green-900/20" : RARITY_BG[bg.rarity || 'common']
                     )}>
-                      <Coins className="w-2.5 h-2.5" />
-                      {bg.coinPrice?.toLocaleString()}
+                      <span className="text-[10px] font-bold block leading-tight truncate">{bg.name}</span>
+                      {!owned && (
+                        <div className={cn(
+                          "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
+                          affordable ? "text-amber-600" : "text-red-500"
+                        )}>
+                          <Coins className="w-2.5 h-2.5" />
+                          {bg.coinPrice?.toLocaleString()}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Other Backgrounds Section */}
+        {backgroundsWithoutPreviews.length > 0 && (
+          <div>
+            <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+              <span>🖼️</span> Backgrounds
+            </h4>
+            <div className="grid grid-cols-3 gap-2">
+              {backgroundsWithoutPreviews.map((bg) => {
+                const owned = isOwned(bg.id, 'customize');
+                const affordable = canAfford(bg.coinPrice || 0);
+                return (
+                  <button
+                    key={bg.id}
+                    onClick={() => {
+                      setSelectedItem(bg);
+                      if (!owned) setShowPurchaseConfirm(true);
+                    }}
+                    className={cn(
+                      "relative p-2 rounded-xl border-2 text-center transition-all active:scale-95",
+                      owned
+                        ? "bg-green-50 dark:bg-green-900/20 border-green-300"
+                        : RARITY_BG[bg.rarity || 'common'],
+                      !owned && RARITY_BORDER[bg.rarity || 'common']
+                    )}
+                  >
+                    {bg.isLimited && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                        <Clock className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    )}
+                    {owned && (
+                      <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    )}
+                    <span className="text-2xl block mb-1">{bg.icon}</span>
+                    <span className="text-[10px] font-bold block leading-tight">{bg.name}</span>
+                    {!owned && (
+                      <div className={cn(
+                        "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
+                        affordable ? "text-amber-600" : "text-red-500"
+                      )}>
+                        <Coins className="w-2.5 h-2.5" />
+                        {bg.coinPrice?.toLocaleString()}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Badges Section */}
         <div>
@@ -763,6 +1005,14 @@ export const Shop = () => {
                       animal={selectedItem as AnimalData}
                       scale={Math.min(3, 112 / Math.max((selectedItem as AnimalData).spriteConfig!.frameWidth, (selectedItem as AnimalData).spriteConfig!.frameHeight))}
                     />
+                  ) : 'previewImages' in selectedItem ? (
+                    // Bundle preview carousel
+                    <div className="w-full">
+                      <BundlePreviewCarousel images={(selectedItem as BackgroundBundle).previewImages} />
+                    </div>
+                  ) : 'previewImage' in selectedItem && selectedItem.previewImage ? (
+                    // Single background preview
+                    <BackgroundPreview imagePath={selectedItem.previewImage} size="large" className="w-full" />
                   ) : (
                     <span className="text-6xl retro-pixel-shadow animate-bounce">
                       {'emoji' in selectedItem ? selectedItem.emoji : selectedItem.icon}
@@ -787,12 +1037,28 @@ export const Shop = () => {
                     </span>
                   </div>
                 )}
+                {'backgroundIds' in selectedItem && (
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Includes {(selectedItem as BackgroundBundle).backgroundIds.length} backgrounds
+                  </div>
+                )}
               </div>
 
               <div className="p-4 space-y-4 bg-card">
                 <p className="text-sm text-muted-foreground text-center leading-relaxed">
                   {selectedItem.description}
                 </p>
+
+                {'totalValue' in selectedItem && (
+                  <div className="flex items-center justify-center gap-2 text-sm">
+                    <span className="text-muted-foreground line-through">
+                      {(selectedItem as BackgroundBundle).totalValue.toLocaleString()}
+                    </span>
+                    <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+                      SAVE {(selectedItem as BackgroundBundle).savings}
+                    </span>
+                  </div>
+                )}
 
                 <div className="retro-price-display">
                   <span className="text-muted-foreground text-sm">Price:</span>

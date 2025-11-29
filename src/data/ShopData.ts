@@ -29,9 +29,76 @@ export interface PremiumBackground extends ShopItem {
   category: 'backgrounds';
   previewImage?: string;
   theme: string;
+  bundleId?: string; // If part of a bundle
 }
 
+// Sky Bundle Backgrounds - Individual backgrounds that come with the Sky Bundle
+export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
+  {
+    id: 'bg-sky-islands',
+    name: 'Sky Islands',
+    description: 'Majestic rocky islands rising from calm waters under a serene sky.',
+    category: 'backgrounds',
+    coinPrice: 600,
+    icon: '🏝️',
+    rarity: 'rare',
+    theme: 'sky-islands',
+    previewImage: '/assets/worlds/SKYBUNDLE1.png',
+    bundleId: 'bundle-sky-realms',
+  },
+  {
+    id: 'bg-calm-seas',
+    name: 'Calm Seas',
+    description: 'A peaceful ocean horizon under a beautiful gradient sky.',
+    category: 'backgrounds',
+    coinPrice: 600,
+    icon: '🌊',
+    rarity: 'rare',
+    theme: 'calm-seas',
+    previewImage: '/assets/worlds/SKYBUNDLE2.png',
+    bundleId: 'bundle-sky-realms',
+  },
+  {
+    id: 'bg-twilight-clouds',
+    name: 'Twilight Clouds',
+    description: 'Dramatic clouds painted in soft twilight colors over the sea.',
+    category: 'backgrounds',
+    coinPrice: 800,
+    icon: '☁️',
+    rarity: 'epic',
+    theme: 'twilight-clouds',
+    previewImage: '/assets/worlds/SKYBUNDLE3.png',
+    bundleId: 'bundle-sky-realms',
+  },
+  {
+    id: 'bg-aurora-horizon',
+    name: 'Aurora Horizon',
+    description: 'A mesmerizing sky with ethereal light dancing across the clouds.',
+    category: 'backgrounds',
+    coinPrice: 800,
+    icon: '✨',
+    rarity: 'epic',
+    theme: 'aurora-horizon',
+    previewImage: '/assets/worlds/SKYBUNDLE4.png',
+    bundleId: 'bundle-sky-realms',
+  },
+  {
+    id: 'bg-sunset-clouds',
+    name: 'Sunset Clouds',
+    description: 'Breathtaking sunset clouds reflected in still waters.',
+    category: 'backgrounds',
+    coinPrice: 1000,
+    icon: '🌅',
+    rarity: 'legendary',
+    theme: 'sunset-clouds',
+    previewImage: '/assets/worlds/SKYBUNDLE5.png',
+    bundleId: 'bundle-sky-realms',
+  },
+];
+
 export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
+  // Include Sky Bundle backgrounds
+  ...SKY_BUNDLE_BACKGROUNDS,
   {
     id: 'bg-sakura',
     name: 'Sakura Garden',
@@ -354,6 +421,46 @@ export const STARTER_BUNDLES: StarterBundle[] = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
+// BACKGROUND BUNDLES (Purchasable with coins)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface BackgroundBundle extends ShopItem {
+  category: 'bundles';
+  backgroundIds: string[];
+  previewImages: string[];
+  totalValue: number;
+  savings: string;
+}
+
+export const BACKGROUND_BUNDLES: BackgroundBundle[] = [
+  {
+    id: 'bundle-sky-realms',
+    name: 'Sky Realms Bundle',
+    description: 'A collection of 5 breathtaking sky and ocean themed backgrounds.',
+    category: 'bundles',
+    coinPrice: 2000,
+    icon: '🌤️',
+    rarity: 'legendary',
+    backgroundIds: [
+      'bg-sky-islands',
+      'bg-calm-seas',
+      'bg-twilight-clouds',
+      'bg-aurora-horizon',
+      'bg-sunset-clouds',
+    ],
+    previewImages: [
+      '/assets/worlds/SKYBUNDLE1.png',
+      '/assets/worlds/SKYBUNDLE2.png',
+      '/assets/worlds/SKYBUNDLE3.png',
+      '/assets/worlds/SKYBUNDLE4.png',
+      '/assets/worlds/SKYBUNDLE5.png',
+    ],
+    totalValue: 3800, // Sum of individual prices: 600+600+800+800+1000
+    savings: '47%',
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
 // SHOP HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -364,7 +471,16 @@ export const getAllShopItems = (): ShopItem[] => {
     ...UTILITY_ITEMS,
     ...COIN_PACKS,
     ...STARTER_BUNDLES,
+    ...BACKGROUND_BUNDLES,
   ];
+};
+
+export const getBackgroundBundleById = (bundleId: string): BackgroundBundle | undefined => {
+  return BACKGROUND_BUNDLES.find(bundle => bundle.id === bundleId);
+};
+
+export const getBackgroundsInBundle = (bundleId: string): PremiumBackground[] => {
+  return PREMIUM_BACKGROUNDS.filter(bg => bg.bundleId === bundleId);
 };
 
 export const getShopItemsByCategory = (category: ShopCategory): ShopItem[] => {
