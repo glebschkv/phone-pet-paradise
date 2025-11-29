@@ -41,6 +41,7 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
   const frameHeight = spriteConfig?.frameHeight ?? 32;
   const animationSpeed = spriteConfig?.animationSpeed ?? 10;
   const frameRow = spriteConfig?.frameRow ?? 0;
+  const flipX = spriteConfig?.flipX ?? false;
 
   // Check if this animal has special animations available
   const canPlaySpecialAnimations = spriteConfig ? hasSpecialAnimations(spritePath) : false;
@@ -219,6 +220,7 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
           backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
           backgroundRepeat: 'no-repeat',
           imageRendering: 'pixelated',
+          transform: flipX ? 'scaleX(-1)' : undefined,
         }}
       />
     </div>

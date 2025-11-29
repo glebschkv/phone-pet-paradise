@@ -60,7 +60,7 @@ const SpritePreview = ({ animal, scale = 4 }: { animal: AnimalData; scale?: numb
 
   if (!spriteConfig) return null;
 
-  const { spritePath, frameCount, frameWidth, frameHeight, frameRow = 0 } = spriteConfig;
+  const { spritePath, frameCount, frameWidth, frameHeight, frameRow = 0, flipX = false } = spriteConfig;
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
   const backgroundPositionX = -(currentFrame * frameWidth * scale);
@@ -77,6 +77,7 @@ const SpritePreview = ({ animal, scale = 4 }: { animal: AnimalData; scale?: numb
         backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
         backgroundRepeat: 'no-repeat',
         imageRendering: 'pixelated',
+        transform: flipX ? 'scaleX(-1)' : undefined,
       }}
     />
   );

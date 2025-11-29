@@ -14,6 +14,7 @@ export interface AnimalData {
     frameHeight: number;
     animationSpeed?: number;
     frameRow?: number; // Row index for multi-row sprite sheets (0-indexed)
+    flipX?: boolean; // Horizontally flip sprite (for left-facing sprites)
   };
   // Coin-exclusive properties
   coinPrice?: number; // If set, this animal can only be purchased with coins
@@ -119,7 +120,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 32,
       frameHeight: 32,
-      animationSpeed: 10
+      animationSpeed: 10,
+      flipX: true
     }
   },
 
@@ -192,7 +194,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
-      animationSpeed: 8
+      animationSpeed: 8,
+      flipX: true
     }
   },
 
@@ -214,7 +217,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
-      animationSpeed: 8
+      animationSpeed: 8,
+      flipX: true
     }
   },
   {
@@ -231,7 +235,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 4,
       frameWidth: 48,
       frameHeight: 48,
-      animationSpeed: 9
+      animationSpeed: 9,
+      flipX: true
     }
   },
   {
@@ -265,7 +270,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
-      animationSpeed: 10
+      animationSpeed: 10,
+      flipX: true
     }
   },
 
@@ -287,7 +293,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
-      animationSpeed: 9
+      animationSpeed: 9,
+      flipX: true
     }
   },
   {
@@ -322,7 +329,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
-      animationSpeed: 8
+      animationSpeed: 8,
+      flipX: true
     }
   },
   {
@@ -447,7 +455,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 4,
       frameWidth: 32,
       frameHeight: 32,
-      animationSpeed: 11
+      animationSpeed: 11,
+      flipX: true
     }
   },
   {
@@ -590,7 +599,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 48,
       frameHeight: 48,
-      animationSpeed: 10
+      animationSpeed: 10,
+      flipX: true
     }
   },
   {
@@ -625,7 +635,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 4,
       frameWidth: 32,
       frameHeight: 32,
-      animationSpeed: 10
+      animationSpeed: 10,
+      flipX: true
     }
   },
 
@@ -706,7 +717,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
-      animationSpeed: 10
+      animationSpeed: 10,
+      flipX: true
     }
   },
 ];

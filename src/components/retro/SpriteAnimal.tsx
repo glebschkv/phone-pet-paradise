@@ -40,6 +40,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   const frameHeight = spriteConfig?.frameHeight ?? 32;
   const animationSpeed = spriteConfig?.animationSpeed ?? 10;
   const frameRow = spriteConfig?.frameRow ?? 0;
+  const flipX = spriteConfig?.flipX ?? false;
 
   // Check if this animal has special animations available
   const canPlaySpecialAnimations = spriteConfig ? hasSpecialAnimations(spritePath) : false;
@@ -236,6 +237,8 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
           imageRendering: 'pixelated',
           // Prevent any smoothing
           WebkitFontSmoothing: 'none',
+          // Flip horizontally if sprite faces left
+          transform: flipX ? 'scaleX(-1)' : undefined,
         }}
       />
     </div>
