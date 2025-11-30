@@ -10,7 +10,7 @@ import { useCollection } from './useCollection';
 import { useCoinSystem } from './useCoinSystem';
 import { useCoinBooster } from './useCoinBooster';
 import { useAuth } from './useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { syncLogger as logger } from '@/lib/logger';
@@ -42,7 +42,7 @@ export const useBackendAppState = () => {
 
   // Real-time subscriptions for progress updates
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !isSupabaseConfigured) return;
 
     const channel = supabase
       .channel('user-progress-changes')

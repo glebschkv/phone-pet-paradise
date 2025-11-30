@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { getAmbientSoundById, AmbientSound } from '@/data/AmbientSoundsData';
+import { getAmbientSoundById } from '@/data/AmbientSoundsData';
 
 const AMBIENT_STORAGE_KEY = 'petIsland_ambientSound';
 

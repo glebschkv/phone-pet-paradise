@@ -26,13 +26,6 @@ export const AnalyticsBestHours = ({
     return `${hour - 12} PM`;
   };
 
-  const getTimeLabel = (hour: number) => {
-    if (hour >= 5 && hour < 9) return "Early Morning";
-    if (hour >= 9 && hour < 12) return "Morning";
-    if (hour >= 12 && hour < 17) return "Afternoon";
-    if (hour >= 17 && hour < 21) return "Evening";
-    return "Night";
-  };
 
   // Calculate max for progress bars
   const maxSeconds = Math.max(...Object.values(hourlyDistribution), 1);

@@ -37,6 +37,7 @@ export interface AchievementSystemReturn {
   getCompletionPercentage: () => number;
   shareAchievement: (achievementId: string) => string;
   isLoading: boolean;
+  loadAchievements?: () => Promise<void>;
 }
 
 // Achievement definitions
@@ -412,6 +413,7 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
     getTotalAchievementPoints,
     getCompletionPercentage,
     shareAchievement,
-    isLoading
+    isLoading,
+    loadAchievements,
   };
 };

@@ -90,8 +90,6 @@ export const useComboSystem = () => {
     const newTier = getComboTier(newCombo);
     const tieredUp = newTier.minCombo > oldTier.minCombo;
 
-    // Calculate bonus (difference from 1x multiplier)
-    const bonusMultiplier = newTier.multiplier - 1;
 
     const newState: ComboState = {
       currentCombo: newCombo,

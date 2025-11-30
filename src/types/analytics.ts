@@ -39,7 +39,7 @@ export interface DailyStats {
   goalMet: boolean;
   hourlyFocus: Record<number, number>; // hour (0-23) -> seconds focused
   // Category breakdown for task/intention tracking
-  categoryTime?: Record<FocusCategory, number>; // category -> seconds focused
+  categoryTime?: Partial<Record<FocusCategory, number>>; // category -> seconds focused
 }
 
 export interface AnalyticsSettings {

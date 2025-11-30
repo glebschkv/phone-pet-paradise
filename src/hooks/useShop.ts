@@ -9,9 +9,7 @@ import {
   PROFILE_BADGES,
   UTILITY_ITEMS,
   BACKGROUND_BUNDLES,
-  BackgroundBundle,
   STARTER_BUNDLES,
-  StarterBundle,
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 

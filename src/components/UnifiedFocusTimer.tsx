@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
@@ -109,28 +108,6 @@ export const UnifiedFocusTimer = () => {
       });
     }
   }, [timerState.isRunning, setSelectedPreset, saveTimerState]);
-
-  const suggestBreak = useCallback(() => {
-    const isLongBreakTime = timerState.completedSessions % 4 === 0;
-    const breakType = isLongBreakTime ? 'long-break' : 'short-break';
-    const breakPreset = TIMER_PRESETS.find(p => p.id === breakType);
-
-    if (breakPreset) {
-      toast({
-        title: "Time for a break!",
-        description: `Consider taking a ${breakPreset.name.toLowerCase()}.`,
-        action: (
-          <Button
-            size="sm"
-            onClick={() => setPreset(breakPreset)}
-            className="ml-2"
-          >
-            Start Break
-          </Button>
-        ),
-      });
-    }
-  }, [timerState.completedSessions, toast, setPreset]);
 
   const handleComplete = useCallback(async () => {
     // Prevent double completion

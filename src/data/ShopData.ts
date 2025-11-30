@@ -5,7 +5,7 @@ import { getCoinExclusiveAnimals } from './AnimalDatabase';
 // SHOP ITEM TYPES
 // ═══════════════════════════════════════════════════════════════════════════
 
-export type ShopCategory = 'featured' | 'pets' | 'customize' | 'powerups';
+export type ShopCategory = 'featured' | 'pets' | 'customize' | 'powerups' | 'backgrounds' | 'badges' | 'utilities' | 'coins' | 'bundles';
 
 export interface ShopItem {
   id: string;

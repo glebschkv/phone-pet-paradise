@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, AlertTriangle, ArrowLeft, X } from "lucide-react";
+import { Shield, AlertTriangle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { FOCUS_CATEGORIES, FocusCategory } from "@/types/analytics";
 
 interface FocusLockScreenProps {

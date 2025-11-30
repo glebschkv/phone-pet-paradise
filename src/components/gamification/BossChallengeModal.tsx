@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { cn } from '@/lib/utils';
-import { Swords, Clock, Trophy, XCircle, CheckCircle, Lock, Flame, Skull, Zap } from 'lucide-react';
+import { Clock, Trophy, XCircle, CheckCircle, Lock, Flame, Skull, Zap } from 'lucide-react';
 import { BossChallenge } from '@/data/GamificationData';
 
 interface BossChallengeModalProps {
@@ -15,7 +15,6 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
   const {
     startChallenge,
     abandonChallenge,
-    getChallengeStatus,
     getActiveChallenge,
     getChallengesByDifficulty,
   } = useBossChallenges();

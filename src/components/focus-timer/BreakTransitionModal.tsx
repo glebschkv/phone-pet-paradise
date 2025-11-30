@@ -29,7 +29,6 @@ const BREAK_OPTIONS = [
 
 export const BreakTransitionModal = ({
   isOpen,
-  onClose,
   onStartBreak,
   onSkipBreak,
   isLongBreak,

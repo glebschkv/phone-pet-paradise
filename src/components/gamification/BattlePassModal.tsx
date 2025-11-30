@@ -15,7 +15,7 @@ interface BattlePassModalProps {
 
 export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassModalProps) => {
   const { state, currentSeason, claimTierReward, getProgress, isTierClaimed, upgradeToPremium } = useBattlePass();
-  const [selectedTier, setSelectedTier] = useState<number | null>(null);
+  const [_selectedTier, setSelectedTier] = useState<number | null>(null);
   const [viewingSeasonIndex, setViewingSeasonIndex] = useState<number>(() => {
     // Start with the current season
     const currentIndex = SEASONS.findIndex(s => s.id === currentSeason?.id);

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { Timer, Home, ShoppingBag, Grid3X3, Settings, Sparkles, ChevronUp, ChevronDown, Trophy } from "lucide-react";
+import { Timer, Home, ShoppingBag, Grid3X3, Settings, Sparkles, ChevronUp, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TabBarProps {
