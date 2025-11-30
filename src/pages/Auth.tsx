@@ -13,18 +13,19 @@ type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading: authLoading, continueAsGuest } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, continueAsGuest, isGuestMode } = useAuth();
   const [mode, setMode] = useState<AuthMode>('welcome');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect to home if already authenticated
+  // Redirect to home if already authenticated with Supabase (not guest mode)
+  // Guest users should be able to access auth page to create real accounts
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
+    if (!authLoading && isAuthenticated && !isGuestMode) {
       navigate('/');
     }
-  }, [authLoading, isAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated, isGuestMode, navigate]);
 
   // Get the current URL for redirect (works for both web and Capacitor)
   const getRedirectUrl = () => {
