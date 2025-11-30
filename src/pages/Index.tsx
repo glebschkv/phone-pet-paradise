@@ -11,8 +11,10 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
 
 const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
+const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
 
 // Map biome names to background theme IDs
 const BIOME_TO_BACKGROUND: Record<string, string> = {
@@ -36,8 +38,28 @@ const Index = () => {
   const { autoBackup } = useDataBackup(); // Initialize auto-backup
   const [backgroundTheme, setBackgroundTheme] = useState<string>('day');
 
-  // Load background theme from localStorage or derive from current biome
+  // Load background theme from shop inventory or localStorage
   useEffect(() => {
+    // First check if there's an equipped background in shop inventory
+    const shopInventory = localStorage.getItem(SHOP_INVENTORY_KEY);
+    if (shopInventory) {
+      try {
+        const parsed = JSON.parse(shopInventory);
+        if (parsed.equippedBackground) {
+          // Find the background and get its preview image
+          const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === parsed.equippedBackground);
+          if (background?.previewImage) {
+            setBackgroundTheme(background.previewImage);
+            localStorage.setItem(HOME_BACKGROUND_KEY, background.previewImage);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load shop inventory:', error);
+      }
+    }
+
+    // Fall back to saved theme or biome default
     const savedTheme = localStorage.getItem(HOME_BACKGROUND_KEY);
     if (savedTheme) {
       setBackgroundTheme(savedTheme);
@@ -48,9 +70,11 @@ const Index = () => {
       localStorage.setItem(HOME_BACKGROUND_KEY, biomeBackground);
     }
 
-    // Listen for background theme changes from Collection page
+    // Listen for background theme changes from Shop/Collection
     const handleThemeChange = (event: CustomEvent<string>) => {
-      setBackgroundTheme(event.detail);
+      const newTheme = event.detail;
+      setBackgroundTheme(newTheme);
+      localStorage.setItem(HOME_BACKGROUND_KEY, newTheme);
     };
 
     window.addEventListener('homeBackgroundChange', handleThemeChange as EventListener);

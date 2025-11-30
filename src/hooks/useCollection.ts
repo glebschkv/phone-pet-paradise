@@ -4,6 +4,8 @@ import { useBackendXPSystem } from '@/hooks/useBackendXPSystem';
 import { useXPSystem } from '@/hooks/useXPSystem';
 import { useAuth } from '@/hooks/useAuth';
 
+const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
+
 interface CollectionStats {
   totalAnimals: number;
   unlockedAnimals: number;
@@ -62,6 +64,41 @@ export const useCollection = (): UseCollectionReturn => {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [activeHomePets, setActiveHomePets] = useState<Set<string>>(new Set());
 
+  // Track shop-purchased characters directly from shop inventory
+  // This ensures purchased pets show as owned regardless of XP system state
+  const [shopOwnedCharacters, setShopOwnedCharacters] = useState<string[]>([]);
+
+  // Load shop inventory from localStorage and listen for updates
+  useEffect(() => {
+    const loadShopInventory = () => {
+      const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          setShopOwnedCharacters(parsed.ownedCharacters || []);
+        } catch (error) {
+          console.error('Failed to load shop inventory:', error);
+        }
+      }
+    };
+
+    // Load initial data
+    loadShopInventory();
+
+    // Listen for shop updates
+    const handleShopUpdate = (event: CustomEvent) => {
+      if (event.detail?.ownedCharacters) {
+        setShopOwnedCharacters(event.detail.ownedCharacters);
+      }
+    };
+
+    window.addEventListener('petIsland_shopUpdate', handleShopUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('petIsland_shopUpdate', handleShopUpdate as EventListener);
+    };
+  }, []);
+
   // Load favorites from localStorage
   useEffect(() => {
     const savedFavorites = localStorage.getItem(FAVORITES_STORAGE_KEY);
@@ -116,15 +153,17 @@ export const useCollection = (): UseCollectionReturn => {
   const unlockedAnimalsData = useMemo(() => {
     const levelUnlocked = getUnlockedAnimals(currentLevel);
 
-    // Also include any coin-exclusive animals that are in the unlockedAnimals list
+    // Also include any coin-exclusive animals that are:
+    // 1. In the unlockedAnimals list from XP system, OR
+    // 2. In the shopOwnedCharacters from shop inventory (direct source of truth for purchases)
     const purchasedAnimals = ANIMAL_DATABASE.filter(animal =>
       animal.isExclusive &&
-      unlockedAnimals.includes(animal.name) &&
+      (unlockedAnimals.includes(animal.name) || shopOwnedCharacters.includes(animal.id)) &&
       !levelUnlocked.some(a => a.id === animal.id)
     );
 
     return [...levelUnlocked, ...purchasedAnimals];
-  }, [currentLevel, unlockedAnimals]);
+  }, [currentLevel, unlockedAnimals, shopOwnedCharacters]);
 
   // Get animals for current biome
   const currentBiomeAnimals = getAnimalsByBiome(currentBiome);
@@ -132,7 +171,10 @@ export const useCollection = (): UseCollectionReturn => {
   // Calculate collection statistics (only count XP-unlockable animals for progression)
   const xpUnlockableAnimals = getXPUnlockableAnimals();
   const shopExclusiveAnimals = ANIMAL_DATABASE.filter(a => a.isExclusive && a.coinPrice);
-  const ownedShopPets = shopExclusiveAnimals.filter(a => unlockedAnimals.includes(a.name));
+  // Check both XP system and shop inventory for owned shop pets
+  const ownedShopPets = shopExclusiveAnimals.filter(a =>
+    unlockedAnimals.includes(a.name) || shopOwnedCharacters.includes(a.id)
+  );
 
   const stats: CollectionStats = {
     totalAnimals: xpUnlockableAnimals.length, // Only XP-unlockable for main progression
@@ -199,12 +241,15 @@ export const useCollection = (): UseCollectionReturn => {
     // Check if unlocked by level
     if (animal.unlockLevel <= currentLevel) return true;
 
+    // Check if purchased from shop (direct inventory check)
+    if (shopOwnedCharacters.includes(animalId)) return true;
+
     // Check if purchased (in unlockedAnimals list but not by level)
     // This handles coin-exclusive animals that were purchased from the shop
     if (unlockedAnimals.includes(animal.name)) return true;
 
     return false;
-  }, [currentLevel, unlockedAnimals]);
+  }, [currentLevel, unlockedAnimals, shopOwnedCharacters]);
 
   const isAnimalFavorite = useCallback((animalId: string): boolean => {
     return favorites.has(animalId);
@@ -225,10 +270,12 @@ export const useCollection = (): UseCollectionReturn => {
       .map(id => getAnimalById(id))
       .filter((animal): animal is AnimalData => {
         if (!animal || !animal.spriteConfig) return false;
-        // Check level-based unlock OR purchased (in unlockedAnimals list)
-        return animal.unlockLevel <= currentLevel || unlockedAnimals.includes(animal.name);
+        // Check level-based unlock OR purchased from shop OR in unlockedAnimals list
+        return animal.unlockLevel <= currentLevel ||
+               shopOwnedCharacters.includes(animal.id) ||
+               unlockedAnimals.includes(animal.name);
       });
-  }, [activeHomePets, currentLevel, unlockedAnimals]);
+  }, [activeHomePets, currentLevel, unlockedAnimals, shopOwnedCharacters]);
 
   // Filter animals based on search, rarity, and biome
   // Shows all animals including shop-exclusive ones

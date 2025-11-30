@@ -681,14 +681,18 @@ export const Shop = () => {
     const handleEquipBackground = (bgId: string, e: React.MouseEvent) => {
       e.stopPropagation();
       if (inventory.equippedBackground === bgId) {
-        // Unequip
+        // Unequip - reset to default theme
         equipBackground(null);
         toast.success("Background unequipped");
+        window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: 'day' }));
       } else {
         equipBackground(bgId);
         toast.success("Background equipped!");
-        // Dispatch event for home screen to pick up
-        window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: { backgroundId: bgId } }));
+        // Find the background and get its preview image path
+        const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === bgId);
+        // Dispatch the preview image path directly so RetroBackground can use it
+        const imagePath = background?.previewImage || 'day';
+        window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: imagePath }));
       }
     };
 
