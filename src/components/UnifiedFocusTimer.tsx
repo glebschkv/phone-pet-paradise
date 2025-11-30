@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useBossChallenges } from "@/hooks/useBossChallenges";
 import { FocusCategory } from "@/types/analytics";
 import {
   TimerPreset,
@@ -33,10 +34,11 @@ const AUTO_BREAK_STORAGE_KEY = 'petIsland_autoBreak';
 
 export const UnifiedFocusTimer = () => {
   const { toast } = useToast();
-  const { awardXP, currentLevel } = useBackendAppState();
+  const { awardXP, currentLevel, coinSystem, xpSystem } = useBackendAppState();
   const { playCompletionSound } = useTimerAudio();
   const { recordSession } = useAnalytics();
   const { stop: stopAmbientSound, isPlaying: isAmbientPlaying } = useAmbientSound();
+  const { recordFocusSession } = useBossChallenges();
 
   const {
     timerState,
@@ -156,6 +158,37 @@ export const UnifiedFocusTimer = () => {
       timerState.taskLabel
     );
 
+    // Record focus session for boss challenge progress (only for work sessions)
+    if (timerState.sessionType !== 'break' && completedMinutes >= 1) {
+      const bossResult = recordFocusSession(completedMinutes);
+
+      // If a boss challenge was completed, award the rewards
+      if (bossResult.challengeCompleted && bossResult.completedChallenge) {
+        const challenge = bossResult.completedChallenge;
+
+        // Award bonus XP from boss challenge (on top of session XP)
+        if (challenge.rewards.xp > 0 && xpSystem && 'addDirectXP' in xpSystem) {
+          try {
+            (xpSystem as { addDirectXP: (xp: number) => void }).addDirectXP(challenge.rewards.xp);
+          } catch (error) {
+            console.error('Failed to award boss XP:', error);
+          }
+        }
+
+        // Award bonus coins from boss challenge
+        if (challenge.rewards.coins > 0 && coinSystem) {
+          coinSystem.addCoins(challenge.rewards.coins);
+        }
+
+        // Show boss defeat celebration toast
+        toast({
+          title: `🏆 BOSS DEFEATED: ${challenge.name}!`,
+          description: `+${challenge.rewards.xp} XP, +${challenge.rewards.coins} Coins${challenge.rewards.badge ? ', +Badge!' : ''}`,
+          duration: 5000,
+        });
+      }
+    }
+
     // Reset display time and timer state
     setDisplayTime(timerState.sessionDuration);
     saveTimerState({
@@ -181,7 +214,7 @@ export const UnifiedFocusTimer = () => {
     }
 
     isCompletingRef.current = false;
-  }, [timerState, awardXP, saveTimerState, clearPersistence, playCompletionSound, recordSession, isAmbientPlaying, stopAmbientSound, toast]);
+  }, [timerState, awardXP, saveTimerState, clearPersistence, playCompletionSound, recordSession, isAmbientPlaying, stopAmbientSound, toast, recordFocusSession, coinSystem, xpSystem]);
 
   // Handle session notes save
   const handleSessionNotesSave = useCallback((notes: string, rating: number) => {
@@ -468,6 +501,37 @@ export const UnifiedFocusTimer = () => {
       );
     }
 
+    // Record focus session for boss challenge progress (only for work sessions with at least 1 minute)
+    if (timerState.sessionType !== 'break' && completedMinutes >= 1) {
+      const bossResult = recordFocusSession(completedMinutes);
+
+      // If a boss challenge was completed, award the rewards
+      if (bossResult.challengeCompleted && bossResult.completedChallenge) {
+        const challenge = bossResult.completedChallenge;
+
+        // Award bonus XP from boss challenge
+        if (challenge.rewards.xp > 0 && xpSystem && 'addDirectXP' in xpSystem) {
+          try {
+            (xpSystem as { addDirectXP: (xp: number) => void }).addDirectXP(challenge.rewards.xp);
+          } catch (error) {
+            console.error('Failed to award boss XP:', error);
+          }
+        }
+
+        // Award bonus coins from boss challenge
+        if (challenge.rewards.coins > 0 && coinSystem) {
+          coinSystem.addCoins(challenge.rewards.coins);
+        }
+
+        // Show boss defeat celebration toast
+        toast({
+          title: `🏆 BOSS DEFEATED: ${challenge.name}!`,
+          description: `+${challenge.rewards.xp} XP, +${challenge.rewards.coins} Coins${challenge.rewards.badge ? ', +Badge!' : ''}`,
+          duration: 5000,
+        });
+      }
+    }
+
     const fullDuration = selectedPreset.duration * 60;
     setDisplayTime(fullDuration);
     saveTimerState({
@@ -478,7 +542,7 @@ export const UnifiedFocusTimer = () => {
       category: undefined,
       taskLabel: undefined,
     });
-  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, recordSession]);
+  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, recordSession, recordFocusSession, coinSystem, xpSystem]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });
