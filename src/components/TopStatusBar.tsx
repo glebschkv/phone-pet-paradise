@@ -13,8 +13,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { BIOME_DATABASE } from "@/data/AnimalDatabase";
 
 const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
+const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
 
 const BIOME_CONFIG: Record<string, { bg: string; emoji: string }> = {
   'Meadow': { bg: 'day', emoji: '🌿' },
@@ -49,9 +51,30 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
 
   const handleSwitchBiome = (biomeName: string) => {
     switchBiome(biomeName);
-    const backgroundId = BIOME_CONFIG[biomeName]?.bg || 'day';
-    localStorage.setItem(HOME_BACKGROUND_KEY, backgroundId);
-    window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundId }));
+
+    // Clear any equipped premium background when switching biomes
+    const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        if (parsed.equippedBackground) {
+          const newInventory = {
+            ...parsed,
+            equippedBackground: null,
+          };
+          localStorage.setItem(SHOP_INVENTORY_KEY, JSON.stringify(newInventory));
+          window.dispatchEvent(new CustomEvent('petIsland_shopUpdate', { detail: newInventory }));
+        }
+      } catch (error) {
+        console.error('Failed to update shop inventory:', error);
+      }
+    }
+
+    // Use the biome's background image if available, otherwise fall back to theme ID
+    const biome = BIOME_DATABASE.find(b => b.name === biomeName);
+    const backgroundTheme = biome?.backgroundImage || BIOME_CONFIG[biomeName]?.bg || 'day';
+    localStorage.setItem(HOME_BACKGROUND_KEY, backgroundTheme);
+    window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundTheme }));
   };
 
   if (currentTab !== "home") return null;

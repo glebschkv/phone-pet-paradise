@@ -144,7 +144,7 @@ export const PetCollectionGrid = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPet, setSelectedPet] = useState<AnimalData | null>(null);
-  const [activeTab, setActiveTab] = useState<"pets" | "worlds" | "backgrounds">("pets");
+  const [activeTab, setActiveTab] = useState<"pets" | "worlds">("pets");
   const [selectedBackground, setSelectedBackground] = useState<PremiumBackground | null>(null);
 
   // Shop inventory state for backgrounds
@@ -215,13 +215,34 @@ export const PetCollectionGrid = () => {
     }
   };
 
-  // When switching biomes, also update the background
+  // When switching biomes, also update the background and clear any equipped premium background
   const handleSwitchBiome = (biomeName: string) => {
     switchBiome(biomeName);
-    // Update background to match the biome
-    const backgroundId = BIOME_TO_BACKGROUND[biomeName] || 'day';
-    localStorage.setItem(HOME_BACKGROUND_KEY, backgroundId);
-    window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundId }));
+
+    // Clear any equipped premium background when switching biomes
+    const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        if (parsed.equippedBackground) {
+          const newInventory = {
+            ...parsed,
+            equippedBackground: null,
+          };
+          localStorage.setItem(SHOP_INVENTORY_KEY, JSON.stringify(newInventory));
+          setEquippedBackground(null);
+          window.dispatchEvent(new CustomEvent('petIsland_shopUpdate', { detail: newInventory }));
+        }
+      } catch (error) {
+        console.error('Failed to update shop inventory:', error);
+      }
+    }
+
+    // Use the biome's background image if available, otherwise fall back to theme ID
+    const biome = BIOME_DATABASE.find(b => b.name === biomeName);
+    const backgroundTheme = biome?.backgroundImage || BIOME_TO_BACKGROUND[biomeName] || 'day';
+    localStorage.setItem(HOME_BACKGROUND_KEY, backgroundTheme);
+    window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundTheme }));
   };
 
   const filteredPets = filterAnimals(searchQuery, "all", "all");
@@ -258,19 +279,9 @@ export const PetCollectionGrid = () => {
             )}
           >
             <div>WORLDS</div>
-            <div className="text-xs font-medium opacity-80">{BIOME_DATABASE.filter(b => b.unlockLevel <= currentLevel).length}/{BIOME_DATABASE.length}</div>
-          </button>
-          <button
-            onClick={() => setActiveTab("backgrounds")}
-            className={cn(
-              "flex-1 py-3 text-center font-bold text-sm transition-all",
-              activeTab === "backgrounds"
-                ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 border-b-2 border-amber-500"
-                : "text-muted-foreground hover:bg-muted/30"
-            )}
-          >
-            <div>BG</div>
-            <div className="text-xs font-medium opacity-80">{ownedBackgrounds.length}/{PREMIUM_BACKGROUNDS.length}</div>
+            <div className="text-xs font-medium opacity-80">
+              {BIOME_DATABASE.filter(b => b.unlockLevel <= currentLevel).length + ownedBackgrounds.length}/{BIOME_DATABASE.length + PREMIUM_BACKGROUNDS.length}
+            </div>
           </button>
         </div>
 
@@ -402,158 +413,180 @@ export const PetCollectionGrid = () => {
         )}
 
         {activeTab === "worlds" && (
-          <div className="px-3 pt-3 pb-6 space-y-2">
-            {BIOME_DATABASE.map((biome) => {
-              const Icon = BIOME_ICONS[biome.name as keyof typeof BIOME_ICONS] || Sun;
-              const isActive = biome.name === currentBiome;
-              const isUnlocked = biome.unlockLevel <= currentLevel;
-
-              return (
-                <div
-                  key={biome.name}
-                  className={cn(
-                    "retro-card p-4 transition-all",
-                    isActive && "ring-2 ring-primary",
-                    !isUnlocked && "opacity-50"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-11 h-11 rounded-lg flex items-center justify-center",
-                        isActive ? "retro-level-badge" : "retro-stat-pill"
-                      )}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-sm">
-                          {isUnlocked ? biome.name : "???"}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {isUnlocked ? (
-                            isActive ? 'Currently here' : `Level ${biome.unlockLevel}+`
-                          ) : (
-                            `Unlock at Lv.${biome.unlockLevel}`
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {isUnlocked && !isActive && (
-                      <button
-                        onClick={() => handleSwitchBiome(biome.name)}
-                        className="retro-stat-pill px-4 py-2 text-sm font-semibold active:scale-95 transition-all"
-                      >
-                        Visit
-                      </button>
-                    )}
-
-                    {isActive && (
-                      <div className="retro-level-badge px-3 py-1.5 text-xs font-bold flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        Here
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {activeTab === "backgrounds" && (
-          <div className="px-3 pt-3 pb-6">
-            <div className="grid grid-cols-2 gap-3">
-              {PREMIUM_BACKGROUNDS.map((bg) => {
-                const owned = ownedBackgrounds.includes(bg.id);
-                const isEquipped = equippedBackground === bg.id;
+          <div className="px-3 pt-3 pb-6 space-y-4">
+            {/* Biome Worlds Section */}
+            <div className="space-y-2">
+              {BIOME_DATABASE.map((biome) => {
+                const Icon = BIOME_ICONS[biome.name as keyof typeof BIOME_ICONS] || Sun;
+                const isActive = biome.name === currentBiome && !equippedBackground;
+                const isUnlocked = biome.unlockLevel <= currentLevel;
 
                 return (
                   <button
-                    key={bg.id}
-                    onClick={() => {
-                      if (owned) {
-                        handleEquipBackground(bg.id);
-                      } else {
-                        setSelectedBackground(bg);
-                      }
-                    }}
+                    key={biome.name}
+                    onClick={() => isUnlocked && handleSwitchBiome(biome.name)}
+                    disabled={!isUnlocked}
                     className={cn(
-                      "relative rounded-xl border-2 overflow-hidden transition-all active:scale-95",
-                      isEquipped
-                        ? "border-purple-400 ring-2 ring-purple-300"
-                        : owned
-                        ? "border-green-400"
-                        : "border-border opacity-60"
+                      "w-full retro-card overflow-hidden transition-all active:scale-[0.98]",
+                      isActive && "ring-2 ring-green-400",
+                      !isUnlocked && "opacity-50"
                     )}
                   >
-                    {/* Background Preview */}
-                    <div className="relative h-24 overflow-hidden bg-muted">
-                      {bg.previewImage ? (
-                        <img
-                          src={bg.previewImage}
-                          alt={bg.name}
-                          className="w-full h-full object-cover"
-                          style={{ imageRendering: 'pixelated' }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-3xl">
-                          {bg.icon}
-                        </div>
-                      )}
-
-                      {/* Status overlay */}
-                      {isEquipped && (
-                        <div className="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
-                          <div className="bg-purple-500 rounded-full px-2 py-0.5 flex items-center gap-1">
-                            <Palette className="w-3 h-3 text-white" />
-                            <span className="text-[10px] font-bold text-white">EQUIPPED</span>
+                    <div className="flex items-stretch">
+                      {/* Preview Image */}
+                      <div className="w-20 h-16 flex-shrink-0 bg-muted overflow-hidden">
+                        {biome.backgroundImage && isUnlocked ? (
+                          <img
+                            src={biome.backgroundImage}
+                            alt={biome.name}
+                            className="w-full h-full object-cover"
+                            style={{ imageRendering: 'pixelated' }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-muted">
+                            {isUnlocked ? (
+                              <Icon className="w-6 h-6 text-muted-foreground" />
+                            ) : (
+                              <Lock className="w-5 h-5 text-muted-foreground" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {/* Info */}
+                      <div className="flex-1 flex items-center justify-between px-3 py-2">
+                        <div className="text-left">
+                          <div className="font-bold text-sm">
+                            {isUnlocked ? biome.name : "???"}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground">
+                            {isUnlocked ? (
+                              isActive ? 'Currently here' : `Level ${biome.unlockLevel}+`
+                            ) : (
+                              `Unlock at Lv.${biome.unlockLevel}`
+                            )}
                           </div>
                         </div>
-                      )}
-                      {owned && !isEquipped && (
-                        <div className="absolute top-1 right-1">
-                          <div className="bg-green-500 rounded-full p-0.5">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                        </div>
-                      )}
-                      {!owned && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                          <Lock className="w-6 h-6 text-white/80" />
-                        </div>
-                      )}
 
-                      {/* Rarity dot */}
-                      <div className={cn(
-                        "absolute top-1 left-1 h-2 w-2 rounded-full",
-                        bg.rarity === 'legendary' ? "bg-amber-400" :
-                        bg.rarity === 'epic' ? "bg-purple-400" :
-                        bg.rarity === 'rare' ? "bg-blue-400" : "bg-gray-400"
-                      )} />
-                    </div>
-
-                    {/* Info */}
-                    <div className={cn(
-                      "p-2 text-left",
-                      isEquipped ? "bg-purple-50 dark:bg-purple-900/20" :
-                      owned ? "bg-green-50 dark:bg-green-900/20" : "bg-card"
-                    )}>
-                      <span className="text-[11px] font-bold block leading-tight truncate">{bg.name}</span>
-                      {owned ? (
-                        <span className="text-[9px] text-purple-600 dark:text-purple-400 font-medium">
-                          {isEquipped ? "Tap to unequip" : "Tap to equip"}
-                        </span>
-                      ) : (
-                        <div className="flex items-center gap-0.5 text-[9px] text-amber-600">
-                          <Coins className="w-2.5 h-2.5" />
-                          <span className="font-bold">{bg.coinPrice?.toLocaleString()}</span>
-                        </div>
-                      )}
+                        {isUnlocked && (
+                          isActive ? (
+                            <div className="retro-level-badge px-2 py-1 text-[10px] font-bold flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              Here
+                            </div>
+                          ) : (
+                            <div className="retro-stat-pill px-3 py-1 text-xs font-semibold">
+                              Visit
+                            </div>
+                          )
+                        )}
+                      </div>
                     </div>
                   </button>
                 );
               })}
+            </div>
+
+            {/* Premium Backgrounds Section */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 px-1">
+                <Image className="w-4 h-4 text-amber-600" />
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Shop Backgrounds</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {PREMIUM_BACKGROUNDS.map((bg) => {
+                  const owned = ownedBackgrounds.includes(bg.id);
+                  const isEquipped = equippedBackground === bg.id;
+
+                  return (
+                    <button
+                      key={bg.id}
+                      onClick={() => {
+                        if (owned) {
+                          handleEquipBackground(bg.id);
+                        } else {
+                          setSelectedBackground(bg);
+                        }
+                      }}
+                      className={cn(
+                        "relative rounded-xl border-2 overflow-hidden transition-all active:scale-95",
+                        isEquipped
+                          ? "border-purple-400 ring-2 ring-purple-300"
+                          : owned
+                          ? "border-green-400"
+                          : "border-border"
+                      )}
+                    >
+                      {/* Background Preview */}
+                      <div className="relative h-20 overflow-hidden bg-muted">
+                        {bg.previewImage ? (
+                          <img
+                            src={bg.previewImage}
+                            alt={bg.name}
+                            className="w-full h-full object-cover"
+                            style={{ imageRendering: 'pixelated' }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-3xl">
+                            {bg.icon}
+                          </div>
+                        )}
+
+                        {/* Status overlay */}
+                        {isEquipped && (
+                          <div className="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
+                            <div className="bg-purple-500 rounded-full px-2 py-0.5 flex items-center gap-1">
+                              <Palette className="w-3 h-3 text-white" />
+                              <span className="text-[10px] font-bold text-white">EQUIPPED</span>
+                            </div>
+                          </div>
+                        )}
+                        {owned && !isEquipped && (
+                          <div className="absolute top-1 right-1">
+                            <div className="bg-green-500 rounded-full p-0.5">
+                              <Check className="w-3 h-3 text-white" />
+                            </div>
+                          </div>
+                        )}
+                        {!owned && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <div className="bg-gradient-to-r from-amber-400 to-orange-400 text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <ShoppingBag className="w-3 h-3" />
+                              <span className="text-[9px] font-bold">SHOP</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Rarity dot */}
+                        <div className={cn(
+                          "absolute top-1 left-1 h-2 w-2 rounded-full",
+                          bg.rarity === 'legendary' ? "bg-amber-400" :
+                          bg.rarity === 'epic' ? "bg-purple-400" :
+                          bg.rarity === 'rare' ? "bg-blue-400" : "bg-gray-400"
+                        )} />
+                      </div>
+
+                      {/* Info */}
+                      <div className={cn(
+                        "p-2 text-left",
+                        isEquipped ? "bg-purple-50 dark:bg-purple-900/20" :
+                        owned ? "bg-green-50 dark:bg-green-900/20" : "bg-card"
+                      )}>
+                        <span className="text-[11px] font-bold block leading-tight truncate">{bg.name}</span>
+                        {owned ? (
+                          <span className="text-[9px] text-purple-600 dark:text-purple-400 font-medium">
+                            {isEquipped ? "Tap to unequip" : "Tap to equip"}
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-0.5 text-[9px] text-amber-600">
+                            <Coins className="w-2.5 h-2.5" />
+                            <span className="font-bold">{bg.coinPrice?.toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
