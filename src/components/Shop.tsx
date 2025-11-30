@@ -215,6 +215,51 @@ const BundlePreviewCarousel = ({ images }: { images: string[] }) => {
   );
 };
 
+// Pet bundle preview carousel - shows all pets in the bundle
+const PetBundlePreviewCarousel = ({ petIds }: { petIds: string[] }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const pets = petIds.map(id => getAnimalById(id)).filter(Boolean) as AnimalData[];
+
+  useEffect(() => {
+    if (pets.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % pets.length);
+    }, 1500);
+    return () => clearInterval(timer);
+  }, [pets.length]);
+
+  if (pets.length === 0) return null;
+
+  const currentPet = pets[currentIndex];
+  const scale = currentPet?.spriteConfig
+    ? Math.min(2.5, 80 / Math.max(currentPet.spriteConfig.frameWidth, currentPet.spriteConfig.frameHeight))
+    : 1;
+
+  return (
+    <div className="relative w-full h-full flex flex-col items-center justify-center">
+      <div className="flex-1 flex items-center justify-center min-h-0">
+        {currentPet?.spriteConfig ? (
+          <SpritePreview animal={currentPet} scale={scale} />
+        ) : (
+          <span className="text-4xl">{currentPet?.emoji}</span>
+        )}
+      </div>
+      <div className="text-xs text-white/80 font-medium mb-1">{currentPet?.name}</div>
+      <div className="flex gap-1">
+        {pets.map((_, idx) => (
+          <div
+            key={idx}
+            className={cn(
+              "w-1.5 h-1.5 rounded-full transition-all",
+              idx === currentIndex ? "bg-white w-3" : "bg-white/50"
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const Shop = () => {
   const [activeCategory, setActiveCategory] = useState<ShopCategory>("featured");
   const [selectedItem, setSelectedItem] = useState<ShopItem | AnimalData | null>(null);
@@ -1327,19 +1372,22 @@ export const Shop = () => {
 
       {/* Purchase Confirmation Modal */}
       <Dialog open={showPurchaseConfirm} onOpenChange={setShowPurchaseConfirm}>
-        <DialogContent className="retro-modal max-w-xs p-0 overflow-hidden border-0">
+        <DialogContent className="retro-modal max-w-[280px] p-0 overflow-hidden border-0">
           {selectedItem && (
             <>
-              <div className="retro-modal-header p-6 text-center">
+              <div className="retro-modal-header p-4 text-center">
                 <div className="retro-scanlines opacity-30" />
-                <div className="h-36 mb-3 flex items-center justify-center overflow-hidden">
-                  {'spriteConfig' in selectedItem && selectedItem.spriteConfig ? (
+                <div className="h-28 mb-2 flex items-center justify-center overflow-hidden">
+                  {'petIds' in selectedItem ? (
+                    // Pet bundle preview carousel
+                    <PetBundlePreviewCarousel petIds={(selectedItem as PetBundle).petIds} />
+                  ) : 'spriteConfig' in selectedItem && selectedItem.spriteConfig ? (
                     <SpritePreview
                       animal={selectedItem as AnimalData}
-                      scale={Math.min(3, 112 / Math.max((selectedItem as AnimalData).spriteConfig!.frameWidth, (selectedItem as AnimalData).spriteConfig!.frameHeight))}
+                      scale={Math.min(2.5, 90 / Math.max((selectedItem as AnimalData).spriteConfig!.frameWidth, (selectedItem as AnimalData).spriteConfig!.frameHeight))}
                     />
                   ) : 'previewImages' in selectedItem ? (
-                    // Bundle preview carousel
+                    // Background bundle preview carousel
                     <div className="w-full">
                       <BundlePreviewCarousel images={(selectedItem as BackgroundBundle).previewImages} />
                     </div>
@@ -1347,18 +1395,18 @@ export const Shop = () => {
                     // Single background preview
                     <BackgroundPreview imagePath={selectedItem.previewImage} size="large" className="w-full" />
                   ) : (
-                    <span className="text-6xl retro-pixel-shadow animate-bounce">
+                    <span className="text-5xl retro-pixel-shadow animate-bounce">
                       {'emoji' in selectedItem ? selectedItem.emoji : selectedItem.icon}
                     </span>
                   )}
                 </div>
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-black uppercase tracking-tight">
+                  <DialogTitle className="text-lg font-black uppercase tracking-tight">
                     {selectedItem.name}
                   </DialogTitle>
                 </DialogHeader>
                 {'rarity' in selectedItem && selectedItem.rarity && (
-                  <div className="flex justify-center mt-3">
+                  <div className="flex justify-center mt-2">
                     <span className={cn(
                       "retro-rarity-badge",
                       `bg-gradient-to-r ${RARITY_COLORS[selectedItem.rarity]}`
@@ -1371,19 +1419,19 @@ export const Shop = () => {
                   </div>
                 )}
                 {'backgroundIds' in selectedItem && (
-                  <div className="mt-2 text-xs text-muted-foreground">
+                  <div className="mt-1 text-xs text-muted-foreground">
                     Includes {(selectedItem as BackgroundBundle).backgroundIds.length} backgrounds
                   </div>
                 )}
                 {'petIds' in selectedItem && (
-                  <div className="mt-2 text-xs text-muted-foreground">
+                  <div className="mt-1 text-xs text-muted-foreground">
                     Includes {(selectedItem as PetBundle).petIds.length} pets
                   </div>
                 )}
               </div>
 
-              <div className="p-4 space-y-4 bg-card">
-                <p className="text-sm text-muted-foreground text-center leading-relaxed">
+              <div className="p-3 space-y-3 bg-card">
+                <p className="text-xs text-muted-foreground text-center leading-relaxed">
                   {selectedItem.description}
                 </p>
 
@@ -1398,17 +1446,17 @@ export const Shop = () => {
                   </div>
                 )}
 
-                <div className="retro-price-display">
-                  <span className="text-muted-foreground text-sm">Price:</span>
-                  <div className="flex items-center gap-2">
-                    <Coins className="w-5 h-5 text-amber-500" />
-                    <span className="text-xl font-black text-amber-600 dark:text-amber-400">
+                <div className="retro-price-display py-2">
+                  <span className="text-muted-foreground text-xs">Price:</span>
+                  <div className="flex items-center gap-1.5">
+                    <Coins className="w-4 h-4 text-amber-500" />
+                    <span className="text-lg font-black text-amber-600 dark:text-amber-400">
                       {('coinPrice' in selectedItem ? selectedItem.coinPrice : 0)?.toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                <div className="text-center text-xs text-muted-foreground">
+                <div className="text-center text-[10px] text-muted-foreground">
                   Balance after: <span className="font-bold">{(coinBalance - ('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)).toLocaleString()}</span> coins
                 </div>
 
@@ -1416,7 +1464,7 @@ export const Shop = () => {
                   onClick={handlePurchase}
                   disabled={!canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)}
                   className={cn(
-                    "retro-purchase-button w-full",
+                    "retro-purchase-button w-full py-2.5",
                     canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)
                       ? "retro-purchase-button-active"
                       : "retro-purchase-button-disabled"
@@ -1424,22 +1472,22 @@ export const Shop = () => {
                 >
                   {canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0) ? (
                     <>
-                      <Sparkles className="w-5 h-5" />
-                      <span className="font-black uppercase tracking-wide">Purchase</span>
+                      <Sparkles className="w-4 h-4" />
+                      <span className="font-black uppercase tracking-wide text-sm">Purchase</span>
                     </>
                   ) : (
                     <>
-                      <Lock className="w-5 h-5" />
-                      <span className="font-black uppercase tracking-wide">Not Enough</span>
+                      <Lock className="w-4 h-4" />
+                      <span className="font-black uppercase tracking-wide text-sm">Not Enough</span>
                     </>
                   )}
                 </button>
 
                 <button
                   onClick={() => setShowPurchaseConfirm(false)}
-                  className="retro-cancel-button w-full"
+                  className="retro-cancel-button w-full py-2"
                 >
-                  <span className="text-sm font-bold uppercase">Cancel</span>
+                  <span className="text-xs font-bold uppercase">Cancel</span>
                 </button>
               </div>
             </>
