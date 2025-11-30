@@ -56,10 +56,15 @@ export const useAuth = () => {
   }, []);
 
   useEffect(() => {
-    // If Supabase is not configured, automatically use guest mode
+    // If Supabase is not configured, check if user has previously chosen guest mode
     if (!isSupabaseConfigured) {
-      console.log('Supabase not configured, using guest mode');
-      enableGuestMode();
+      console.log('Supabase not configured');
+      // Only auto-enable guest mode if user has previously chosen it
+      // Otherwise, let them see the Auth page and choose guest mode manually
+      if (hasChosenGuestMode()) {
+        console.log('Restoring previous guest mode choice');
+        enableGuestMode();
+      }
       setIsLoading(false);
       return;
     }
