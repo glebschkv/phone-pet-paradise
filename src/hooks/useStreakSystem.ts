@@ -40,10 +40,14 @@ export const useStreakSystem = () => {
   const loadStreakData = () => {
     const saved = localStorage.getItem('pet_paradise_streak_data');
     if (saved) {
-      const data = JSON.parse(saved);
-      setStreakData(data);
-      // Check if streak should be broken due to missing days
-      checkStreakValidity(data);
+      try {
+        const data = JSON.parse(saved);
+        setStreakData(data);
+        // Check if streak should be broken due to missing days
+        checkStreakValidity(data);
+      } catch (error) {
+        console.error('Failed to load streak data:', error);
+      }
     }
   };
 
