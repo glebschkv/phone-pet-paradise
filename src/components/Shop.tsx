@@ -595,79 +595,182 @@ export const Shop = () => {
     );
   };
 
-  // Pets tab
+  // Pets tab - now includes pet bundles
   const renderPets = () => {
     const characters = getCoinExclusiveAnimals();
 
     return (
-      <div className="grid grid-cols-2 gap-3">
-        {characters.map((character) => {
-          const owned = inventory.ownedCharacters.includes(character.id);
-          const affordable = canAfford(character.coinPrice || 0);
+      <div className="space-y-4">
+        {/* Pet Bundles Section */}
+        <div>
+          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+            <span>🎁</span> Pet Bundles
+            <span className="text-[10px] text-green-600 font-semibold bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded">Save up to 31%</span>
+          </h4>
+          <div className="space-y-2">
+            {PET_BUNDLES.slice(0, 4).map((bundle) => {
+              const ownedPets = bundle.petIds.filter(id => inventory.ownedCharacters.includes(id));
+              const allOwned = ownedPets.length === bundle.petIds.length;
+              const partialOwned = ownedPets.length > 0 && ownedPets.length < bundle.petIds.length;
+              const affordable = canAfford(bundle.coinPrice || 0);
+              const previewAnimals = bundle.petIds.slice(0, 3).map(id => getAnimalById(id)).filter(Boolean) as AnimalData[];
 
-          return (
-            <button
-              key={character.id}
-              onClick={() => {
-                setSelectedItem(character);
-                if (!owned) setShowPurchaseConfirm(true);
-              }}
-              className={cn(
-                "retro-shop-card group relative overflow-hidden",
-                "transition-all duration-200 active:scale-95",
-                owned && "retro-shop-card-owned",
-                !owned && RARITY_BG[character.rarity],
-                !owned && RARITY_BORDER[character.rarity],
-                !owned && character.rarity !== 'common' && `shadow-lg ${RARITY_GLOW[character.rarity]}`
-              )}
-            >
-              <div className="retro-scanlines" />
-              <div className={cn(
-                "absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r",
-                RARITY_COLORS[character.rarity]
-              )} />
-
-              {owned && (
-                <div className="absolute top-2 right-2 retro-badge-owned">
-                  <Check className="w-3.5 h-3.5 text-white" />
-                </div>
-              )}
-
-              <div className="relative pt-3 pb-2 px-3 flex flex-col items-center">
-                <div className="h-16 mb-2 flex items-center justify-center overflow-hidden">
-                  {character.spriteConfig ? (
-                    <SpritePreview
-                      animal={character}
-                      scale={Math.min(2, 64 / Math.max(character.spriteConfig.frameWidth, character.spriteConfig.frameHeight))}
-                    />
-                  ) : (
-                    <span className="text-4xl retro-pixel-shadow">{character.emoji}</span>
+              return (
+                <button
+                  key={bundle.id}
+                  onClick={() => {
+                    if (!allOwned) {
+                      setSelectedItem(bundle as unknown as ShopItem);
+                      setShowPurchaseConfirm(true);
+                    } else {
+                      toast.info("You already own all pets in this bundle!");
+                    }
+                  }}
+                  className={cn(
+                    "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden",
+                    allOwned
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
+                      : partialOwned
+                      ? "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700"
+                      : RARITY_BG[bundle.rarity || 'common'],
+                    !allOwned && RARITY_BORDER[bundle.rarity || 'common']
                   )}
-                </div>
-                <div className="flex gap-0.5 mb-1.5">
-                  {getRarityStars(character.rarity)}
-                </div>
-                <span className="text-xs font-black text-center tracking-tight uppercase mb-2">
-                  {character.name}
-                </span>
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-16 h-14 rounded-lg bg-white/50 dark:bg-black/20 flex items-center justify-center overflow-hidden">
+                      {previewAnimals.length > 0 && previewAnimals[0]?.spriteConfig ? (
+                        <SpritePreview
+                          animal={previewAnimals[0]}
+                          scale={Math.min(1, 48 / Math.max(previewAnimals[0].spriteConfig.frameWidth, previewAnimals[0].spriteConfig.frameHeight))}
+                        />
+                      ) : (
+                        <span className="text-2xl">{bundle.icon}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-sm">{bundle.name}</span>
+                        {allOwned ? (
+                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center gap-1">
+                            <Check className="w-2.5 h-2.5" /> OWNED
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
+                            SAVE {bundle.savings}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        {bundle.petIds.length} pets included
+                      </p>
+                      {!allOwned && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] text-muted-foreground line-through">
+                            {bundle.totalValue.toLocaleString()}
+                          </span>
+                          <div className={cn(
+                            "flex items-center gap-1 text-xs font-bold",
+                            affordable ? "text-amber-600" : "text-red-500"
+                          )}>
+                            <Coins className="w-3 h-3" />
+                            {bundle.coinPrice?.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+            {PET_BUNDLES.length > 4 && (
+              <button
+                onClick={() => {
+                  // Show more bundles - could expand or show a modal
+                  toast.info(`${PET_BUNDLES.length - 4} more bundles available!`);
+                }}
+                className="w-full py-2 text-center text-xs text-amber-600 dark:text-amber-400 font-semibold"
+              >
+                View all {PET_BUNDLES.length} bundles →
+              </button>
+            )}
+          </div>
+        </div>
 
-                {owned ? (
-                  <div className="retro-price-tag-owned">
-                    <span className="text-[10px] font-black uppercase">Owned</span>
-                  </div>
-                ) : (
+        {/* Individual Pets Section */}
+        <div>
+          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+            <span>🐾</span> Individual Pets
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            {characters.map((character) => {
+              const owned = inventory.ownedCharacters.includes(character.id);
+              const affordable = canAfford(character.coinPrice || 0);
+
+              return (
+                <button
+                  key={character.id}
+                  onClick={() => {
+                    setSelectedItem(character);
+                    if (!owned) setShowPurchaseConfirm(true);
+                  }}
+                  className={cn(
+                    "retro-shop-card group relative overflow-hidden",
+                    "transition-all duration-200 active:scale-95",
+                    owned && "retro-shop-card-owned",
+                    !owned && RARITY_BG[character.rarity],
+                    !owned && RARITY_BORDER[character.rarity],
+                    !owned && character.rarity !== 'common' && `shadow-lg ${RARITY_GLOW[character.rarity]}`
+                  )}
+                >
+                  <div className="retro-scanlines" />
                   <div className={cn(
-                    "retro-price-tag",
-                    affordable ? "retro-price-tag-afford" : "retro-price-tag-expensive"
-                  )}>
-                    <Coins className="w-3.5 h-3.5" />
-                    <span className="text-xs font-black">{character.coinPrice?.toLocaleString()}</span>
+                    "absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r",
+                    RARITY_COLORS[character.rarity]
+                  )} />
+
+                  {owned && (
+                    <div className="absolute top-2 right-2 retro-badge-owned">
+                      <Check className="w-3.5 h-3.5 text-white" />
+                    </div>
+                  )}
+
+                  <div className="relative pt-3 pb-2 px-3 flex flex-col items-center">
+                    <div className="h-16 mb-2 flex items-center justify-center overflow-hidden">
+                      {character.spriteConfig ? (
+                        <SpritePreview
+                          animal={character}
+                          scale={Math.min(2, 64 / Math.max(character.spriteConfig.frameWidth, character.spriteConfig.frameHeight))}
+                        />
+                      ) : (
+                        <span className="text-4xl retro-pixel-shadow">{character.emoji}</span>
+                      )}
+                    </div>
+                    <div className="flex gap-0.5 mb-1.5">
+                      {getRarityStars(character.rarity)}
+                    </div>
+                    <span className="text-xs font-black text-center tracking-tight uppercase mb-2">
+                      {character.name}
+                    </span>
+
+                    {owned ? (
+                      <div className="retro-price-tag-owned">
+                        <span className="text-[10px] font-black uppercase">Owned</span>
+                      </div>
+                    ) : (
+                      <div className={cn(
+                        "retro-price-tag",
+                        affordable ? "retro-price-tag-afford" : "retro-price-tag-expensive"
+                      )}>
+                        <Coins className="w-3.5 h-3.5" />
+                        <span className="text-xs font-black">{character.coinPrice?.toLocaleString()}</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </button>
-          );
-        })}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   };
