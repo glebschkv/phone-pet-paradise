@@ -3,9 +3,30 @@ import { getBiomeByName } from '@/data/AnimalDatabase';
 
 interface RetroBackgroundProps {
   theme?: string;
+  customImage?: string; // Direct path to custom background image
 }
 
-export const RetroBackground = memo(({ theme = 'day' }: RetroBackgroundProps) => {
+export const RetroBackground = memo(({ theme = 'day', customImage }: RetroBackgroundProps) => {
+  // If a custom image path is provided, use it directly
+  if (customImage) {
+    return (
+      <CustomImageBackground
+        key={`custom-${customImage}`}
+        imagePath={customImage}
+      />
+    );
+  }
+
+  // Check if theme is actually an image path (starts with / or http)
+  if (theme.startsWith('/') || theme.startsWith('http')) {
+    return (
+      <CustomImageBackground
+        key={`custom-${theme}`}
+        imagePath={theme}
+      />
+    );
+  }
+
   switch (theme) {
     case 'sunset':
       return <SunsetHomeBackground key="sunset" />;
@@ -87,6 +108,17 @@ const ImageBackground = memo(({ imagePath, fallbackGradient, children }: {
   );
 });
 ImageBackground.displayName = 'ImageBackground';
+
+// Custom Image Background for premium/shop backgrounds
+const CustomImageBackground = memo(({ imagePath }: { imagePath: string }) => {
+  return (
+    <ImageBackground
+      imagePath={imagePath}
+      fallbackGradient="linear-gradient(180deg, hsl(200 70% 80%) 0%, hsl(200 50% 88%) 40%, hsl(35 60% 90%) 100%)"
+    />
+  );
+});
+CustomImageBackground.displayName = 'CustomImageBackground';
 
 // Day Background (Meadow - Grassy Path)
 const DayHomeBackground = memo(() => {

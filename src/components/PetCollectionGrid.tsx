@@ -19,11 +19,18 @@ import {
   Waves,
   ShoppingBag,
   Coins,
+  Image,
+  Check,
+  Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCollection } from "@/hooks/useCollection";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { AnimalData, BIOME_DATABASE } from "@/data/AnimalDatabase";
+import { PREMIUM_BACKGROUNDS, PremiumBackground } from "@/data/ShopData";
+import { toast } from "sonner";
+
+const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
 
 // Animated sprite preview component for collection
 const SpritePreview = ({ animal, scale = 4 }: { animal: AnimalData; scale?: number }) => {
@@ -137,7 +144,76 @@ export const PetCollectionGrid = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPet, setSelectedPet] = useState<AnimalData | null>(null);
-  const [activeTab, setActiveTab] = useState<"pets" | "worlds">("pets");
+  const [activeTab, setActiveTab] = useState<"pets" | "worlds" | "backgrounds">("pets");
+  const [selectedBackground, setSelectedBackground] = useState<PremiumBackground | null>(null);
+
+  // Shop inventory state for backgrounds
+  const [ownedBackgrounds, setOwnedBackgrounds] = useState<string[]>([]);
+  const [equippedBackground, setEquippedBackground] = useState<string | null>(null);
+
+  // Load shop inventory
+  useEffect(() => {
+    const loadShopInventory = () => {
+      const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          setOwnedBackgrounds(parsed.ownedBackgrounds || []);
+          setEquippedBackground(parsed.equippedBackground || null);
+        } catch (error) {
+          console.error('Failed to load shop inventory:', error);
+        }
+      }
+    };
+
+    loadShopInventory();
+
+    // Listen for shop updates
+    const handleShopUpdate = (event: CustomEvent) => {
+      if (event.detail) {
+        setOwnedBackgrounds(event.detail.ownedBackgrounds || []);
+        setEquippedBackground(event.detail.equippedBackground || null);
+      }
+    };
+
+    window.addEventListener('petIsland_shopUpdate', handleShopUpdate as EventListener);
+    return () => {
+      window.removeEventListener('petIsland_shopUpdate', handleShopUpdate as EventListener);
+    };
+  }, []);
+
+  // Handle equipping a background
+  const handleEquipBackground = (bgId: string) => {
+    const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        const newEquipped = parsed.equippedBackground === bgId ? null : bgId;
+        const newInventory = {
+          ...parsed,
+          equippedBackground: newEquipped,
+        };
+        localStorage.setItem(SHOP_INVENTORY_KEY, JSON.stringify(newInventory));
+        setEquippedBackground(newEquipped);
+
+        // Dispatch event for home screen and shop to pick up
+        window.dispatchEvent(new CustomEvent('petIsland_shopUpdate', { detail: newInventory }));
+
+        // Also update the home background
+        if (newEquipped) {
+          const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === bgId);
+          const imagePath = background?.previewImage || 'day';
+          window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: imagePath }));
+          toast.success("Background equipped!");
+        } else {
+          window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: 'day' }));
+          toast.success("Background unequipped");
+        }
+      } catch (error) {
+        console.error('Failed to update shop inventory:', error);
+      }
+    }
+  };
 
   // When switching biomes, also update the background
   const handleSwitchBiome = (biomeName: string) => {
@@ -183,6 +259,18 @@ export const PetCollectionGrid = () => {
           >
             <div>WORLDS</div>
             <div className="text-xs font-medium opacity-80">{BIOME_DATABASE.filter(b => b.unlockLevel <= currentLevel).length}/{BIOME_DATABASE.length}</div>
+          </button>
+          <button
+            onClick={() => setActiveTab("backgrounds")}
+            className={cn(
+              "flex-1 py-3 text-center font-bold text-sm transition-all",
+              activeTab === "backgrounds"
+                ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 border-b-2 border-amber-500"
+                : "text-muted-foreground hover:bg-muted/30"
+            )}
+          >
+            <div>BG</div>
+            <div className="text-xs font-medium opacity-80">{ownedBackgrounds.length}/{PREMIUM_BACKGROUNDS.length}</div>
           </button>
         </div>
 
@@ -372,7 +460,189 @@ export const PetCollectionGrid = () => {
             })}
           </div>
         )}
+
+        {activeTab === "backgrounds" && (
+          <div className="px-3 pt-3 pb-6">
+            <div className="grid grid-cols-2 gap-3">
+              {PREMIUM_BACKGROUNDS.map((bg) => {
+                const owned = ownedBackgrounds.includes(bg.id);
+                const isEquipped = equippedBackground === bg.id;
+
+                return (
+                  <button
+                    key={bg.id}
+                    onClick={() => {
+                      if (owned) {
+                        handleEquipBackground(bg.id);
+                      } else {
+                        setSelectedBackground(bg);
+                      }
+                    }}
+                    className={cn(
+                      "relative rounded-xl border-2 overflow-hidden transition-all active:scale-95",
+                      isEquipped
+                        ? "border-purple-400 ring-2 ring-purple-300"
+                        : owned
+                        ? "border-green-400"
+                        : "border-border opacity-60"
+                    )}
+                  >
+                    {/* Background Preview */}
+                    <div className="relative h-24 overflow-hidden bg-muted">
+                      {bg.previewImage ? (
+                        <img
+                          src={bg.previewImage}
+                          alt={bg.name}
+                          className="w-full h-full object-cover"
+                          style={{ imageRendering: 'pixelated' }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-3xl">
+                          {bg.icon}
+                        </div>
+                      )}
+
+                      {/* Status overlay */}
+                      {isEquipped && (
+                        <div className="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
+                          <div className="bg-purple-500 rounded-full px-2 py-0.5 flex items-center gap-1">
+                            <Palette className="w-3 h-3 text-white" />
+                            <span className="text-[10px] font-bold text-white">EQUIPPED</span>
+                          </div>
+                        </div>
+                      )}
+                      {owned && !isEquipped && (
+                        <div className="absolute top-1 right-1">
+                          <div className="bg-green-500 rounded-full p-0.5">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                        </div>
+                      )}
+                      {!owned && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                          <Lock className="w-6 h-6 text-white/80" />
+                        </div>
+                      )}
+
+                      {/* Rarity dot */}
+                      <div className={cn(
+                        "absolute top-1 left-1 h-2 w-2 rounded-full",
+                        bg.rarity === 'legendary' ? "bg-amber-400" :
+                        bg.rarity === 'epic' ? "bg-purple-400" :
+                        bg.rarity === 'rare' ? "bg-blue-400" : "bg-gray-400"
+                      )} />
+                    </div>
+
+                    {/* Info */}
+                    <div className={cn(
+                      "p-2 text-left",
+                      isEquipped ? "bg-purple-50 dark:bg-purple-900/20" :
+                      owned ? "bg-green-50 dark:bg-green-900/20" : "bg-card"
+                    )}>
+                      <span className="text-[11px] font-bold block leading-tight truncate">{bg.name}</span>
+                      {owned ? (
+                        <span className="text-[9px] text-purple-600 dark:text-purple-400 font-medium">
+                          {isEquipped ? "Tap to unequip" : "Tap to equip"}
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-0.5 text-[9px] text-amber-600">
+                          <Coins className="w-2.5 h-2.5" />
+                          <span className="font-bold">{bg.coinPrice?.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </ScrollArea>
+
+      {/* Background Detail Modal */}
+      <Dialog open={!!selectedBackground} onOpenChange={() => setSelectedBackground(null)}>
+        <DialogContent className="max-w-xs retro-card border-2 border-border p-0 overflow-hidden">
+          {selectedBackground && (
+            <>
+              <div className="relative h-36 overflow-hidden">
+                {selectedBackground.previewImage ? (
+                  <img
+                    src={selectedBackground.previewImage}
+                    alt={selectedBackground.name}
+                    className="w-full h-full object-cover"
+                    style={{ imageRendering: 'pixelated' }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-5xl bg-muted">
+                    {selectedBackground.icon}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-2 left-3 right-3">
+                  <h3 className="text-white font-bold text-lg">{selectedBackground.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={cn(
+                      "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
+                      selectedBackground.rarity === 'legendary' ? "bg-amber-400 text-amber-900" :
+                      selectedBackground.rarity === 'epic' ? "bg-purple-400 text-purple-900" :
+                      selectedBackground.rarity === 'rare' ? "bg-blue-400 text-blue-900" : "bg-gray-400 text-gray-900"
+                    )}>
+                      {selectedBackground.rarity}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-4">
+                <p className="text-sm text-muted-foreground text-center">
+                  {selectedBackground.description}
+                </p>
+
+                {ownedBackgrounds.includes(selectedBackground.id) ? (
+                  <button
+                    onClick={() => {
+                      handleEquipBackground(selectedBackground.id);
+                      setSelectedBackground(null);
+                    }}
+                    className={cn(
+                      "w-full py-3 rounded-lg font-bold text-sm transition-all active:scale-95",
+                      equippedBackground === selectedBackground.id
+                        ? "bg-purple-100 text-purple-700 border-2 border-purple-300"
+                        : "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
+                    )}
+                  >
+                    <Palette className="w-4 h-4 inline mr-2" />
+                    {equippedBackground === selectedBackground.id ? "Unequip" : "Equip Background"}
+                  </button>
+                ) : (
+                  <div className="text-center">
+                    <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full flex items-center justify-center border-2 border-amber-300">
+                      <ShoppingBag className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Purchase this background from the Shop
+                    </p>
+                    <div className="flex items-center justify-center gap-1 mb-3 text-amber-600">
+                      <Coins className="w-4 h-4" />
+                      <span className="font-bold">{selectedBackground.coinPrice?.toLocaleString()}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedBackground(null);
+                        window.dispatchEvent(new CustomEvent('switchToTab', { detail: 'shop' }));
+                      }}
+                      className="bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all active:scale-95 inline-flex items-center gap-2"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      Buy from Shop
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Pet Detail Modal */}
       <Dialog open={!!selectedPet} onOpenChange={() => setSelectedPet(null)}>
