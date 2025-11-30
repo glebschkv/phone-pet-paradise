@@ -653,6 +653,698 @@ export const SPECIAL_ANIMATIONS: Record<string, SpecialAnimationConfig[]> = {
       animationSpeed: 10,
       playOnce: true
     }
+  ],
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITE SPECIAL ANIMATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Cat special animations
+  '/assets/sprites/Cat_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Cat_Idle.png',
+      frameCount: 7,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Cat_Special.png',
+      frameCount: 4,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Cat_Jamp.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Baby Dragon special animations
+  '/assets/sprites/BabyDragon_Walk.png': [
+    {
+      spritePath: '/assets/sprites/BabyDragon_Idle.png',
+      frameCount: 9,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/BabyDragon_Attack_1.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Golden Fox special animations
+  '/assets/sprites/GoldenFox_Walk.png': [
+    {
+      spritePath: '/assets/sprites/GoldenFox_Idle.png',
+      frameCount: 7,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/GoldenFox_Attack_1.png',
+      frameCount: 4,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Little Lizard special animations
+  '/assets/sprites/LittleLizard_Walk.png': [
+    {
+      spritePath: '/assets/sprites/LittleLizard_Idle.png',
+      frameCount: 7,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/LittleLizard_Attack_1.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Doggo special animations
+  '/assets/sprites/doggo_Walk.png': [
+    {
+      spritePath: '/assets/sprites/doggo_Jump.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/doggo_Special.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Doggo2 special animations
+  '/assets/sprites/doggo2_Walk.png': [
+    {
+      spritePath: '/assets/sprites/doggo2_Jamp.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/doggo2_Special.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Kitsune special animations
+  '/assets/sprites/Kitsune_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Kitsune_Idle.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Kitsune_Run.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Kitsune_Jump.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Karasu Tengu special animations
+  '/assets/sprites/KarasuTengu_Walk.png': [
+    {
+      spritePath: '/assets/sprites/KarasuTengu_Idle.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/KarasuTengu_Run.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/KarasuTengu_Jump.png',
+      frameCount: 15,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 14,
+      playOnce: true
+    }
+  ],
+
+  // Yamabushi Tengu special animations
+  '/assets/sprites/YamabushTengu_Walk.png': [
+    {
+      spritePath: '/assets/sprites/YamabushTengu_Idle.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/YamabushTengu_Run.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/YamabushTengu_Jump.png',
+      frameCount: 15,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 14,
+      playOnce: true
+    }
+  ],
+
+  // Knight special animations (Silver Knight)
+  '/assets/sprites/knight1_Idle_2.png': [
+    {
+      spritePath: '/assets/sprites/knight1_Roll.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/knight1_Elixir.png',
+      frameCount: 4,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Knight3 special animations (Golden Knight)
+  '/assets/sprites/Knight3_Idle_2.png': [
+    {
+      spritePath: '/assets/sprites/Knight3_Roll.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Knight3_Elixir.png',
+      frameCount: 4,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Royal Knight special animations
+  '/assets/sprites/KNIGHT2REAL_knight1_Idle_2.png': [
+    {
+      spritePath: '/assets/sprites/KNIGHT2REAL_knight1_Roll.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/KNIGHT2REAL_knight1_Invocation.png',
+      frameCount: 5,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Elf Archer special animations
+  '/assets/sprites/elf1_Walk.png': [
+    {
+      spritePath: '/assets/sprites/elf1_Idle.png',
+      frameCount: 21,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/elf1_Attack.png',
+      frameCount: 11,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Elf Mage special animations
+  '/assets/sprites/elf2_Walk.png': [
+    {
+      spritePath: '/assets/sprites/elf2_Idle.png',
+      frameCount: 5,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Elf Warrior special animations
+  '/assets/sprites/elf3_Walk.png': [
+    {
+      spritePath: '/assets/sprites/elf3_Idle.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Zombie Walker special animations
+  '/assets/sprites/zombie1walk.png': [
+    {
+      spritePath: '/assets/sprites/zombie1run.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Zombie Sprinter special animations
+  '/assets/sprites/zombie2walk.png': [
+    {
+      spritePath: '/assets/sprites/zombie2run.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Zombie Brute special animations
+  '/assets/sprites/zombie3walk.png': [
+    {
+      spritePath: '/assets/sprites/zombie3run.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Demon Imp special animations
+  '/assets/sprites/demon1_Walk.png': [
+    {
+      spritePath: '/assets/sprites/demon1_Idle.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/demon1_Attack.png',
+      frameCount: 9,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Demon Warrior special animations
+  '/assets/sprites/demon2_Walk.png': [
+    {
+      spritePath: '/assets/sprites/demon2_Idle.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/demon2_Attack.png',
+      frameCount: 5,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Demon Lord special animations
+  '/assets/sprites/demon3_Walk.png': [
+    {
+      spritePath: '/assets/sprites/demon3_Idle.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/demon3_Attack.png',
+      frameCount: 5,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Dwarf Miner special animations
+  '/assets/sprites/dwarf1_Walk.png': [
+    {
+      spritePath: '/assets/sprites/dwarf1_Idle_2.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/dwarf1_Jump.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/dwarf1_Special.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Dwarf Warrior special animations
+  '/assets/sprites/dwarf2_Walk.png': [
+    {
+      spritePath: '/assets/sprites/dwarf2_Run.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/dwarf2_Jump.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Dwarf King special animations
+  '/assets/sprites/dwarf3_Walk.png': [
+    {
+      spritePath: '/assets/sprites/dwarf3_Run.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/dwarf3_Special.png',
+      frameCount: 4,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Holy Priest special animations
+  '/assets/sprites/Priest1_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Priest1_Idle.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Priest1_Special.png',
+      frameCount: 11,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Temple Monk special animations
+  '/assets/sprites/Priests2_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Priests2_Idle.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Ancient Sage special animations
+  '/assets/sprites/Priests3_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Priests3_Idle.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    }
+  ],
+
+  // Lab Researcher special animations
+  '/assets/sprites/Scientist1_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Scientist1_Run.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Scientist1_Special.png',
+      frameCount: 14,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
+  ],
+
+  // Mad Chemist special animations
+  '/assets/sprites/Scientists2_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Scientists2_Run.png',
+      frameCount: 11,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Genius Inventor special animations
+  '/assets/sprites/Scientists3_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Scientists3_Run.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Business Man special animations
+  '/assets/sprites/CityMen1_Walk.png': [
+    {
+      spritePath: '/assets/sprites/CityMen1_Idle.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/CityMen1_Run.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Executive special animations
+  '/assets/sprites/CityMen3_Walk.png': [
+    {
+      spritePath: '/assets/sprites/CityMen3_Idle.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/CityMen3_Run.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Field Medic special animations
+  '/assets/sprites/doctor1_Walk.png': [
+    {
+      spritePath: '/assets/sprites/doctor1_Run.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Surgeon special animations
+  '/assets/sprites/Doctor2_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Doctor2_Idle.png',
+      frameCount: 5,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Doctor2_Run.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Medical Specialist special animations
+  '/assets/sprites/Doctor3_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Doctor3_Idle.png',
+      frameCount: 7,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Doctor3_Run.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    }
+  ],
+
+  // Desert Raider special animations
+  '/assets/sprites/Raider1_Walk.png': [
+    {
+      spritePath: '/assets/sprites/Raider1_Run.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Raider1_Jump.png',
+      frameCount: 11,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 12,
+      playOnce: true
+    },
+    {
+      spritePath: '/assets/sprites/Raider1_Shot.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      playOnce: true
+    }
   ]
 };
 

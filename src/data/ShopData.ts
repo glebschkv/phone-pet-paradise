@@ -461,6 +461,188 @@ export const BACKGROUND_BUNDLES: BackgroundBundle[] = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PET BUNDLES (Special themed pet collections)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface PetBundle extends ShopItem {
+  category: 'bundles';
+  petIds: string[];
+  totalValue: number;
+  savings: string;
+}
+
+export const PET_BUNDLES: PetBundle[] = [
+  {
+    id: 'bundle-cute-companions',
+    name: 'Cute Companions Bundle',
+    description: 'An adorable collection of the cutest pets! Includes House Cat, Baby Dragon, Loyal Doggo, Fluffy Pupper, and Little Lizard.',
+    category: 'bundles',
+    coinPrice: 3000,
+    icon: '🐾',
+    rarity: 'epic',
+    petIds: ['house-cat', 'baby-dragon', 'doggo', 'doggo2', 'little-lizard'],
+    totalValue: 4900, // 800+1500+800+1200+600
+    savings: '39%',
+  },
+  {
+    id: 'bundle-yokai-spirits',
+    name: 'Yokai Spirits Bundle',
+    description: 'Mystical spirits from Japanese folklore! Includes Kitsune Spirit, Karasu Tengu, and Yamabushi Tengu.',
+    category: 'bundles',
+    coinPrice: 8500,
+    icon: '👺',
+    rarity: 'legendary',
+    petIds: ['kitsune', 'karasu-tengu', 'yamabush-tengu'],
+    totalValue: 11500, // 4500+3500+3500
+    savings: '26%',
+  },
+  {
+    id: 'bundle-knights-order',
+    name: 'Knights Order Bundle',
+    description: 'The complete knight collection! Includes Silver Knight, Golden Knight, and Royal Knight.',
+    category: 'bundles',
+    coinPrice: 7000,
+    icon: '⚔️',
+    rarity: 'legendary',
+    petIds: ['knight-silver', 'knight-gold', 'knight-royal'],
+    totalValue: 9500, // 2000+3000+4500
+    savings: '26%',
+  },
+  {
+    id: 'bundle-elf-kingdom',
+    name: 'Elf Kingdom Bundle',
+    description: 'The complete elven court! Includes Elf Archer, Elf Mage, and Elf Warrior.',
+    category: 'bundles',
+    coinPrice: 5500,
+    icon: '🏹',
+    rarity: 'epic',
+    petIds: ['elf-archer', 'elf-mage', 'elf-warrior'],
+    totalValue: 7600, // 2000+2800+2800
+    savings: '28%',
+  },
+  {
+    id: 'bundle-undead-horde',
+    name: 'Undead Horde Bundle',
+    description: 'Rise the dead! Includes Zombie Walker, Zombie Sprinter, and Zombie Brute.',
+    category: 'bundles',
+    coinPrice: 3000,
+    icon: '🧟',
+    rarity: 'epic',
+    petIds: ['zombie-walker', 'zombie-runner', 'zombie-brute'],
+    totalValue: 4000, // 800+1200+2000
+    savings: '25%',
+  },
+  {
+    id: 'bundle-demon-legion',
+    name: 'Demon Legion Bundle',
+    description: 'Command the forces of darkness! Includes Demon Imp, Demon Warrior, and Demon Lord.',
+    category: 'bundles',
+    coinPrice: 7000,
+    icon: '😈',
+    rarity: 'legendary',
+    petIds: ['demon-imp', 'demon-warrior', 'demon-lord'],
+    totalValue: 9500, // 1500+3000+5000
+    savings: '26%',
+  },
+  {
+    id: 'bundle-mountain-dwarves',
+    name: 'Mountain Dwarves Bundle',
+    description: 'Masters of the mountain! Includes Dwarf Miner, Dwarf Warrior, and Dwarf King.',
+    category: 'bundles',
+    coinPrice: 4500,
+    icon: '⛏️',
+    rarity: 'epic',
+    petIds: ['dwarf-miner', 'dwarf-warrior', 'dwarf-king'],
+    totalValue: 6300, // 1000+1800+3500
+    savings: '29%',
+  },
+  {
+    id: 'bundle-holy-order',
+    name: 'Holy Order Bundle',
+    description: 'Blessed companions! Includes Holy Priest, Temple Monk, and Ancient Sage.',
+    category: 'bundles',
+    coinPrice: 5000,
+    icon: '✝️',
+    rarity: 'epic',
+    petIds: ['priest-healer', 'priest-monk', 'priest-sage'],
+    totalValue: 7000, // 2000+2000+3000
+    savings: '29%',
+  },
+  {
+    id: 'bundle-science-team',
+    name: 'Science Team Bundle',
+    description: 'Brilliant minds unite! Includes Lab Researcher, Mad Chemist, and Genius Inventor.',
+    category: 'bundles',
+    coinPrice: 3500,
+    icon: '🔬',
+    rarity: 'epic',
+    petIds: ['scientist-researcher', 'scientist-chemist', 'scientist-genius'],
+    totalValue: 5000, // 1000+1500+2500
+    savings: '30%',
+  },
+  {
+    id: 'bundle-medical-team',
+    name: 'Medical Team Bundle',
+    description: 'Ready to save lives! Includes Field Medic, Surgeon, and Medical Specialist.',
+    category: 'bundles',
+    coinPrice: 4500,
+    icon: '🏥',
+    rarity: 'epic',
+    petIds: ['doctor-medic', 'doctor-surgeon', 'doctor-specialist'],
+    totalValue: 6500, // 1500+2500+2500
+    savings: '31%',
+  },
+  {
+    id: 'bundle-explorers-guild',
+    name: 'Explorers Guild Bundle',
+    description: 'Adventure awaits! Includes Desert Raider, Jungle Survivalist, Mountain Climber, Arctic Explorer, and Sea Captain.',
+    category: 'bundles',
+    coinPrice: 6500,
+    icon: '🧭',
+    rarity: 'legendary',
+    petIds: ['raider', 'survivalist-1', 'survivalist-2', 'survivalist-3', 'sea-captain'],
+    totalValue: 9400, // 2000+1200+1500+2200+2500
+    savings: '31%',
+  },
+  {
+    id: 'bundle-young-heroes',
+    name: 'Young Heroes Bundle',
+    description: 'The next generation! Includes Young Adventurer, Little Explorer, and Young Dreamer.',
+    category: 'bundles',
+    coinPrice: 1500,
+    icon: '🌟',
+    rarity: 'rare',
+    petIds: ['child-adventurer', 'child-explorer', 'child-dreamer'],
+    totalValue: 2000, // 600+600+800
+    savings: '25%',
+  },
+  {
+    id: 'bundle-city-life',
+    name: 'City Life Bundle',
+    description: 'Urban professionals! Includes Business Man, Executive, Police Officer, and Police Detective.',
+    category: 'bundles',
+    coinPrice: 3200,
+    icon: '🏙️',
+    rarity: 'epic',
+    petIds: ['city-businessman', 'city-executive', 'policeman', 'policewoman'],
+    totalValue: 4500, // 800+1200+1000+1500
+    savings: '29%',
+  },
+  {
+    id: 'bundle-golden-legends',
+    name: 'Golden Legends Bundle',
+    description: 'The most majestic creatures! Includes Golden Fox and Kitsune Spirit.',
+    category: 'bundles',
+    coinPrice: 5500,
+    icon: '✨',
+    rarity: 'legendary',
+    petIds: ['golden-fox', 'kitsune'],
+    totalValue: 7000, // 2500+4500
+    savings: '21%',
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
 // SHOP HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -472,11 +654,16 @@ export const getAllShopItems = (): ShopItem[] => {
     ...COIN_PACKS,
     ...STARTER_BUNDLES,
     ...BACKGROUND_BUNDLES,
+    ...PET_BUNDLES,
   ];
 };
 
 export const getBackgroundBundleById = (bundleId: string): BackgroundBundle | undefined => {
   return BACKGROUND_BUNDLES.find(bundle => bundle.id === bundleId);
+};
+
+export const getPetBundleById = (bundleId: string): PetBundle | undefined => {
+  return PET_BUNDLES.find(bundle => bundle.id === bundleId);
 };
 
 export const getBackgroundsInBundle = (bundleId: string): PremiumBackground[] => {
@@ -486,8 +673,8 @@ export const getBackgroundsInBundle = (bundleId: string): PremiumBackground[] =>
 export const getShopItemsByCategory = (category: ShopCategory): ShopItem[] => {
   switch (category) {
     case 'featured':
-      // Featured tab shows bundles and limited time items
-      return [...STARTER_BUNDLES, ...getLimitedTimeItems()];
+      // Featured tab shows bundles, pet bundles and limited time items
+      return [...STARTER_BUNDLES, ...PET_BUNDLES.slice(0, 4), ...getLimitedTimeItems()];
     case 'pets':
       return getCoinExclusiveAnimals().map(animal => ({
         id: animal.id,
@@ -514,6 +701,9 @@ export const getShopItemsByCategory = (category: ShopCategory): ShopItem[] => {
         rarity: (booster.id === 'weekly_pass' ? 'epic' : booster.id === 'super_boost' ? 'rare' : 'common') as 'common' | 'rare' | 'epic' | 'legendary',
       }));
       return [...boosters, ...UTILITY_ITEMS, ...COIN_PACKS];
+    case 'bundles':
+      // All pet and background bundles
+      return [...PET_BUNDLES, ...BACKGROUND_BUNDLES];
     default:
       return [];
   }
@@ -547,6 +737,7 @@ export const getItemsByRarity = (rarity: 'common' | 'rare' | 'epic' | 'legendary
 export const SHOP_CATEGORIES: { id: ShopCategory; name: string; icon: string }[] = [
   { id: 'featured', name: 'Featured', icon: '⭐' },
   { id: 'pets', name: 'Pets', icon: '🐾' },
+  { id: 'bundles', name: 'Bundles', icon: '🎁' },
   { id: 'customize', name: 'Customize', icon: '🎨' },
   { id: 'powerups', name: 'Power-Ups', icon: '⚡' },
 ];
