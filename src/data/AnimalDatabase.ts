@@ -709,6 +709,905 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       animationSpeed: 10
     }
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Cute Creatures
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'house-cat',
+    name: 'House Cat',
+    emoji: '🐱',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'A playful house cat with a curious spirit and a love for napping in sunny spots.',
+    abilities: ['Cat Nap', 'Pounce', 'Curious Spirit', 'Purr Power'],
+    biome: 'Meadow',
+    coinPrice: 800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Cat_Walk.png',
+      frameCount: 11,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'baby-dragon',
+    name: 'Baby Dragon',
+    emoji: '🐲',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'An adorable young dragon just learning to breathe fire and fly.',
+    abilities: ['Baby Flames', 'Wing Flutter', 'Dragon Roar', 'Fire Sneeze'],
+    biome: 'Forest',
+    coinPrice: 1500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/BabyDragon_Walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'golden-fox',
+    name: 'Golden Fox',
+    emoji: '🦊',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A mystical fox with fur of pure gold, bringing fortune and wisdom.',
+    abilities: ['Golden Luck', 'Swift Dash', 'Fortune Blessing', 'Fox Fire'],
+    biome: 'Sunset',
+    coinPrice: 2500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/GoldenFox_Walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'little-lizard',
+    name: 'Little Lizard',
+    emoji: '🦎',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'A tiny dragon-like lizard with big dreams and a fiery personality.',
+    abilities: ['Tiny Flames', 'Quick Dash', 'Scale Shield', 'Tail Whip'],
+    biome: 'Forest',
+    coinPrice: 600,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/LittleLizard_Walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'doggo',
+    name: 'Loyal Doggo',
+    emoji: '🐕',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'A faithful companion always ready for adventure and belly rubs.',
+    abilities: ['Fetch Focus', 'Loyal Heart', 'Happy Bark', 'Tail Wag'],
+    biome: 'Meadow',
+    coinPrice: 800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/doggo_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'doggo2',
+    name: 'Fluffy Pupper',
+    emoji: '🐶',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'An extra fluffy pup who brings joy wherever they bounce.',
+    abilities: ['Fluff Power', 'Bounce Joy', 'Puppy Eyes', 'Cuddle Time'],
+    biome: 'Meadow',
+    coinPrice: 1200,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/doggo2_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Japanese Folklore (Yokai)
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'kitsune',
+    name: 'Kitsune Spirit',
+    emoji: '🦊',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A mystical nine-tailed fox spirit from Japanese folklore with shapeshifting powers.',
+    abilities: ['Fox Fire', 'Spirit Form', 'Illusion', 'Nine Tails'],
+    biome: 'Night',
+    coinPrice: 4500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Kitsune_Walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'karasu-tengu',
+    name: 'Karasu Tengu',
+    emoji: '🐦‍⬛',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A crow-like tengu warrior skilled in martial arts and sword fighting.',
+    abilities: ['Crow Strike', 'Wind Slash', 'Shadow Step', 'Feather Storm'],
+    biome: 'Night',
+    coinPrice: 3500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/KarasuTengu_Walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'yamabush-tengu',
+    name: 'Yamabushi Tengu',
+    emoji: '👺',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A mountain hermit tengu with mystical powers and ancient wisdom.',
+    abilities: ['Mountain Spirit', 'Leaf Dance', 'Wind Call', 'Mystic Staff'],
+    biome: 'Forest',
+    coinPrice: 3500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/YamabushTengu_Walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Fantasy Knights
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'knight-silver',
+    name: 'Silver Knight',
+    emoji: '⚔️',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A noble knight in gleaming silver armor, sworn to protect the realm.',
+    abilities: ['Shield Bash', 'Honor Guard', 'Silver Strike', 'Royal Defense'],
+    biome: 'Meadow',
+    coinPrice: 2000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/knight1_Idle_2.png',
+      frameCount: 5,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'knight-gold',
+    name: 'Golden Knight',
+    emoji: '🏅',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'An elite knight adorned in golden armor, champion of tournaments.',
+    abilities: ['Golden Strike', 'Champion Spirit', 'Power Attack', 'Glory Shield'],
+    biome: 'Sunset',
+    coinPrice: 3000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Knight3_Idle_2.png',
+      frameCount: 5,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'knight-royal',
+    name: 'Royal Knight',
+    emoji: '👑',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'The legendary commander of the Royal Guard, feared by enemies and revered by allies.',
+    abilities: ['Royal Command', 'Invocation', 'Power Strike', 'Shield Wall'],
+    biome: 'Snow',
+    coinPrice: 4500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/KNIGHT2REAL_knight1_Idle_2.png',
+      frameCount: 5,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Elves
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'elf-archer',
+    name: 'Elf Archer',
+    emoji: '🏹',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A skilled elven archer with unmatched precision and grace.',
+    abilities: ['Arrow Rain', 'Forest Step', 'Eagle Eye', 'Nature Bond'],
+    biome: 'Forest',
+    coinPrice: 2000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/elf1_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'elf-mage',
+    name: 'Elf Mage',
+    emoji: '✨',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'An ancient elven mage wielding powerful nature magic.',
+    abilities: ['Nature Spell', 'Arcane Shield', 'Forest Magic', 'Life Bloom'],
+    biome: 'Forest',
+    coinPrice: 2800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/elf2_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'elf-warrior',
+    name: 'Elf Warrior',
+    emoji: '⚔️',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A fierce elven warrior protecting the ancient forest realms.',
+    abilities: ['Blade Dance', 'Elven Strength', 'Swift Strike', 'Forest Guardian'],
+    biome: 'Forest',
+    coinPrice: 2800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/elf3_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Undead & Demons
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'zombie-walker',
+    name: 'Zombie Walker',
+    emoji: '🧟',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'A slow but relentless zombie with an insatiable hunger.',
+    abilities: ['Relentless', 'Undead Strength', 'Shamble', 'Infection'],
+    biome: 'Night',
+    coinPrice: 800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/zombie1walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 7
+    }
+  },
+  {
+    id: 'zombie-runner',
+    name: 'Zombie Sprinter',
+    emoji: '🧟‍♂️',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A fast and terrifying zombie that runs down its prey.',
+    abilities: ['Sprint', 'Frenzy', 'Undead Speed', 'Surprise Attack'],
+    biome: 'Night',
+    coinPrice: 1200,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/zombie2walk.png',
+      frameCount: 7,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'zombie-brute',
+    name: 'Zombie Brute',
+    emoji: '💀',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A massive and powerful zombie with devastating strength.',
+    abilities: ['Smash', 'Undead Rage', 'Thick Skin', 'Ground Pound'],
+    biome: 'Night',
+    coinPrice: 2000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/zombie3walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 7
+    }
+  },
+  {
+    id: 'demon-imp',
+    name: 'Demon Imp',
+    emoji: '👿',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A mischievous little demon causing chaos wherever it goes.',
+    abilities: ['Fire Spark', 'Mischief', 'Dark Dash', 'Chaos'],
+    biome: 'Night',
+    coinPrice: 1500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/demon1_Walk.png',
+      frameCount: 5,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'demon-warrior',
+    name: 'Demon Warrior',
+    emoji: '😈',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A fearsome demon wielding dark powers and unholy strength.',
+    abilities: ['Dark Blade', 'Demon Fire', 'Shadow Form', 'Hell Strike'],
+    biome: 'Night',
+    coinPrice: 3000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/demon2_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'demon-lord',
+    name: 'Demon Lord',
+    emoji: '👹',
+    rarity: 'legendary',
+    unlockLevel: 999,
+    description: 'A powerful demon lord commanding legions of the underworld.',
+    abilities: ['Infernal Command', 'Dark Aura', 'Hell Gate', 'Demon Army'],
+    biome: 'Night',
+    coinPrice: 5000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/demon3_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Dwarves
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'dwarf-miner',
+    name: 'Dwarf Miner',
+    emoji: '⛏️',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'A sturdy dwarf who spends days mining for precious gems.',
+    abilities: ['Mine Strike', 'Gem Find', 'Stone Skin', 'Tunnel Vision'],
+    biome: 'Snow',
+    coinPrice: 1000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/dwarf1_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'dwarf-warrior',
+    name: 'Dwarf Warrior',
+    emoji: '🪓',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A battle-hardened dwarf wielding a mighty axe.',
+    abilities: ['Axe Swing', 'Battle Cry', 'Iron Will', 'Dwarven Rage'],
+    biome: 'Snow',
+    coinPrice: 1800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/dwarf2_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'dwarf-king',
+    name: 'Dwarf King',
+    emoji: '👑',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'The mighty king of the mountain dwarves, ruler of underground kingdoms.',
+    abilities: ['Royal Decree', 'Golden Axe', 'Mountain Lord', 'Dwarven Legacy'],
+    biome: 'Snow',
+    coinPrice: 3500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/dwarf3_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Priests & Clerics
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'priest-healer',
+    name: 'Holy Priest',
+    emoji: '✝️',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A devoted priest with powerful healing and blessing abilities.',
+    abilities: ['Holy Light', 'Blessing', 'Divine Shield', 'Resurrection'],
+    biome: 'Meadow',
+    coinPrice: 2000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Priest1_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'priest-monk',
+    name: 'Temple Monk',
+    emoji: '🙏',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A peaceful monk from an ancient temple, master of meditation.',
+    abilities: ['Inner Peace', 'Meditation', 'Spirit Palm', 'Tranquility'],
+    biome: 'Forest',
+    coinPrice: 2000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Priests2_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'priest-sage',
+    name: 'Ancient Sage',
+    emoji: '📿',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A wise sage who has studied the sacred texts for centuries.',
+    abilities: ['Ancient Wisdom', 'Sacred Text', 'Spirit Guide', 'Enlightenment'],
+    biome: 'Night',
+    coinPrice: 3000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Priests3_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Scientists
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'scientist-researcher',
+    name: 'Lab Researcher',
+    emoji: '🔬',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'A dedicated scientist always seeking new discoveries.',
+    abilities: ['Research', 'Experiment', 'Discovery', 'Lab Analysis'],
+    biome: 'Meadow',
+    coinPrice: 1000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Scientist1_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'scientist-chemist',
+    name: 'Mad Chemist',
+    emoji: '🧪',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A slightly unhinged chemist with explosive experiments.',
+    abilities: ['Chemical Mix', 'Explosion', 'Acid Splash', 'Smoke Bomb'],
+    biome: 'Forest',
+    coinPrice: 1500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Scientists2_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'scientist-genius',
+    name: 'Genius Inventor',
+    emoji: '💡',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A brilliant inventor who creates amazing gadgets and gizmos.',
+    abilities: ['Invention', 'Gadget Deploy', 'Eureka', 'Tech Mastery'],
+    biome: 'Snow',
+    coinPrice: 2500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Scientists3_Walk.png',
+      frameCount: 12,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - City People
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'city-businessman',
+    name: 'Business Man',
+    emoji: '💼',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'A busy professional always on the move with important meetings.',
+    abilities: ['Power Walk', 'Deadline Rush', 'Coffee Boost', 'Networking'],
+    biome: 'Meadow',
+    coinPrice: 800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/CityMen1_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'city-executive',
+    name: 'Executive',
+    emoji: '🎩',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A high-powered executive with excellent leadership skills.',
+    abilities: ['Leadership', 'Decision Making', 'Strategic Mind', 'Authority'],
+    biome: 'Meadow',
+    coinPrice: 1200,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/CityMen3_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'doctor-medic',
+    name: 'Field Medic',
+    emoji: '🩺',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A skilled medic always ready to help those in need.',
+    abilities: ['First Aid', 'Quick Heal', 'Medical Kit', 'Life Saver'],
+    biome: 'Meadow',
+    coinPrice: 1500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/doctor1_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'doctor-surgeon',
+    name: 'Surgeon',
+    emoji: '🏥',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A skilled surgeon with steady hands and nerves of steel.',
+    abilities: ['Precision', 'Steady Hands', 'Emergency Care', 'Surgery'],
+    biome: 'Forest',
+    coinPrice: 2500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Doctor2_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'doctor-specialist',
+    name: 'Medical Specialist',
+    emoji: '⚕️',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A renowned specialist with expertise in rare conditions.',
+    abilities: ['Expert Diagnosis', 'Specialist Care', 'Research', 'Treatment'],
+    biome: 'Snow',
+    coinPrice: 2500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Doctor3_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'policeman',
+    name: 'Police Officer',
+    emoji: '👮',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'A dedicated officer keeping the streets safe for everyone.',
+    abilities: ['Patrol', 'Law Enforcement', 'Quick Response', 'Protection'],
+    biome: 'Meadow',
+    coinPrice: 1000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/policeman1walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'policewoman',
+    name: 'Police Detective',
+    emoji: '🕵️‍♀️',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A sharp detective with excellent investigative skills.',
+    abilities: ['Investigation', 'Deduction', 'Case Solving', 'Sharp Mind'],
+    biome: 'Forest',
+    coinPrice: 1500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/policewoman3walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Adventurers & Explorers
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'raider',
+    name: 'Desert Raider',
+    emoji: '🏜️',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A skilled raider who survives in the harshest desert conditions.',
+    abilities: ['Sand Walker', 'Desert Survival', 'Quick Shot', 'Ambush'],
+    biome: 'Sunset',
+    coinPrice: 2000,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Raider1_Walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'survivalist-1',
+    name: 'Jungle Survivalist',
+    emoji: '🌿',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'An expert in jungle survival with impressive tracking skills.',
+    abilities: ['Tracking', 'Jungle Craft', 'Survival Instinct', 'Nature Bond'],
+    biome: 'Forest',
+    coinPrice: 1200,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/survivalist1walking.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'survivalist-2',
+    name: 'Mountain Climber',
+    emoji: '🧗',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A fearless climber who has conquered the highest peaks.',
+    abilities: ['Climbing', 'Endurance', 'High Altitude', 'Peak Explorer'],
+    biome: 'Snow',
+    coinPrice: 1500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/suvivalist2walking.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'survivalist-3',
+    name: 'Arctic Explorer',
+    emoji: '🏔️',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A hardened explorer who thrives in the frozen wilderness.',
+    abilities: ['Cold Resistance', 'Ice Navigation', 'Arctic Survival', 'Blizzard Walker'],
+    biome: 'Snow',
+    coinPrice: 2200,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/survivalist3walking.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+  {
+    id: 'sea-captain',
+    name: 'Sea Captain',
+    emoji: '🚢',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'A legendary captain who has sailed the seven seas.',
+    abilities: ['Navigation', 'Sea Legs', 'Storm Rider', 'Captain Command'],
+    biome: 'Sunset',
+    coinPrice: 2500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/captain1walk.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 9
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Kids
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'child-adventurer',
+    name: 'Young Adventurer',
+    emoji: '🧒',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'A brave young adventurer with big dreams and endless curiosity.',
+    abilities: ['Curiosity', 'Wonder', 'Imagination', 'Young Spirit'],
+    biome: 'Meadow',
+    coinPrice: 600,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Child1walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'child-explorer',
+    name: 'Little Explorer',
+    emoji: '👧',
+    rarity: 'common',
+    unlockLevel: 999,
+    description: 'An enthusiastic little explorer discovering the wonders of the world.',
+    abilities: ['Discovery', 'Joy', 'Enthusiasm', 'Bright Eyes'],
+    biome: 'Forest',
+    coinPrice: 600,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/child3walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'child-dreamer',
+    name: 'Young Dreamer',
+    emoji: '🌟',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A creative young dreamer who sees magic in everything.',
+    abilities: ['Dream Power', 'Creativity', 'Magic Sight', 'Hope'],
+    biome: 'Night',
+    coinPrice: 800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/child4walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
 ];
 
 // Biome configuration with background images
