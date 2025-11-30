@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const GUEST_ID_KEY = 'pet_paradise_guest_id';
@@ -56,6 +56,14 @@ export const useAuth = () => {
   }, []);
 
   useEffect(() => {
+    // If Supabase is not configured, automatically use guest mode
+    if (!isSupabaseConfigured) {
+      console.log('Supabase not configured, using guest mode');
+      enableGuestMode();
+      setIsLoading(false);
+      return;
+    }
+
     // Check for existing Supabase session
     const initAuth = async () => {
       try {
@@ -121,7 +129,7 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
-      if (!isGuestMode) {
+      if (!isGuestMode && isSupabaseConfigured) {
         const { error } = await supabase.auth.signOut({ scope: 'global' });
         if (error) throw error;
       }
