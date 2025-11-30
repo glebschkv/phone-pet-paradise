@@ -58,8 +58,13 @@ export const UnifiedFocusTimer = () => {
   const [showBreakTransitionModal, setShowBreakTransitionModal] = useState(false);
   const [lastSessionXP, setLastSessionXP] = useState(0);
   const [autoBreakEnabled, setAutoBreakEnabled] = useState(() => {
-    const saved = localStorage.getItem(AUTO_BREAK_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : false;
+    try {
+      const saved = localStorage.getItem(AUTO_BREAK_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : false;
+    } catch (error) {
+      console.error('Failed to load auto-break setting:', error);
+      return false;
+    }
   });
 
   // Refs for stable timer management
