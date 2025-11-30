@@ -17,6 +17,8 @@ import {
   Building2,
   Columns,
   Waves,
+  ShoppingBag,
+  Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCollection } from "@/hooks/useCollection";
@@ -129,6 +131,7 @@ export const PetCollectionGrid = () => {
     isAnimalUnlocked,
     isAnimalFavorite,
     isAnimalHomeActive,
+    isShopExclusive,
     filterAnimals
   } = useCollection();
 
@@ -165,7 +168,9 @@ export const PetCollectionGrid = () => {
             )}
           >
             <div>PETS</div>
-            <div className="text-xs font-medium opacity-80">{stats.unlockedAnimals}/{stats.totalAnimals}</div>
+            <div className="text-xs font-medium opacity-80">
+              {stats.unlockedAnimals + stats.shopPetsOwned}/{stats.totalAnimals + stats.shopPetsTotal}
+            </div>
           </button>
           <button
             onClick={() => setActiveTab("worlds")}
@@ -205,10 +210,14 @@ export const PetCollectionGrid = () => {
             <div className="grid grid-cols-3 gap-2">
               {filteredPets.map((pet) => {
                 const isLocked = !isAnimalUnlocked(pet.id);
+                const isShopPet = isShopExclusive(pet.id);
                 const isFavorited = isAnimalFavorite(pet.id);
                 const stars = RARITY_STARS[pet.rarity];
-
                 const isHomeActive = isAnimalHomeActive(pet.id);
+
+                // Shop pets show differently - not really "locked", just purchasable
+                const showAsLocked = isLocked && !isShopPet;
+                const showAsShopPet = isLocked && isShopPet;
 
                 return (
                   <button
@@ -216,11 +225,15 @@ export const PetCollectionGrid = () => {
                     onClick={() => setSelectedPet(pet)}
                     className={cn(
                       "rounded-lg p-3 flex flex-col items-center relative transition-all active:scale-95",
-                      isLocked ? "bg-muted/50" : "bg-card"
+                      showAsLocked ? "bg-muted/50" :
+                      showAsShopPet ? "bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20" :
+                      "bg-card"
                     )}
                     style={{
-                      border: '2px solid hsl(var(--border))',
-                      boxShadow: isLocked
+                      border: showAsShopPet
+                        ? '2px solid hsl(35 80% 60%)'
+                        : '2px solid hsl(var(--border))',
+                      boxShadow: showAsLocked
                         ? 'none'
                         : '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
                     }}
@@ -239,19 +252,27 @@ export const PetCollectionGrid = () => {
                       </div>
                     )}
 
-                    {/* Level badge for locked */}
-                    {isLocked && (
+                    {/* Level badge for locked (non-shop) */}
+                    {showAsLocked && (
                       <div className="absolute top-1.5 right-1.5 retro-stat-pill px-1.5 py-0.5">
                         <span className="text-[9px] font-bold">Lv.{pet.unlockLevel}</span>
+                      </div>
+                    )}
+
+                    {/* Shop badge for shop-exclusive pets */}
+                    {showAsShopPet && (
+                      <div className="absolute top-1.5 right-1.5 bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                        <ShoppingBag className="w-2.5 h-2.5" />
+                        <span className="text-[8px] font-bold">SHOP</span>
                       </div>
                     )}
 
                     {/* Sprite or Lock */}
                     <div className={cn(
                       "mb-1.5 h-12 flex items-center justify-center overflow-hidden",
-                      isLocked && "opacity-30 grayscale"
+                      showAsLocked && "opacity-30 grayscale"
                     )}>
-                      {isLocked ? (
+                      {showAsLocked ? (
                         <Lock className="w-7 h-7 text-muted-foreground" />
                       ) : pet.spriteConfig ? (
                         <SpritePreview
@@ -270,7 +291,7 @@ export const PetCollectionGrid = () => {
                           key={i}
                           className={cn(
                             "w-3 h-3",
-                            isLocked
+                            showAsLocked
                               ? "text-muted-foreground/40"
                               : "text-amber-400 fill-amber-400"
                           )}
@@ -281,9 +302,9 @@ export const PetCollectionGrid = () => {
                     {/* Name */}
                     <span className={cn(
                       "text-[11px] font-semibold truncate w-full text-center",
-                      isLocked ? "text-muted-foreground" : "text-foreground"
+                      showAsLocked ? "text-muted-foreground" : "text-foreground"
                     )}>
-                      {isLocked ? "???" : pet.name}
+                      {showAsLocked ? "???" : pet.name}
                     </span>
                   </button>
                 );
@@ -443,7 +464,36 @@ export const PetCollectionGrid = () => {
                       {isAnimalFavorite(selectedPet.id) ? "Favorited" : "Add to Favorites"}
                     </button>
                   </>
+                ) : isShopExclusive(selectedPet.id) ? (
+                  // Shop-exclusive pet that isn't purchased yet
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {selectedPet.description}
+                    </p>
+                    <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full flex items-center justify-center border-2 border-amber-300">
+                      <ShoppingBag className="w-7 h-7 text-amber-600" />
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      This pet is available in the Shop
+                    </p>
+                    <div className="flex items-center justify-center gap-1 mb-3 text-amber-600 dark:text-amber-400">
+                      <Coins className="w-4 h-4" />
+                      <span className="font-bold">{selectedPet.coinPrice?.toLocaleString()}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedPet(null);
+                        // Dispatch event to switch to shop tab
+                        window.dispatchEvent(new CustomEvent('switchToTab', { detail: 'shop' }));
+                      }}
+                      className="bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all active:scale-95 inline-flex items-center gap-2"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      Buy from Shop
+                    </button>
+                  </div>
                 ) : (
+                  // Level-locked pet
                   <div className="text-center py-4">
                     <div className="w-14 h-14 mx-auto mb-3 retro-stat-pill rounded-full flex items-center justify-center">
                       <Lock className="w-7 h-7 text-muted-foreground" />

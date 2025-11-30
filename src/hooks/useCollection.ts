@@ -7,6 +7,8 @@ import { useAuth } from '@/hooks/useAuth';
 interface CollectionStats {
   totalAnimals: number;
   unlockedAnimals: number;
+  shopPetsTotal: number;
+  shopPetsOwned: number;
   totalBiomes: number;
   unlockedBiomes: number;
   favoritesCount: number;
@@ -29,6 +31,7 @@ interface UseCollectionReturn {
   isAnimalUnlocked: (animalId: string) => boolean;
   isAnimalFavorite: (animalId: string) => boolean;
   isAnimalHomeActive: (animalId: string) => boolean;
+  isShopExclusive: (animalId: string) => boolean;
   getAnimalData: (animalId: string) => AnimalData | undefined;
   getActiveHomePetsData: () => AnimalData[];
 
@@ -128,9 +131,14 @@ export const useCollection = (): UseCollectionReturn => {
 
   // Calculate collection statistics (only count XP-unlockable animals for progression)
   const xpUnlockableAnimals = getXPUnlockableAnimals();
+  const shopExclusiveAnimals = ANIMAL_DATABASE.filter(a => a.isExclusive && a.coinPrice);
+  const ownedShopPets = shopExclusiveAnimals.filter(a => unlockedAnimals.includes(a.name));
+
   const stats: CollectionStats = {
     totalAnimals: xpUnlockableAnimals.length, // Only XP-unlockable for main progression
     unlockedAnimals: unlockedAnimalsData.filter(a => !a.isExclusive).length,
+    shopPetsTotal: shopExclusiveAnimals.length,
+    shopPetsOwned: ownedShopPets.length,
     totalBiomes: availableBiomes.length + (5 - availableBiomes.length), // Total possible biomes
     unlockedBiomes: availableBiomes.length,
     favoritesCount: favorites.size,
@@ -223,21 +231,22 @@ export const useCollection = (): UseCollectionReturn => {
   }, [activeHomePets, currentLevel, unlockedAnimals]);
 
   // Filter animals based on search, rarity, and biome
-  // Only show XP-unlockable animals in the main collection (coin-exclusive shown in shop)
+  // Shows all animals including shop-exclusive ones
   const filterAnimals = useCallback((searchQuery: string, rarity?: string, biome?: string): AnimalData[] => {
     return ANIMAL_DATABASE.filter(animal => {
-      // Hide coin-exclusive animals unless they're already purchased
-      if (animal.isExclusive && !unlockedAnimals.includes(animal.name)) {
-        return false;
-      }
-
       const matchesSearch = animal.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRarity = !rarity || rarity === 'all' || animal.rarity === rarity;
       const matchesBiome = !biome || biome === 'all' || animal.biome === biome;
 
       return matchesSearch && matchesRarity && matchesBiome;
     });
-  }, [unlockedAnimals]);
+  }, []);
+
+  // Check if an animal is shop-exclusive (purchasable only, not level-based)
+  const isShopExclusive = useCallback((animalId: string): boolean => {
+    const animal = getAnimalById(animalId);
+    return animal?.isExclusive === true && animal?.coinPrice !== undefined;
+  }, []);
 
   return {
     allAnimals: ANIMAL_DATABASE,
@@ -251,6 +260,7 @@ export const useCollection = (): UseCollectionReturn => {
     isAnimalUnlocked,
     isAnimalFavorite,
     isAnimalHomeActive,
+    isShopExclusive,
     getAnimalData,
     getActiveHomePetsData,
     filterAnimals

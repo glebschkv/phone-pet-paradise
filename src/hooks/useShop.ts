@@ -10,6 +10,7 @@ import {
   UTILITY_ITEMS,
   BACKGROUND_BUNDLES,
   STARTER_BUNDLES,
+  PET_BUNDLES,
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 
@@ -304,11 +305,58 @@ export const useShop = () => {
     return { success: true, message: `${bundle.name} purchased! ${newBackgrounds.length} backgrounds added!` };
   }, [inventory, coinSystem, saveInventory]);
 
+  // Purchase a pet bundle
+  const purchasePetBundle = useCallback((bundleId: string): PurchaseResult => {
+    const bundle = PET_BUNDLES.find(b => b.id === bundleId);
+    if (!bundle) {
+      return { success: false, message: 'Bundle not found' };
+    }
+
+    // Check if all pets are already owned
+    const allOwned = bundle.petIds.every(id => inventory.ownedCharacters.includes(id));
+    if (allOwned) {
+      return { success: false, message: 'You already own all pets in this bundle' };
+    }
+
+    if (!bundle.coinPrice || !coinSystem.canAfford(bundle.coinPrice)) {
+      return { success: false, message: 'Not enough coins' };
+    }
+
+    coinSystem.spendCoins(bundle.coinPrice);
+
+    // Add all pets from the bundle that aren't already owned
+    const newPets = bundle.petIds.filter(id => !inventory.ownedCharacters.includes(id));
+    const newInventory = {
+      ...inventory,
+      ownedCharacters: [...inventory.ownedCharacters, ...newPets],
+    };
+    saveInventory(newInventory);
+
+    // Dispatch events to unlock animals in the XP system
+    newPets.forEach(petId => {
+      const animal = getAnimalById(petId);
+      if (animal) {
+        window.dispatchEvent(new CustomEvent('petIsland_animalPurchased', {
+          detail: { animalId: petId, animalName: animal.name }
+        }));
+      }
+    });
+
+    return { success: true, message: `${bundle.name} purchased! ${newPets.length} pets added!` };
+  }, [inventory, coinSystem, saveInventory]);
+
   // Check if bundle is owned (all backgrounds in bundle are owned)
   const isBundleOwned = useCallback((bundleId: string): boolean => {
     const bundle = BACKGROUND_BUNDLES.find(b => b.id === bundleId);
     if (!bundle) return false;
     return bundle.backgroundIds.every(id => inventory.ownedBackgrounds.includes(id));
+  }, [inventory]);
+
+  // Check if pet bundle is owned (all pets in bundle are owned)
+  const isPetBundleOwned = useCallback((bundleId: string): boolean => {
+    const bundle = PET_BUNDLES.find(b => b.id === bundleId);
+    if (!bundle) return false;
+    return bundle.petIds.every(id => inventory.ownedCharacters.includes(id));
   }, [inventory]);
 
   // Purchase a booster
@@ -408,10 +456,12 @@ export const useShop = () => {
     inventory,
     isOwned,
     isBundleOwned,
+    isPetBundleOwned,
     purchaseItem,
     purchaseCharacter,
     purchaseBackground,
     purchaseBackgroundBundle,
+    purchasePetBundle,
     purchaseStarterBundle,
     purchaseBadge,
     purchaseBooster,
