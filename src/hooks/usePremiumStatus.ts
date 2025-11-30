@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { safeJsonParse } from '@/lib/apiUtils';
+import { logger } from '@/lib/logger';
 
 const PREMIUM_STORAGE_KEY = 'petIsland_premium';
 
@@ -128,21 +131,19 @@ export const usePremiumStatus = () => {
 
   // Load subscription status
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(PREMIUM_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Check if subscription is still valid
-        if (parsed.expiresAt && new Date(parsed.expiresAt) < new Date()) {
-          // Subscription expired
-          setState(defaultState);
-          localStorage.removeItem(PREMIUM_STORAGE_KEY);
-        } else {
-          setState(parsed);
-        }
+    const saved = localStorage.getItem(PREMIUM_STORAGE_KEY);
+    if (saved) {
+      const parsed = safeJsonParse<PremiumState>(saved, defaultState);
+      // Check if subscription is still valid
+      if (parsed.expiresAt && new Date(parsed.expiresAt) < new Date()) {
+        // Subscription expired
+        setState(defaultState);
+        localStorage.removeItem(PREMIUM_STORAGE_KEY);
+        logger.debug('Subscription expired, clearing state');
+      } else if (parsed.tier !== 'free') {
+        setState(parsed);
+        logger.debug('Loaded subscription state:', parsed.tier);
       }
-    } catch {
-      // Invalid data
     }
     setIsLoading(false);
   }, []);
@@ -150,15 +151,70 @@ export const usePremiumStatus = () => {
   const isPremium = state.tier === 'premium' || state.tier === 'premium_plus';
   const isPremiumPlus = state.tier === 'premium_plus';
 
-  // Simulate purchase (in production, this would connect to App Store / Play Store)
+  /**
+   * Validate a purchase with the server
+   * This should be called AFTER a successful StoreKit purchase to verify and record the transaction
+   */
+  const validatePurchase = useCallback(async (
+    productId: string,
+    transactionId: string,
+    receiptData?: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-receipt', {
+        body: {
+          productId,
+          transactionId,
+          receiptData: receiptData || '',
+          platform: 'ios', // or detect from Capacitor
+        }
+      });
+
+      if (error) {
+        logger.error('Receipt validation failed:', error);
+        return { success: false, message: 'Failed to validate purchase. Please try again.' };
+      }
+
+      if (data?.success && data?.subscription) {
+        const newState: PremiumState = {
+          tier: data.subscription.tier,
+          expiresAt: data.subscription.expiresAt,
+          purchasedAt: data.subscription.purchasedAt,
+          planId: productId,
+        };
+
+        setState(newState);
+        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+        logger.debug('Purchase validated and saved:', newState.tier);
+
+        return { success: true, message: 'Purchase validated successfully!' };
+      }
+
+      return { success: false, message: data?.error || 'Validation failed' };
+    } catch (err) {
+      logger.error('Purchase validation error:', err);
+      return { success: false, message: 'An error occurred during validation' };
+    }
+  }, []);
+
+  /**
+   * @deprecated Use validatePurchase instead for production.
+   * This function is only for development/testing purposes.
+   */
   const purchaseSubscription = useCallback((planId: string): { success: boolean; message: string } => {
+    // In development, we allow direct state setting for testing
+    // In production, this should NEVER be used - use validatePurchase with StoreKit instead
+    if (import.meta.env.PROD) {
+      logger.warn('purchaseSubscription called in production - use validatePurchase instead');
+      return { success: false, message: 'Direct purchase not allowed. Use App Store.' };
+    }
+
     const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId);
     if (!plan) {
       return { success: false, message: 'Plan not found' };
     }
 
-    // In production, this would trigger IAP flow
-    // For now, simulate success
+    // Development only: simulate purchase
     const now = new Date();
     let expiresAt: string | null = null;
 
@@ -178,6 +234,7 @@ export const usePremiumStatus = () => {
 
     setState(newState);
     localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+    logger.debug('DEV: Simulated purchase for', plan.name);
 
     return { success: true, message: `Successfully subscribed to ${plan.name}!` };
   }, []);
@@ -188,14 +245,11 @@ export const usePremiumStatus = () => {
     // For now, just return the stored state
     const saved = localStorage.getItem(PREMIUM_STORAGE_KEY);
     if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.tier !== 'free') {
-          setState(parsed);
-          return { success: true, message: 'Purchases restored successfully!' };
-        }
-      } catch {
-        // Invalid data
+      const parsed = safeJsonParse<PremiumState>(saved, defaultState);
+      if (parsed.tier !== 'free') {
+        setState(parsed);
+        logger.debug('Restored purchases:', parsed.tier);
+        return { success: true, message: 'Purchases restored successfully!' };
       }
     }
     return { success: false, message: 'No previous purchases found' };
@@ -228,6 +282,7 @@ export const usePremiumStatus = () => {
     expiresAt: state.expiresAt,
     currentPlan,
     purchaseSubscription,
+    validatePurchase,
     restorePurchases,
     cancelSubscription,
     hasFeature,

@@ -1,13 +1,19 @@
 import { WebPlugin } from '@capacitor/core';
 import type { DeviceActivityPlugin } from './definitions';
 
+// Simple inline logger for the plugin (avoiding circular dependencies)
+const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
+const log = (...args: unknown[]) => isDev && console.log('[DeviceActivity Web]', ...args);
+
 export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin {
   private isMonitoring = false;
   private lastActiveTime = Date.now();
   private sessionStartTime = Date.now();
+  private visibilityHandler: (() => void) | null = null;
+  private beforeUnloadHandler: (() => void) | null = null;
 
   async requestPermissions(): Promise<{ status: string; familyControlsEnabled: boolean }> {
-    console.log('DeviceActivity Web: Permissions requested (simulation)');
+    log('Permissions requested (simulation)');
     return { status: 'granted', familyControlsEnabled: false };
   }
 
@@ -18,33 +24,34 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
   async startMonitoring(): Promise<{ success: boolean; monitoring: boolean; startTime: number }> {
     this.isMonitoring = true;
     this.sessionStartTime = Date.now();
-    console.log('DeviceActivity Web: Started monitoring (simulation)');
-    
+    log('Started monitoring (simulation)');
+
     // Simulate app lifecycle events
     this.setupWebLifecycleListeners();
-    
-    return { 
-      success: true, 
-      monitoring: true, 
-      startTime: this.sessionStartTime 
+
+    return {
+      success: true,
+      monitoring: true,
+      startTime: this.sessionStartTime
     };
   }
 
   async stopMonitoring(): Promise<{ success: boolean; monitoring: boolean }> {
     this.isMonitoring = false;
-    console.log('DeviceActivity Web: Stopped monitoring');
+    this.cleanupWebLifecycleListeners();
+    log('Stopped monitoring');
     return { success: true, monitoring: false };
   }
 
-  async getUsageData(): Promise<{ 
-    timeAwayMinutes: number; 
-    isMonitoring: boolean; 
-    lastActiveTime: number; 
-    currentTime: number 
+  async getUsageData(): Promise<{
+    timeAwayMinutes: number;
+    isMonitoring: boolean;
+    lastActiveTime: number;
+    currentTime: number
   }> {
     const now = Date.now();
     const timeAwayMinutes = (now - this.lastActiveTime) / (1000 * 60);
-    
+
     return {
       timeAwayMinutes,
       isMonitoring: this.isMonitoring,
@@ -84,16 +91,19 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
           navigator.vibrate(100);
       }
     }
-    
-    console.log(`DeviceActivity Web: Haptic feedback (${options.style})`);
+
+    log(`Haptic feedback (${options.style})`);
     return { success: true };
   }
 
   private setupWebLifecycleListeners() {
+    // Clean up any existing listeners first
+    this.cleanupWebLifecycleListeners();
+
     // Page visibility API for web
-    document.addEventListener('visibilitychange', () => {
+    this.visibilityHandler = () => {
       const now = Date.now();
-      
+
       if (document.hidden) {
         this.lastActiveTime = now;
         this.notifyListeners('appLifecycleChange', {
@@ -111,15 +121,31 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
         });
         this.lastActiveTime = now;
       }
-    });
+    };
+
+    document.addEventListener('visibilitychange', this.visibilityHandler);
 
     // Beforeunload for app termination
-    window.addEventListener('beforeunload', () => {
+    this.beforeUnloadHandler = () => {
       this.lastActiveTime = Date.now();
       this.notifyListeners('appLifecycleChange', {
         state: 'terminated',
         timestamp: this.lastActiveTime
       });
-    });
+    };
+
+    window.addEventListener('beforeunload', this.beforeUnloadHandler);
+  }
+
+  private cleanupWebLifecycleListeners() {
+    if (this.visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      this.visibilityHandler = null;
+    }
+
+    if (this.beforeUnloadHandler) {
+      window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      this.beforeUnloadHandler = null;
+    }
   }
 }
