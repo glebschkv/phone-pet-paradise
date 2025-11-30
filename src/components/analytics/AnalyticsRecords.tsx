@@ -1,4 +1,4 @@
-import { Trophy, Timer, Calendar, Target, Hash, Flame } from "lucide-react";
+import { Trophy, Timer, Calendar, Hash, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PersonalRecords } from "@/types/analytics";
 

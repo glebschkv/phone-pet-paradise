@@ -29,7 +29,6 @@ import {
   PROFILE_BADGES,
   BACKGROUND_BUNDLES,
   BackgroundBundle,
-  PremiumBackground,
 } from "@/data/ShopData";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
 import { PremiumSubscription } from "@/components/PremiumSubscription";
@@ -1157,7 +1156,7 @@ export const Shop = () => {
                     <div className="w-full">
                       <BundlePreviewCarousel images={(selectedItem as BackgroundBundle).previewImages} />
                     </div>
-                  ) : 'previewImage' in selectedItem && selectedItem.previewImage ? (
+                  ) : 'previewImage' in selectedItem && typeof selectedItem.previewImage === 'string' && selectedItem.previewImage ? (
                     // Single background preview
                     <BackgroundPreview imagePath={selectedItem.previewImage} size="large" className="w-full" />
                   ) : (

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
-import { getCurrentSeason, Season, BattlePassTier, BattlePassReward } from '@/data/GamificationData';
+import { getCurrentSeason, Season, BattlePassReward } from '@/data/GamificationData';
 
 export interface BattlePassState {
   seasonId: string;

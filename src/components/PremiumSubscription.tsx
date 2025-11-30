@@ -93,7 +93,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
 
     if (isNative) {
       // Use real StoreKit
-      const success = await storeKit.restorePurchases();
+      await storeKit.restorePurchases();
       setIsRestoring(false);
       // Toast is handled by useStoreKit
     } else {

@@ -154,7 +154,7 @@ export function sanitizeErrorMessage(error: unknown): string {
     const message = error.message;
 
     // Remove sensitive patterns
-    const sensitizedMessage = message
+    const sanitizedMessage = message
       .replace(/Bearer\s+[^\s]+/gi, '[REDACTED]')
       .replace(/api[_-]?key[:\s=]+[^\s&"']+/gi, 'api_key=[REDACTED]')
       .replace(/password[:\s=]+[^\s&"']+/gi, 'password=[REDACTED]');

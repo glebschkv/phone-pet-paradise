@@ -55,8 +55,6 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
       }
     : { spritePath, frameCount, frameWidth, frameHeight, animationSpeed };
 
-  // Calculate frame duration in milliseconds (animationSpeed is FPS)
-  const frameDuration = 1000 / currentAnimConfig.animationSpeed;
 
   // Register and unregister position on mount/unmount
   useEffect(() => {

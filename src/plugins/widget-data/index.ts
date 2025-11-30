@@ -55,8 +55,7 @@ export interface WidgetData {
   lastUpdated: number;
 }
 
-// Shared app group identifier (must match native configuration)
-const APP_GROUP_ID = 'group.com.phonepetparadise.app';
+// Shared app group identifier for future use when native implementation is ready
 const WIDGET_DATA_KEY = 'widget_data';
 
 class WidgetDataService {
@@ -302,7 +301,7 @@ class WidgetDataService {
     return null;
   }
 
-  private async saveToNative(data: WidgetData): Promise<void> {
+  private async saveToNative(_data: WidgetData): Promise<void> {
     // TODO: Implement with Capacitor plugin
     // This would call a native method to write to App Groups (iOS) or SharedPreferences (Android)
     // The native side would then trigger a widget refresh
@@ -311,6 +310,3 @@ class WidgetDataService {
 
 // Export singleton instance
 export const widgetDataService = new WidgetDataService();
-
-// Export types
-export type { WidgetData };
