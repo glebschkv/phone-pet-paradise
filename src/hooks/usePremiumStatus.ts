@@ -249,6 +249,31 @@ export const usePremiumStatus = () => {
     setIsLoading(false);
   }, []);
 
+  // Listen for subscription changes from other sources (e.g., StoreKit)
+  // This keeps usePremiumStatus in sync when localStorage is updated externally
+  useEffect(() => {
+    const handleSubscriptionChange = (event: CustomEvent<{ tier: SubscriptionTier }>) => {
+      const newTier = event.detail.tier;
+      logger.debug('Subscription change event received:', newTier);
+
+      // Reload state from localStorage to get full premium state
+      const saved = localStorage.getItem(PREMIUM_STORAGE_KEY);
+      if (saved) {
+        const parsed = safeJsonParse<PremiumState>(saved, defaultState);
+        if (parsed.tier === newTier) {
+          setState(parsed);
+        }
+      } else if (newTier === 'free') {
+        setState(defaultState);
+      }
+    };
+
+    window.addEventListener(SUBSCRIPTION_CHANGE_EVENT, handleSubscriptionChange as EventListener);
+    return () => {
+      window.removeEventListener(SUBSCRIPTION_CHANGE_EVENT, handleSubscriptionChange as EventListener);
+    };
+  }, []);
+
   // Get effective tier (lifetime is treated as premium_plus for features)
   const effectiveTier = state.tier === 'lifetime' ? 'lifetime' : state.tier;
 
@@ -400,6 +425,9 @@ export const usePremiumStatus = () => {
         localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
         logger.debug('Purchase validated and saved:', newState.tier);
 
+        // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
+        dispatchSubscriptionChange(data.subscription.tier);
+
         return { success: true, message: 'Purchase validated successfully!' };
       }
 
@@ -448,6 +476,9 @@ export const usePremiumStatus = () => {
     setState(newState);
     localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
     logger.debug('DEV: Simulated purchase for', plan.name);
+
+    // Dispatch subscription change event for other hooks (Battle Pass, etc.)
+    dispatchSubscriptionChange(plan.tier);
 
     return { success: true, message: `Successfully subscribed to ${plan.name}!` };
   }, []);

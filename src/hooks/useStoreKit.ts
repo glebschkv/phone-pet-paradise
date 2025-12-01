@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { StoreKit, StoreKitProduct, PurchaseResult, SubscriptionStatus } from '@/plugins/store-kit';
-import { SUBSCRIPTION_PLANS } from './usePremiumStatus';
+import { SUBSCRIPTION_PLANS, dispatchSubscriptionChange } from './usePremiumStatus';
 import { useToast } from './use-toast';
 import { storeKitLogger as logger } from '@/lib/logger';
 
@@ -86,11 +86,15 @@ export const useStoreKit = (): UseStoreKitReturn => {
               planId: plan.id,
             };
             localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+
+            // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
+            dispatchSubscriptionChange(plan.tier);
           }
         }
       } else {
         // No active subscription - clear local storage
         localStorage.removeItem(PREMIUM_STORAGE_KEY);
+        dispatchSubscriptionChange('free');
       }
 
       logger.debug('Subscription status:', status);
