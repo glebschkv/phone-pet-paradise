@@ -736,8 +736,7 @@ export const getItemsByRarity = (rarity: 'common' | 'rare' | 'epic' | 'legendary
 // Shop categories for UI - Streamlined for better UX
 export const SHOP_CATEGORIES: { id: ShopCategory; name: string; icon: string }[] = [
   { id: 'featured', name: 'Featured', icon: '⭐' },
-  { id: 'pets', name: 'Pets', icon: '🐾' },
+  { id: 'pets', name: 'Collection', icon: '🐾' },
   { id: 'bundles', name: 'Bundles', icon: '🎁' },
-  { id: 'customize', name: 'Customize', icon: '🎨' },
   { id: 'powerups', name: 'Power-Ups', icon: '⚡' },
 ];
