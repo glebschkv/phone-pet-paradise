@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { ANIMAL_DATABASE, BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { xpLogger as logger } from '@/lib/logger';
 import { safeJsonParse } from '@/lib/apiUtils';
+import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
 
 export interface XPReward {
   xpGained: number;
@@ -14,6 +15,7 @@ export interface XPReward {
   newLevel: number;
   leveledUp: boolean;
   unlockedRewards: UnlockedReward[];
+  subscriptionMultiplier: number;
 }
 
 export interface UnlockedReward {
@@ -362,6 +364,23 @@ useEffect(() => {
     .map(Number)
     .sort((a, b) => b - a); // Sort descending
 
+  // Helper to get subscription multiplier
+  const getSubscriptionMultiplier = useCallback((): number => {
+    const premiumData = localStorage.getItem('petIsland_premium');
+    if (premiumData) {
+      try {
+        const parsed = JSON.parse(premiumData);
+        const tier = parsed.tier as SubscriptionTier;
+        if (tier && TIER_BENEFITS[tier]) {
+          return TIER_BENEFITS[tier].xpMultiplier;
+        }
+      } catch {
+        // Invalid data
+      }
+    }
+    return 1;
+  }, []);
+
   // Calculate XP gained from session duration
   const calculateXPFromDuration = useCallback((minutes: number): number => {
     for (const duration of sortedDurations) {
@@ -369,7 +388,7 @@ useEffect(() => {
         return XP_REWARDS[duration as keyof typeof XP_REWARDS];
       }
     }
-    
+
     return 0; // No XP for sessions less than 25 minutes
   }, []);
 
@@ -385,10 +404,14 @@ const calculateLevel = useCallback((totalXP: number): number => {
   // Award XP and handle level ups with random bonus chance
   const awardXP = useCallback((sessionMinutes: number): XPReward => {
     const baseXP = calculateXPFromDuration(sessionMinutes);
+    const subscriptionMultiplier = getSubscriptionMultiplier();
 
     // Calculate random bonus
     const bonus = calculateRandomBonus();
-    const xpGained = Math.round(baseXP * bonus.bonusMultiplier);
+
+    // Apply subscription multiplier first, then random bonus
+    const xpAfterSubscription = Math.round(baseXP * subscriptionMultiplier);
+    const xpGained = Math.round(xpAfterSubscription * bonus.bonusMultiplier);
     const bonusXP = xpGained - baseXP;
 
     const oldLevel = xpState.currentLevel;
@@ -456,8 +479,9 @@ if (leveledUp) {
       newLevel,
       leveledUp,
       unlockedRewards,
+      subscriptionMultiplier,
     };
-  }, [xpState, calculateXPFromDuration, calculateLevel, saveState]);
+  }, [xpState, calculateXPFromDuration, calculateLevel, saveState, getSubscriptionMultiplier]);
 
   // Add direct XP (for daily login rewards, bonuses, etc.) - handles level-ups properly
   const addDirectXP = useCallback((xpAmount: number): XPReward => {
@@ -523,6 +547,7 @@ if (leveledUp) {
       newLevel,
       leveledUp,
       unlockedRewards,
+      subscriptionMultiplier: 1, // Direct XP doesn't use multipliers
     };
   }, [xpState, calculateLevel, saveState]);
 
@@ -568,5 +593,6 @@ const getLevelProgress = useCallback((): number => {
     switchBiome,
     resetProgress,
     calculateXPFromDuration,
+    getSubscriptionMultiplier,
   };
 };

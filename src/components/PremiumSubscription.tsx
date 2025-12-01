@@ -7,12 +7,17 @@ import {
   Timer,
   PenLine,
   BarChart3,
-  Shield,
   Cloud,
   Gift,
   Zap,
   Star,
   RefreshCw,
+  Coins,
+  Music,
+  Settings,
+  Snowflake,
+  Award,
+  Infinity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePremiumStatus, SUBSCRIPTION_PLANS, SubscriptionPlan } from '@/hooks/usePremiumStatus';
@@ -32,26 +37,42 @@ interface PremiumSubscriptionProps {
 }
 
 const FEATURE_ICONS: Record<string, React.ReactNode> = {
-  'All ambient sounds': <Volume2 className="w-4 h-4" />,
+  // Multipliers
+  '2x Coin & XP multiplier': <Zap className="w-4 h-4" />,
+  '3x Coin & XP multiplier': <Zap className="w-4 h-4" />,
+  '4x Coin & XP multiplier': <Zap className="w-4 h-4" />,
+  // Sounds
+  'All 13 ambient sounds': <Volume2 className="w-4 h-4" />,
+  // Timer
   'Auto-break Pomodoro cycles': <Timer className="w-4 h-4" />,
   'Session notes & reflections': <PenLine className="w-4 h-4" />,
-  'Advanced focus analytics': <BarChart3 className="w-4 h-4" />,
-  'No ads': <Shield className="w-4 h-4" />,
-  'Priority support': <Sparkles className="w-4 h-4" />,
+  'Focus analytics dashboard': <BarChart3 className="w-4 h-4" />,
+  // Streak freezes
+  '2 Streak Freezes/month': <Snowflake className="w-4 h-4" />,
+  '5 Streak Freezes/month': <Snowflake className="w-4 h-4" />,
+  '7 Streak Freezes/month': <Snowflake className="w-4 h-4" />,
+  // Sound mixing
+  'Sound mixing (2 layers)': <Music className="w-4 h-4" />,
+  'Sound mixing (3 layers)': <Music className="w-4 h-4" />,
+  // Presets
+  '3 Focus presets': <Settings className="w-4 h-4" />,
+  '5 Focus presets': <Settings className="w-4 h-4" />,
+  '10 Focus presets': <Settings className="w-4 h-4" />,
+  // Premium+
   'Everything in Premium': <Check className="w-4 h-4" />,
-  'Exclusive legendary pets': <Star className="w-4 h-4" />,
-  'Early access to new features': <Zap className="w-4 h-4" />,
-  'Custom themes creator': <Sparkles className="w-4 h-4" />,
-  'Cloud sync across devices': <Cloud className="w-4 h-4" />,
-  'Weekly XP bonus': <Gift className="w-4 h-4" />,
-  'Lifetime access': <Crown className="w-4 h-4" />,
+  'Everything in Premium+': <Check className="w-4 h-4" />,
+  'Battle Pass Premium included': <Award className="w-4 h-4" />,
+  'Early access to features': <Zap className="w-4 h-4" />,
+  'Exclusive profile frames': <Star className="w-4 h-4" />,
+  // Lifetime
+  'No recurring fees ever': <Infinity className="w-4 h-4" />,
   'All future updates included': <RefreshCw className="w-4 h-4" />,
-  'Exclusive "Founder" badge': <Star className="w-4 h-4" />,
-  'Special founder-only pet': <Sparkles className="w-4 h-4" />,
+  'Exclusive Founder badge': <Star className="w-4 h-4" />,
+  'Founder-only legendary pet': <Sparkles className="w-4 h-4" />,
 };
 
 export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProps) => {
-  const { isPremium, currentPlan, purchaseSubscription, restorePurchases, tier } = usePremiumStatus();
+  const { isPremium, currentPlan, purchaseSubscription, restorePurchases, tier, grantBonusCoins, isLifetime } = usePremiumStatus();
   const storeKit = useStoreKit();
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -68,7 +89,13 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
       setIsProcessing(false);
 
       if (result.success) {
-        toast.success('Purchase successful!');
+        // Grant bonus coins
+        const bonusResult = grantBonusCoins(plan.id);
+        if (bonusResult.granted) {
+          toast.success(`Purchase successful! +${bonusResult.amount.toLocaleString()} bonus coins!`);
+        } else {
+          toast.success('Purchase successful!');
+        }
         onClose();
       } else if (!result.cancelled) {
         toast.error(result.message || 'Purchase failed');
@@ -80,7 +107,13 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
       setIsProcessing(false);
 
       if (result.success) {
-        toast.success(result.message);
+        // Grant bonus coins for dev testing
+        const bonusResult = grantBonusCoins(plan.id);
+        if (bonusResult.granted) {
+          toast.success(`${result.message} +${bonusResult.amount.toLocaleString()} bonus coins!`);
+        } else {
+          toast.success(result.message);
+        }
         onClose();
       } else {
         toast.error(result.message);
@@ -158,7 +191,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
             >
               Yearly
               <span className="absolute -top-2 -right-1 px-1.5 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
-                SAVE 33%
+                SAVE 37%
               </span>
             </button>
           </div>
@@ -210,11 +243,21 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                   </div>
                 </div>
 
+                {/* Bonus coins badge */}
+                {plan.bonusCoins > 0 && (
+                  <div className="flex items-center gap-1.5 mb-3 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg w-fit">
+                    <Coins className="w-4 h-4 text-amber-600" />
+                    <span className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                      +{plan.bonusCoins.toLocaleString()} bonus coins!
+                    </span>
+                  </div>
+                )}
+
                 <div className="space-y-2 mb-4">
                   {plan.features.map((feature) => (
                     <div key={feature} className="flex items-center gap-2 text-sm">
                       <div className="text-amber-500">
-                        {FEATURE_ICONS[feature.split(' (')[0]] || <Check className="w-4 h-4" />}
+                        {FEATURE_ICONS[feature] || <Check className="w-4 h-4" />}
                       </div>
                       <span>{feature}</span>
                     </div>
@@ -262,11 +305,21 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                   </div>
                 </div>
 
+                {/* Bonus coins badge */}
+                {plan.bonusCoins > 0 && (
+                  <div className="flex items-center gap-1.5 mb-3 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg w-fit">
+                    <Coins className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm font-bold text-purple-700 dark:text-purple-400">
+                      +{plan.bonusCoins.toLocaleString()} bonus coins!
+                    </span>
+                  </div>
+                )}
+
                 <div className="space-y-2 mb-4">
                   {plan.features.map((feature) => (
                     <div key={feature} className="flex items-center gap-2 text-sm">
                       <div className="text-purple-500">
-                        {FEATURE_ICONS[feature.split(' (')[0]] || <Check className="w-4 h-4" />}
+                        {FEATURE_ICONS[feature] || <Check className="w-4 h-4" />}
                       </div>
                       <span>{feature}</span>
                     </div>
@@ -275,15 +328,15 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
 
                 <button
                   onClick={() => handlePurchase(plan)}
-                  disabled={isProcessing || tier === 'premium_plus'}
+                  disabled={isProcessing || tier === 'premium_plus' || isLifetime}
                   className={cn(
                     "w-full py-3 rounded-xl font-bold transition-all",
-                    tier === 'premium_plus'
+                    (tier === 'premium_plus' || isLifetime)
                       ? "bg-gray-200 dark:bg-gray-700 text-muted-foreground cursor-not-allowed"
                       : "bg-gradient-to-b from-purple-500 to-pink-500 text-white shadow-md hover:from-purple-600 hover:to-pink-600"
                   )}
                 >
-                  {isProcessing ? 'Processing...' : tier === 'premium_plus' ? 'Current Plan' : 'Upgrade to Premium+'}
+                  {isProcessing ? 'Processing...' : (tier === 'premium_plus' || isLifetime) ? 'Current Plan' : 'Upgrade to Premium+'}
                 </button>
               </div>
             </div>
@@ -310,11 +363,21 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                   </div>
                 </div>
 
+                {/* Bonus coins badge */}
+                {lifetimePlan.bonusCoins > 0 && (
+                  <div className="flex items-center gap-1.5 mb-3 px-3 py-1.5 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-lg w-fit">
+                    <Coins className="w-4 h-4 text-amber-600" />
+                    <span className="text-sm font-bold bg-gradient-to-r from-amber-700 to-orange-600 bg-clip-text text-transparent">
+                      +{lifetimePlan.bonusCoins.toLocaleString()} bonus coins!
+                    </span>
+                  </div>
+                )}
+
                 <div className="space-y-2 mb-4">
                   {lifetimePlan.features.map((feature) => (
                     <div key={feature} className="flex items-center gap-2 text-sm">
                       <div className="text-amber-500">
-                        {FEATURE_ICONS[feature.split(' -')[0]] || <Check className="w-4 h-4" />}
+                        {FEATURE_ICONS[feature] || <Check className="w-4 h-4" />}
                       </div>
                       <span>{feature}</span>
                     </div>
@@ -323,15 +386,15 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
 
                 <button
                   onClick={() => handlePurchase(lifetimePlan)}
-                  disabled={isProcessing || tier === 'premium_plus'}
+                  disabled={isProcessing || isLifetime}
                   className={cn(
                     "w-full py-3 rounded-xl font-bold transition-all",
-                    tier === 'premium_plus'
+                    isLifetime
                       ? "bg-gray-200 dark:bg-gray-700 text-muted-foreground cursor-not-allowed"
                       : "bg-gradient-to-b from-amber-500 via-yellow-500 to-orange-500 text-white shadow-md hover:from-amber-600 hover:via-yellow-600 hover:to-orange-600"
                   )}
                 >
-                  {isProcessing ? 'Processing...' : tier === 'premium_plus' ? 'Lifetime Member' : 'Get Lifetime Access'}
+                  {isProcessing ? 'Processing...' : isLifetime ? 'Lifetime Member' : 'Get Lifetime Access'}
                 </button>
               </div>
             </div>

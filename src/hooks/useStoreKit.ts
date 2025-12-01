@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { StoreKit, StoreKitProduct, PurchaseResult, SubscriptionStatus, RestoredPurchase } from '@/plugins/store-kit';
-import { SUBSCRIPTION_PLANS } from './usePremiumStatus';
+import { SUBSCRIPTION_PLANS, dispatchSubscriptionChange } from './usePremiumStatus';
 import { useToast } from './use-toast';
 import { storeKitLogger as logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
@@ -140,6 +140,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
             };
             localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
 
+            // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
+            dispatchSubscriptionChange(plan.tier);
+
             // Also validate with server if we have the signed transaction
             // This ensures server has the latest subscription state
             if (activeSub.signedTransaction) {
@@ -153,6 +156,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       } else {
         // No active subscription - clear local storage
         localStorage.removeItem(PREMIUM_STORAGE_KEY);
+        dispatchSubscriptionChange('free');
       }
 
       logger.debug('Subscription status:', status);

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
+import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
 
 export interface CoinReward {
   coinsGained: number;
@@ -10,6 +11,7 @@ export interface CoinReward {
   bonusType: 'none' | 'lucky' | 'super_lucky' | 'jackpot';
   boosterActive: boolean;
   boosterMultiplier: number;
+  subscriptionMultiplier: number;
 }
 
 export interface CoinSystemState {
@@ -90,6 +92,23 @@ export const useCoinSystem = () => {
     }
   }, []);
 
+  // Helper to get subscription multiplier
+  const getSubscriptionMultiplier = useCallback((): number => {
+    const premiumData = localStorage.getItem('petIsland_premium');
+    if (premiumData) {
+      try {
+        const parsed = JSON.parse(premiumData);
+        const tier = parsed.tier as SubscriptionTier;
+        if (tier && TIER_BENEFITS[tier]) {
+          return TIER_BENEFITS[tier].coinMultiplier;
+        }
+      } catch {
+        // Invalid data
+      }
+    }
+    return 1;
+  }, []);
+
   // Listen for coin updates from other components
   useEffect(() => {
     const handleCoinUpdate = (event: CustomEvent<CoinSystemState>) => {
@@ -111,9 +130,29 @@ export const useCoinSystem = () => {
 
     window.addEventListener('storage', handleStorageChange);
 
+    // Listen for bonus coin grants from subscription purchase
+    const handleBonusCoins = (event: CustomEvent<{ amount: number; planId: string }>) => {
+      const { amount } = event.detail;
+      if (amount > 0) {
+        setCoinState(prev => {
+          const newState = {
+            ...prev,
+            balance: prev.balance + amount,
+            totalEarned: prev.totalEarned + amount,
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+          window.dispatchEvent(new CustomEvent(COIN_UPDATE_EVENT, { detail: newState }));
+          return newState;
+        });
+      }
+    };
+
+    window.addEventListener('petIsland_grantBonusCoins', handleBonusCoins as EventListener);
+
     return () => {
       window.removeEventListener(COIN_UPDATE_EVENT, handleCoinUpdate as EventListener);
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('petIsland_grantBonusCoins', handleBonusCoins as EventListener);
     };
   }, []);
 
@@ -141,9 +180,11 @@ export const useCoinSystem = () => {
   ): CoinReward => {
     const baseCoins = calculateCoinsFromDuration(sessionMinutes);
     const bonus = calculateRandomBonus();
+    const subscriptionMultiplier = getSubscriptionMultiplier();
 
-    // Apply random bonus first, then booster
-    const coinsAfterBonus = Math.round(baseCoins * bonus.bonusMultiplier);
+    // Apply subscription multiplier first, then random bonus, then booster
+    const coinsAfterSubscription = Math.round(baseCoins * subscriptionMultiplier);
+    const coinsAfterBonus = Math.round(coinsAfterSubscription * bonus.bonusMultiplier);
     const finalCoins = Math.round(coinsAfterBonus * boosterMultiplier);
     const bonusCoins = finalCoins - baseCoins;
 
@@ -170,8 +211,9 @@ export const useCoinSystem = () => {
       bonusType: bonus.bonusType,
       boosterActive: boosterMultiplier > 1,
       boosterMultiplier,
+      subscriptionMultiplier,
     };
-  }, [coinState, calculateCoinsFromDuration, saveState]);
+  }, [coinState, calculateCoinsFromDuration, saveState, getSubscriptionMultiplier]);
 
   // Add coins directly (for purchases, rewards, etc.)
   const addCoins = useCallback((amount: number): void => {
@@ -229,5 +271,6 @@ export const useCoinSystem = () => {
     canAfford,
     resetProgress,
     calculateCoinsFromDuration,
+    getSubscriptionMultiplier,
   };
 };
