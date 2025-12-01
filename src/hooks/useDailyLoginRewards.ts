@@ -16,15 +16,15 @@ export interface DailyLoginState {
   hasClaimedToday: boolean;
 }
 
-// 7-day reward cycle that repeats with escalating rewards
+// 7-day reward cycle that repeats with escalating rewards - BOOSTED!
 const DAILY_REWARDS: DailyReward[] = [
-  { day: 1, type: 'xp', amount: 15, label: 'Welcome Back!', description: 'Start your week strong', icon: '🌟' },
-  { day: 2, type: 'xp', amount: 25, label: 'Day 2 Bonus', description: 'Keep the momentum going', icon: '✨' },
-  { day: 3, type: 'xp', amount: 40, label: 'Triple Treat', description: '3 days in a row!', icon: '🎁' },
-  { day: 4, type: 'streak_freeze', amount: 1, label: 'Safety Net', description: 'Earn a Streak Freeze!', icon: '🧊' },
-  { day: 5, type: 'xp', amount: 60, label: 'Halfway Hero', description: 'Over halfway there!', icon: '💪' },
-  { day: 6, type: 'xp', amount: 80, label: 'Almost There', description: 'One more day!', icon: '🔥' },
-  { day: 7, type: 'mystery_bonus', amount: 150, label: 'Weekly Jackpot!', description: 'MASSIVE bonus XP!', icon: '🎰' },
+  { day: 1, type: 'xp', amount: 40, label: 'Welcome Back!', description: 'Start your week strong', icon: '🌟' },
+  { day: 2, type: 'xp', amount: 60, label: 'Day 2 Bonus', description: 'Keep the momentum going', icon: '✨' },
+  { day: 3, type: 'xp', amount: 90, label: 'Triple Treat', description: '3 days in a row!', icon: '🎁' },
+  { day: 4, type: 'streak_freeze', amount: 2, label: 'Safety Net', description: 'Earn 2 Streak Freezes!', icon: '🧊' },
+  { day: 5, type: 'xp', amount: 130, label: 'Halfway Hero', description: 'Over halfway there!', icon: '💪' },
+  { day: 6, type: 'xp', amount: 175, label: 'Almost There', description: 'One more day!', icon: '🔥' },
+  { day: 7, type: 'mystery_bonus', amount: 350, label: 'Weekly Jackpot!', description: 'MASSIVE bonus XP!', icon: '🎰' },
 ];
 
 const STORAGE_KEY = 'pet_paradise_daily_login';

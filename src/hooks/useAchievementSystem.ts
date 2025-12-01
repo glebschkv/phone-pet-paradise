@@ -45,7 +45,7 @@ export interface AchievementSystemReturn {
 const ACHIEVEMENT_STORAGE_KEY = 'achievement-system-data';
 const ACHIEVEMENT_UNLOCK_EVENT = 'achievement-unlocked';
 
-// Achievement definitions with meaningful rewards
+// Achievement definitions with BOOSTED rewards for satisfying progression!
 const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'unlockedAt' | 'rewardsClaimed'>[] = [
   // ===== FOCUS ACHIEVEMENTS =====
   {
@@ -57,8 +57,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🌱',
     target: 10,
     rewards: [
-      { type: 'xp', amount: 50, description: '+50 XP' },
-      { type: 'coins', amount: 25, description: '+25 Coins' }
+      { type: 'xp', amount: 100, description: '+100 XP' },
+      { type: 'coins', amount: 75, description: '+75 Coins' }
     ]
   },
   {
@@ -70,8 +70,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '⏰',
     target: 60,
     rewards: [
-      { type: 'xp', amount: 75, description: '+75 XP' },
-      { type: 'coins', amount: 50, description: '+50 Coins' }
+      { type: 'xp', amount: 150, description: '+150 XP' },
+      { type: 'coins', amount: 125, description: '+125 Coins' }
     ]
   },
   {
@@ -83,8 +83,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '⚔️',
     target: 600,
     rewards: [
-      { type: 'xp', amount: 200, description: '+200 XP' },
-      { type: 'coins', amount: 150, description: '+150 Coins' }
+      { type: 'xp', amount: 400, description: '+400 XP' },
+      { type: 'coins', amount: 350, description: '+350 Coins' }
     ]
   },
   {
@@ -96,8 +96,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💪',
     target: 3000,
     rewards: [
-      { type: 'xp', amount: 400, description: '+400 XP' },
-      { type: 'coins', amount: 400, description: '+400 Coins' }
+      { type: 'xp', amount: 800, description: '+800 XP' },
+      { type: 'coins', amount: 800, description: '+800 Coins' }
     ]
   },
   {
@@ -109,8 +109,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🏆',
     target: 6000,
     rewards: [
-      { type: 'xp', amount: 500, description: '+500 XP' },
-      { type: 'coins', amount: 500, description: '+500 Coins' }
+      { type: 'xp', amount: 1000, description: '+1000 XP' },
+      { type: 'coins', amount: 1000, description: '+1000 Coins' }
     ]
   },
   {
@@ -122,8 +122,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🎯',
     target: 15000,
     rewards: [
-      { type: 'xp', amount: 750, description: '+750 XP' },
-      { type: 'coins', amount: 800, description: '+800 Coins' }
+      { type: 'xp', amount: 1500, description: '+1500 XP' },
+      { type: 'coins', amount: 1600, description: '+1600 Coins' }
     ]
   },
   {
@@ -135,8 +135,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '👑',
     target: 30000,
     rewards: [
-      { type: 'xp', amount: 1000, description: '+1000 XP' },
-      { type: 'coins', amount: 1000, description: '+1000 Coins' }
+      { type: 'xp', amount: 2000, description: '+2000 XP' },
+      { type: 'coins', amount: 2000, description: '+2000 Coins' }
     ]
   },
   {
@@ -148,8 +148,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🌟',
     target: 60000,
     rewards: [
-      { type: 'xp', amount: 2000, description: '+2000 XP' },
-      { type: 'coins', amount: 2500, description: '+2500 Coins' }
+      { type: 'xp', amount: 4000, description: '+4000 XP' },
+      { type: 'coins', amount: 5000, description: '+5000 Coins' }
     ]
   },
   {
@@ -161,8 +161,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🏃',
     target: 120,
     rewards: [
-      { type: 'xp', amount: 150, description: '+150 XP' },
-      { type: 'coins', amount: 100, description: '+100 Coins' }
+      { type: 'xp', amount: 300, description: '+300 XP' },
+      { type: 'coins', amount: 250, description: '+250 Coins' }
     ]
   },
   {
@@ -174,8 +174,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🏃‍♂️',
     target: 240,
     rewards: [
-      { type: 'xp', amount: 300, description: '+300 XP' },
-      { type: 'coins', amount: 350, description: '+350 Coins' }
+      { type: 'xp', amount: 600, description: '+600 XP' },
+      { type: 'coins', amount: 700, description: '+700 Coins' }
     ]
   },
   {
@@ -188,8 +188,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     target: 480,
     secret: true,
     rewards: [
-      { type: 'xp', amount: 1500, description: '+1500 XP' },
-      { type: 'coins', amount: 2000, description: '+2000 Coins' }
+      { type: 'xp', amount: 3000, description: '+3000 XP' },
+      { type: 'coins', amount: 4000, description: '+4000 Coins' }
     ]
   },
   {
@@ -201,8 +201,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🎬',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 50, description: '+50 XP' },
-      { type: 'coins', amount: 30, description: '+30 Coins' }
+      { type: 'xp', amount: 100, description: '+100 XP' },
+      { type: 'coins', amount: 75, description: '+75 Coins' }
     ]
   },
   {
@@ -214,8 +214,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '📚',
     target: 25,
     rewards: [
-      { type: 'xp', amount: 150, description: '+150 XP' },
-      { type: 'coins', amount: 125, description: '+125 Coins' }
+      { type: 'xp', amount: 300, description: '+300 XP' },
+      { type: 'coins', amount: 275, description: '+275 Coins' }
     ]
   },
   {
@@ -227,8 +227,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🎖️',
     target: 100,
     rewards: [
-      { type: 'xp', amount: 400, description: '+400 XP' },
-      { type: 'coins', amount: 400, description: '+400 Coins' }
+      { type: 'xp', amount: 800, description: '+800 XP' },
+      { type: 'coins', amount: 800, description: '+800 Coins' }
     ]
   },
   {
@@ -240,8 +240,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🧘‍♂️',
     target: 500,
     rewards: [
-      { type: 'xp', amount: 800, description: '+800 XP' },
-      { type: 'coins', amount: 900, description: '+900 Coins' }
+      { type: 'xp', amount: 1600, description: '+1600 XP' },
+      { type: 'coins', amount: 1800, description: '+1800 Coins' }
     ]
   },
   {
@@ -254,8 +254,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     target: 1000,
     secret: true,
     rewards: [
-      { type: 'xp', amount: 2000, description: '+2000 XP' },
-      { type: 'coins', amount: 2500, description: '+2500 Coins' }
+      { type: 'xp', amount: 4000, description: '+4000 XP' },
+      { type: 'coins', amount: 5000, description: '+5000 Coins' }
     ]
   },
 
@@ -269,8 +269,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🐾',
     target: 1,
     rewards: [
-      { type: 'xp', amount: 25, description: '+25 XP' },
-      { type: 'coins', amount: 25, description: '+25 Coins' }
+      { type: 'xp', amount: 75, description: '+75 XP' },
+      { type: 'coins', amount: 75, description: '+75 Coins' }
     ]
   },
   {
@@ -282,8 +282,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🦊',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 75, description: '+75 XP' },
-      { type: 'coins', amount: 60, description: '+60 Coins' }
+      { type: 'xp', amount: 150, description: '+150 XP' },
+      { type: 'coins', amount: 150, description: '+150 Coins' }
     ]
   },
   {
@@ -295,8 +295,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🦋',
     target: 10,
     rewards: [
-      { type: 'xp', amount: 150, description: '+150 XP' },
-      { type: 'coins', amount: 150, description: '+150 Coins' }
+      { type: 'xp', amount: 300, description: '+300 XP' },
+      { type: 'coins', amount: 350, description: '+350 Coins' }
     ]
   },
   {
@@ -308,8 +308,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🦁',
     target: 20,
     rewards: [
-      { type: 'xp', amount: 300, description: '+300 XP' },
-      { type: 'coins', amount: 350, description: '+350 Coins' }
+      { type: 'xp', amount: 600, description: '+600 XP' },
+      { type: 'coins', amount: 700, description: '+700 Coins' }
     ]
   },
   {
@@ -321,8 +321,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🐘',
     target: 35,
     rewards: [
-      { type: 'xp', amount: 600, description: '+600 XP' },
-      { type: 'coins', amount: 750, description: '+750 Coins' }
+      { type: 'xp', amount: 1200, description: '+1200 XP' },
+      { type: 'coins', amount: 1500, description: '+1500 Coins' }
     ]
   },
   {
@@ -334,8 +334,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💎',
     target: 50,
     rewards: [
-      { type: 'xp', amount: 1500, description: '+1500 XP' },
-      { type: 'coins', amount: 2000, description: '+2000 Coins' }
+      { type: 'xp', amount: 3000, description: '+3000 XP' },
+      { type: 'coins', amount: 4000, description: '+4000 Coins' }
     ]
   },
   {
@@ -347,8 +347,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💫',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 200, description: '+200 XP' },
-      { type: 'coins', amount: 200, description: '+200 Coins' }
+      { type: 'xp', amount: 400, description: '+400 XP' },
+      { type: 'coins', amount: 400, description: '+400 Coins' }
     ]
   },
   {
@@ -360,8 +360,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🔮',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 400, description: '+400 XP' },
-      { type: 'coins', amount: 450, description: '+450 Coins' }
+      { type: 'xp', amount: 800, description: '+800 XP' },
+      { type: 'coins', amount: 900, description: '+900 Coins' }
     ]
   },
   {
@@ -373,8 +373,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🌈',
     target: 3,
     rewards: [
-      { type: 'xp', amount: 750, description: '+750 XP' },
-      { type: 'coins', amount: 800, description: '+800 Coins' }
+      { type: 'xp', amount: 1500, description: '+1500 XP' },
+      { type: 'coins', amount: 1600, description: '+1600 Coins' }
     ]
   },
   {
@@ -386,8 +386,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🌍',
     target: 8,
     rewards: [
-      { type: 'xp', amount: 750, description: '+750 XP' },
-      { type: 'coins', amount: 750, description: '+750 Coins' }
+      { type: 'xp', amount: 1500, description: '+1500 XP' },
+      { type: 'coins', amount: 1500, description: '+1500 Coins' }
     ]
   },
 
@@ -401,8 +401,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💕',
     target: 3,
     rewards: [
-      { type: 'xp', amount: 50, description: '+50 XP' },
-      { type: 'coins', amount: 40, description: '+40 Coins' }
+      { type: 'xp', amount: 100, description: '+100 XP' },
+      { type: 'coins', amount: 100, description: '+100 Coins' }
     ]
   },
   {
@@ -414,8 +414,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💗',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 100, description: '+100 XP' },
-      { type: 'coins', amount: 100, description: '+100 Coins' }
+      { type: 'xp', amount: 200, description: '+200 XP' },
+      { type: 'coins', amount: 225, description: '+225 Coins' }
     ]
   },
   {
@@ -427,8 +427,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💖',
     target: 7,
     rewards: [
-      { type: 'xp', amount: 200, description: '+200 XP' },
-      { type: 'coins', amount: 250, description: '+250 Coins' }
+      { type: 'xp', amount: 400, description: '+400 XP' },
+      { type: 'coins', amount: 500, description: '+500 Coins' }
     ]
   },
   {
@@ -440,8 +440,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '✨',
     target: 10,
     rewards: [
-      { type: 'xp', amount: 400, description: '+400 XP' },
-      { type: 'coins', amount: 500, description: '+500 Coins' }
+      { type: 'xp', amount: 800, description: '+800 XP' },
+      { type: 'coins', amount: 1000, description: '+1000 Coins' }
     ]
   },
   {
@@ -453,8 +453,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💝',
     target: 3,
     rewards: [
-      { type: 'xp', amount: 600, description: '+600 XP' },
-      { type: 'coins', amount: 700, description: '+700 Coins' }
+      { type: 'xp', amount: 1200, description: '+1200 XP' },
+      { type: 'coins', amount: 1400, description: '+1400 Coins' }
     ]
   },
   {
@@ -466,8 +466,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🌟',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 1000, description: '+1000 XP' },
-      { type: 'coins', amount: 1500, description: '+1500 Coins' }
+      { type: 'xp', amount: 2000, description: '+2000 XP' },
+      { type: 'coins', amount: 3000, description: '+3000 Coins' }
     ]
   },
 
@@ -481,8 +481,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '⭐',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 50, description: '+50 XP' },
-      { type: 'coins', amount: 50, description: '+50 Coins' }
+      { type: 'xp', amount: 100, description: '+100 XP' },
+      { type: 'coins', amount: 125, description: '+125 Coins' }
     ]
   },
   {
@@ -494,8 +494,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🌙',
     target: 10,
     rewards: [
-      { type: 'xp', amount: 150, description: '+150 XP' },
-      { type: 'coins', amount: 150, description: '+150 Coins' }
+      { type: 'xp', amount: 300, description: '+300 XP' },
+      { type: 'coins', amount: 350, description: '+350 Coins' }
     ]
   },
   {
@@ -507,8 +507,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🌞',
     target: 25,
     rewards: [
-      { type: 'xp', amount: 400, description: '+400 XP' },
-      { type: 'coins', amount: 400, description: '+400 Coins' }
+      { type: 'xp', amount: 800, description: '+800 XP' },
+      { type: 'coins', amount: 900, description: '+900 Coins' }
     ]
   },
   {
@@ -520,8 +520,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🔥',
     target: 40,
     rewards: [
-      { type: 'xp', amount: 700, description: '+700 XP' },
-      { type: 'coins', amount: 800, description: '+800 Coins' }
+      { type: 'xp', amount: 1400, description: '+1400 XP' },
+      { type: 'coins', amount: 1600, description: '+1600 Coins' }
     ]
   },
   {
@@ -533,8 +533,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🏅',
     target: 50,
     rewards: [
-      { type: 'xp', amount: 1000, description: '+1000 XP' },
-      { type: 'coins', amount: 2000, description: '+2000 Coins' }
+      { type: 'xp', amount: 2000, description: '+2000 XP' },
+      { type: 'coins', amount: 4000, description: '+4000 Coins' }
     ]
   },
 
@@ -548,8 +548,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🛒',
     target: 1,
     rewards: [
-      { type: 'xp', amount: 25, description: '+25 XP' },
-      { type: 'coins', amount: 25, description: '+25 Coins' }
+      { type: 'xp', amount: 75, description: '+75 XP' },
+      { type: 'coins', amount: 75, description: '+75 Coins' }
     ]
   },
   {
@@ -561,8 +561,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🛍️',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 100, description: '+100 XP' },
-      { type: 'coins', amount: 100, description: '+100 Coins' }
+      { type: 'xp', amount: 200, description: '+200 XP' },
+      { type: 'coins', amount: 225, description: '+225 Coins' }
     ]
   },
   {
@@ -574,8 +574,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💰',
     target: 15,
     rewards: [
-      { type: 'xp', amount: 300, description: '+300 XP' },
-      { type: 'coins', amount: 350, description: '+350 Coins' }
+      { type: 'xp', amount: 600, description: '+600 XP' },
+      { type: 'coins', amount: 700, description: '+700 Coins' }
     ]
   },
   {
@@ -587,8 +587,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🪙',
     target: 1000,
     rewards: [
-      { type: 'xp', amount: 50, description: '+50 XP' },
-      { type: 'coins', amount: 50, description: '+50 Coins' }
+      { type: 'xp', amount: 100, description: '+100 XP' },
+      { type: 'coins', amount: 125, description: '+125 Coins' }
     ]
   },
   {
@@ -600,8 +600,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💵',
     target: 5000,
     rewards: [
-      { type: 'xp', amount: 150, description: '+150 XP' },
-      { type: 'coins', amount: 150, description: '+150 Coins' }
+      { type: 'xp', amount: 300, description: '+300 XP' },
+      { type: 'coins', amount: 350, description: '+350 Coins' }
     ]
   },
   {
@@ -613,8 +613,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💎',
     target: 25000,
     rewards: [
-      { type: 'xp', amount: 350, description: '+350 XP' },
-      { type: 'coins', amount: 400, description: '+400 Coins' }
+      { type: 'xp', amount: 700, description: '+700 XP' },
+      { type: 'coins', amount: 800, description: '+800 Coins' }
     ]
   },
   {
@@ -626,8 +626,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '👑',
     target: 100000,
     rewards: [
-      { type: 'xp', amount: 750, description: '+750 XP' },
-      { type: 'coins', amount: 1000, description: '+1000 Coins' }
+      { type: 'xp', amount: 1500, description: '+1500 XP' },
+      { type: 'coins', amount: 2000, description: '+2000 Coins' }
     ]
   },
 
@@ -641,8 +641,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🦉',
     target: 10,
     rewards: [
-      { type: 'xp', amount: 150, description: '+150 XP' },
-      { type: 'coins', amount: 125, description: '+125 Coins' }
+      { type: 'xp', amount: 300, description: '+300 XP' },
+      { type: 'coins', amount: 275, description: '+275 Coins' }
     ]
   },
   {
@@ -654,8 +654,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🐦',
     target: 10,
     rewards: [
-      { type: 'xp', amount: 150, description: '+150 XP' },
-      { type: 'coins', amount: 125, description: '+125 Coins' }
+      { type: 'xp', amount: 300, description: '+300 XP' },
+      { type: 'coins', amount: 275, description: '+275 Coins' }
     ]
   },
   {
@@ -667,8 +667,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🎉',
     target: 20,
     rewards: [
-      { type: 'xp', amount: 250, description: '+250 XP' },
-      { type: 'coins', amount: 300, description: '+300 Coins' }
+      { type: 'xp', amount: 500, description: '+500 XP' },
+      { type: 'coins', amount: 600, description: '+600 Coins' }
     ]
   },
   {
@@ -680,8 +680,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '📅',
     target: 7,
     rewards: [
-      { type: 'xp', amount: 300, description: '+300 XP' },
-      { type: 'coins', amount: 350, description: '+350 Coins' }
+      { type: 'xp', amount: 600, description: '+600 XP' },
+      { type: 'coins', amount: 700, description: '+700 Coins' }
     ]
   },
   {
@@ -693,8 +693,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🔥',
     target: 7,
     rewards: [
-      { type: 'xp', amount: 150, description: '+150 XP' },
-      { type: 'coins', amount: 150, description: '+150 Coins' }
+      { type: 'xp', amount: 300, description: '+300 XP' },
+      { type: 'coins', amount: 350, description: '+350 Coins' }
     ]
   },
   {
@@ -706,8 +706,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🌟',
     target: 30,
     rewards: [
-      { type: 'xp', amount: 400, description: '+400 XP' },
-      { type: 'coins', amount: 500, description: '+500 Coins' }
+      { type: 'xp', amount: 800, description: '+800 XP' },
+      { type: 'coins', amount: 1000, description: '+1000 Coins' }
     ]
   },
   {
@@ -719,8 +719,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '💫',
     target: 60,
     rewards: [
-      { type: 'xp', amount: 700, description: '+700 XP' },
-      { type: 'coins', amount: 800, description: '+800 Coins' }
+      { type: 'xp', amount: 1400, description: '+1400 XP' },
+      { type: 'coins', amount: 1600, description: '+1600 Coins' }
     ]
   },
   {
@@ -732,8 +732,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🏆',
     target: 100,
     rewards: [
-      { type: 'xp', amount: 1500, description: '+1500 XP' },
-      { type: 'coins', amount: 2000, description: '+2000 Coins' }
+      { type: 'xp', amount: 3000, description: '+3000 XP' },
+      { type: 'coins', amount: 4000, description: '+4000 Coins' }
     ]
   },
   {
@@ -746,8 +746,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     target: 365,
     secret: true,
     rewards: [
-      { type: 'xp', amount: 5000, description: '+5000 XP' },
-      { type: 'coins', amount: 5000, description: '+5000 Coins' }
+      { type: 'xp', amount: 10000, description: '+10000 XP' },
+      { type: 'coins', amount: 10000, description: '+10000 Coins' }
     ]
   },
   {
@@ -759,8 +759,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🎰',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 300, description: '+300 XP' },
-      { type: 'coins', amount: 400, description: '+400 Coins' }
+      { type: 'xp', amount: 600, description: '+600 XP' },
+      { type: 'coins', amount: 800, description: '+800 Coins' }
     ]
   },
   {
@@ -772,8 +772,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🎡',
     target: 25,
     rewards: [
-      { type: 'xp', amount: 150, description: '+150 XP' },
-      { type: 'coins', amount: 150, description: '+150 Coins' }
+      { type: 'xp', amount: 300, description: '+300 XP' },
+      { type: 'coins', amount: 350, description: '+350 Coins' }
     ]
   },
 
@@ -787,8 +787,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🦋',
     target: 5,
     rewards: [
-      { type: 'xp', amount: 50, description: '+50 XP' },
-      { type: 'coins', amount: 50, description: '+50 Coins' }
+      { type: 'xp', amount: 100, description: '+100 XP' },
+      { type: 'coins', amount: 125, description: '+125 Coins' }
     ]
   },
   {
@@ -800,8 +800,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     icon: '🏅',
     target: 25,
     rewards: [
-      { type: 'xp', amount: 500, description: '+500 XP' },
-      { type: 'coins', amount: 500, description: '+500 Coins' }
+      { type: 'xp', amount: 1000, description: '+1000 XP' },
+      { type: 'coins', amount: 1000, description: '+1000 Coins' }
     ]
   },
   {
@@ -814,8 +814,8 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'un
     target: 50,
     secret: true,
     rewards: [
-      { type: 'xp', amount: 3000, description: '+3000 XP' },
-      { type: 'coins', amount: 5000, description: '+5000 Coins' }
+      { type: 'xp', amount: 6000, description: '+6000 XP' },
+      { type: 'coins', amount: 10000, description: '+10000 Coins' }
     ]
   }
 ];

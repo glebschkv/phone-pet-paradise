@@ -46,31 +46,31 @@ export interface QuestSystemReturn {
 
 const QUEST_STORAGE_KEY = 'quest-system-data';
 
-// Quest templates for generation
+// Quest templates for generation - BOOSTED REWARDS!
 const DAILY_QUEST_TEMPLATES = [
   {
     title: "Focus Marathon",
     description: "Complete 30 minutes of focus time",
     objectives: [{ type: 'focus_time', target: 30, description: "Focus for 30 minutes" }],
-    rewards: [{ type: 'xp', amount: 100, description: "+100 XP" }]
+    rewards: [{ type: 'xp', amount: 200, description: "+200 XP" }]
   },
   {
     title: "Pet Companion",
     description: "Interact with 3 different pets",
     objectives: [{ type: 'pet_interaction', target: 3, description: "Interact with 3 pets" }],
-    rewards: [{ type: 'xp', amount: 75, description: "+75 XP" }]
+    rewards: [{ type: 'xp', amount: 150, description: "+150 XP" }]
   },
   {
     title: "Bond Builder",
     description: "Increase bond level with any pet",
     objectives: [{ type: 'bond_level', target: 1, description: "Level up a pet bond" }],
-    rewards: [{ type: 'xp', amount: 150, description: "+150 XP" }]
+    rewards: [{ type: 'xp', amount: 300, description: "+300 XP" }]
   },
   {
     title: "Streak Keeper",
     description: "Maintain your focus streak",
     objectives: [{ type: 'streak', target: 1, description: "Complete a focus session" }],
-    rewards: [{ type: 'xp', amount: 50, description: "+50 XP" }]
+    rewards: [{ type: 'xp', amount: 125, description: "+125 XP" }]
   }
 ];
 
@@ -79,19 +79,19 @@ const WEEKLY_QUEST_TEMPLATES = [
     title: "Focus Master",
     description: "Complete 5 hours of total focus time this week",
     objectives: [{ type: 'focus_time', target: 300, description: "Focus for 5 hours total" }],
-    rewards: [{ type: 'xp', amount: 500, description: "+500 XP" }]
+    rewards: [{ type: 'xp', amount: 1000, description: "+1000 XP" }]
   },
   {
     title: "Pet Collector",
     description: "Unlock 2 new pets",
     objectives: [{ type: 'collection', target: 2, description: "Unlock 2 new pets" }],
-    rewards: [{ type: 'xp', amount: 300, description: "+300 XP" }]
+    rewards: [{ type: 'xp', amount: 600, description: "+600 XP" }]
   },
   {
     title: "Perfect Week",
     description: "Complete focus sessions for 7 consecutive days",
     objectives: [{ type: 'streak', target: 7, description: "7-day focus streak" }],
-    rewards: [{ type: 'xp', amount: 750, description: "+750 XP" }]
+    rewards: [{ type: 'xp', amount: 1500, description: "+1500 XP" }]
   }
 ];
 
@@ -101,7 +101,7 @@ const STORY_QUESTS = [
     title: "Welcome to Paradise",
     description: "Begin your journey by meeting your first companion",
     objectives: [{ type: 'pet_interaction', target: 1, description: "Meet your first pet" }],
-    rewards: [{ type: 'pet_unlock', itemId: 'panda', description: "Unlock Panda companion" }],
+    rewards: [{ type: 'pet_unlock', itemId: 'panda', description: "Unlock Panda companion" }, { type: 'xp', amount: 100, description: "+100 XP" }],
     unlockLevel: 1,
     storylineChapter: 1
   },
@@ -110,7 +110,7 @@ const STORY_QUESTS = [
     title: "First Focus",
     description: "Complete your first focus session",
     objectives: [{ type: 'focus_time', target: 10, description: "Focus for 10 minutes" }],
-    rewards: [{ type: 'xp', amount: 100, description: "+100 XP" }],
+    rewards: [{ type: 'xp', amount: 250, description: "+250 XP" }],
     unlockLevel: 1,
     storylineChapter: 1
   },
@@ -119,7 +119,7 @@ const STORY_QUESTS = [
     title: "Forest Explorer",
     description: "Unlock the mystical jungle biome",
     objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 13" }],
-    rewards: [{ type: 'pet_unlock', itemId: 'jungle-bird', description: "Unlock Tropical Bird companion" }],
+    rewards: [{ type: 'pet_unlock', itemId: 'jungle-bird', description: "Unlock Tropical Bird companion" }, { type: 'xp', amount: 400, description: "+400 XP" }],
     unlockLevel: 13,
     storylineChapter: 2
   },
@@ -128,7 +128,7 @@ const STORY_QUESTS = [
     title: "Arctic Adventure",
     description: "Brave the harsh tundra lands",
     objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 19" }],
-    rewards: [{ type: 'pet_unlock', itemId: 'arctic-hare', description: "Unlock Arctic Hare companion" }],
+    rewards: [{ type: 'pet_unlock', itemId: 'arctic-hare', description: "Unlock Arctic Hare companion" }, { type: 'xp', amount: 500, description: "+500 XP" }],
     unlockLevel: 19,
     storylineChapter: 3
   },
@@ -137,7 +137,7 @@ const STORY_QUESTS = [
     title: "Legendary Peaks",
     description: "Ascend to the mythical mountains",
     objectives: [{ type: 'biome_unlock', target: 1, description: "Reach level 27" }],
-    rewards: [{ type: 'pet_unlock', itemId: 'alpha-bear', description: "Unlock Alpha Bear companion" }],
+    rewards: [{ type: 'pet_unlock', itemId: 'alpha-bear', description: "Unlock Alpha Bear companion" }, { type: 'xp', amount: 750, description: "+750 XP" }],
     unlockLevel: 27,
     storylineChapter: 4
   }
