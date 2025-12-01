@@ -19,16 +19,24 @@ export interface PurchaseResult {
   pending?: boolean;
   message?: string;
   transactionId?: string;
+  originalTransactionId?: string;
   productId?: string;
   purchaseDate?: number;
   expirationDate?: number | null;
+  signedTransaction?: string;
+  environment?: 'sandbox' | 'production';
+  storefrontCountryCode?: string;
 }
 
 export interface RestoredPurchase {
   productId: string;
   transactionId: string;
+  originalTransactionId?: string;
   purchaseDate: number;
   expirationDate?: number | null;
+  signedTransaction?: string;
+  environment?: 'sandbox' | 'production';
+  isUpgraded?: boolean;
 }
 
 export interface RestoreResult {

@@ -1,11 +1,63 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { StoreKit, StoreKitProduct, PurchaseResult, SubscriptionStatus } from '@/plugins/store-kit';
+import { StoreKit, StoreKitProduct, PurchaseResult, SubscriptionStatus, RestoredPurchase } from '@/plugins/store-kit';
 import { SUBSCRIPTION_PLANS, dispatchSubscriptionChange } from './usePremiumStatus';
 import { useToast } from './use-toast';
 import { storeKitLogger as logger } from '@/lib/logger';
+import { supabase } from '@/integrations/supabase/client';
 
 const PREMIUM_STORAGE_KEY = 'petIsland_premium';
+
+/**
+ * Validate a purchase with the server
+ * Standalone function to avoid circular dependency issues
+ */
+async function serverValidatePurchase(
+  purchase: PurchaseResult | RestoredPurchase
+): Promise<{ success: boolean; subscription?: any }> {
+  try {
+    // Check if user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      logger.warn('User not authenticated, skipping server validation');
+      return { success: true }; // Allow local-only validation for non-authenticated users
+    }
+
+    if (!purchase.signedTransaction || !purchase.transactionId || !purchase.productId) {
+      logger.warn('Missing required fields for server validation');
+      return { success: true }; // Allow purchase but log warning
+    }
+
+    logger.debug('Validating purchase with server:', purchase.productId);
+
+    const { data, error } = await supabase.functions.invoke('validate-receipt', {
+      body: {
+        signedTransaction: purchase.signedTransaction,
+        productId: purchase.productId,
+        transactionId: purchase.transactionId,
+        originalTransactionId: purchase.originalTransactionId,
+        environment: purchase.environment || 'production',
+        platform: 'ios',
+      },
+    });
+
+    if (error) {
+      logger.error('Server validation error:', error);
+      return { success: true }; // Don't fail the purchase
+    }
+
+    if (data?.success) {
+      logger.debug('Server validation successful:', data.subscription);
+      return { success: true, subscription: data.subscription };
+    } else {
+      logger.error('Server validation failed:', data?.error);
+      return { success: false };
+    }
+  } catch (err) {
+    logger.error('Error during server validation:', err);
+    return { success: true }; // Don't fail the purchase
+  }
+}
 
 // All IAP product IDs
 const ALL_PRODUCT_IDS = [
@@ -84,11 +136,21 @@ export const useStoreKit = (): UseStoreKitReturn => {
                 : null,
               purchasedAt: new Date(activeSub.purchaseDate).toISOString(),
               planId: plan.id,
+              environment: activeSub.environment,
             };
             localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
 
             // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
             dispatchSubscriptionChange(plan.tier);
+
+            // Also validate with server if we have the signed transaction
+            // This ensures server has the latest subscription state
+            if (activeSub.signedTransaction) {
+              // Fire and forget - don't block the UI
+              serverValidatePurchase(activeSub).catch(err => {
+                logger.warn('Background server validation failed:', err);
+              });
+            }
           }
         }
       } else {
@@ -103,6 +165,28 @@ export const useStoreKit = (): UseStoreKitReturn => {
     }
   }, []);
 
+  // Validate purchase with server (wrapper that also updates local storage)
+  const validatePurchaseWithServer = useCallback(async (
+    purchase: PurchaseResult | RestoredPurchase
+  ): Promise<boolean> => {
+    const result = await serverValidatePurchase(purchase);
+
+    // Update local storage with server-validated subscription
+    if (result.success && result.subscription) {
+      const premiumState = {
+        tier: result.subscription.tier,
+        expiresAt: result.subscription.expiresAt,
+        purchasedAt: result.subscription.purchasedAt,
+        planId: result.subscription.productId,
+        validated: true,
+        environment: result.subscription.environment,
+      };
+      localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+    }
+
+    return result.success;
+  }, []);
+
   // Purchase a product
   const purchaseProduct = useCallback(async (productId: string): Promise<PurchaseResult> => {
     try {
@@ -113,10 +197,20 @@ export const useStoreKit = (): UseStoreKitReturn => {
       const result = await StoreKit.purchase({ productId });
 
       if (result.success) {
-        toast({
-          title: 'Purchase Successful!',
-          description: 'Thank you for your purchase.',
-        });
+        // Validate with server before showing success
+        const serverValidated = await validatePurchaseWithServer(result);
+
+        if (serverValidated) {
+          toast({
+            title: 'Purchase Successful!',
+            description: 'Thank you for your purchase.',
+          });
+        } else {
+          toast({
+            title: 'Purchase Processing',
+            description: 'Your purchase is being verified. It may take a moment to activate.',
+          });
+        }
 
         // Refresh subscription status
         await checkSubscriptionStatus();
@@ -146,7 +240,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
     } finally {
       setIsPurchasing(false);
     }
-  }, [toast, checkSubscriptionStatus]);
+  }, [toast, checkSubscriptionStatus, validatePurchaseWithServer]);
 
   // Restore purchases
   const restorePurchases = useCallback(async (): Promise<boolean> => {
@@ -158,6 +252,15 @@ export const useStoreKit = (): UseStoreKitReturn => {
       const result = await StoreKit.restorePurchases();
 
       if (result.success && result.restoredCount > 0) {
+        // Validate each restored purchase with the server
+        let validatedCount = 0;
+        for (const purchase of result.purchases) {
+          const validated = await validatePurchaseWithServer(purchase);
+          if (validated) {
+            validatedCount++;
+          }
+        }
+
         toast({
           title: 'Purchases Restored!',
           description: `${result.restoredCount} purchase(s) restored successfully.`,
@@ -185,7 +288,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, checkSubscriptionStatus]);
+  }, [toast, checkSubscriptionStatus, validatePurchaseWithServer]);
 
   // Open subscription management
   const manageSubscriptions = useCallback(async () => {
