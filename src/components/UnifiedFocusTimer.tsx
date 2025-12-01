@@ -4,6 +4,7 @@ import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useBossChallenges } from "@/hooks/useBossChallenges";
 import { FocusCategory } from "@/types/analytics";
+import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from "@/hooks/useAchievementTracking";
 import {
   TimerPreset,
   TIMER_PRESETS,
@@ -157,6 +158,15 @@ export const UnifiedFocusTimer = () => {
       timerState.category,
       timerState.taskLabel
     );
+
+    // Dispatch achievement tracking event for focus sessions (non-break only)
+    if (timerState.sessionType !== 'break' && completedMinutes >= 1) {
+      const wasJackpot = reward?.bonusType === 'jackpot';
+      dispatchAchievementEvent(ACHIEVEMENT_EVENTS.FOCUS_SESSION_COMPLETE, {
+        minutes: completedMinutes,
+        wasJackpot,
+      });
+    }
 
     // Record focus session for boss challenge progress (only for work sessions)
     if (timerState.sessionType !== 'break' && completedMinutes >= 1) {

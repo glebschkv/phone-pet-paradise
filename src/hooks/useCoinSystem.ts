@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
 
 export interface CoinReward {
   coinsGained: number;
@@ -154,6 +155,12 @@ export const useCoinSystem = () => {
 
     saveState(newState);
 
+    // Track coins earned for achievements
+    dispatchAchievementEvent(ACHIEVEMENT_EVENTS.COINS_EARNED, {
+      amount: finalCoins,
+      total: newState.totalEarned,
+    });
+
     return {
       coinsGained: finalCoins,
       baseCoins,
@@ -174,6 +181,14 @@ export const useCoinSystem = () => {
       totalSpent: coinState.totalSpent,
     };
     saveState(newState);
+
+    // Track coins earned for achievements
+    if (amount > 0) {
+      dispatchAchievementEvent(ACHIEVEMENT_EVENTS.COINS_EARNED, {
+        amount,
+        total: newState.totalEarned,
+      });
+    }
   }, [coinState, saveState]);
 
   // Spend coins (returns true if successful, false if insufficient balance)
