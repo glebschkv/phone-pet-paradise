@@ -48,36 +48,36 @@ interface BonusResult {
 const calculateRandomBonus = (): BonusResult => {
   const roll = Math.random() * 100;
 
-  // 2% chance: Jackpot (2x XP)
-  if (roll < 2) {
-    return { hasBonusXP: true, bonusMultiplier: 2.0, bonusType: 'jackpot' };
+  // 5% chance: Jackpot (2.5x XP) - increased from 2%
+  if (roll < 5) {
+    return { hasBonusXP: true, bonusMultiplier: 2.5, bonusType: 'jackpot' };
   }
-  // 5% chance: Super Lucky (1.5x XP)
-  if (roll < 7) {
-    return { hasBonusXP: true, bonusMultiplier: 1.5, bonusType: 'super_lucky' };
+  // 10% chance: Super Lucky (1.75x XP) - increased from 5%
+  if (roll < 15) {
+    return { hasBonusXP: true, bonusMultiplier: 1.75, bonusType: 'super_lucky' };
   }
-  // 13% chance: Lucky (1.25x XP)
-  if (roll < 20) {
-    return { hasBonusXP: true, bonusMultiplier: 1.25, bonusType: 'lucky' };
+  // 20% chance: Lucky (1.5x XP) - increased from 13%
+  if (roll < 35) {
+    return { hasBonusXP: true, bonusMultiplier: 1.5, bonusType: 'lucky' };
   }
-  // 80% chance: No bonus
+  // 65% chance: No bonus - reduced from 80%
   return { hasBonusXP: false, bonusMultiplier: 1.0, bonusType: 'none' };
 };
 
 export const MAX_LEVEL = 50 as const;
 
 // XP rewards based on session duration (in minutes)
-// Designed to feel rewarding - a 30 min session should feel impactful
+// Boosted rewards - progression should feel satisfying and impactful!
 const XP_REWARDS = {
-  25: 12,   // 25 minutes = 12 XP (minimum focus session)
-  30: 15,   // 30 minutes = 15 XP - good for quick unlocks
-  45: 25,   // 45 minutes = 25 XP
-  60: 35,   // 1 hour = 35 XP - sweet spot for progression
-  90: 55,   // 90 minutes (deep work) = 55 XP
-  120: 80,  // 2 hours = 80 XP
-  180: 120, // 3 hours = 120 XP
-  240: 170, // 4 hours = 170 XP
-  300: 230, // 5 hours = 230 XP
+  25: 25,   // 25 minutes = 25 XP (minimum focus session) - doubled
+  30: 35,   // 30 minutes = 35 XP - more than doubled for quick wins
+  45: 55,   // 45 minutes = 55 XP - doubled
+  60: 80,   // 1 hour = 80 XP - sweet spot, more than doubled
+  90: 125,  // 90 minutes (deep work) = 125 XP - more than doubled
+  120: 180, // 2 hours = 180 XP - more than doubled
+  180: 280, // 3 hours = 280 XP - more than doubled
+  240: 400, // 4 hours = 400 XP - more than doubled
+  300: 550, // 5 hours = 550 XP - more than doubled
 };
 
 // Level progression: XP required for each level

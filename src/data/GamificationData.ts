@@ -62,21 +62,21 @@ const generateBattlePassTiers = (seasonTheme: SeasonTheme): BattlePassTier[] => 
 };
 
 const getFreeRewardForTier = (tier: number, _theme: SeasonTheme): BattlePassReward => {
-  // Every 5th tier is a bigger reward
+  // Every 5th tier is a bigger reward - BOOSTED!
   if (tier % 10 === 0) {
-    return { type: 'coins', amount: 500, itemName: '500 Coins', rarity: 'epic', icon: '💰' };
+    return { type: 'coins', amount: 1000, itemName: '1000 Coins', rarity: 'epic', icon: '💰' };
   }
   if (tier % 5 === 0) {
-    return { type: 'coins', amount: 200, itemName: '200 Coins', rarity: 'rare', icon: '🪙' };
+    return { type: 'coins', amount: 400, itemName: '400 Coins', rarity: 'rare', icon: '🪙' };
   }
   if (tier % 3 === 0) {
-    return { type: 'xp', amount: 50, itemName: '50 XP', rarity: 'common', icon: '⭐' };
+    return { type: 'xp', amount: 100, itemName: '100 XP', rarity: 'common', icon: '⭐' };
   }
-  return { type: 'coins', amount: 50, itemName: '50 Coins', rarity: 'common', icon: '🪙' };
+  return { type: 'coins', amount: 100, itemName: '100 Coins', rarity: 'common', icon: '🪙' };
 };
 
 const getPremiumRewardForTier = (tier: number, theme: SeasonTheme): BattlePassReward => {
-  // Tier 30 is the exclusive pet
+  // Tier 30 is the exclusive pet - BOOSTED rewards throughout!
   if (tier === 30) {
     return {
       type: 'pet',
@@ -96,15 +96,15 @@ const getPremiumRewardForTier = (tier: number, theme: SeasonTheme): BattlePassRe
     };
   }
   if (tier === 15) {
-    return { type: 'booster', amount: 3, itemName: '3x Coin Booster (24h)', rarity: 'epic', icon: '🚀' };
+    return { type: 'booster', amount: 5, itemName: '5x Coin Booster (24h)', rarity: 'epic', icon: '🚀' };
   }
   if (tier % 5 === 0) {
     return { type: 'badge', itemId: `tier-${tier}`, itemName: `Tier ${tier} Badge`, rarity: 'rare', icon: '🎖️' };
   }
   if (tier % 2 === 0) {
-    return { type: 'coins', amount: 150, itemName: '150 Coins', rarity: 'rare', icon: '💎' };
+    return { type: 'coins', amount: 300, itemName: '300 Coins', rarity: 'rare', icon: '💎' };
   }
-  return { type: 'xp', amount: 100, itemName: '100 XP', rarity: 'common', icon: '✨' };
+  return { type: 'xp', amount: 200, itemName: '200 XP', rarity: 'common', icon: '✨' };
 };
 
 // Current active season (would be managed dynamically in production)
@@ -193,7 +193,7 @@ export interface BossChallenge {
 }
 
 export const BOSS_CHALLENGES: BossChallenge[] = [
-  // Normal difficulty
+  // Normal difficulty - BOOSTED REWARDS!
   {
     id: 'focus-warrior',
     name: 'Focus Warrior',
@@ -201,7 +201,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '⚔️',
     difficulty: 'normal',
     requirement: { type: 'focus_duration', value: 120 },
-    rewards: { xp: 150, coins: 200 },
+    rewards: { xp: 300, coins: 400 },
     cooldownHours: 24,
   },
   {
@@ -211,11 +211,11 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🎯',
     difficulty: 'normal',
     requirement: { type: 'consecutive_sessions', value: 3, timeLimit: 24 },
-    rewards: { xp: 100, coins: 150 },
+    rewards: { xp: 200, coins: 300 },
     cooldownHours: 24,
   },
 
-  // Hard difficulty
+  // Hard difficulty - BOOSTED REWARDS!
   {
     id: 'deep-focus-master',
     name: 'Deep Focus Master',
@@ -223,7 +223,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🧘',
     difficulty: 'hard',
     requirement: { type: 'focus_duration', value: 180 },
-    rewards: { xp: 300, coins: 400, badge: 'deep-focus-badge' },
+    rewards: { xp: 600, coins: 800, badge: 'deep-focus-badge' },
     cooldownHours: 48,
   },
   {
@@ -233,7 +233,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🔥',
     difficulty: 'hard',
     requirement: { type: 'consecutive_sessions', value: 5, timeLimit: 24 },
-    rewards: { xp: 250, coins: 350 },
+    rewards: { xp: 500, coins: 700 },
     cooldownHours: 48,
   },
   {
@@ -243,11 +243,11 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '📅',
     difficulty: 'hard',
     requirement: { type: 'total_focus_week', value: 600 },
-    rewards: { xp: 500, coins: 600 },
+    rewards: { xp: 1000, coins: 1200 },
     cooldownHours: 168, // 1 week
   },
 
-  // Extreme difficulty
+  // Extreme difficulty - BOOSTED REWARDS!
   {
     id: 'marathon-runner',
     name: 'Marathon Runner',
@@ -255,7 +255,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🏃',
     difficulty: 'extreme',
     requirement: { type: 'focus_duration', value: 240 },
-    rewards: { xp: 500, coins: 700, badge: 'marathon-badge' },
+    rewards: { xp: 1000, coins: 1400, badge: 'marathon-badge' },
     cooldownHours: 72,
   },
   {
@@ -265,11 +265,11 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '💯',
     difficulty: 'extreme',
     requirement: { type: 'perfect_day', value: 480 },
-    rewards: { xp: 800, coins: 1000, badge: 'perfect-day-badge' },
+    rewards: { xp: 1600, coins: 2000, badge: 'perfect-day-badge' },
     cooldownHours: 48,
   },
 
-  // Legendary difficulty
+  // Legendary difficulty - BOOSTED REWARDS!
   {
     id: 'ultra-endurance',
     name: 'Ultra Endurance',
@@ -277,7 +277,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '👑',
     difficulty: 'legendary',
     requirement: { type: 'focus_duration', value: 300 },
-    rewards: { xp: 1000, coins: 1500, badge: 'legendary-focus-badge', specialReward: 'exclusive-pet' },
+    rewards: { xp: 2000, coins: 3000, badge: 'legendary-focus-badge', specialReward: 'exclusive-pet' },
     cooldownHours: 168, // 1 week
   },
   {
@@ -287,7 +287,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🌟',
     difficulty: 'legendary',
     requirement: { type: 'total_focus_week', value: 1200 },
-    rewards: { xp: 1500, coins: 2000, badge: 'weekly-legend-badge' },
+    rewards: { xp: 3000, coins: 4000, badge: 'weekly-legend-badge' },
     cooldownHours: 168,
   },
 ];
@@ -405,15 +405,16 @@ export interface LuckyWheelPrize {
 }
 
 export const LUCKY_WHEEL_PRIZES: LuckyWheelPrize[] = [
-  { id: 'coins-50', name: '50 Coins', emoji: '🪙', type: 'coins', amount: 50, probability: 25, rarity: 'common', color: '#64748b' },
-  { id: 'coins-100', name: '100 Coins', emoji: '💰', type: 'coins', amount: 100, probability: 20, rarity: 'common', color: '#71717a' },
-  { id: 'xp-25', name: '25 XP', emoji: '⭐', type: 'xp', amount: 25, probability: 20, rarity: 'common', color: '#6366f1' },
-  { id: 'xp-50', name: '50 XP', emoji: '✨', type: 'xp', amount: 50, probability: 12, rarity: 'rare', color: '#8b5cf6' },
-  { id: 'coins-250', name: '250 Coins', emoji: '💎', type: 'coins', amount: 250, probability: 10, rarity: 'rare', color: '#0ea5e9' },
-  { id: 'streak-freeze', name: 'Streak Freeze', emoji: '🧊', type: 'streak_freeze', amount: 1, probability: 5, rarity: 'epic', color: '#06b6d4' },
-  { id: 'booster', name: '2x Coin Booster', emoji: '🚀', type: 'booster', amount: 1, probability: 4, rarity: 'epic', color: '#10b981' },
-  { id: 'mystery-box', name: 'Mystery Box', emoji: '🎁', type: 'mystery_box', probability: 3, rarity: 'epic', color: '#f59e0b' },
-  { id: 'jackpot', name: 'JACKPOT!', emoji: '🎰', type: 'jackpot', amount: 1000, probability: 1, rarity: 'legendary', color: '#ef4444' },
+  // BOOSTED prizes with better odds for jackpot!
+  { id: 'coins-100', name: '100 Coins', emoji: '🪙', type: 'coins', amount: 100, probability: 22, rarity: 'common', color: '#64748b' },
+  { id: 'coins-200', name: '200 Coins', emoji: '💰', type: 'coins', amount: 200, probability: 18, rarity: 'common', color: '#71717a' },
+  { id: 'xp-50', name: '50 XP', emoji: '⭐', type: 'xp', amount: 50, probability: 18, rarity: 'common', color: '#6366f1' },
+  { id: 'xp-100', name: '100 XP', emoji: '✨', type: 'xp', amount: 100, probability: 14, rarity: 'rare', color: '#8b5cf6' },
+  { id: 'coins-500', name: '500 Coins', emoji: '💎', type: 'coins', amount: 500, probability: 12, rarity: 'rare', color: '#0ea5e9' },
+  { id: 'streak-freeze', name: 'Streak Freeze', emoji: '🧊', type: 'streak_freeze', amount: 1, probability: 6, rarity: 'epic', color: '#06b6d4' },
+  { id: 'booster', name: '3x Coin Booster', emoji: '🚀', type: 'booster', amount: 1, probability: 5, rarity: 'epic', color: '#10b981' },
+  { id: 'mystery-box', name: 'Mystery Box', emoji: '🎁', type: 'mystery_box', probability: 2, rarity: 'epic', color: '#f59e0b' },
+  { id: 'jackpot', name: 'JACKPOT!', emoji: '🎰', type: 'jackpot', amount: 2500, probability: 3, rarity: 'legendary', color: '#ef4444' },
 ];
 
 export const spinWheel = (): LuckyWheelPrize => {
@@ -492,34 +493,34 @@ export interface Milestone {
 }
 
 export const MILESTONES: Milestone[] = [
-  // Level milestones
-  { id: 'level-5', type: 'level', threshold: 5, title: 'Rising Star', description: 'Reached Level 5!', emoji: '⭐', celebrationType: 'confetti', rewards: { xp: 100, coins: 200 } },
-  { id: 'level-10', type: 'level', threshold: 10, title: 'Dedicated Focuser', description: 'Reached Level 10!', emoji: '🌟', celebrationType: 'stars', rewards: { xp: 250, coins: 500 } },
-  { id: 'level-20', type: 'level', threshold: 20, title: 'Focus Master', description: 'Reached Level 20!', emoji: '💫', celebrationType: 'fireworks', rewards: { xp: 500, coins: 1000, badge: 'focus-master' } },
-  { id: 'level-30', type: 'level', threshold: 30, title: 'Focus Legend', description: 'Reached Level 30!', emoji: '👑', celebrationType: 'rainbow', rewards: { xp: 1000, coins: 2000, badge: 'focus-legend' } },
-  { id: 'level-50', type: 'level', threshold: 50, title: 'Max Level!', description: 'Reached Maximum Level!', emoji: '🏆', celebrationType: 'rainbow', rewards: { xp: 2500, coins: 5000, badge: 'max-level' } },
+  // Level milestones - BOOSTED!
+  { id: 'level-5', type: 'level', threshold: 5, title: 'Rising Star', description: 'Reached Level 5!', emoji: '⭐', celebrationType: 'confetti', rewards: { xp: 200, coins: 400 } },
+  { id: 'level-10', type: 'level', threshold: 10, title: 'Dedicated Focuser', description: 'Reached Level 10!', emoji: '🌟', celebrationType: 'stars', rewards: { xp: 500, coins: 1000 } },
+  { id: 'level-20', type: 'level', threshold: 20, title: 'Focus Master', description: 'Reached Level 20!', emoji: '💫', celebrationType: 'fireworks', rewards: { xp: 1000, coins: 2000, badge: 'focus-master' } },
+  { id: 'level-30', type: 'level', threshold: 30, title: 'Focus Legend', description: 'Reached Level 30!', emoji: '👑', celebrationType: 'rainbow', rewards: { xp: 2000, coins: 4000, badge: 'focus-legend' } },
+  { id: 'level-50', type: 'level', threshold: 50, title: 'Max Level!', description: 'Reached Maximum Level!', emoji: '🏆', celebrationType: 'rainbow', rewards: { xp: 5000, coins: 10000, badge: 'max-level' } },
 
-  // Streak milestones
-  { id: 'streak-7', type: 'streak', threshold: 7, title: 'Week Warrior', description: '7-day streak!', emoji: '🔥', celebrationType: 'confetti', rewards: { xp: 100, coins: 150 } },
-  { id: 'streak-30', type: 'streak', threshold: 30, title: 'Monthly Master', description: '30-day streak!', emoji: '🔥', celebrationType: 'fireworks', rewards: { xp: 500, coins: 750 } },
-  { id: 'streak-100', type: 'streak', threshold: 100, title: 'Century Streak', description: '100-day streak!', emoji: '🔥', celebrationType: 'rainbow', rewards: { xp: 2000, coins: 3000, badge: 'century-streak' } },
+  // Streak milestones - BOOSTED!
+  { id: 'streak-7', type: 'streak', threshold: 7, title: 'Week Warrior', description: '7-day streak!', emoji: '🔥', celebrationType: 'confetti', rewards: { xp: 200, coins: 300 } },
+  { id: 'streak-30', type: 'streak', threshold: 30, title: 'Monthly Master', description: '30-day streak!', emoji: '🔥', celebrationType: 'fireworks', rewards: { xp: 1000, coins: 1500 } },
+  { id: 'streak-100', type: 'streak', threshold: 100, title: 'Century Streak', description: '100-day streak!', emoji: '🔥', celebrationType: 'rainbow', rewards: { xp: 4000, coins: 6000, badge: 'century-streak' } },
 
-  // Session milestones
-  { id: 'sessions-10', type: 'sessions', threshold: 10, title: 'Getting Started', description: '10 focus sessions!', emoji: '🎯', celebrationType: 'confetti', rewards: { coins: 100 } },
-  { id: 'sessions-50', type: 'sessions', threshold: 50, title: 'Consistent', description: '50 focus sessions!', emoji: '🎯', celebrationType: 'stars', rewards: { xp: 200, coins: 300 } },
-  { id: 'sessions-100', type: 'sessions', threshold: 100, title: 'Century Sessions', description: '100 focus sessions!', emoji: '🎯', celebrationType: 'fireworks', rewards: { xp: 500, coins: 750 } },
-  { id: 'sessions-500', type: 'sessions', threshold: 500, title: 'Focus Veteran', description: '500 focus sessions!', emoji: '🎯', celebrationType: 'rainbow', rewards: { xp: 2000, coins: 3000, badge: 'veteran' } },
+  // Session milestones - BOOSTED!
+  { id: 'sessions-10', type: 'sessions', threshold: 10, title: 'Getting Started', description: '10 focus sessions!', emoji: '🎯', celebrationType: 'confetti', rewards: { coins: 250 } },
+  { id: 'sessions-50', type: 'sessions', threshold: 50, title: 'Consistent', description: '50 focus sessions!', emoji: '🎯', celebrationType: 'stars', rewards: { xp: 400, coins: 600 } },
+  { id: 'sessions-100', type: 'sessions', threshold: 100, title: 'Century Sessions', description: '100 focus sessions!', emoji: '🎯', celebrationType: 'fireworks', rewards: { xp: 1000, coins: 1500 } },
+  { id: 'sessions-500', type: 'sessions', threshold: 500, title: 'Focus Veteran', description: '500 focus sessions!', emoji: '🎯', celebrationType: 'rainbow', rewards: { xp: 4000, coins: 6000, badge: 'veteran' } },
 
-  // Focus hours milestones
-  { id: 'hours-10', type: 'focus_hours', threshold: 10, title: '10 Hour Club', description: '10 hours of focus!', emoji: '⏰', celebrationType: 'confetti', rewards: { coins: 150 } },
-  { id: 'hours-50', type: 'focus_hours', threshold: 50, title: '50 Hour Club', description: '50 hours of focus!', emoji: '⏰', celebrationType: 'stars', rewards: { xp: 300, coins: 500 } },
-  { id: 'hours-100', type: 'focus_hours', threshold: 100, title: 'Century Hours', description: '100 hours of focus!', emoji: '⏰', celebrationType: 'fireworks', rewards: { xp: 750, coins: 1000, badge: 'century-hours' } },
-  { id: 'hours-500', type: 'focus_hours', threshold: 500, title: 'Time Master', description: '500 hours of focus!', emoji: '⏰', celebrationType: 'rainbow', rewards: { xp: 3000, coins: 5000, badge: 'time-master' } },
+  // Focus hours milestones - BOOSTED!
+  { id: 'hours-10', type: 'focus_hours', threshold: 10, title: '10 Hour Club', description: '10 hours of focus!', emoji: '⏰', celebrationType: 'confetti', rewards: { coins: 350 } },
+  { id: 'hours-50', type: 'focus_hours', threshold: 50, title: '50 Hour Club', description: '50 hours of focus!', emoji: '⏰', celebrationType: 'stars', rewards: { xp: 600, coins: 1000 } },
+  { id: 'hours-100', type: 'focus_hours', threshold: 100, title: 'Century Hours', description: '100 hours of focus!', emoji: '⏰', celebrationType: 'fireworks', rewards: { xp: 1500, coins: 2000, badge: 'century-hours' } },
+  { id: 'hours-500', type: 'focus_hours', threshold: 500, title: 'Time Master', description: '500 hours of focus!', emoji: '⏰', celebrationType: 'rainbow', rewards: { xp: 6000, coins: 10000, badge: 'time-master' } },
 
-  // Collection milestones
-  { id: 'pets-5', type: 'collection', threshold: 5, title: 'Pet Collector', description: 'Collected 5 pets!', emoji: '🐾', celebrationType: 'confetti', rewards: { coins: 200 } },
-  { id: 'pets-15', type: 'collection', threshold: 15, title: 'Pet Enthusiast', description: 'Collected 15 pets!', emoji: '🐾', celebrationType: 'stars', rewards: { xp: 300, coins: 500 } },
-  { id: 'pets-30', type: 'collection', threshold: 30, title: 'Pet Master', description: 'Collected 30 pets!', emoji: '🐾', celebrationType: 'fireworks', rewards: { xp: 750, coins: 1000, badge: 'pet-master' } },
+  // Collection milestones - BOOSTED!
+  { id: 'pets-5', type: 'collection', threshold: 5, title: 'Pet Collector', description: 'Collected 5 pets!', emoji: '🐾', celebrationType: 'confetti', rewards: { coins: 400 } },
+  { id: 'pets-15', type: 'collection', threshold: 15, title: 'Pet Enthusiast', description: 'Collected 15 pets!', emoji: '🐾', celebrationType: 'stars', rewards: { xp: 600, coins: 1000 } },
+  { id: 'pets-30', type: 'collection', threshold: 30, title: 'Pet Master', description: 'Collected 30 pets!', emoji: '🐾', celebrationType: 'fireworks', rewards: { xp: 1500, coins: 2000, badge: 'pet-master' } },
 ];
 
 export const getMilestoneForValue = (type: Milestone['type'], value: number): Milestone | null => {

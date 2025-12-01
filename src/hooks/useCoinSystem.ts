@@ -22,17 +22,17 @@ const STORAGE_KEY = 'petIsland_coinSystem';
 const COIN_UPDATE_EVENT = 'petIsland_coinUpdate';
 
 // Coin rewards based on session duration (in minutes)
-// Designed to scale with XP but be slightly more generous for shop purchases
+// Boosted rewards - players should be able to buy things regularly!
 const COIN_REWARDS: Record<number, number> = {
-  25: 10,   // 25 minutes = 10 coins
-  30: 15,   // 30 minutes = 15 coins
-  45: 25,   // 45 minutes = 25 coins
-  60: 40,   // 1 hour = 40 coins
-  90: 75,   // 90 minutes = 75 coins
-  120: 110, // 2 hours = 110 coins
-  180: 170, // 3 hours = 170 coins
-  240: 240, // 4 hours = 240 coins
-  300: 320, // 5 hours = 320 coins
+  25: 25,   // 25 minutes = 25 coins - more than doubled
+  30: 40,   // 30 minutes = 40 coins - more than doubled
+  45: 65,   // 45 minutes = 65 coins - more than doubled
+  60: 100,  // 1 hour = 100 coins - 2.5x increase
+  90: 175,  // 90 minutes = 175 coins - more than doubled
+  120: 260, // 2 hours = 260 coins - more than doubled
+  180: 400, // 3 hours = 400 coins - more than doubled
+  240: 550, // 4 hours = 550 coins - more than doubled
+  300: 750, // 5 hours = 750 coins - more than doubled
 };
 
 // Random bonus coin system (same odds as XP)
@@ -45,19 +45,19 @@ interface BonusResult {
 const calculateRandomBonus = (): BonusResult => {
   const roll = Math.random() * 100;
 
-  // 2% chance: Jackpot (2x coins)
-  if (roll < 2) {
-    return { hasBonusCoins: true, bonusMultiplier: 2.0, bonusType: 'jackpot' };
+  // 5% chance: Jackpot (2.5x coins) - increased from 2%
+  if (roll < 5) {
+    return { hasBonusCoins: true, bonusMultiplier: 2.5, bonusType: 'jackpot' };
   }
-  // 5% chance: Super Lucky (1.5x coins)
-  if (roll < 7) {
-    return { hasBonusCoins: true, bonusMultiplier: 1.5, bonusType: 'super_lucky' };
+  // 10% chance: Super Lucky (1.75x coins) - increased from 5%
+  if (roll < 15) {
+    return { hasBonusCoins: true, bonusMultiplier: 1.75, bonusType: 'super_lucky' };
   }
-  // 13% chance: Lucky (1.25x coins)
-  if (roll < 20) {
-    return { hasBonusCoins: true, bonusMultiplier: 1.25, bonusType: 'lucky' };
+  // 20% chance: Lucky (1.5x coins) - increased from 13%
+  if (roll < 35) {
+    return { hasBonusCoins: true, bonusMultiplier: 1.5, bonusType: 'lucky' };
   }
-  // 80% chance: No bonus
+  // 65% chance: No bonus - reduced from 80%
   return { hasBonusCoins: false, bonusMultiplier: 1.0, bonusType: 'none' };
 };
 
