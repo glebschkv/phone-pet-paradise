@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useCoinSystem } from './useCoinSystem';
 import { useCoinBooster } from './useCoinBooster';
 import { useStreakSystem } from './useStreakSystem';
@@ -13,6 +13,7 @@ import {
   PET_BUNDLES,
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
+import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
 
 export interface PurchaseResult {
   success: boolean;
@@ -44,19 +45,28 @@ export const useShop = () => {
     equippedBackground: null,
   });
 
+  // Track total purchases for achievements
+  const purchaseCountRef = useRef(0);
+
   // Load inventory from localStorage
   useEffect(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
-        setInventory({
+        const loadedInventory = {
           ownedCharacters: parsed.ownedCharacters || [],
           ownedBackgrounds: parsed.ownedBackgrounds || [],
           ownedBadges: parsed.ownedBadges || [],
           equippedBadge: parsed.equippedBadge || null,
           equippedBackground: parsed.equippedBackground || null,
-        });
+        };
+        setInventory(loadedInventory);
+        // Initialize purchase count ref
+        purchaseCountRef.current =
+          loadedInventory.ownedCharacters.length +
+          loadedInventory.ownedBackgrounds.length +
+          loadedInventory.ownedBadges.length;
       } catch (error) {
         console.error('Failed to load shop inventory:', error);
       }
@@ -78,6 +88,20 @@ export const useShop = () => {
 
   // Save inventory
   const saveInventory = useCallback((newInventory: ShopInventory) => {
+    // Count total items as purchases
+    const totalItems =
+      newInventory.ownedCharacters.length +
+      newInventory.ownedBackgrounds.length +
+      newInventory.ownedBadges.length;
+
+    // Only dispatch if purchase count increased (new purchase)
+    if (totalItems > purchaseCountRef.current) {
+      purchaseCountRef.current = totalItems;
+      dispatchAchievementEvent(ACHIEVEMENT_EVENTS.PURCHASE_MADE, {
+        totalPurchases: totalItems,
+      });
+    }
+
     setInventory(newInventory);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newInventory));
     window.dispatchEvent(new CustomEvent(SHOP_UPDATE_EVENT, { detail: newInventory }));

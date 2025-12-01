@@ -8,6 +8,7 @@ import { PetCollectionGrid } from "@/components/PetCollectionGrid";
 import { Settings } from "@/components/Settings";
 import { Shop } from "@/components/Shop";
 import { GamificationHub, MilestoneCelebration } from "@/components/gamification";
+import { AchievementTracker } from "@/components/AchievementTracker";
 import { useXPSystem } from "@/hooks/useXPSystem";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { useMilestoneCelebrations } from "@/hooks/useMilestoneCelebrations";
@@ -96,46 +97,48 @@ export const GameUI = () => {
   };
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-40">
-      {/* Unified Top Status Bar */}
-      <TopStatusBar currentTab={currentTab} onSettingsClick={() => setCurrentTab("settings")} />
+    <AchievementTracker>
+      <div className="fixed inset-0 pointer-events-none z-40">
+        {/* Unified Top Status Bar */}
+        <TopStatusBar currentTab={currentTab} onSettingsClick={() => setCurrentTab("settings")} />
 
-      {/* Full Screen Content */}
-      {currentTab !== "home" && (
-        <div className={`absolute inset-0 pointer-events-auto overflow-auto pb-24 ${currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" : "bg-background"}`}>
-          {renderContent()}
-        </div>
-      )}
+        {/* Full Screen Content */}
+        {currentTab !== "home" && (
+          <div className={`absolute inset-0 pointer-events-auto overflow-auto pb-24 ${currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" : "bg-background"}`}>
+            {renderContent()}
+          </div>
+        )}
 
-      {/* Modern Floating Dock Navigation */}
-      <IOSTabBar
-        activeTab={currentTab}
-        onTabChange={setCurrentTab}
-        isCompact={isTaskbarCompact}
-        onCompactChange={setIsTaskbarCompact}
-      />
+        {/* Modern Floating Dock Navigation */}
+        <IOSTabBar
+          activeTab={currentTab}
+          onTabChange={setCurrentTab}
+          isCompact={isTaskbarCompact}
+          onCompactChange={setIsTaskbarCompact}
+        />
 
-      {/* XP Reward Modal */}
-      <XPRewardModal
-        isOpen={showRewardModal}
-        onClose={dismissRewardModal}
-        reward={currentReward}
-        newLevel={currentLevel}
-        levelProgress={getLevelProgress()}
-      />
+        {/* XP Reward Modal */}
+        <XPRewardModal
+          isOpen={showRewardModal}
+          onClose={dismissRewardModal}
+          reward={currentReward}
+          newLevel={currentLevel}
+          levelProgress={getLevelProgress()}
+        />
 
-      {/* Daily Login Reward Modal */}
-      <DailyLoginRewardModal
-        isOpen={dailyLoginRewards.showRewardModal}
-        onClaim={handleDailyRewardClaim}
-        onDismiss={dailyLoginRewards.dismissModal}
-        reward={dailyLoginRewards.pendingReward}
-        currentStreak={dailyLoginRewards.loginState.currentStreak}
-        allRewards={dailyLoginRewards.dailyRewards}
-      />
+        {/* Daily Login Reward Modal */}
+        <DailyLoginRewardModal
+          isOpen={dailyLoginRewards.showRewardModal}
+          onClaim={handleDailyRewardClaim}
+          onDismiss={dailyLoginRewards.dismissModal}
+          reward={dailyLoginRewards.pendingReward}
+          currentStreak={dailyLoginRewards.loginState.currentStreak}
+          allRewards={dailyLoginRewards.dailyRewards}
+        />
 
-      {/* Milestone Celebration */}
-      <MilestoneCelebration onClaimReward={handleMilestoneClaim} />
-    </div>
+        {/* Milestone Celebration */}
+        <MilestoneCelebration onClaimReward={handleMilestoneClaim} />
+      </div>
+    </AchievementTracker>
   );
 };

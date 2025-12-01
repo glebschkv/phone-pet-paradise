@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { LUCKY_WHEEL_PRIZES, LuckyWheelPrize, spinWheel } from '@/data/GamificationData';
+import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
 
 export interface LuckyWheelState {
   lastSpinDate: string | null;
@@ -107,6 +108,10 @@ export const useLuckyWheel = () => {
 
         saveState(newState);
         setIsSpinning(false);
+
+        // Track wheel spin for achievements
+        dispatchAchievementEvent(ACHIEVEMENT_EVENTS.WHEEL_SPIN, {});
+
         resolve(prize);
       }, 100); // Small delay, actual animation handled in component
     });
