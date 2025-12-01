@@ -129,15 +129,26 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                 case .success(let verification):
                     let transaction = try self.checkVerified(verification)
 
+                    // Get the JWS representation for server-side validation
+                    // This is the signed transaction payload that can be verified server-side
+                    let jwsRepresentation = verification.jwsRepresentation
+
                     // Finish the transaction
                     await transaction.finish()
+
+                    // Determine environment (sandbox vs production)
+                    let environment = self.getEnvironmentString(transaction)
 
                     call.resolve([
                         "success": true,
                         "transactionId": String(transaction.id),
+                        "originalTransactionId": String(transaction.originalID),
                         "productId": transaction.productID,
                         "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
-                        "expirationDate": transaction.expirationDate?.timeIntervalSince1970 as Any
+                        "expirationDate": transaction.expirationDate?.timeIntervalSince1970 as Any,
+                        "signedTransaction": jwsRepresentation,
+                        "environment": environment,
+                        "storefrontCountryCode": transaction.storefrontCountryCode
                     ])
 
                 case .userCancelled:
@@ -176,11 +187,17 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                 for await result in Transaction.currentEntitlements {
                     do {
                         let transaction = try self.checkVerified(result)
+                        let jwsRepresentation = result.jwsRepresentation
+                        let environment = self.getEnvironmentString(transaction)
+
                         restoredPurchases.append([
                             "productId": transaction.productID,
                             "transactionId": String(transaction.id),
+                            "originalTransactionId": String(transaction.originalID),
                             "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
-                            "expirationDate": transaction.expirationDate?.timeIntervalSince1970 as Any
+                            "expirationDate": transaction.expirationDate?.timeIntervalSince1970 as Any,
+                            "signedTransaction": jwsRepresentation,
+                            "environment": environment
                         ])
                     } catch {
                         print("Failed to verify transaction: \(error)")
@@ -209,13 +226,18 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
             for await result in Transaction.currentEntitlements {
                 do {
                     let transaction = try self.checkVerified(result)
+                    let jwsRepresentation = result.jwsRepresentation
+                    let environment = self.getEnvironmentString(transaction)
 
                     let purchaseInfo: [String: Any] = [
                         "productId": transaction.productID,
                         "transactionId": String(transaction.id),
+                        "originalTransactionId": String(transaction.originalID),
                         "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
                         "expirationDate": transaction.expirationDate?.timeIntervalSince1970 as Any,
-                        "isUpgraded": transaction.isUpgraded
+                        "isUpgraded": transaction.isUpgraded,
+                        "signedTransaction": jwsRepresentation,
+                        "environment": environment
                     ]
 
                     if transaction.expirationDate != nil {
@@ -231,7 +253,7 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
             }
 
             call.resolve([
-                "hasActiveSubscription": !activeSubscriptions.isEmpty,
+                "hasActiveSubscription": !activeSubscriptions.isEmpty || !purchasedProducts.isEmpty,
                 "activeSubscriptions": activeSubscriptions,
                 "purchasedProducts": purchasedProducts
             ])
@@ -318,6 +340,30 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
             return "year"
         @unknown default:
             return "unknown"
+        }
+    }
+
+    private func getEnvironmentString(_ transaction: Transaction) -> String {
+        // Environment detection - check if we're in sandbox mode
+        // In StoreKit 2, the environment is part of the transaction
+        if #available(iOS 16.0, *) {
+            switch transaction.environment {
+            case .sandbox:
+                return "sandbox"
+            case .production:
+                return "production"
+            case .xcode:
+                return "sandbox"  // Xcode testing is also sandbox
+            @unknown default:
+                return "production"
+            }
+        } else {
+            // iOS 15 fallback - use receipt URL check
+            if let receiptURL = Bundle.main.appStoreReceiptURL,
+               receiptURL.lastPathComponent == "sandboxReceipt" {
+                return "sandbox"
+            }
+            return "production"
         }
     }
 }
