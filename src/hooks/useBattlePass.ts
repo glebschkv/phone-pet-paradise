@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { getCurrentSeason, Season, BattlePassReward } from '@/data/GamificationData';
+import { TIER_BENEFITS, SubscriptionTier, BATTLE_PASS_PLANS } from './usePremiumStatus';
 
 export interface BattlePassState {
   seasonId: string;
@@ -9,7 +10,11 @@ export interface BattlePassState {
   isPremium: boolean;
   claimedTiers: number[]; // Tiers where rewards have been claimed
   premiumClaimedTiers: number[];
+  purchasedSeasonId?: string; // Season ID that battle pass was purchased for
 }
+
+// Export battle pass plans for use in UI
+export { BATTLE_PASS_PLANS };
 
 interface BattlePassProgress {
   currentTier: number;
@@ -21,6 +26,23 @@ interface BattlePassProgress {
 }
 
 const BATTLE_PASS_XP_UPDATE_EVENT = 'petIsland_battlePassXPUpdate';
+
+// Helper to check if subscription includes battle pass
+const checkSubscriptionBattlePass = (): boolean => {
+  const premiumData = localStorage.getItem('petIsland_premium');
+  if (premiumData) {
+    try {
+      const parsed = JSON.parse(premiumData);
+      const tier = parsed.tier as SubscriptionTier;
+      if (tier && TIER_BENEFITS[tier]) {
+        return TIER_BENEFITS[tier].battlePassIncluded;
+      }
+    } catch {
+      // Invalid data
+    }
+  }
+  return false;
+};
 
 export const useBattlePass = () => {
   const [state, setState] = useState<BattlePassState>({
@@ -34,34 +56,75 @@ export const useBattlePass = () => {
 
   const currentSeason = getCurrentSeason();
 
+  // Check subscription status on mount and when it changes
+  useEffect(() => {
+    const checkAndUpdatePremium = () => {
+      const hasSubscriptionBP = checkSubscriptionBattlePass();
+      if (hasSubscriptionBP && !state.isPremium) {
+        // Subscription includes battle pass, auto-upgrade
+        const updatedState = {
+          ...state,
+          isPremium: true,
+        };
+        setState(updatedState);
+        storage.set(STORAGE_KEYS.BATTLE_PASS, updatedState);
+      }
+    };
+
+    // Check on mount
+    checkAndUpdatePremium();
+
+    // Listen for subscription changes
+    const handleSubscriptionChange = () => {
+      checkAndUpdatePremium();
+    };
+
+    window.addEventListener('petIsland_subscriptionChange', handleSubscriptionChange);
+    return () => {
+      window.removeEventListener('petIsland_subscriptionChange', handleSubscriptionChange);
+    };
+  }, [state]);
+
   // Load saved state
   useEffect(() => {
     const saved = storage.get<BattlePassState>(STORAGE_KEYS.BATTLE_PASS);
+    const hasSubscriptionBP = checkSubscriptionBattlePass();
+
     if (saved) {
       // Check if it's a new season
       if (currentSeason && saved.seasonId !== currentSeason.id) {
-        // Reset for new season
+        // Reset for new season, but check subscription for premium
         const newState: BattlePassState = {
           seasonId: currentSeason.id,
           currentTier: 0,
           currentXP: 0,
-          isPremium: saved.isPremium, // Keep premium status
+          isPremium: hasSubscriptionBP || (saved.purchasedSeasonId === currentSeason.id),
           claimedTiers: [],
           premiumClaimedTiers: [],
+          purchasedSeasonId: hasSubscriptionBP ? currentSeason.id : undefined,
         };
         setState(newState);
         storage.set(STORAGE_KEYS.BATTLE_PASS, newState);
       } else {
-        setState(saved);
+        // Keep existing state but update premium status from subscription
+        const updatedState = {
+          ...saved,
+          isPremium: hasSubscriptionBP || saved.isPremium,
+        };
+        setState(updatedState);
+        if (hasSubscriptionBP && !saved.isPremium) {
+          storage.set(STORAGE_KEYS.BATTLE_PASS, updatedState);
+        }
       }
     } else if (currentSeason) {
       const initial: BattlePassState = {
         seasonId: currentSeason.id,
         currentTier: 0,
         currentXP: 0,
-        isPremium: false,
+        isPremium: hasSubscriptionBP,
         claimedTiers: [],
         premiumClaimedTiers: [],
+        purchasedSeasonId: hasSubscriptionBP ? currentSeason.id : undefined,
       };
       setState(initial);
       storage.set(STORAGE_KEYS.BATTLE_PASS, initial);
@@ -233,15 +296,62 @@ export const useBattlePass = () => {
     return state.claimedTiers.includes(tier);
   }, [state]);
 
+  // Purchase battle pass premium (for direct purchase, not via subscription)
+  const purchaseBattlePass = useCallback((bonusTiers: number = 0): boolean => {
+    if (!currentSeason) return false;
+
+    // Calculate new tier if bonus tiers are included
+    let newTier = state.currentTier;
+    let newXP = state.currentXP;
+
+    if (bonusTiers > 0) {
+      // Calculate XP needed to reach bonus tiers
+      let targetTier = Math.min(state.currentTier + bonusTiers, currentSeason.tiers.length);
+      let cumulativeXP = 0;
+
+      for (const tier of currentSeason.tiers) {
+        cumulativeXP += tier.xpRequired;
+        if (tier.tier <= targetTier) {
+          newXP = Math.max(newXP, cumulativeXP);
+          newTier = tier.tier;
+        }
+      }
+    }
+
+    const updatedState: BattlePassState = {
+      ...state,
+      isPremium: true,
+      currentTier: newTier,
+      currentXP: newXP,
+      purchasedSeasonId: currentSeason.id,
+    };
+
+    saveState(updatedState);
+    return true;
+  }, [state, currentSeason, saveState]);
+
+  // Check if battle pass is from subscription
+  const isFromSubscription = useCallback((): boolean => {
+    return checkSubscriptionBattlePass();
+  }, []);
+
+  // Get available battle pass products for purchase
+  const getBattlePassProducts = useCallback(() => {
+    return BATTLE_PASS_PLANS;
+  }, []);
+
   return {
     state,
     currentSeason,
     addBattlePassXP,
     claimTierReward,
     upgradeToPremium,
+    purchaseBattlePass,
     getProgress,
     getUnclaimedRewards,
     isTierClaimed,
+    isFromSubscription,
+    getBattlePassProducts,
   };
 };
 
