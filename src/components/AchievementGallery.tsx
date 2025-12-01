@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trophy, Share2, Lock, Star, Target, Users, Zap, Heart, TrendingUp, Coins, ChevronLeft } from 'lucide-react';
 import { useAchievementSystem, Achievement } from '@/hooks/useAchievementSystem';
@@ -38,20 +35,37 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose,
     { id: 'social', name: 'Social', icon: Users }
   ];
 
-  const tierColors = {
-    bronze: 'bg-amber-600 text-white',
-    silver: 'bg-gray-400 text-white',
-    gold: 'bg-yellow-500 text-white',
-    platinum: 'bg-cyan-500 text-white',
-    diamond: 'bg-purple-600 text-white'
-  };
-
-  const tierGradients = {
-    bronze: 'from-amber-600/20 to-amber-800/20',
-    silver: 'from-gray-400/20 to-gray-600/20',
-    gold: 'from-yellow-400/20 to-yellow-600/20',
-    platinum: 'from-cyan-400/20 to-cyan-600/20',
-    diamond: 'from-purple-400/20 to-purple-600/20'
+  const tierStyles = {
+    bronze: {
+      bg: 'from-amber-700 to-amber-900',
+      border: 'border-amber-500',
+      glow: 'shadow-amber-500/30',
+      text: 'text-amber-400'
+    },
+    silver: {
+      bg: 'from-gray-400 to-gray-600',
+      border: 'border-gray-300',
+      glow: 'shadow-gray-400/30',
+      text: 'text-gray-300'
+    },
+    gold: {
+      bg: 'from-yellow-500 to-yellow-700',
+      border: 'border-yellow-400',
+      glow: 'shadow-yellow-500/40',
+      text: 'text-yellow-400'
+    },
+    platinum: {
+      bg: 'from-cyan-400 to-cyan-600',
+      border: 'border-cyan-300',
+      glow: 'shadow-cyan-400/40',
+      text: 'text-cyan-300'
+    },
+    diamond: {
+      bg: 'from-purple-400 to-purple-600',
+      border: 'border-purple-300',
+      glow: 'shadow-purple-400/50',
+      text: 'text-purple-300'
+    }
   };
 
   const tierEmojis = {
@@ -92,11 +106,6 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose,
       }
     } catch (error) {
       console.error('Share failed:', error);
-      toast({
-        title: "Share Failed",
-        description: "Could not share the achievement. Please try again.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -104,307 +113,225 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose,
     const isUnlocked = achievement.isUnlocked;
     const progress = Math.min(100, (achievement.progress / achievement.target) * 100);
     const isSecret = achievement.secret && !isUnlocked;
+    const style = tierStyles[achievement.tier];
 
-    // Calculate rewards display
     const xpReward = achievement.rewards.find(r => r.type === 'xp')?.amount || 0;
     const coinReward = achievement.rewards.find(r => r.type === 'coins')?.amount || 0;
 
     return (
-      <Card className={cn(
-        "transition-all duration-300",
-        isUnlocked
-          ? `ring-2 ring-primary/30 bg-gradient-to-br ${tierGradients[achievement.tier]}`
-          : "opacity-80 hover:opacity-100",
-        embedded && "border-purple-500/20"
+      <div className={cn(
+        "retro-game-card p-3 transition-all",
+        isUnlocked && "retro-active-challenge"
       )}>
-        <CardHeader className="pb-2 pt-3 px-3">
-          <div className="flex items-start gap-3">
-            <div className={cn(
-              "text-3xl w-12 h-12 flex items-center justify-center rounded-lg",
-              isUnlocked ? "bg-primary/10" : "bg-muted",
-              isSecret && "blur-sm"
-            )}>
-              {isSecret ? '❓' : achievement.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-                {isSecret ? 'Secret Achievement' : achievement.title}
-                {isUnlocked && <Trophy className="h-4 w-4 text-yellow-500 flex-shrink-0" />}
-              </CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                {isSecret ? 'Complete specific actions to unlock' : achievement.description}
-              </p>
-            </div>
-            <Badge className={cn(tierColors[achievement.tier], "text-[10px] px-1.5 py-0.5 flex-shrink-0")}>
-              {tierEmojis[achievement.tier]}
-            </Badge>
+        <div className="flex items-start gap-3">
+          {/* Icon */}
+          <div className={cn(
+            "w-12 h-12 rounded-lg flex items-center justify-center text-2xl",
+            "retro-icon-badge",
+            isUnlocked && `bg-gradient-to-br ${style.bg} ${style.border} shadow-lg ${style.glow}`
+          )}>
+            {isSecret ? '❓' : achievement.icon}
           </div>
-        </CardHeader>
 
-        <CardContent className="pt-0 px-3 pb-3">
-          {!isSecret && (
-            <>
-              <div className="space-y-1.5 mb-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Progress</span>
-                  <span className="font-medium">
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className={cn(
+                "font-bold text-sm retro-pixel-text truncate",
+                isUnlocked ? "text-white" : "text-purple-300"
+              )}>
+                {isSecret ? '???' : achievement.title}
+              </h3>
+              {isUnlocked && <Trophy className="w-4 h-4 text-yellow-400 flex-shrink-0" />}
+            </div>
+
+            <p className="text-xs text-purple-300/70 line-clamp-1 mb-2">
+              {isSecret ? 'Keep exploring to unlock!' : achievement.description}
+            </p>
+
+            {!isSecret && (
+              <>
+                {/* Progress Bar */}
+                <div className="retro-health-bar retro-health-bar-purple h-3 mb-2">
+                  <div
+                    className="retro-health-bar-fill"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  {/* Progress Text */}
+                  <span className="text-[10px] text-purple-300/60">
                     {achievement.progress.toLocaleString()}/{achievement.target.toLocaleString()}
                   </span>
+
+                  {/* Rewards */}
+                  <div className="flex gap-1.5">
+                    {xpReward > 0 && (
+                      <span className="text-[10px] font-bold text-blue-400">
+                        +{xpReward} XP
+                      </span>
+                    )}
+                    {coinReward > 0 && (
+                      <span className="text-[10px] font-bold text-yellow-400">
+                        +{coinReward} 🪙
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <Progress value={progress} className="h-1.5" />
+              </>
+            )}
+
+            {isSecret && (
+              <div className="flex items-center gap-2 text-purple-400/60">
+                <Lock className="w-3 h-3" />
+                <span className="text-[10px]">Secret Achievement</span>
               </div>
+            )}
+          </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex gap-2">
-                  {xpReward > 0 && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-400 border-blue-500/30">
-                      +{xpReward} XP
-                    </Badge>
-                  )}
-                  {coinReward > 0 && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-yellow-500/10 text-yellow-500 border-yellow-500/30">
-                      +{coinReward} 🪙
-                    </Badge>
-                  )}
-                </div>
-                {isUnlocked && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleShare(achievement.id)}
-                    className="h-6 w-6 p-0"
-                  >
-                    <Share2 className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-
-              {isUnlocked && achievement.unlockedAt && (
-                <div className="mt-2 pt-2 border-t border-border/50 text-[10px] text-muted-foreground">
-                  Unlocked {new Date(achievement.unlockedAt).toLocaleDateString()}
-                </div>
-              )}
-            </>
-          )}
-
-          {isSecret && (
-            <div className="text-center py-2">
-              <Lock className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-              <p className="text-[10px] text-muted-foreground">
-                Keep exploring to unlock!
-              </p>
+          {/* Tier Badge & Share */}
+          <div className="flex flex-col items-end gap-2">
+            <div className={cn(
+              "retro-difficulty-badge text-[9px]",
+              achievement.tier === 'bronze' && "retro-difficulty-normal",
+              achievement.tier === 'silver' && "bg-gradient-to-b from-gray-400 to-gray-500 border-2 border-gray-300 text-white",
+              achievement.tier === 'gold' && "retro-difficulty-hard",
+              achievement.tier === 'platinum' && "bg-gradient-to-b from-cyan-400 to-cyan-500 border-2 border-cyan-300 text-white",
+              achievement.tier === 'diamond' && "retro-difficulty-legendary"
+            )}>
+              {tierEmojis[achievement.tier]}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            {isUnlocked && (
+              <button
+                onClick={() => handleShare(achievement.id)}
+                className="w-6 h-6 rounded flex items-center justify-center bg-purple-500/30 hover:bg-purple-500/50 transition-colors"
+              >
+                <Share2 className="w-3 h-3 text-purple-300" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Unlock Date */}
+        {isUnlocked && achievement.unlockedAt && (
+          <div className="mt-2 pt-2 border-t border-purple-500/20 text-[10px] text-purple-400/50 text-right">
+            Unlocked {new Date(achievement.unlockedAt).toLocaleDateString()}
+          </div>
+        )}
+      </div>
     );
   };
 
   const completionPercentage = getCompletionPercentage();
   const totalPoints = getTotalAchievementPoints();
 
-  const containerClass = embedded
-    ? "w-full h-full flex flex-col"
-    : "w-full max-w-6xl mx-auto";
-
   return (
-    <div className={containerClass}>
-      {embedded ? (
-        // Embedded version for GamificationHub
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-4 border-b border-purple-600/30">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                {onClose && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onClose}
-                    className="h-8 w-8 p-0 text-purple-300 hover:text-white"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
-                )}
-                <div>
-                  <h2 className="text-lg font-bold text-white retro-pixel-text">ACHIEVEMENTS</h2>
-                  <p className="text-xs text-purple-300/80">
-                    {unlockedAchievements.length}/{achievements.length} Unlocked
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xl font-bold text-yellow-400">{totalPoints}</div>
-                <div className="text-[10px] text-purple-300/80">Points</div>
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="relative p-4 border-b-4 border-purple-600/50">
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-900/30 via-transparent to-yellow-900/30" />
+        <div className="relative">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="w-10 h-10 retro-icon-badge"
+                >
+                  <ChevronLeft className="w-5 h-5 text-purple-300" />
+                </button>
+              )}
+              <div>
+                <h1 className="text-xl font-bold retro-pixel-text retro-neon-yellow">
+                  ACHIEVEMENTS
+                </h1>
+                <p className="text-xs text-purple-300/80">
+                  {unlockedAchievements.length}/{achievements.length} Unlocked
+                </p>
               </div>
             </div>
-
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs text-purple-300">
-                <span>Progress</span>
-                <span>{completionPercentage}%</span>
-              </div>
-              <Progress value={completionPercentage} className="h-2 bg-purple-900/50" />
+            <div className="text-right">
+              <div className="text-2xl font-bold retro-score-display">{totalPoints}</div>
+              <div className="text-[10px] text-purple-300/60 uppercase tracking-wide">Points</div>
             </div>
           </div>
 
-          {/* Category Tabs */}
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="flex-1 flex flex-col min-h-0">
-            <div className="px-2 py-2 border-b border-purple-600/20">
-              <ScrollArea className="w-full">
-                <TabsList className="inline-flex h-auto gap-1 bg-transparent p-0 w-max">
-                  {categories.map(category => {
-                    const CategoryIcon = category.icon;
-                    const categoryAchievements = category.id === 'all'
-                      ? achievements
-                      : getAchievementsByCategory(category.id);
-
-                    if (category.id !== 'all' && categoryAchievements.length === 0) return null;
-
-                    const unlockedCount = categoryAchievements.filter(a => a.isUnlocked).length;
-
-                    return (
-                      <TabsTrigger
-                        key={category.id}
-                        value={category.id}
-                        className={cn(
-                          "flex flex-col gap-0.5 px-3 py-1.5 rounded-lg text-purple-300",
-                          "data-[state=active]:bg-purple-600/30 data-[state=active]:text-white",
-                          "hover:bg-purple-600/20 transition-colors"
-                        )}
-                      >
-                        <CategoryIcon className="h-4 w-4" />
-                        <span className="text-[10px]">{category.name}</span>
-                        <span className="text-[9px] opacity-70">{unlockedCount}/{categoryAchievements.length}</span>
-                      </TabsTrigger>
-                    );
-                  })}
-                </TabsList>
-              </ScrollArea>
-            </div>
-
-            <TabsContent value={selectedCategory} className="flex-1 m-0 min-h-0">
-              <ScrollArea className="h-full">
-                <div className="p-3">
-                  {filteredAchievements.length === 0 ? (
-                    <div className="text-center py-8 text-purple-300/70">
-                      <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No achievements in this category</p>
-                    </div>
-                  ) : (
-                    <div className="grid gap-3 grid-cols-1">
-                      {filteredAchievements
-                        .sort((a, b) => {
-                          if (a.isUnlocked !== b.isUnlocked) {
-                            return a.isUnlocked ? -1 : 1;
-                          }
-                          const tierOrder = { diamond: 5, platinum: 4, gold: 3, silver: 2, bronze: 1 };
-                          if (tierOrder[a.tier] !== tierOrder[b.tier]) {
-                            return tierOrder[b.tier] - tierOrder[a.tier];
-                          }
-                          return (b.progress / b.target) - (a.progress / a.target);
-                        })
-                        .map(achievement => (
-                          <AchievementCard key={achievement.id} achievement={achievement} />
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-          </Tabs>
+          {/* Overall Progress */}
+          <div className="retro-health-bar retro-health-bar-yellow h-4">
+            <div
+              className="retro-health-bar-fill"
+              style={{ width: `${completionPercentage}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-[10px] text-purple-300/60 mt-1">
+            <span>Progress</span>
+            <span className="retro-neon-yellow font-bold">{completionPercentage}%</span>
+          </div>
         </div>
-      ) : (
-        // Standalone Card version
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-6 w-6" />
-                  Achievement Gallery
-                </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Track your progress and unlock rewards
-                </p>
+      </div>
+
+      {/* Category Tabs */}
+      <div className="px-2 py-2 border-b border-purple-600/30 bg-purple-900/20">
+        <ScrollArea className="w-full">
+          <div className="flex gap-1 w-max px-1">
+            {categories.map(category => {
+              const CategoryIcon = category.icon;
+              const categoryAchievements = category.id === 'all'
+                ? achievements
+                : getAchievementsByCategory(category.id);
+
+              if (category.id !== 'all' && categoryAchievements.length === 0) return null;
+
+              const unlockedCount = categoryAchievements.filter(a => a.isUnlocked).length;
+              const isActive = selectedCategory === category.id;
+
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={cn(
+                    "retro-tab flex flex-col items-center gap-0.5 px-3 py-2 min-w-[60px]",
+                    isActive && "active"
+                  )}
+                >
+                  <CategoryIcon className="w-4 h-4" />
+                  <span className="text-[10px]">{category.name}</span>
+                  <span className="text-[9px] opacity-70">{unlockedCount}/{categoryAchievements.length}</span>
+                </button>
+              );
+            })}
+          </div>
+        </ScrollArea>
+      </div>
+
+      {/* Achievement List */}
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-3 space-y-3 pb-6">
+          {filteredAchievements.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 retro-icon-badge">
+                <Trophy className="w-8 h-8 text-purple-400" />
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold">{totalPoints}</div>
-                <div className="text-sm text-muted-foreground">Achievement Points</div>
-              </div>
+              <p className="text-purple-300/60 retro-pixel-text">No achievements yet</p>
             </div>
-
-            <div className="mt-4">
-              <div className="flex justify-between text-sm mb-2">
-                <span>Overall Progress</span>
-                <span>{unlockedAchievements.length}/{achievements.length} ({completionPercentage}%)</span>
-              </div>
-              <Progress value={completionPercentage} className="h-2" />
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 h-auto">
-                {categories.map(category => {
-                  const CategoryIcon = category.icon;
-                  const categoryAchievements = category.id === 'all'
-                    ? achievements
-                    : getAchievementsByCategory(category.id);
-
-                  if (category.id !== 'all' && categoryAchievements.length === 0) return null;
-
-                  const unlockedCount = categoryAchievements.filter(a => a.isUnlocked).length;
-
-                  return (
-                    <TabsTrigger key={category.id} value={category.id} className="flex flex-col gap-1 py-2">
-                      <CategoryIcon className="h-4 w-4" />
-                      <span className="text-xs">{category.name}</span>
-                      <Badge variant="secondary" className="text-[10px] px-1">
-                        {unlockedCount}/{categoryAchievements.length}
-                      </Badge>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-
-              <TabsContent value={selectedCategory} className="mt-6">
-                {filteredAchievements.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No achievements in this category</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredAchievements
-                      .sort((a, b) => {
-                        if (a.isUnlocked !== b.isUnlocked) {
-                          return a.isUnlocked ? -1 : 1;
-                        }
-                        const tierOrder = { diamond: 5, platinum: 4, gold: 3, silver: 2, bronze: 1 };
-                        if (tierOrder[a.tier] !== tierOrder[b.tier]) {
-                          return tierOrder[b.tier] - tierOrder[a.tier];
-                        }
-                        return (b.progress / b.target) - (a.progress / a.target);
-                      })
-                      .map(achievement => (
-                        <AchievementCard key={achievement.id} achievement={achievement} />
-                      ))}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-
-            {onClose && (
-              <div className="mt-6 text-center">
-                <Button onClick={onClose} variant="outline">
-                  Close
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            filteredAchievements
+              .sort((a, b) => {
+                // Unlocked first
+                if (a.isUnlocked !== b.isUnlocked) return a.isUnlocked ? -1 : 1;
+                // Then by tier
+                const tierOrder = { diamond: 5, platinum: 4, gold: 3, silver: 2, bronze: 1 };
+                if (tierOrder[a.tier] !== tierOrder[b.tier]) return tierOrder[b.tier] - tierOrder[a.tier];
+                // Then by progress percentage
+                return (b.progress / b.target) - (a.progress / a.target);
+              })
+              .map(achievement => (
+                <AchievementCard key={achievement.id} achievement={achievement} />
+              ))
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 };
