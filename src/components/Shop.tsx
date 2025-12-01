@@ -595,85 +595,10 @@ export const Shop = () => {
     );
   };
 
-  // Pets tab
+  // Collection tab - Pets + Backgrounds
   const renderPets = () => {
     const characters = getCoinExclusiveAnimals();
 
-    return (
-      <div className="grid grid-cols-2 gap-3">
-        {characters.map((character) => {
-          const owned = inventory.ownedCharacters.includes(character.id);
-          const affordable = canAfford(character.coinPrice || 0);
-
-          return (
-            <button
-              key={character.id}
-              onClick={() => {
-                setSelectedItem(character);
-                if (!owned) setShowPurchaseConfirm(true);
-              }}
-              className={cn(
-                "retro-shop-card group relative overflow-hidden",
-                "transition-all duration-200 active:scale-95",
-                owned && "retro-shop-card-owned",
-                !owned && RARITY_BG[character.rarity],
-                !owned && RARITY_BORDER[character.rarity],
-                !owned && character.rarity !== 'common' && `shadow-lg ${RARITY_GLOW[character.rarity]}`
-              )}
-            >
-              <div className="retro-scanlines" />
-              <div className={cn(
-                "absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r",
-                RARITY_COLORS[character.rarity]
-              )} />
-
-              {owned && (
-                <div className="absolute top-2 right-2 retro-badge-owned">
-                  <Check className="w-3.5 h-3.5 text-white" />
-                </div>
-              )}
-
-              <div className="relative pt-3 pb-2 px-3 flex flex-col items-center">
-                <div className="h-16 mb-2 flex items-center justify-center overflow-hidden">
-                  {character.spriteConfig ? (
-                    <SpritePreview
-                      animal={character}
-                      scale={Math.min(2, 64 / Math.max(character.spriteConfig.frameWidth, character.spriteConfig.frameHeight))}
-                    />
-                  ) : (
-                    <span className="text-4xl retro-pixel-shadow">{character.emoji}</span>
-                  )}
-                </div>
-                <div className="flex gap-0.5 mb-1.5">
-                  {getRarityStars(character.rarity)}
-                </div>
-                <span className="text-xs font-black text-center tracking-tight uppercase mb-2">
-                  {character.name}
-                </span>
-
-                {owned ? (
-                  <div className="retro-price-tag-owned">
-                    <span className="text-[10px] font-black uppercase">Owned</span>
-                  </div>
-                ) : (
-                  <div className={cn(
-                    "retro-price-tag",
-                    affordable ? "retro-price-tag-afford" : "retro-price-tag-expensive"
-                  )}>
-                    <Coins className="w-3.5 h-3.5" />
-                    <span className="text-xs font-black">{character.coinPrice?.toLocaleString()}</span>
-                  </div>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    );
-  };
-
-  // Customize tab - Backgrounds + Badges
-  const renderCustomize = () => {
     // Separate backgrounds with previews from those without
     const backgroundsWithPreviews = PREMIUM_BACKGROUNDS.filter(bg => bg.previewImage);
     const backgroundsWithoutPreviews = PREMIUM_BACKGROUNDS.filter(bg => !bg.previewImage);
@@ -696,59 +621,83 @@ export const Shop = () => {
       }
     };
 
-    const handleEquipBadge = (badgeId: string, e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (inventory.equippedBadge === badgeId) {
-        // Unequip
-        equipBadge(null);
-        toast.success("Badge unequipped");
-      } else {
-        equipBadge(badgeId);
-        toast.success("Badge equipped!");
-      }
-    };
-
     return (
       <div className="space-y-4">
-        {/* Currently Equipped Section */}
-        {(inventory.equippedBackground || inventory.equippedBadge) && (
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-3 border border-purple-200 dark:border-purple-700">
-            <h4 className="text-xs font-bold mb-2 flex items-center gap-1.5">
-              <Palette className="w-3.5 h-3.5 text-purple-500" />
-              Currently Equipped
-            </h4>
-            <div className="flex gap-2 flex-wrap">
-              {inventory.equippedBackground && (
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-white dark:bg-gray-800 rounded-lg text-xs">
-                  <span>🖼️</span>
-                  <span className="font-medium">
-                    {PREMIUM_BACKGROUNDS.find(bg => bg.id === inventory.equippedBackground)?.name || 'Background'}
-                  </span>
-                  <button
-                    onClick={(e) => handleEquipBackground(inventory.equippedBackground!, e)}
-                    className="ml-1 text-gray-400 hover:text-red-500"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-              {inventory.equippedBadge && (
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-white dark:bg-gray-800 rounded-lg text-xs">
-                  <span>{PROFILE_BADGES.find(b => b.id === inventory.equippedBadge)?.icon || '🏅'}</span>
-                  <span className="font-medium">
-                    {PROFILE_BADGES.find(b => b.id === inventory.equippedBadge)?.name || 'Badge'}
-                  </span>
-                  <button
-                    onClick={(e) => handleEquipBadge(inventory.equippedBadge!, e)}
-                    className="ml-1 text-gray-400 hover:text-red-500"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-            </div>
+        {/* Pets Section */}
+        <div>
+          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+            <span>🐾</span> Pets
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            {characters.map((character) => {
+              const owned = inventory.ownedCharacters.includes(character.id);
+              const affordable = canAfford(character.coinPrice || 0);
+
+              return (
+                <button
+                  key={character.id}
+                  onClick={() => {
+                    setSelectedItem(character);
+                    if (!owned) setShowPurchaseConfirm(true);
+                  }}
+                  className={cn(
+                    "retro-shop-card group relative overflow-hidden",
+                    "transition-all duration-200 active:scale-95",
+                    owned && "retro-shop-card-owned",
+                    !owned && RARITY_BG[character.rarity],
+                    !owned && RARITY_BORDER[character.rarity],
+                    !owned && character.rarity !== 'common' && `shadow-lg ${RARITY_GLOW[character.rarity]}`
+                  )}
+                >
+                  <div className="retro-scanlines" />
+                  <div className={cn(
+                    "absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r",
+                    RARITY_COLORS[character.rarity]
+                  )} />
+
+                  {owned && (
+                    <div className="absolute top-2 right-2 retro-badge-owned">
+                      <Check className="w-3.5 h-3.5 text-white" />
+                    </div>
+                  )}
+
+                  <div className="relative pt-3 pb-2 px-3 flex flex-col items-center">
+                    <div className="h-16 mb-2 flex items-center justify-center overflow-hidden">
+                      {character.spriteConfig ? (
+                        <SpritePreview
+                          animal={character}
+                          scale={Math.min(2, 64 / Math.max(character.spriteConfig.frameWidth, character.spriteConfig.frameHeight))}
+                        />
+                      ) : (
+                        <span className="text-4xl retro-pixel-shadow">{character.emoji}</span>
+                      )}
+                    </div>
+                    <div className="flex gap-0.5 mb-1.5">
+                      {getRarityStars(character.rarity)}
+                    </div>
+                    <span className="text-xs font-black text-center tracking-tight uppercase mb-2">
+                      {character.name}
+                    </span>
+
+                    {owned ? (
+                      <div className="retro-price-tag-owned">
+                        <span className="text-[10px] font-black uppercase">Owned</span>
+                      </div>
+                    ) : (
+                      <div className={cn(
+                        "retro-price-tag",
+                        affordable ? "retro-price-tag-afford" : "retro-price-tag-expensive"
+                      )}>
+                        <Coins className="w-3.5 h-3.5" />
+                        <span className="text-xs font-black">{character.coinPrice?.toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
-        )}
+        </div>
 
         {/* Backgrounds with Previews Section */}
         {backgroundsWithPreviews.length > 0 && (
@@ -906,77 +855,28 @@ export const Shop = () => {
             </div>
           </div>
         )}
-
-        {/* Badges Section */}
-        <div>
-          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <span>🏅</span> Profile Badges
-          </h4>
-          <div className="grid grid-cols-3 gap-2">
-            {PROFILE_BADGES.map((badge) => {
-              const owned = isOwned(badge.id, 'customize');
-              const affordable = canAfford(badge.coinPrice || 0);
-              const isEquipped = inventory.equippedBadge === badge.id;
-              return (
-                <button
-                  key={badge.id}
-                  onClick={() => {
-                    if (owned) {
-                      handleEquipBadge(badge.id, { stopPropagation: () => {} } as React.MouseEvent);
-                    } else {
-                      setSelectedItem(badge);
-                      setShowPurchaseConfirm(true);
-                    }
-                  }}
-                  className={cn(
-                    "relative p-2 rounded-xl border-2 text-center transition-all active:scale-95",
-                    isEquipped
-                      ? "bg-purple-50 dark:bg-purple-900/20 border-purple-400 ring-2 ring-purple-300"
-                      : owned
-                      ? "bg-green-50 dark:bg-green-900/20 border-green-300"
-                      : RARITY_BG[badge.rarity || 'common'],
-                    !owned && RARITY_BORDER[badge.rarity || 'common']
-                  )}
-                >
-                  {isEquipped ? (
-                    <div className="absolute top-1 right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
-                      <Palette className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  ) : owned && (
-                    <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                  <span className="text-2xl block mb-1">{badge.icon}</span>
-                  <span className="text-[10px] font-bold block leading-tight">{badge.name}</span>
-                  {owned ? (
-                    <div className="text-[8px] font-medium mt-1 text-purple-600 dark:text-purple-400">
-                      {isEquipped ? "Unequip" : "Equip"}
-                    </div>
-                  ) : (
-                    <div className={cn(
-                      "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
-                      affordable ? "text-amber-600" : "text-red-500"
-                    )}>
-                      <Coins className="w-2.5 h-2.5" />
-                      {badge.coinPrice?.toLocaleString()}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
     );
   };
 
-  // Power-Ups tab - Boosters + Items + Coins
+  // Power-Ups tab - Boosters + Items + Coins + Badges
   const renderPowerUps = () => {
     const items = getShopItemsByCategory('powerups');
     const boosters = items.filter(i => i.id.includes('boost') || i.id.includes('pass'));
     const utilities = items.filter(i => i.id.includes('streak'));
     const coins = COIN_PACKS;
+
+    const handleEquipBadge = (badgeId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (inventory.equippedBadge === badgeId) {
+        // Unequip
+        equipBadge(null);
+        toast.success("Badge unequipped");
+      } else {
+        equipBadge(badgeId);
+        toast.success("Badge equipped!");
+      }
+    };
 
     return (
       <div className="space-y-4">
@@ -1053,6 +953,67 @@ export const Shop = () => {
                     <Coins className="w-3 h-3" />
                     {item.coinPrice?.toLocaleString()}
                   </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Profile Badges */}
+        <div>
+          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+            <span>🏅</span> Profile Badges
+          </h4>
+          <div className="grid grid-cols-3 gap-2">
+            {PROFILE_BADGES.map((badge) => {
+              const owned = isOwned(badge.id, 'customize');
+              const affordable = canAfford(badge.coinPrice || 0);
+              const isEquipped = inventory.equippedBadge === badge.id;
+              return (
+                <button
+                  key={badge.id}
+                  onClick={() => {
+                    if (owned) {
+                      handleEquipBadge(badge.id, { stopPropagation: () => {} } as React.MouseEvent);
+                    } else {
+                      setSelectedItem(badge);
+                      setShowPurchaseConfirm(true);
+                    }
+                  }}
+                  className={cn(
+                    "relative p-2 rounded-xl border-2 text-center transition-all active:scale-95",
+                    isEquipped
+                      ? "bg-purple-50 dark:bg-purple-900/20 border-purple-400 ring-2 ring-purple-300"
+                      : owned
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-300"
+                      : RARITY_BG[badge.rarity || 'common'],
+                    !owned && RARITY_BORDER[badge.rarity || 'common']
+                  )}
+                >
+                  {isEquipped ? (
+                    <div className="absolute top-1 right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
+                      <Palette className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  ) : owned && (
+                    <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  )}
+                  <span className="text-2xl block mb-1">{badge.icon}</span>
+                  <span className="text-[10px] font-bold block leading-tight">{badge.name}</span>
+                  {owned ? (
+                    <div className="text-[8px] font-medium mt-1 text-purple-600 dark:text-purple-400">
+                      {isEquipped ? "Unequip" : "Equip"}
+                    </div>
+                  ) : (
+                    <div className={cn(
+                      "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
+                      affordable ? "text-amber-600" : "text-red-500"
+                    )}>
+                      <Coins className="w-2.5 h-2.5" />
+                      {badge.coinPrice?.toLocaleString()}
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -1292,8 +1253,6 @@ export const Shop = () => {
         return renderPets();
       case 'bundles':
         return renderBundles();
-      case 'customize':
-        return renderCustomize();
       case 'powerups':
         return renderPowerUps();
       default:
