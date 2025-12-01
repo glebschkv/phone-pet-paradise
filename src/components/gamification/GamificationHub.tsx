@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
 // Hooks
@@ -8,6 +9,7 @@ import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { useComboSystem } from '@/hooks/useComboSystem';
 import { useSpecialEvents } from '@/hooks/useSpecialEvents';
+import { useAchievementSystem } from '@/hooks/useAchievementSystem';
 
 // Components
 import { BattlePassModal } from './BattlePassModal';
@@ -15,6 +17,8 @@ import { BossChallengeModal } from './BossChallengeModal';
 import { LuckyWheelModal } from './LuckyWheelModal';
 import { ComboDisplay } from './ComboDisplay';
 import { EventIndicator } from './SpecialEventBanner';
+import { AchievementUnlockModal } from './AchievementUnlockModal';
+import { AchievementGallery } from '@/components/AchievementGallery';
 
 // Icons
 import {
@@ -27,6 +31,7 @@ import {
   ChevronRight,
   Gamepad2,
   Star,
+  Trophy,
 } from 'lucide-react';
 
 interface GamificationHubProps {
@@ -39,6 +44,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
   const [showBattlePass, setShowBattlePass] = useState(false);
   const [showBossChallenge, setShowBossChallenge] = useState(false);
   const [showLuckyWheel, setShowLuckyWheel] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
 
   // Hooks
   const { getProgress, currentSeason, getUnclaimedRewards } = useBattlePass();
@@ -46,11 +52,19 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
   const { canSpinToday, getStats } = useLuckyWheel();
   const { state: comboState, currentTier } = useComboSystem();
   const { activeEvents, isDoubleXPActive, isDoubleCoinsActive } = useSpecialEvents();
+  const {
+    achievements,
+    unlockedAchievements,
+    getTotalAchievementPoints,
+    getCompletionPercentage
+  } = useAchievementSystem();
 
   const battlePassProgress = getProgress();
   const activeChallenge = getActiveChallenge();
   const wheelStats = getStats();
   const unclaimedBattlePassRewards = getUnclaimedRewards();
+  const achievementPoints = getTotalAchievementPoints();
+  const achievementPercent = getCompletionPercentage();
 
   const handleRewardClaim = (type: 'xp' | 'coins', amount: number) => {
     if (type === 'xp' && onXPReward) {
@@ -59,6 +73,28 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
       onCoinReward(amount);
     }
   };
+
+  const handleAchievementRewardClaim = (xp: number, coins: number) => {
+    if (xp > 0 && onXPReward) {
+      onXPReward(xp);
+    }
+    if (coins > 0 && onCoinReward) {
+      onCoinReward(coins);
+    }
+  };
+
+  // If achievements view is open, show it instead
+  if (showAchievements) {
+    return (
+      <div className="h-full flex flex-col retro-arcade-container">
+        <AchievementGallery
+          embedded={true}
+          onClose={() => setShowAchievements(false)}
+        />
+        <AchievementUnlockModal onClaimReward={handleAchievementRewardClaim} />
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col retro-arcade-container">
@@ -122,6 +158,43 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           {comboState.currentCombo > 0 && (
             <ComboDisplay variant="compact" />
           )}
+
+          {/* Achievements - NEW SECTION */}
+          <button
+            className={cn(
+              "w-full retro-game-card overflow-hidden cursor-pointer transition-all text-left touch-manipulation select-none active:scale-[0.98]",
+              unlockedAchievements.length > 0 && "retro-active-challenge"
+            )}
+            onClick={() => setShowAchievements(true)}
+          >
+            {/* Progress Bar at Top */}
+            <div className="h-2 bg-purple-900/50">
+              <div
+                className="h-full bg-gradient-to-r from-amber-400 to-yellow-500 transition-all"
+                style={{ width: `${achievementPercent}%` }}
+              />
+            </div>
+            <div className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center border-2 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+                  <Trophy className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white retro-pixel-text">ACHIEVEMENTS</h3>
+                  <div className="flex items-center gap-2 text-sm text-purple-300/80">
+                    <span className="retro-neon-yellow">{achievementPoints} PTS</span>
+                    <span>·</span>
+                    <span>{unlockedAchievements.length}/{achievements.length} unlocked</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-amber-400">{achievementPercent}%</div>
+                  <div className="text-[10px] text-purple-300/60">Complete</div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-purple-400" />
+              </div>
+            </div>
+          </button>
 
           {/* Lucky Wheel - Arcade Style */}
           <button
@@ -287,7 +360,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-purple-400">►</span>
-                Reach 10 combo for 2x legendary multiplier!
+                Unlock achievements for bonus rewards!
               </li>
             </ul>
           </div>
@@ -316,6 +389,9 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           }
         }}
       />
+
+      {/* Achievement Unlock Modal */}
+      <AchievementUnlockModal onClaimReward={handleAchievementRewardClaim} />
     </div>
   );
 };
