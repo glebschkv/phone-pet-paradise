@@ -675,7 +675,7 @@ export const UnifiedFocusTimer = () => {
           />
         </div>
 
-        <TimerStats completedSessions={timerState.completedSessions} />
+        <TimerStats />
 
         <BackgroundThemeSwitcher
           currentTheme={backgroundTheme}
