@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useBossChallenges } from "@/hooks/useBossChallenges";
+import { useDeviceActivity } from "@/hooks/useDeviceActivity";
 import { FocusCategory } from "@/types/analytics";
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from "@/hooks/useAchievementTracking";
 import {
@@ -25,9 +26,17 @@ import { FocusLockScreen } from "./focus-timer/FocusLockScreen";
 import { SessionNotesModal } from "./focus-timer/SessionNotesModal";
 import { AmbientSoundPicker } from "./focus-timer/AmbientSoundPicker";
 import { BreakTransitionModal } from "./focus-timer/BreakTransitionModal";
+import { AppBlockingSection } from "./focus-timer/AppBlockingSection";
 import { Analytics } from "./analytics";
 import { Timer, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// Focus bonus multipliers for completing sessions without blocked app attempts
+const FOCUS_BONUS = {
+  PERFECT_FOCUS: 1.25,     // 25% bonus for 0 blocked app attempts
+  GOOD_FOCUS: 1.10,        // 10% bonus for 1-2 attempts
+  DISTRACTED: 1.0,         // No bonus for 3+ attempts
+};
 
 type TimerView = 'timer' | 'stats';
 
@@ -40,6 +49,17 @@ export const UnifiedFocusTimer = () => {
   const { recordSession } = useAnalytics();
   const { stop: stopAmbientSound, isPlaying: isAmbientPlaying } = useAmbientSound();
   const { recordFocusSession } = useBossChallenges();
+
+  // App blocking integration
+  const {
+    isPermissionGranted: appBlockingEnabled,
+    hasAppsConfigured,
+    blockedAppsCount,
+    startAppBlocking,
+    stopAppBlocking,
+    getShieldAttempts,
+    triggerHaptic,
+  } = useDeviceActivity();
 
   const {
     timerState,
@@ -127,6 +147,26 @@ export const UnifiedFocusTimer = () => {
 
     clearPersistence();
 
+    // Stop app blocking and get shield attempts
+    let shieldAttempts = 0;
+    if (timerState.sessionType !== 'break' && hasAppsConfigured) {
+      const blockingResult = await stopAppBlocking();
+      shieldAttempts = blockingResult.shieldAttempts;
+    }
+
+    // Calculate focus bonus based on shield attempts
+    let focusMultiplier = FOCUS_BONUS.DISTRACTED;
+    let focusBonusType = '';
+    if (hasAppsConfigured && blockedAppsCount > 0) {
+      if (shieldAttempts === 0) {
+        focusMultiplier = FOCUS_BONUS.PERFECT_FOCUS;
+        focusBonusType = 'PERFECT FOCUS';
+      } else if (shieldAttempts <= 2) {
+        focusMultiplier = FOCUS_BONUS.GOOD_FOCUS;
+        focusBonusType = 'GOOD FOCUS';
+      }
+    }
+
     // Stop ambient sound when session ends
     if (isAmbientPlaying) {
       stopAmbientSound();
@@ -143,8 +183,28 @@ export const UnifiedFocusTimer = () => {
       try {
         reward = await awardXP(completedMinutes);
         xpEarned = reward?.xpGained || 0;
+
+        // Apply focus bonus to XP
+        if (focusMultiplier > 1.0 && xpEarned > 0) {
+          const bonusXP = Math.floor(xpEarned * (focusMultiplier - 1));
+          if (bonusXP > 0 && xpSystem && 'addDirectXP' in xpSystem) {
+            (xpSystem as { addDirectXP: (xp: number) => void }).addDirectXP(bonusXP);
+            xpEarned += bonusXP;
+          }
+        }
       } catch (error) {
         console.error('Failed to award XP:', error);
+      }
+    }
+
+    // Award focus bonus coins
+    if (focusMultiplier > 1.0 && timerState.sessionType !== 'break' && coinSystem) {
+      const bonusCoins = focusMultiplier === FOCUS_BONUS.PERFECT_FOCUS ? 50 : 25;
+      coinSystem.addCoins(bonusCoins);
+
+      // Trigger success haptic for perfect focus
+      if (focusMultiplier === FOCUS_BONUS.PERFECT_FOCUS) {
+        triggerHaptic('success');
       }
     }
 
@@ -213,6 +273,18 @@ export const UnifiedFocusTimer = () => {
     // For work sessions, show session notes modal then break transition
     if (timerState.sessionType !== 'break') {
       setLastSessionXP(xpEarned);
+
+      // Show focus bonus toast if earned
+      if (focusBonusType) {
+        toast({
+          title: `${focusBonusType}!`,
+          description: focusMultiplier === FOCUS_BONUS.PERFECT_FOCUS
+            ? "You stayed fully focused! +25% XP bonus & +50 coins!"
+            : "Good focus! +10% XP bonus & +25 coins!",
+          duration: 4000,
+        });
+      }
+
       setShowSessionNotesModal(true);
     } else {
       // For break sessions, just show completion toast
@@ -224,7 +296,7 @@ export const UnifiedFocusTimer = () => {
     }
 
     isCompletingRef.current = false;
-  }, [timerState, awardXP, saveTimerState, clearPersistence, playCompletionSound, recordSession, isAmbientPlaying, stopAmbientSound, toast, recordFocusSession, coinSystem, xpSystem]);
+  }, [timerState, awardXP, saveTimerState, clearPersistence, playCompletionSound, recordSession, isAmbientPlaying, stopAmbientSound, toast, recordFocusSession, coinSystem, xpSystem, hasAppsConfigured, blockedAppsCount, stopAppBlocking, triggerHaptic]);
 
   // Handle session notes save
   const handleSessionNotesSave = useCallback((notes: string, rating: number) => {
@@ -377,8 +449,17 @@ export const UnifiedFocusTimer = () => {
   }, [saveTimerState, timerState.timeLeft, selectedPreset.type]);
 
   // Actually start timer with category info
-  const startTimerWithIntent = useCallback((category: FocusCategory, taskLabel?: string) => {
+  const startTimerWithIntent = useCallback(async (category: FocusCategory, taskLabel?: string) => {
     setShowIntentionModal(false);
+
+    // Start app blocking if enabled and apps are configured
+    if (appBlockingEnabled && hasAppsConfigured && blockedAppsCount > 0) {
+      const result = await startAppBlocking();
+      if (result.appsBlocked > 0) {
+        triggerHaptic('light');
+      }
+    }
+
     const now = Date.now();
     setDisplayTime(timerState.timeLeft);
     saveTimerState({
@@ -388,7 +469,7 @@ export const UnifiedFocusTimer = () => {
       category,
       taskLabel,
     });
-  }, [saveTimerState, timerState.timeLeft]);
+  }, [saveTimerState, timerState.timeLeft, appBlockingEnabled, hasAppsConfigured, blockedAppsCount, startAppBlocking, triggerHaptic]);
 
   const pauseTimer = useCallback(() => {
     // Calculate current time left
@@ -411,7 +492,7 @@ export const UnifiedFocusTimer = () => {
     });
   }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, selectedPreset.duration]);
 
-  const stopTimer = useCallback(() => {
+  const stopTimer = useCallback(async () => {
     // Calculate actual time worked before stopping
     let elapsedSeconds = 0;
     if (timerState.startTime) {
@@ -420,6 +501,11 @@ export const UnifiedFocusTimer = () => {
       elapsedSeconds = Math.floor(elapsedMs / 1000);
     } else {
       elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
+    }
+
+    // Stop app blocking
+    if (timerState.sessionType !== 'break' && hasAppsConfigured) {
+      await stopAppBlocking();
     }
 
     // Record as abandoned if timer was running and some time elapsed
@@ -451,7 +537,7 @@ export const UnifiedFocusTimer = () => {
       category: undefined,
       taskLabel: undefined,
     });
-  }, [clearPersistence, saveTimerState, selectedPreset.duration, timerState, recordSession]);
+  }, [clearPersistence, saveTimerState, selectedPreset.duration, timerState, recordSession, hasAppsConfigured, stopAppBlocking]);
 
   const skipTimer = useCallback(async () => {
     // Calculate actual time worked
@@ -465,6 +551,11 @@ export const UnifiedFocusTimer = () => {
     }
 
     const completedMinutes = Math.ceil(elapsedSeconds / 60);
+
+    // Stop app blocking
+    if (timerState.sessionType !== 'break' && hasAppsConfigured) {
+      await stopAppBlocking();
+    }
 
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -552,7 +643,7 @@ export const UnifiedFocusTimer = () => {
       category: undefined,
       taskLabel: undefined,
     });
-  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, recordSession, recordFocusSession, coinSystem, xpSystem]);
+  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, recordSession, recordFocusSession, coinSystem, xpSystem, hasAppsConfigured, stopAppBlocking]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });
@@ -632,6 +723,11 @@ export const UnifiedFocusTimer = () => {
           onPause={pauseTimer}
           onStop={stopTimer}
           onSkip={skipTimer}
+        />
+
+        {/* App Blocking Section */}
+        <AppBlockingSection
+          isTimerRunning={timerState.isRunning}
         />
 
         {/* Task Intention Modal */}

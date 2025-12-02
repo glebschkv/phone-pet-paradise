@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { DeviceActivity } from '@/plugins/device-activity';
+import { Capacitor } from '@capacitor/core';
 
 const FOCUS_MODE_STORAGE_KEY = 'petIsland_focusMode';
 
@@ -20,18 +22,18 @@ export interface FocusModeSettings {
   bypassCooldown: number; // seconds before bypass is available
 }
 
-// Common distracting apps
+// Common distracting apps with iOS bundle IDs
 export const SUGGESTED_APPS: BlockedApp[] = [
-  { id: 'instagram', name: 'Instagram', icon: '📸', bundleId: 'com.instagram.android', isBlocked: true },
+  { id: 'instagram', name: 'Instagram', icon: '📸', bundleId: 'com.burbn.instagram', isBlocked: true },
   { id: 'tiktok', name: 'TikTok', icon: '🎵', bundleId: 'com.zhiliaoapp.musically', isBlocked: true },
-  { id: 'twitter', name: 'X (Twitter)', icon: '🐦', bundleId: 'com.twitter.android', isBlocked: true },
-  { id: 'facebook', name: 'Facebook', icon: '👥', bundleId: 'com.facebook.katana', isBlocked: true },
-  { id: 'youtube', name: 'YouTube', icon: '▶️', bundleId: 'com.google.android.youtube', isBlocked: false },
-  { id: 'snapchat', name: 'Snapchat', icon: '👻', bundleId: 'com.snapchat.android', isBlocked: false },
-  { id: 'reddit', name: 'Reddit', icon: '🤖', bundleId: 'com.reddit.frontpage', isBlocked: false },
-  { id: 'discord', name: 'Discord', icon: '💬', bundleId: 'com.discord', isBlocked: false },
-  { id: 'whatsapp', name: 'WhatsApp', icon: '💚', bundleId: 'com.whatsapp', isBlocked: false },
-  { id: 'messenger', name: 'Messenger', icon: '💬', bundleId: 'com.facebook.orca', isBlocked: false },
+  { id: 'twitter', name: 'X (Twitter)', icon: '🐦', bundleId: 'com.atebits.Tweetie2', isBlocked: true },
+  { id: 'facebook', name: 'Facebook', icon: '👥', bundleId: 'com.facebook.Facebook', isBlocked: true },
+  { id: 'youtube', name: 'YouTube', icon: '▶️', bundleId: 'com.google.ios.youtube', isBlocked: false },
+  { id: 'snapchat', name: 'Snapchat', icon: '👻', bundleId: 'com.toyopagroup.picaboo', isBlocked: false },
+  { id: 'reddit', name: 'Reddit', icon: '🤖', bundleId: 'com.reddit.Reddit', isBlocked: false },
+  { id: 'discord', name: 'Discord', icon: '💬', bundleId: 'com.hammerandchisel.discord', isBlocked: false },
+  { id: 'whatsapp', name: 'WhatsApp', icon: '💚', bundleId: 'net.whatsapp.WhatsApp', isBlocked: false },
+  { id: 'messenger', name: 'Messenger', icon: '💬', bundleId: 'com.facebook.Messenger', isBlocked: false },
   { id: 'games', name: 'Games', icon: '🎮', bundleId: 'games', isBlocked: false },
   { id: 'news', name: 'News Apps', icon: '📰', bundleId: 'news', isBlocked: false },
 ];
@@ -64,6 +66,10 @@ export const useFocusMode = () => {
   const [settings, setSettings] = useState<FocusModeSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
   const [isFocusModeActive, setIsFocusModeActive] = useState(false);
+  const [isNativeBlocking, setIsNativeBlocking] = useState(false);
+
+  // Check if we're on native platform
+  const isNative = Capacitor.isNativePlatform();
 
   // Load settings
   useEffect(() => {
@@ -79,14 +85,39 @@ export const useFocusMode = () => {
     setIsLoading(false);
   }, []);
 
+  // Check native blocking status on mount
+  useEffect(() => {
+    const checkNativeStatus = async () => {
+      if (isNative) {
+        try {
+          const status = await DeviceActivity.getBlockingStatus();
+          setIsNativeBlocking(status.isBlocking);
+          setIsFocusModeActive(status.focusSessionActive);
+        } catch (error) {
+          console.error('Failed to check native blocking status:', error);
+        }
+      }
+    };
+
+    checkNativeStatus();
+  }, [isNative]);
+
   // Save settings
   const updateSettings = useCallback((updates: Partial<FocusModeSettings>) => {
     setSettings(prev => {
       const newSettings = { ...prev, ...updates };
       localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+
+      // Sync with native plugin
+      if (isNative) {
+        DeviceActivity.setSelectedApps({
+          selection: JSON.stringify(newSettings.blockedApps)
+        }).catch(console.error);
+      }
+
       return newSettings;
     });
-  }, []);
+  }, [isNative]);
 
   // Toggle app blocking
   const toggleAppBlocking = useCallback((appId: string, blocked: boolean) => {
@@ -96,9 +127,17 @@ export const useFocusMode = () => {
       );
       const newSettings = { ...prev, blockedApps: newApps };
       localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+
+      // Sync with native plugin
+      if (isNative) {
+        DeviceActivity.setSelectedApps({
+          selection: JSON.stringify(newApps)
+        }).catch(console.error);
+      }
+
       return newSettings;
     });
-  }, []);
+  }, [isNative]);
 
   // Add blocked website
   const addBlockedWebsite = useCallback((website: string) => {
@@ -129,45 +168,74 @@ export const useFocusMode = () => {
   }, []);
 
   // Activate focus mode (called when timer starts)
-  const activateFocusMode = useCallback(() => {
+  const activateFocusMode = useCallback(async () => {
     if (!settings.enabled) return;
     setIsFocusModeActive(true);
 
-    // In production, this would trigger native app blocking via Capacitor plugin
-    // For now, we just track the state
-    console.log('Focus mode activated', {
+    console.log('Focus mode activating', {
       blockedApps: settings.blockedApps.filter(a => a.isBlocked).map(a => a.name),
       blockedWebsites: settings.blockedWebsites,
       blockNotifications: settings.blockNotifications,
     });
 
-    // Request notification permission if needed
-    if (settings.blockNotifications && 'Notification' in window) {
-      // In a real implementation, we'd use native APIs to enable DND mode
+    // Start native app blocking if on iOS
+    if (isNative) {
+      try {
+        const result = await DeviceActivity.startAppBlocking();
+        setIsNativeBlocking(result.success);
+        console.log('Native app blocking started:', result);
+      } catch (error) {
+        console.error('Failed to start native app blocking:', error);
+      }
     }
-  }, [settings]);
+  }, [settings, isNative]);
 
   // Deactivate focus mode (called when timer ends/stops)
-  const deactivateFocusMode = useCallback(() => {
+  const deactivateFocusMode = useCallback(async () => {
     setIsFocusModeActive(false);
-    console.log('Focus mode deactivated');
-  }, []);
+    console.log('Focus mode deactivating');
+
+    // Stop native app blocking if on iOS
+    if (isNative) {
+      try {
+        const result = await DeviceActivity.stopAppBlocking();
+        setIsNativeBlocking(false);
+        console.log('Native app blocking stopped:', result);
+        return result;
+      } catch (error) {
+        console.error('Failed to stop native app blocking:', error);
+      }
+    }
+
+    return { success: true, shieldAttempts: 0 };
+  }, [isNative]);
 
   // Get blocked apps list
   const getBlockedApps = useCallback(() => {
     return settings.blockedApps.filter(app => app.isBlocked);
   }, [settings.blockedApps]);
 
+  // Get count of blocked apps
+  const blockedAppsCount = settings.blockedApps.filter(app => app.isBlocked).length;
+
   // Reset to defaults
   const resetToDefaults = useCallback(() => {
     setSettings(defaultSettings);
     localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(defaultSettings));
-  }, []);
+
+    // Clear native selection
+    if (isNative) {
+      DeviceActivity.clearSelectedApps().catch(console.error);
+    }
+  }, [isNative]);
 
   return {
     settings,
     isLoading,
     isFocusModeActive,
+    isNativeBlocking,
+    isNative,
+    blockedAppsCount,
     updateSettings,
     toggleAppBlocking,
     addBlockedWebsite,
