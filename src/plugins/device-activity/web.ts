@@ -1,9 +1,23 @@
 import { WebPlugin } from '@capacitor/core';
-import type { DeviceActivityPlugin } from './definitions';
+import type {
+  DeviceActivityPlugin,
+  BlockingStatus,
+  ShieldAttempts,
+  AppSelection,
+  StartBlockingResult,
+  StopBlockingResult
+} from './definitions';
 
 // Simple inline logger for the plugin (avoiding circular dependencies)
 const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
 const log = (...args: unknown[]) => isDev && console.log('[DeviceActivity Web]', ...args);
+
+// Storage keys for web simulation
+const STORAGE_KEYS = {
+  SELECTED_APPS: 'nomoPhone_selectedApps',
+  IS_BLOCKING: 'nomoPhone_isBlocking',
+  SHIELD_ATTEMPTS: 'nomoPhone_shieldAttempts',
+};
 
 export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin {
   private isMonitoring = false;
@@ -11,7 +25,10 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
   private sessionStartTime = Date.now();
   private visibilityHandler: (() => void) | null = null;
   private beforeUnloadHandler: (() => void) | null = null;
+  private isBlocking = false;
+  private shieldAttempts = 0;
 
+  // Permission methods
   async requestPermissions(): Promise<{ status: string; familyControlsEnabled: boolean }> {
     log('Permissions requested (simulation)');
     return { status: 'granted', familyControlsEnabled: false };
@@ -21,6 +38,93 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
     return { status: 'granted', familyControlsEnabled: false };
   }
 
+  // App selection methods (web simulation)
+  async openAppPicker(): Promise<{ success: boolean }> {
+    log('App picker requested (web simulation - not available)');
+    // On web, we dispatch an event to show a simulated picker
+    this.notifyListeners('showAppPicker', {});
+    return { success: true };
+  }
+
+  async setSelectedApps(options: { selection: string }): Promise<{ success: boolean; message: string }> {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SELECTED_APPS, options.selection);
+      log('Selected apps saved:', options.selection);
+      return { success: true, message: 'App selection saved (web simulation)' };
+    } catch {
+      return { success: false, message: 'Failed to save selection' };
+    }
+  }
+
+  async getSelectedApps(): Promise<AppSelection> {
+    const selection = localStorage.getItem(STORAGE_KEYS.SELECTED_APPS);
+    return {
+      hasSelection: !!selection,
+      selection: selection || ''
+    };
+  }
+
+  async clearSelectedApps(): Promise<{ success: boolean }> {
+    localStorage.removeItem(STORAGE_KEYS.SELECTED_APPS);
+    this.isBlocking = false;
+    log('Selected apps cleared');
+    return { success: true };
+  }
+
+  // App blocking methods (web simulation)
+  async startAppBlocking(): Promise<StartBlockingResult> {
+    this.isBlocking = true;
+    this.shieldAttempts = 0;
+    localStorage.setItem(STORAGE_KEYS.IS_BLOCKING, 'true');
+    log('App blocking started (web simulation)');
+
+    const selection = localStorage.getItem(STORAGE_KEYS.SELECTED_APPS);
+    const hasApps = !!selection;
+
+    return {
+      success: true,
+      appsBlocked: hasApps ? 1 : 0, // Simulated count
+      categoriesBlocked: 0,
+      domainsBlocked: 0,
+      note: 'Web simulation - actual blocking only works on iOS'
+    };
+  }
+
+  async stopAppBlocking(): Promise<StopBlockingResult> {
+    this.isBlocking = false;
+    const attempts = this.shieldAttempts;
+    localStorage.removeItem(STORAGE_KEYS.IS_BLOCKING);
+    log('App blocking stopped (web simulation)');
+
+    return {
+      success: true,
+      shieldAttempts: attempts
+    };
+  }
+
+  async getBlockingStatus(): Promise<BlockingStatus> {
+    return {
+      isBlocking: this.isBlocking,
+      focusSessionActive: this.isBlocking,
+      shieldAttempts: this.shieldAttempts,
+      lastShieldAttemptTimestamp: 0,
+      hasAppsConfigured: !!localStorage.getItem(STORAGE_KEYS.SELECTED_APPS)
+    };
+  }
+
+  async getShieldAttempts(): Promise<ShieldAttempts> {
+    return {
+      attempts: this.shieldAttempts,
+      lastAttemptTimestamp: 0
+    };
+  }
+
+  async resetShieldAttempts(): Promise<{ success: boolean }> {
+    this.shieldAttempts = 0;
+    return { success: true };
+  }
+
+  // Monitoring methods
   async startMonitoring(): Promise<{ success: boolean; monitoring: boolean; startTime: number }> {
     this.isMonitoring = true;
     this.sessionStartTime = Date.now();
@@ -47,7 +151,8 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
     timeAwayMinutes: number;
     isMonitoring: boolean;
     lastActiveTime: number;
-    currentTime: number
+    currentTime: number;
+    shieldAttempts: number;
   }> {
     const now = Date.now();
     const timeAwayMinutes = (now - this.lastActiveTime) / (1000 * 60);
@@ -56,7 +161,8 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
       timeAwayMinutes,
       isMonitoring: this.isMonitoring,
       lastActiveTime: this.lastActiveTime,
-      currentTime: now
+      currentTime: now,
+      shieldAttempts: this.shieldAttempts
     };
   }
 
@@ -65,6 +171,7 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
     return { success: true, timestamp: this.lastActiveTime };
   }
 
+  // Haptic feedback
   async triggerHapticFeedback(options: { style: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' }): Promise<{ success: boolean }> {
     // Web haptic feedback simulation
     if ('vibrate' in navigator) {
@@ -117,7 +224,8 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
           state: 'active',
           timestamp: now,
           timeAwayMinutes,
-          lastActiveTime: this.lastActiveTime
+          lastActiveTime: this.lastActiveTime,
+          shieldAttempts: this.shieldAttempts
         });
         this.lastActiveTime = now;
       }
