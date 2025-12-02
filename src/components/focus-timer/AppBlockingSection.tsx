@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useDeviceActivity, type SimulatedBlockedApp } from '@/hooks/useDeviceActivity';
-import { Shield, ShieldCheck, ShieldOff, ChevronDown, ChevronUp, Lock, Unlock, Sparkles, AlertTriangle } from 'lucide-react';
+import { useDeviceActivity } from '@/hooks/useDeviceActivity';
+import { Shield, ShieldCheck, ShieldOff, ChevronDown, ChevronUp, Lock, Sparkles, AlertTriangle, Smartphone, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Capacitor } from '@capacitor/core';
 
@@ -21,11 +21,8 @@ export const AppBlockingSection = ({
     hasAppsConfigured,
     blockedAppsCount,
     shieldAttempts,
-    simulatedApps,
     isLoading,
-    isNative,
     requestPermissions,
-    toggleAppBlocked,
     openAppPicker,
   } = useDeviceActivity();
 
@@ -36,47 +33,82 @@ export const AppBlockingSection = ({
     await requestPermissions();
   };
 
-  // Handle app toggle
-  const handleToggleApp = (appId: string, isBlocked: boolean) => {
-    if (isTimerRunning) return; // Can't change during session
-    toggleAppBlocked(appId, isBlocked);
-    onBlockingStatusChange?.(isBlocking, blockedAppsCount + (isBlocked ? 1 : -1));
+  // Handle opening native app picker (iOS only)
+  const handleOpenAppPicker = async () => {
+    await openAppPicker();
+    onBlockingStatusChange?.(isBlocking, blockedAppsCount);
   };
 
   // Render permission request card
   if (!isPermissionGranted && isNativePlatform) {
     return (
       <div className="mt-4 w-full max-w-sm">
-        <div className="retro-card bg-gradient-to-br from-purple-500/20 to-purple-600/10 p-4 rounded-xl border-2 border-purple-400/30">
+        <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/20 p-4 rounded-2xl border border-purple-500/30 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/30 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-purple-300" />
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <Shield className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm">App Blocking</h3>
-              <p className="text-xs text-white/60">Block distracting apps during focus</p>
+              <h3 className="font-bold text-white text-base">Focus Shield</h3>
+              <p className="text-xs text-purple-200/70">Block distracting apps</p>
             </div>
           </div>
 
-          <p className="text-xs text-white/70 mb-3">
-            Enable Screen Time access to automatically block apps when you start a focus session.
+          <p className="text-sm text-white/70 mb-4">
+            Enable Screen Time access to automatically block apps during focus sessions and earn bonus rewards!
           </p>
 
           <button
             onClick={handleRequestPermission}
             disabled={isLoading}
             className={cn(
-              "w-full py-2.5 px-4 rounded-lg font-semibold text-sm transition-all",
+              "w-full py-3 px-4 rounded-xl font-bold text-sm transition-all",
               "bg-gradient-to-r from-purple-500 to-purple-600",
               "hover:from-purple-400 hover:to-purple-500",
-              "active:scale-[0.98] shadow-lg shadow-purple-500/25",
+              "active:scale-[0.98] shadow-lg shadow-purple-500/30",
               "text-white flex items-center justify-center gap-2",
               isLoading && "opacity-50 cursor-not-allowed"
             )}
           >
             <Lock className="w-4 h-4" />
-            {isLoading ? 'Requesting...' : 'Enable App Blocking'}
+            {isLoading ? 'Requesting...' : 'Enable Focus Shield'}
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Web preview when not on native platform
+  if (!isNativePlatform) {
+    return (
+      <div className="mt-4 w-full max-w-sm">
+        <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 p-4 rounded-2xl border border-gray-600/30 backdrop-blur-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center">
+              <Smartphone className="w-6 h-6 text-gray-300" />
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-base">Focus Shield</h3>
+              <p className="text-xs text-gray-400">iOS exclusive feature</p>
+            </div>
+          </div>
+
+          <div className="bg-black/20 rounded-xl p-3 mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-purple-400" />
+              <span className="text-sm text-white/80 font-medium">App Blocking</span>
+            </div>
+            <p className="text-xs text-white/50">
+              On iOS, you can select any apps to block during focus sessions. Stay focused and earn bonus XP!
+            </p>
+          </div>
+
+          <div className="flex items-center justify-center gap-2 py-2 px-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            <span className="text-xs text-purple-300">
+              Perfect focus = +25% XP & +50 coins
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -86,17 +118,17 @@ export const AppBlockingSection = ({
     <div className="mt-4 w-full max-w-sm">
       {/* Main Card */}
       <div className={cn(
-        "retro-card rounded-xl border-2 overflow-hidden transition-all duration-300",
+        "rounded-2xl border overflow-hidden transition-all duration-300 backdrop-blur-sm",
         isBlocking
-          ? "bg-gradient-to-br from-green-500/20 to-emerald-600/10 border-green-400/40"
+          ? "bg-gradient-to-br from-green-900/40 to-emerald-800/20 border-green-500/40"
           : hasAppsConfigured
-            ? "bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-400/30"
-            : "bg-gradient-to-br from-gray-500/10 to-gray-600/5 border-gray-400/20"
+            ? "bg-gradient-to-br from-purple-900/40 to-purple-800/20 border-purple-500/30"
+            : "bg-gradient-to-br from-gray-800/40 to-gray-900/40 border-gray-600/30"
       )}>
         {/* Header - Always visible */}
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          disabled={isTimerRunning}
+          onClick={() => !isTimerRunning && setIsExpanded(!isExpanded)}
+          disabled={isTimerRunning && !isBlocking}
           className={cn(
             "w-full p-4 flex items-center justify-between",
             "transition-all duration-200",
@@ -105,36 +137,36 @@ export const AppBlockingSection = ({
         >
           <div className="flex items-center gap-3">
             <div className={cn(
-              "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+              "w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-lg",
               isBlocking
-                ? "bg-green-500/30"
+                ? "bg-gradient-to-br from-green-500 to-emerald-600 shadow-green-500/30"
                 : hasAppsConfigured
-                  ? "bg-purple-500/30"
-                  : "bg-gray-500/20"
+                  ? "bg-gradient-to-br from-purple-500 to-purple-600 shadow-purple-500/30"
+                  : "bg-gradient-to-br from-gray-600 to-gray-700"
             )}>
               {isBlocking ? (
-                <ShieldCheck className="w-5 h-5 text-green-300" />
+                <ShieldCheck className="w-6 h-6 text-white" />
               ) : hasAppsConfigured ? (
-                <Shield className="w-5 h-5 text-purple-300" />
+                <Shield className="w-6 h-6 text-white" />
               ) : (
-                <ShieldOff className="w-5 h-5 text-gray-400" />
+                <ShieldOff className="w-6 h-6 text-gray-300" />
               )}
             </div>
             <div className="text-left">
-              <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                App Blocking
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                Focus Shield
                 {isBlocking && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-green-500/30 text-green-300 rounded">
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-green-500 text-white rounded-full animate-pulse">
                     ACTIVE
                   </span>
                 )}
               </h3>
-              <p className="text-xs text-white/60">
+              <p className="text-sm text-white/60">
                 {isBlocking
-                  ? `${blockedAppsCount} apps blocked`
+                  ? `${blockedAppsCount} app${blockedAppsCount !== 1 ? 's' : ''} blocked`
                   : hasAppsConfigured
-                    ? `${blockedAppsCount} apps selected`
-                    : 'Select apps to block'
+                    ? `${blockedAppsCount} app${blockedAppsCount !== 1 ? 's' : ''} selected`
+                    : 'Tap to select apps'
                 }
               </p>
             </div>
@@ -143,86 +175,110 @@ export const AppBlockingSection = ({
           <div className="flex items-center gap-2">
             {/* Shield attempts indicator during session */}
             {isBlocking && shieldAttempts > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-orange-500/20 border border-orange-400/30">
-                <AlertTriangle className="w-3 h-3 text-orange-300" />
-                <span className="text-xs font-semibold text-orange-300">{shieldAttempts}</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-500/20 border border-orange-400/40">
+                <AlertTriangle className="w-4 h-4 text-orange-400" />
+                <span className="text-sm font-bold text-orange-300">{shieldAttempts}</span>
               </div>
             )}
 
             {!isTimerRunning && (
               isExpanded ? (
-                <ChevronUp className="w-5 h-5 text-white/40" />
+                <ChevronUp className="w-5 h-5 text-white/50" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-white/40" />
+                <ChevronDown className="w-5 h-5 text-white/50" />
               )
             )}
           </div>
         </button>
 
-        {/* Expanded Content */}
+        {/* Expanded Content - App Selection */}
         {isExpanded && !isTimerRunning && (
           <div className="px-4 pb-4 border-t border-white/10">
             {/* Native iOS picker button */}
-            {isNative && (
-              <button
-                onClick={openAppPicker}
-                className={cn(
-                  "w-full mt-3 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all",
-                  "bg-gradient-to-r from-purple-500/80 to-purple-600/80",
-                  "hover:from-purple-400/80 hover:to-purple-500/80",
-                  "active:scale-[0.98]",
-                  "text-white flex items-center justify-center gap-2"
-                )}
-              >
-                <Sparkles className="w-4 h-4" />
-                Choose Apps to Block
-              </button>
+            <button
+              onClick={handleOpenAppPicker}
+              className={cn(
+                "w-full mt-4 py-4 px-4 rounded-xl font-bold text-base transition-all",
+                "bg-gradient-to-r from-purple-500 to-purple-600",
+                "hover:from-purple-400 hover:to-purple-500",
+                "active:scale-[0.98] shadow-lg shadow-purple-500/30",
+                "text-white flex items-center justify-center gap-3"
+              )}
+            >
+              <Plus className="w-5 h-5" />
+              Select Apps to Block
+            </button>
+
+            {/* Currently selected count */}
+            {hasAppsConfigured && (
+              <div className="mt-3 flex items-center justify-center gap-2 py-2 px-3 bg-purple-500/10 rounded-lg">
+                <Lock className="w-4 h-4 text-purple-400" />
+                <span className="text-sm text-purple-200">
+                  {blockedAppsCount} app{blockedAppsCount !== 1 ? 's' : ''} will be blocked
+                </span>
+              </div>
             )}
 
-            {/* App grid for selection */}
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              {simulatedApps.map((app) => (
-                <AppBlockButton
-                  key={app.id}
-                  app={app}
-                  onToggle={(blocked) => handleToggleApp(app.id, blocked)}
-                />
-              ))}
+            {/* Info about how it works */}
+            <div className="mt-3 space-y-2">
+              <div className="flex items-start gap-2 text-xs text-white/50">
+                <span className="text-green-400">•</span>
+                <span>Apps are blocked when you start a focus session</span>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-white/50">
+                <span className="text-green-400">•</span>
+                <span>Unblocked automatically when your session ends</span>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-white/50">
+                <span className="text-purple-400">•</span>
+                <span>Stay focused for bonus XP and coins!</span>
+              </div>
             </div>
-
-            {/* Info text */}
-            <p className="mt-3 text-[10px] text-white/40 text-center">
-              {isNativePlatform
-                ? "Selected apps will be blocked when you start a focus session"
-                : "App blocking preview - works on iOS devices"
-              }
-            </p>
           </div>
         )}
 
         {/* Timer running indicator */}
         {isTimerRunning && isBlocking && (
           <div className="px-4 pb-4 border-t border-white/10">
-            <div className="flex items-center justify-center gap-2 py-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-xs text-green-300 font-medium">
-                Focus mode active - apps are blocked
+            <div className="flex items-center justify-center gap-2 py-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-sm text-green-300 font-medium">
+                Focus mode active — apps are blocked
               </span>
             </div>
 
             {shieldAttempts > 0 && (
-              <div className="mt-2 p-2 rounded-lg bg-orange-500/10 border border-orange-400/20">
+              <div className="mt-2 p-3 rounded-xl bg-orange-500/10 border border-orange-400/30">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-orange-300" />
-                  <span className="text-xs text-orange-200">
+                  <AlertTriangle className="w-5 h-5 text-orange-400" />
+                  <span className="text-sm text-orange-200 font-medium">
                     {shieldAttempts === 1
-                      ? "You tried to open a blocked app once"
-                      : `You tried to open blocked apps ${shieldAttempts} times`
+                      ? "1 blocked app attempt"
+                      : `${shieldAttempts} blocked app attempts`
                     }
                   </span>
                 </div>
-                <p className="mt-1 text-[10px] text-orange-200/60">
-                  Stay focused for bonus rewards!
+                <p className="mt-1.5 text-xs text-orange-200/60">
+                  {shieldAttempts === 0
+                    ? "Perfect focus = +25% XP bonus!"
+                    : shieldAttempts <= 2
+                      ? "Keep going! You can still earn +10% bonus"
+                      : "Stay focused for the rest of your session!"
+                  }
+                </p>
+              </div>
+            )}
+
+            {shieldAttempts === 0 && (
+              <div className="mt-2 p-3 rounded-xl bg-green-500/10 border border-green-400/30">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-green-400" />
+                  <span className="text-sm text-green-200 font-medium">
+                    Perfect focus so far!
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-green-200/60">
+                  Complete without distractions for +25% XP & +50 coins
                 </p>
               </div>
             )}
@@ -230,52 +286,16 @@ export const AppBlockingSection = ({
         )}
       </div>
 
-      {/* Reward hint */}
-      {hasAppsConfigured && !isTimerRunning && (
-        <div className="mt-2 flex items-center justify-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-yellow-400" />
-          <span className="text-[10px] text-white/50">
-            Complete sessions without opening blocked apps for bonus XP!
+      {/* Reward hint when apps configured but timer not running */}
+      {hasAppsConfigured && !isTimerRunning && !isExpanded && (
+        <div className="mt-2 flex items-center justify-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+          <span className="text-xs text-white/50">
+            Start a session for focus rewards!
           </span>
         </div>
       )}
     </div>
-  );
-};
-
-// Individual app block button component
-interface AppBlockButtonProps {
-  app: SimulatedBlockedApp;
-  onToggle: (blocked: boolean) => void;
-}
-
-const AppBlockButton = ({ app, onToggle }: AppBlockButtonProps) => {
-  return (
-    <button
-      onClick={() => onToggle(!app.isBlocked)}
-      className={cn(
-        "flex flex-col items-center gap-1 p-2 rounded-lg transition-all",
-        "active:scale-95",
-        app.isBlocked
-          ? "bg-purple-500/30 border border-purple-400/50"
-          : "bg-white/5 border border-white/10 hover:bg-white/10"
-      )}
-    >
-      <div className="relative">
-        <span className="text-xl">{app.icon}</span>
-        {app.isBlocked && (
-          <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
-            <Lock className="w-2.5 h-2.5 text-white" />
-          </div>
-        )}
-      </div>
-      <span className={cn(
-        "text-[9px] font-medium truncate max-w-full",
-        app.isBlocked ? "text-purple-200" : "text-white/60"
-      )}>
-        {app.name}
-      </span>
-    </button>
   );
 };
 
