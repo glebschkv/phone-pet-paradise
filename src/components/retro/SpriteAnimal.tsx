@@ -2,7 +2,6 @@ import { memo, useState, useEffect, useRef } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
 import { PositionRegistry } from './useAnimalPositions';
 import { getRandomSpecialAnimation, hasSpecialAnimations, SpecialAnimationConfig } from '@/data/SpecialAnimations';
-import { getAnimationScale, SPRITE_SCALE, SPRITE_WRAP } from '@/lib/spriteUtils';
 
 // Configuration for random special animations
 const SPECIAL_ANIMATION_MIN_INTERVAL = 5000; // Minimum 5 seconds between special animations
@@ -170,8 +169,8 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
       let newPosition = positionRef.current + movement + separationOffset;
 
       // When fully off-screen right, wrap to off-screen left
-      if (newPosition > SPRITE_WRAP.EXIT_THRESHOLD) {
-        newPosition = SPRITE_WRAP.ENTRY_POSITION;
+      if (newPosition > 1.15) {
+        newPosition = -0.15;
       }
 
       positionRef.current = newPosition;
@@ -194,12 +193,8 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   // Early return AFTER all hooks
   if (!spriteConfig) return null;
 
-  // Scale up the sprite for better visibility, with responsive capping for large sprites
-  const scale = getAnimationScale(
-    currentAnimConfig.frameWidth,
-    currentAnimConfig.frameHeight,
-    SPRITE_SCALE.GROUND_BASE
-  );
+  // Scale up the sprite for better visibility (2.5x for crisp pixels)
+  const scale = 2.5;
   const scaledWidth = currentAnimConfig.frameWidth * scale;
   const scaledHeight = currentAnimConfig.frameHeight * scale;
 

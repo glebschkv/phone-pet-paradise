@@ -2,7 +2,6 @@ import { memo, useState, useEffect, useRef } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
 import { PositionRegistry } from './useAnimalPositions';
 import { getRandomSpecialAnimation, hasSpecialAnimations, SpecialAnimationConfig } from '@/data/SpecialAnimations';
-import { getAnimationScale, SPRITE_SCALE, SPRITE_WRAP } from '@/lib/spriteUtils';
 
 // Configuration for random special animations
 const SPECIAL_ANIMATION_MIN_INTERVAL = 5000; // Minimum 5 seconds between special animations
@@ -170,8 +169,8 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
       let newPosition = positionRef.current + movement + separationOffset;
 
       // Wrap around when off screen
-      if (newPosition > SPRITE_WRAP.EXIT_THRESHOLD) {
-        newPosition = SPRITE_WRAP.ENTRY_POSITION;
+      if (newPosition > 1.2) {
+        newPosition = -0.2;
       }
 
       positionRef.current = newPosition;
@@ -192,12 +191,8 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
   // Early return AFTER all hooks
   if (!spriteConfig) return null;
 
-  // Scale for flying creatures (slightly smaller than ground animals), with responsive capping
-  const scale = getAnimationScale(
-    currentAnimConfig.frameWidth,
-    currentAnimConfig.frameHeight,
-    SPRITE_SCALE.FLYING_BASE
-  );
+  // Scale for flying creatures (slightly smaller than ground animals)
+  const scale = 2;
   const scaledWidth = currentAnimConfig.frameWidth * scale;
   const scaledHeight = currentAnimConfig.frameHeight * scale;
   const backgroundPositionX = -(currentFrame * currentAnimConfig.frameWidth * scale);

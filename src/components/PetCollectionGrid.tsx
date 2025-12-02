@@ -24,7 +24,6 @@ import {
   Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getPreviewScale, PREVIEW_MIN_SCALE } from "@/lib/spriteUtils";
 import { useCollection } from "@/hooks/useCollection";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { AnimalData, BIOME_DATABASE } from "@/data/AnimalDatabase";
@@ -377,13 +376,7 @@ export const PetCollectionGrid = () => {
                       ) : pet.spriteConfig ? (
                         <SpritePreview
                           animal={pet}
-                          scale={getPreviewScale(
-                            pet.spriteConfig.frameWidth,
-                            pet.spriteConfig.frameHeight,
-                            48,
-                            1.5,
-                            PREVIEW_MIN_SCALE.LIST
-                          )}
+                          scale={Math.min(1.5, 48 / pet.spriteConfig.frameHeight)}
                         />
                       ) : (
                         <span className="text-4xl">{pet.emoji}</span>
@@ -698,13 +691,7 @@ export const PetCollectionGrid = () => {
                   <div className="mb-3 flex items-center justify-center h-[180px] overflow-hidden">
                     <SpritePreview
                       animal={selectedPet}
-                      scale={getPreviewScale(
-                        selectedPet.spriteConfig.frameWidth,
-                        selectedPet.spriteConfig.frameHeight,
-                        180,
-                        4,
-                        PREVIEW_MIN_SCALE.DETAIL
-                      )}
+                      scale={Math.min(4, 180 / Math.max(selectedPet.spriteConfig.frameWidth, selectedPet.spriteConfig.frameHeight))}
                     />
                   </div>
                 ) : (

@@ -15,7 +15,6 @@ import {
   Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getPreviewScale, PREVIEW_MIN_SCALE } from "@/lib/spriteUtils";
 import { useShop } from "@/hooks/useShop";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
@@ -233,13 +232,7 @@ const PetBundlePreviewCarousel = ({ petIds }: { petIds: string[] }) => {
 
   const currentPet = pets[currentIndex];
   const scale = currentPet?.spriteConfig
-    ? getPreviewScale(
-        currentPet.spriteConfig.frameWidth,
-        currentPet.spriteConfig.frameHeight,
-        80,
-        2.5,
-        PREVIEW_MIN_SCALE.SHOP_CARD
-      )
+    ? Math.min(2.5, 80 / Math.max(currentPet.spriteConfig.frameWidth, currentPet.spriteConfig.frameHeight))
     : 1;
 
   return (
@@ -578,13 +571,7 @@ export const Shop = () => {
                     {pet.spriteConfig ? (
                       <SpritePreview
                         animal={pet}
-                        scale={getPreviewScale(
-                          pet.spriteConfig.frameWidth,
-                          pet.spriteConfig.frameHeight,
-                          48,
-                          1.5,
-                          PREVIEW_MIN_SCALE.LIST
-                        )}
+                        scale={Math.min(1.5, 48 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
                       />
                     ) : (
                       <span className="text-3xl">{pet.emoji}</span>
@@ -679,13 +666,7 @@ export const Shop = () => {
                       {character.spriteConfig ? (
                         <SpritePreview
                           animal={character}
-                          scale={getPreviewScale(
-                            character.spriteConfig.frameWidth,
-                            character.spriteConfig.frameHeight,
-                            64,
-                            2,
-                            PREVIEW_MIN_SCALE.SHOP_CARD
-                          )}
+                          scale={Math.min(2, 64 / Math.max(character.spriteConfig.frameWidth, character.spriteConfig.frameHeight))}
                         />
                       ) : (
                         <span className="text-4xl retro-pixel-shadow">{character.emoji}</span>
@@ -1132,13 +1113,7 @@ export const Shop = () => {
                       {previewAnimals.length > 0 && previewAnimals[0]?.spriteConfig ? (
                         <SpritePreview
                           animal={previewAnimals[0]}
-                          scale={getPreviewScale(
-                            previewAnimals[0].spriteConfig.frameWidth,
-                            previewAnimals[0].spriteConfig.frameHeight,
-                            56,
-                            1.2,
-                            PREVIEW_MIN_SCALE.BUNDLE
-                          )}
+                          scale={Math.min(1.2, 56 / Math.max(previewAnimals[0].spriteConfig.frameWidth, previewAnimals[0].spriteConfig.frameHeight))}
                         />
                       ) : (
                         <span className="text-3xl">{bundle.icon}</span>
@@ -1372,13 +1347,7 @@ export const Shop = () => {
                   ) : 'spriteConfig' in selectedItem && selectedItem.spriteConfig ? (
                     <SpritePreview
                       animal={selectedItem as AnimalData}
-                      scale={getPreviewScale(
-                        (selectedItem as AnimalData).spriteConfig!.frameWidth,
-                        (selectedItem as AnimalData).spriteConfig!.frameHeight,
-                        90,
-                        2.5,
-                        PREVIEW_MIN_SCALE.DETAIL
-                      )}
+                      scale={Math.min(2.5, 90 / Math.max((selectedItem as AnimalData).spriteConfig!.frameWidth, (selectedItem as AnimalData).spriteConfig!.frameHeight))}
                     />
                   ) : 'previewImages' in selectedItem ? (
                     // Background bundle preview carousel
