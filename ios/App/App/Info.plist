@@ -22,6 +22,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -50,7 +52,7 @@
 	<key>NSFamilyControlsUsageDescription</key>
 	<string>NoMo uses Screen Time to track when you're away from your phone, rewarding you for staying focused.</string>
 
-	<!-- Push Notifications -->
+	<!-- Push Notifications and Background Modes -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
