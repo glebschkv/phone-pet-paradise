@@ -4,8 +4,6 @@ import { safeJsonParse } from '@/lib/apiUtils';
 import { logger } from '@/lib/logger';
 
 const PREMIUM_STORAGE_KEY = 'petIsland_premium';
-const STREAK_FREEZE_GRANT_KEY = 'petIsland_streakFreezeGrant';
-const BONUS_COINS_GRANTED_KEY = 'petIsland_bonusCoinsGranted';
 
 export type SubscriptionTier = 'free' | 'premium' | 'premium_plus' | 'lifetime';
 

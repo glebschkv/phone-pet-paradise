@@ -7,8 +7,9 @@ import { useCoinSystem } from '@/hooks/useCoinSystem';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-interface AchievementGalleryProps {
+export interface AchievementGalleryProps {
   onClose?: () => void;
+  embedded?: boolean;
 }
 
 export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose }) => {

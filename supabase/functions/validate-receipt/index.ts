@@ -155,7 +155,7 @@ async function verifyAndDecodeJWS(signedTransaction: string): Promise<JWSTransac
     return payload as unknown as JWSTransactionDecodedPayload;
   } catch (error) {
     console.error('JWS verification failed:', error);
-    throw new Error(`JWS verification failed: ${error.message}`);
+    throw new Error(`JWS verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -271,7 +271,7 @@ serve(async (req) => {
       // In sandbox/development, we might want to allow unverified transactions
       // for testing purposes, but log a warning
       if (environment === 'sandbox') {
-        console.warn('JWS verification failed in sandbox mode, proceeding with caution:', jwsError.message);
+        console.warn('JWS verification failed in sandbox mode, proceeding with caution:', jwsError instanceof Error ? jwsError.message : 'Unknown error');
         // Create a minimal payload from the request data for sandbox testing
         transactionPayload = {
           transactionId,
@@ -289,7 +289,7 @@ serve(async (req) => {
           storefrontId: '143441',
         };
       } else {
-        throw new Error(`JWS verification failed: ${jwsError.message}`);
+        throw new Error(`JWS verification failed: ${jwsError instanceof Error ? jwsError.message : 'Unknown error'}`);
       }
     }
 
@@ -403,7 +403,7 @@ serve(async (req) => {
     console.error('Receipt validation error:', error);
     return new Response(JSON.stringify({
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

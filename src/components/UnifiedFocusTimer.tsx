@@ -57,7 +57,6 @@ export const UnifiedFocusTimer = () => {
     blockedAppsCount,
     startAppBlocking,
     stopAppBlocking,
-    getShieldAttempts,
     triggerHaptic,
   } = useDeviceActivity();
 
@@ -221,7 +220,7 @@ export const UnifiedFocusTimer = () => {
 
     // Dispatch achievement tracking event for focus sessions (non-break only)
     if (timerState.sessionType !== 'break' && completedMinutes >= 1) {
-      const wasJackpot = reward?.bonusType === 'jackpot';
+      const wasJackpot = reward && 'bonusType' in reward && reward.bonusType === 'jackpot';
       dispatchAchievementEvent(ACHIEVEMENT_EVENTS.FOCUS_SESSION_COMPLETE, {
         minutes: completedMinutes,
         wasJackpot,

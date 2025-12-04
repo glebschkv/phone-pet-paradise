@@ -7,8 +7,6 @@ import {
   Timer,
   PenLine,
   BarChart3,
-  Cloud,
-  Gift,
   Zap,
   Star,
   RefreshCw,
