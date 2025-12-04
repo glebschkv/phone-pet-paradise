@@ -1,6 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useAchievementTracking, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
-import { useAchievementSystem } from '@/hooks/useAchievementSystem';
 import { AchievementUnlockModal } from '@/components/gamification/AchievementUnlockModal';
 import { useXPSystem } from '@/hooks/useXPSystem';
 import { useCoinSystem } from '@/hooks/useCoinSystem';
@@ -16,7 +15,7 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
   const tracking = useAchievementTracking();
   const { addDirectXP, currentLevel } = useXPSystem();
   const coinSystem = useCoinSystem();
-  const { unlockedAnimals } = useCollection();
+  const { unlockedAnimalsData } = useCollection();
   const streakSystem = useStreakSystem();
   const { inventory } = useShop();
   const hasInitialized = useRef(false);
@@ -60,20 +59,20 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
 
   // Track pet collection changes
   useEffect(() => {
-    if (unlockedAnimals && unlockedAnimals.length > 0) {
+    if (unlockedAnimalsData && unlockedAnimalsData.length > 0) {
       // Count pets by rarity (would need to cross-reference with animal database)
       // For now, just track total count
-      tracking.trackPetUnlock(unlockedAnimals.length, 0, 0, 0);
+      tracking.trackPetUnlock(unlockedAnimalsData.length, 0, 0, 0);
     }
-  }, [unlockedAnimals, tracking]);
+  }, [unlockedAnimalsData, tracking]);
 
   // Track streak changes
   useEffect(() => {
-    const streak = streakSystem?.currentStreak || 0;
+    const streak = streakSystem?.streakData?.currentStreak || 0;
     if (streak > 0) {
       tracking.trackStreak(streak);
     }
-  }, [streakSystem?.currentStreak, tracking]);
+  }, [streakSystem?.streakData?.currentStreak, tracking]);
 
   // Track coin events
   useEffect(() => {
@@ -165,14 +164,14 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
     }
 
     // Track current streak
-    const streak = streakSystem?.currentStreak || 0;
+    const streak = streakSystem?.streakData?.currentStreak || 0;
     if (streak > 0) {
       tracking.trackStreak(streak);
     }
 
     // Track current collection
-    if (unlockedAnimals && unlockedAnimals.length > 0) {
-      tracking.trackPetUnlock(unlockedAnimals.length, 0, 0, 0);
+    if (unlockedAnimalsData && unlockedAnimalsData.length > 0) {
+      tracking.trackPetUnlock(unlockedAnimalsData.length, 0, 0, 0);
     }
 
     // Track total coins earned
@@ -189,7 +188,7 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
     if (totalPurchases > 0) {
       tracking.trackPurchase(totalPurchases);
     }
-  }, [currentLevel, streakSystem, unlockedAnimals, coinSystem, inventory, tracking]);
+  }, [currentLevel, streakSystem, unlockedAnimalsData, coinSystem, inventory, tracking]);
 
   return (
     <>

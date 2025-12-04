@@ -156,7 +156,7 @@ export const useAchievementTracking = (): AchievementTrackingHook => {
   }, [checkAndUnlockAchievements]);
 
   // Track coin earnings
-  const trackCoinsEarned = useCallback((amount: number, totalEarned: number) => {
+  const trackCoinsEarned = useCallback((_amount: number, totalEarned: number) => {
     statsRef.current.totalCoinsEarned = totalEarned;
     saveStats();
     checkAndUnlockAchievements('total_coins', totalEarned);
