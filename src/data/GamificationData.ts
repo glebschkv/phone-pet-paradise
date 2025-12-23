@@ -193,7 +193,7 @@ export interface BossChallenge {
 }
 
 export const BOSS_CHALLENGES: BossChallenge[] = [
-  // Normal difficulty - BOOSTED REWARDS!
+  // Normal difficulty
   {
     id: 'focus-warrior',
     name: 'Focus Warrior',
@@ -201,7 +201,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '⚔️',
     difficulty: 'normal',
     requirement: { type: 'focus_duration', value: 120 },
-    rewards: { xp: 300, coins: 400 },
+    rewards: { xp: 180, coins: 250 },
     cooldownHours: 24,
   },
   {
@@ -211,11 +211,11 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🎯',
     difficulty: 'normal',
     requirement: { type: 'consecutive_sessions', value: 3, timeLimit: 24 },
-    rewards: { xp: 200, coins: 300 },
+    rewards: { xp: 120, coins: 180 },
     cooldownHours: 24,
   },
 
-  // Hard difficulty - BOOSTED REWARDS!
+  // Hard difficulty
   {
     id: 'deep-focus-master',
     name: 'Deep Focus Master',
@@ -223,7 +223,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🧘',
     difficulty: 'hard',
     requirement: { type: 'focus_duration', value: 180 },
-    rewards: { xp: 600, coins: 800, badge: 'deep-focus-badge' },
+    rewards: { xp: 360, coins: 500, badge: 'deep-focus-badge' },
     cooldownHours: 48,
   },
   {
@@ -233,7 +233,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🔥',
     difficulty: 'hard',
     requirement: { type: 'consecutive_sessions', value: 5, timeLimit: 24 },
-    rewards: { xp: 500, coins: 700 },
+    rewards: { xp: 300, coins: 420 },
     cooldownHours: 48,
   },
   {
@@ -243,11 +243,11 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '📅',
     difficulty: 'hard',
     requirement: { type: 'total_focus_week', value: 600 },
-    rewards: { xp: 1000, coins: 1200 },
+    rewards: { xp: 600, coins: 720 },
     cooldownHours: 168, // 1 week
   },
 
-  // Extreme difficulty - BOOSTED REWARDS!
+  // Extreme difficulty
   {
     id: 'marathon-runner',
     name: 'Marathon Runner',
@@ -255,7 +255,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🏃',
     difficulty: 'extreme',
     requirement: { type: 'focus_duration', value: 240 },
-    rewards: { xp: 1000, coins: 1400, badge: 'marathon-badge' },
+    rewards: { xp: 600, coins: 850, badge: 'marathon-badge' },
     cooldownHours: 72,
   },
   {
@@ -265,11 +265,11 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '💯',
     difficulty: 'extreme',
     requirement: { type: 'perfect_day', value: 480 },
-    rewards: { xp: 1600, coins: 2000, badge: 'perfect-day-badge' },
+    rewards: { xp: 960, coins: 1200, badge: 'perfect-day-badge' },
     cooldownHours: 48,
   },
 
-  // Legendary difficulty - BOOSTED REWARDS!
+  // Legendary difficulty
   {
     id: 'ultra-endurance',
     name: 'Ultra Endurance',
@@ -277,7 +277,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '👑',
     difficulty: 'legendary',
     requirement: { type: 'focus_duration', value: 300 },
-    rewards: { xp: 2000, coins: 3000, badge: 'legendary-focus-badge', specialReward: 'exclusive-pet' },
+    rewards: { xp: 1200, coins: 1800, badge: 'legendary-focus-badge', specialReward: 'exclusive-pet' },
     cooldownHours: 168, // 1 week
   },
   {
@@ -287,7 +287,7 @@ export const BOSS_CHALLENGES: BossChallenge[] = [
     emoji: '🌟',
     difficulty: 'legendary',
     requirement: { type: 'total_focus_week', value: 1200 },
-    rewards: { xp: 3000, coins: 4000, badge: 'weekly-legend-badge' },
+    rewards: { xp: 1800, coins: 2400, badge: 'weekly-legend-badge' },
     cooldownHours: 168,
   },
 ];

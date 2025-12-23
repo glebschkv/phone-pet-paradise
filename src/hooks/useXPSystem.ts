@@ -50,55 +50,55 @@ interface BonusResult {
 const calculateRandomBonus = (): BonusResult => {
   const roll = Math.random() * 100;
 
-  // 5% chance: Jackpot (2.5x XP) - increased from 2%
-  if (roll < 5) {
-    return { hasBonusXP: true, bonusMultiplier: 2.5, bonusType: 'jackpot' };
+  // 2% chance: Jackpot (2.0x XP)
+  if (roll < 2) {
+    return { hasBonusXP: true, bonusMultiplier: 2.0, bonusType: 'jackpot' };
   }
-  // 10% chance: Super Lucky (1.75x XP) - increased from 5%
-  if (roll < 15) {
-    return { hasBonusXP: true, bonusMultiplier: 1.75, bonusType: 'super_lucky' };
+  // 5% chance: Super Lucky (1.5x XP)
+  if (roll < 7) {
+    return { hasBonusXP: true, bonusMultiplier: 1.5, bonusType: 'super_lucky' };
   }
-  // 20% chance: Lucky (1.5x XP) - increased from 13%
-  if (roll < 35) {
-    return { hasBonusXP: true, bonusMultiplier: 1.5, bonusType: 'lucky' };
+  // 13% chance: Lucky (1.25x XP)
+  if (roll < 20) {
+    return { hasBonusXP: true, bonusMultiplier: 1.25, bonusType: 'lucky' };
   }
-  // 65% chance: No bonus - reduced from 80%
+  // 80% chance: No bonus
   return { hasBonusXP: false, bonusMultiplier: 1.0, bonusType: 'none' };
 };
 
 export const MAX_LEVEL = 50 as const;
 
 // XP rewards based on session duration (in minutes)
-// Boosted rewards - progression should feel satisfying and impactful!
+// Balanced rewards - progression should feel meaningful and sustainable
 const XP_REWARDS = {
-  25: 25,   // 25 minutes = 25 XP (minimum focus session) - doubled
-  30: 35,   // 30 minutes = 35 XP - more than doubled for quick wins
-  45: 55,   // 45 minutes = 55 XP - doubled
-  60: 80,   // 1 hour = 80 XP - sweet spot, more than doubled
-  90: 125,  // 90 minutes (deep work) = 125 XP - more than doubled
-  120: 180, // 2 hours = 180 XP - more than doubled
-  180: 280, // 3 hours = 280 XP - more than doubled
-  240: 400, // 4 hours = 400 XP - more than doubled
-  300: 550, // 5 hours = 550 XP - more than doubled
+  25: 12,   // 25 minutes = 12 XP (minimum focus session)
+  30: 18,   // 30 minutes = 18 XP - casual session
+  45: 28,   // 45 minutes = 28 XP - standard session
+  60: 40,   // 1 hour = 40 XP - sweet spot
+  90: 65,   // 90 minutes (deep work) = 65 XP
+  120: 95,  // 2 hours = 95 XP
+  180: 150, // 3 hours = 150 XP
+  240: 210, // 4 hours = 210 XP
+  300: 280, // 5 hours = 280 XP
 };
 
 // Level progression: XP required for each level
-// Early levels are quick (1-2 sessions), mid levels moderate (3-5 sessions), late levels rewarding (5+ sessions)
-// This creates an addicting but sustainable progression curve
+// Balanced curve - early levels take a few sessions, later levels require dedication
+// This creates a sustainable long-term progression
 const LEVEL_REQUIREMENTS = [
   0,    // Level 0 (starting - Meadow Hare)
-  15,   // Level 1 - Songbird (1 session)
-  35,   // Level 2 - Garden Lizard (~2 sessions total)
-  60,   // Level 3 - Wild Horse (~3 sessions)
-  90,   // Level 4 - Friendly Monster (~4 sessions)
-  125,  // Level 5 - Desert Camel + Sunset biome (~5 sessions)
-  165,  // Level 6 - Golden Elk
-  210,  // Level 7 - Wise Turtle
-  260,  // Level 8 - Sunset Stallion
-  320,  // Level 9 - Night Bear + Night biome
-  385,  // Level 10 - Shadow Serpent
-  455,  // Level 11 - Ghost Hare
-  530,  // Level 12 - Night Sprite
+  40,   // Level 1 - Songbird (~2-3 sessions)
+  90,   // Level 2 - Garden Lizard (~5 sessions total)
+  150,  // Level 3 - Wild Horse (~8 sessions)
+  220,  // Level 4 - Friendly Monster (~12 sessions)
+  300,  // Level 5 - Desert Camel + Sunset biome (~16 sessions, ~2 weeks)
+  400,  // Level 6 - Golden Elk
+  520,  // Level 7 - Wise Turtle
+  660,  // Level 8 - Sunset Stallion
+  820,  // Level 9 - Night Bear + Night biome
+  1000, // Level 10 - Shadow Serpent (~1 month)
+  1200, // Level 11 - Ghost Hare
+  1420, // Level 12 - Night Sprite
 ];
 
 // Memoized level requirement calculation
@@ -117,21 +117,21 @@ const calculateLevelRequirement = (level: number): number => {
   } else {
     // For levels 13+, continue with a smooth progression
     // Base: last defined level's XP + incremental growth
-    let totalXP = LEVEL_REQUIREMENTS[LEVEL_REQUIREMENTS.length - 1]; // Level 12 = 530
-    let increment = 80; // Starting increment after level 12
+    let totalXP = LEVEL_REQUIREMENTS[LEVEL_REQUIREMENTS.length - 1]; // Level 12 = 1420
+    let increment = 240; // Starting increment after level 12
 
     for (let i = LEVEL_REQUIREMENTS.length; i <= level; i++) {
       totalXP += increment;
-      // Gradually increase XP needed per level (addicting but challenging)
-      // Early teens: 80-100 XP per level (2-3 sessions)
-      // Level 20s: 100-150 XP per level (3-5 sessions)
-      // Level 30s+: 150-200+ XP per level (5+ sessions for legendaries)
+      // Gradually increase XP needed per level (sustainable long-term progression)
+      // Early teens: 240-360 XP per level (6-10 sessions)
+      // Level 20s: 360-600 XP per level (10-15 sessions)
+      // Level 30s+: 600-1000+ XP per level (15+ sessions for legendaries)
       if (i < 20) {
-        increment += 8;  // Small increase for levels 13-19
+        increment += 15;  // Moderate increase for levels 13-19
       } else if (i < 30) {
-        increment += 12; // Medium increase for levels 20-29
+        increment += 25; // Medium increase for levels 20-29
       } else {
-        increment += 15; // Larger increase for legendary tier (30+)
+        increment += 35; // Larger increase for legendary tier (30+)
       }
     }
     result = totalXP;
@@ -195,7 +195,7 @@ export const useXPSystem = () => {
   const [xpState, setXPState] = useState<XPSystemState>({
     currentXP: 0,
     currentLevel: 0, // Start at level 0 to include Meadow Hare
-    xpToNextLevel: 15, // Level 1 requires 15 XP
+    xpToNextLevel: 40, // Level 1 requires 40 XP
     totalXPForCurrentLevel: 0,
     unlockedAnimals: startingAnimals,
     currentBiome: 'Meadow',
@@ -259,7 +259,7 @@ useEffect(() => {
       const newState = {
         currentXP: 0,
         currentLevel: 0,
-        xpToNextLevel: 15,
+        xpToNextLevel: 40,
         totalXPForCurrentLevel: 0,
         unlockedAnimals: defaultStartingAnimals,
         currentBiome: 'Meadow',
@@ -274,7 +274,7 @@ useEffect(() => {
     const newState = {
       currentXP: 0,
       currentLevel: 0,
-      xpToNextLevel: 15, // Level 1 requires 15 XP
+      xpToNextLevel: 40, // Level 1 requires 40 XP
       totalXPForCurrentLevel: 0,
       unlockedAnimals: defaultStartingAnimals,
       currentBiome: 'Meadow',
@@ -575,7 +575,7 @@ const getLevelProgress = useCallback((): number => {
     const resetState: XPSystemState = {
       currentXP: 0,
       currentLevel: 0, // Start at level 0
-      xpToNextLevel: 15, // Level 1 requires 15 XP
+      xpToNextLevel: 40, // Level 1 requires 40 XP
       totalXPForCurrentLevel: 0,
       unlockedAnimals: startingAnimals,
       currentBiome: 'Meadow',
