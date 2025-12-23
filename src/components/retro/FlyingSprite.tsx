@@ -195,13 +195,7 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
   const scale = 2;
   const scaledWidth = currentAnimConfig.frameWidth * scale;
   const scaledHeight = currentAnimConfig.frameHeight * scale;
-
-  // Extra width to show dragon parts that extend beyond frame boundaries (like tail)
-  const extraWidth = scaledWidth * 0.5;
-  const displayWidth = scaledWidth + extraWidth;
-
-  // Offset background to show extra content on the left (tail extends into previous frame space)
-  const backgroundPositionX = -(currentFrame * currentAnimConfig.frameWidth * scale) + (extraWidth / 2);
+  const backgroundPositionX = -(currentFrame * currentAnimConfig.frameWidth * scale);
   const backgroundPositionY = -(frameRow * currentAnimConfig.frameHeight * scale);
 
   return (
@@ -210,7 +204,7 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
       style={{
         top: `${heightOffset * 100}%`,
         left: `${currentPosition * 100}%`,
-        width: `${displayWidth}px`,
+        width: `${scaledWidth}px`,
         height: `${scaledHeight}px`,
         transform: 'translateX(-50%)',
         willChange: 'transform, left',
@@ -218,7 +212,7 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
     >
       <div
         style={{
-          width: `${displayWidth}px`,
+          width: `${scaledWidth}px`,
           height: `${scaledHeight}px`,
           backgroundImage: `url(${currentAnimConfig.spritePath})`,
           backgroundSize: `${currentAnimConfig.frameCount * scaledWidth}px auto`,
