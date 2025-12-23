@@ -234,8 +234,6 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
           imageRendering: 'pixelated',
           // Prevent any smoothing
           WebkitFontSmoothing: 'none',
-          // Flip sprite horizontally so it faces the direction of movement (right)
-          transform: 'scaleX(-1)',
         }}
       />
     </div>
