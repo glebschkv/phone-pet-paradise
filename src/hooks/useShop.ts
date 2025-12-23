@@ -139,7 +139,12 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    coinSystem.spendCoins(animal.coinPrice);
+    // Verify the coin spend succeeded before updating inventory
+    const spendSuccess = coinSystem.spendCoins(animal.coinPrice);
+    if (!spendSuccess) {
+      return { success: false, message: 'Failed to process payment' };
+    }
+
     const newInventory = {
       ...inventory,
       ownedCharacters: [...inventory.ownedCharacters, characterId],
@@ -169,7 +174,11 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    coinSystem.spendCoins(background.coinPrice);
+    const spendSuccess = coinSystem.spendCoins(background.coinPrice);
+    if (!spendSuccess) {
+      return { success: false, message: 'Failed to process payment' };
+    }
+
     const newInventory = {
       ...inventory,
       ownedBackgrounds: [...inventory.ownedBackgrounds, backgroundId],
@@ -194,7 +203,11 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    coinSystem.spendCoins(badge.coinPrice);
+    const spendSuccess = coinSystem.spendCoins(badge.coinPrice);
+    if (!spendSuccess) {
+      return { success: false, message: 'Failed to process payment' };
+    }
+
     const newInventory = {
       ...inventory,
       ownedBadges: [...inventory.ownedBadges, badgeId],
@@ -316,7 +329,10 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    coinSystem.spendCoins(bundle.coinPrice);
+    const spendSuccess = coinSystem.spendCoins(bundle.coinPrice);
+    if (!spendSuccess) {
+      return { success: false, message: 'Failed to process payment' };
+    }
 
     // Add all backgrounds from the bundle that aren't already owned
     const newBackgrounds = bundle.backgroundIds.filter(id => !inventory.ownedBackgrounds.includes(id));
@@ -346,7 +362,10 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    coinSystem.spendCoins(bundle.coinPrice);
+    const spendSuccess = coinSystem.spendCoins(bundle.coinPrice);
+    if (!spendSuccess) {
+      return { success: false, message: 'Failed to process payment' };
+    }
 
     // Add all pets from the bundle that aren't already owned
     const newPets = bundle.petIds.filter(id => !inventory.ownedCharacters.includes(id));
@@ -398,7 +417,11 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    coinSystem.spendCoins(booster.coinPrice);
+    const spendSuccess = coinSystem.spendCoins(booster.coinPrice);
+    if (!spendSuccess) {
+      return { success: false, message: 'Failed to process payment' };
+    }
+
     boosterSystem.activateBooster(boosterId);
 
     return { success: true, message: `${booster.name} activated!` };
@@ -410,7 +433,10 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    coinSystem.spendCoins(price);
+    const spendSuccess = coinSystem.spendCoins(price);
+    if (!spendSuccess) {
+      return { success: false, message: 'Failed to process payment' };
+    }
 
     // Add streak freezes
     for (let i = 0; i < quantity; i++) {

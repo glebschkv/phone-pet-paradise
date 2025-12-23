@@ -18,7 +18,7 @@ export const TimerDisplay = ({
   soundEnabled,
   onToggleSound
 }: TimerDisplayProps) => {
-  const progress = ((sessionDuration - timeLeft) / sessionDuration) * 100;
+  const progress = sessionDuration > 0 ? ((sessionDuration - timeLeft) / sessionDuration) * 100 : 0;
 
   return (
     <div className="retro-card p-6 w-full max-w-sm mb-6">
