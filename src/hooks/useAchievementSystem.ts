@@ -835,6 +835,8 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
   const pendingUnlockQueue = useRef<AchievementUnlockEvent[]>([]);
   // Track claimed achievement IDs synchronously to prevent race conditions
   const claimedIdsRef = useRef<Set<string>>(new Set());
+  // Track queued unlock IDs to prevent duplicates from event listeners
+  const queuedUnlockIdsRef = useRef<Set<string>>(new Set());
 
   // Initialize achievements from definitions
   const initializeAchievements = useCallback(() => {
@@ -945,6 +947,12 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
   // Queue an achievement unlock for display
   const queueAchievementUnlock = useCallback((achievement: Achievement) => {
+    // Prevent duplicate queuing
+    if (queuedUnlockIdsRef.current.has(achievement.id)) {
+      return;
+    }
+    queuedUnlockIdsRef.current.add(achievement.id);
+
     const rewards = calculateRewards(achievement);
     const event: AchievementUnlockEvent = { achievement, rewards };
 
@@ -1317,13 +1325,32 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       );
     };
 
+    // Listen for unlock events from other hook instances (syncs pendingUnlock across instances)
+    const handleUnlockEvent = (e: CustomEvent<AchievementUnlockEvent>) => {
+      const unlockEvent = e.detail;
+      // Prevent duplicates - check if already queued
+      if (queuedUnlockIdsRef.current.has(unlockEvent.achievement.id)) {
+        return;
+      }
+      queuedUnlockIdsRef.current.add(unlockEvent.achievement.id);
+
+      // Queue this unlock in this hook instance too
+      if (pendingUnlock === null) {
+        setPendingUnlock(unlockEvent);
+      } else {
+        pendingUnlockQueue.current.push(unlockEvent);
+      }
+    };
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener(ACHIEVEMENT_CLAIMED_EVENT, handleClaimEvent as EventListener);
+    window.addEventListener(ACHIEVEMENT_UNLOCK_EVENT, handleUnlockEvent as EventListener);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener(ACHIEVEMENT_CLAIMED_EVENT, handleClaimEvent as EventListener);
+      window.removeEventListener(ACHIEVEMENT_UNLOCK_EVENT, handleUnlockEvent as EventListener);
     };
-  }, [loadAchievementData, mergeWithDefinitions]);
+  }, [loadAchievementData, mergeWithDefinitions, pendingUnlock]);
 
   // Check achievement-based achievements when unlocks change
   useEffect(() => {
