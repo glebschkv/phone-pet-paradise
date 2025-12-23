@@ -1608,6 +1608,29 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       animationSpeed: 10
     }
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW SPRITES - Birds
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'bluejay',
+    name: 'Blue Jay',
+    emoji: '🐦',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'A vibrant blue jay with distinctive markings and a bold personality. Known for its intelligence and striking plumage.',
+    abilities: ['Sky Dance', 'Blue Flash', 'Forest Call', 'Wing Gust'],
+    biome: 'Meadow',
+    coinPrice: 1200,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/BlueJay_Fly.png',
+      frameCount: 4,
+      frameWidth: 28,
+      frameHeight: 28,
+      animationSpeed: 12
+    }
+  },
 ];
 
 // Biome configuration with background images
@@ -1725,7 +1748,7 @@ export const getAnimalsCountByRarity = (): Record<string, number> => {
 };
 
 // Flying animals (birds and bats) that should appear in the sky instead of walking
-const FLYING_ANIMAL_IDS = ['bird', 'vampire-bat', 'flying-dragon', 'fire-dragon', 'frost-dragon'];
+const FLYING_ANIMAL_IDS = ['bird', 'bluejay', 'vampire-bat', 'flying-dragon', 'fire-dragon', 'frost-dragon'];
 
 export const isFlyingAnimal = (animalId: string): boolean => {
   return FLYING_ANIMAL_IDS.includes(animalId);
