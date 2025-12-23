@@ -47,19 +47,19 @@ interface BonusResult {
 const calculateRandomBonus = (): BonusResult => {
   const roll = Math.random() * 100;
 
-  // 2% chance: Jackpot (2x XP)
-  if (roll < 2) {
-    return { hasBonusXP: true, bonusMultiplier: 2.0, bonusType: 'jackpot' };
+  // 5% chance: Jackpot (2.5x XP) - matches local XP system
+  if (roll < 5) {
+    return { hasBonusXP: true, bonusMultiplier: 2.5, bonusType: 'jackpot' };
   }
-  // 5% chance: Super Lucky (1.5x XP)
-  if (roll < 7) {
-    return { hasBonusXP: true, bonusMultiplier: 1.5, bonusType: 'super_lucky' };
+  // 10% chance: Super Lucky (1.75x XP) - matches local XP system
+  if (roll < 15) {
+    return { hasBonusXP: true, bonusMultiplier: 1.75, bonusType: 'super_lucky' };
   }
-  // 13% chance: Lucky (1.25x XP)
-  if (roll < 20) {
-    return { hasBonusXP: true, bonusMultiplier: 1.25, bonusType: 'lucky' };
+  // 20% chance: Lucky (1.5x XP) - matches local XP system
+  if (roll < 35) {
+    return { hasBonusXP: true, bonusMultiplier: 1.5, bonusType: 'lucky' };
   }
-  // 80% chance: No bonus
+  // 65% chance: No bonus
   return { hasBonusXP: false, bonusMultiplier: 1.0, bonusType: 'none' };
 };
 

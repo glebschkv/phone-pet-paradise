@@ -299,12 +299,42 @@ export const UnifiedFocusTimer = () => {
 
   // Handle session notes save
   const handleSessionNotesSave = useCallback((notes: string, rating: number) => {
-    // TODO: Save notes to analytics/backend
-    console.log('Session notes:', { notes, rating });
+    // Save session notes to localStorage for persistence
+    try {
+      const sessionNotesKey = 'petIsland_sessionNotes';
+      const existingNotes = localStorage.getItem(sessionNotesKey);
+      const notesArray = existingNotes ? JSON.parse(existingNotes) : [];
+
+      // Add the new note with metadata
+      notesArray.push({
+        id: Date.now(),
+        notes,
+        rating,
+        sessionDuration: timerState.sessionDuration,
+        category: timerState.category,
+        taskLabel: timerState.taskLabel,
+        xpEarned: lastSessionXP,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Keep only the last 100 notes to prevent storage bloat
+      const trimmedNotes = notesArray.slice(-100);
+      localStorage.setItem(sessionNotesKey, JSON.stringify(trimmedNotes));
+
+      // Dispatch event for analytics tracking
+      dispatchAchievementEvent(ACHIEVEMENT_EVENTS.FOCUS_SESSION_COMPLETE, {
+        minutes: timerState.sessionDuration / 60,
+        hasNotes: notes.length > 0,
+        rating,
+      });
+    } catch (error) {
+      console.error('Failed to save session notes:', error);
+    }
+
     setShowSessionNotesModal(false);
     // Show break transition modal after notes
     setShowBreakTransitionModal(true);
-  }, []);
+  }, [timerState.sessionDuration, timerState.category, timerState.taskLabel, lastSessionXP]);
 
   // Handle starting a break
   const handleStartBreak = useCallback((duration: number) => {

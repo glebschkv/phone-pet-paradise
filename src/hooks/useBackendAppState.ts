@@ -203,25 +203,27 @@ export const useBackendAppState = () => {
 
   // Get pet interaction handler
   const interactWithPet = useCallback(async (petType: string, interactionType: string = 'play') => {
+    // Get bond level before interaction to detect level ups
+    const previousBondLevel = bondSystem.getBondLevel(petType);
+
     const interaction = await bondSystem.interactWithPet(petType, interactionType);
-    
+
     // Update quest progress for pet interactions
     await quests.updateQuestProgress('pet_interaction', 1);
-    
-    // For now, just return a simple interaction result
-    // TODO: Implement bond level up detection when bondSystem is integrated with backend
-    const bondLevelUp = false;
-    const newBondLevel = 1;
-    
+
+    // Get new bond level after interaction to detect level up
+    const newBondLevel = bondSystem.getBondLevel(petType);
+    const bondLevelUp = newBondLevel > previousBondLevel;
+
     if (bondLevelUp) {
       toast.success(`Bond Level Up!`, {
         description: `${petType} is now bond level ${newBondLevel}!`
       });
-      
+
       // Check for bond-related achievements
       await achievements.checkAndUnlockAchievements('bond_level', newBondLevel);
     }
-    
+
     return { bondLevelUp, newBondLevel, interaction };
   }, [bondSystem, quests, achievements]);
 
