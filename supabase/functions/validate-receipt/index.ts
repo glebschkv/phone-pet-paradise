@@ -2,6 +2,29 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
 import * as jose from 'https://deno.land/x/jose@v5.2.0/index.ts';
 
+// SECURITY: Simple in-memory rate limiting for receipt validation
+// Moderate rate limit - 20 requests per minute (to allow restore purchases)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 20; // 20 requests per minute per user
+
+function checkRateLimit(userId: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true };
+  }
+
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, retryAfter: Math.ceil((userLimit.resetTime - now) / 1000) };
+  }
+
+  userLimit.count++;
+  return { allowed: true };
+}
+
 /**
  * Server-side receipt validation for In-App Purchases (StoreKit 2)
  *
@@ -18,18 +41,42 @@ import * as jose from 'https://deno.land/x/jose@v5.2.0/index.ts';
  * 4. Store validated subscription in database
  */
 
-// CORS configuration
+// CORS configuration - environment-based for security
+// SECURITY: Production origins loaded from environment, localhost only in development
+const getProductionOrigins = (): string[] => {
+  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
+  if (envOrigins) {
+    return envOrigins.split(',').map(o => o.trim()).filter(Boolean);
+  }
+  return [];
+};
+
 const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
-  'http://localhost:8080',
+  // Mobile app origins (always allowed)
   'capacitor://localhost',
   'ionic://localhost',
+  // Production origins from environment
+  ...getProductionOrigins(),
 ];
 
+// Only allow localhost in development/test environments
+const isDevelopment = Deno.env.get('ENVIRONMENT') !== 'production';
+if (isDevelopment) {
+  ALLOWED_ORIGINS.push('http://localhost:5173', 'http://localhost:8080');
+}
+
 const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  // SECURITY: Strict origin validation - reject unknown origins
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
+    // Return restrictive headers for unknown origins
+    return {
+      'Access-Control-Allow-Origin': 'null',
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    };
+  }
   return {
-    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
@@ -162,31 +209,40 @@ async function verifyAndDecodeJWS(signedTransaction: string): Promise<JWSTransac
 /**
  * Validate the certificate chain from the JWS x5c header
  *
- * This performs basic validation. For production, consider using
- * a full PKI validation library.
+ * SECURITY: This performs essential validation of Apple's certificate chain.
+ * A valid chain must have at least 2 certificates (leaf + intermediate).
  */
 async function validateCertificateChain(x5cChain: string[]): Promise<void> {
+  // SECURITY: Require at least 2 certificates in the chain
+  // Apple's StoreKit 2 always provides a complete chain
   if (x5cChain.length < 2) {
-    // For sandbox/testing, Apple might use shorter chains
-    console.warn('Certificate chain has fewer than 2 certificates');
-    return;
+    throw new Error('Invalid certificate chain: must contain at least 2 certificates');
   }
 
   // Basic validation: ensure certificates are present and properly formatted
-  for (const cert of x5cChain) {
-    if (!cert || typeof cert !== 'string' || cert.length < 100) {
-      throw new Error('Invalid certificate in chain');
+  for (let i = 0; i < x5cChain.length; i++) {
+    const cert = x5cChain[i];
+    if (!cert || typeof cert !== 'string') {
+      throw new Error(`Invalid certificate at position ${i}: not a string`);
+    }
+    if (cert.length < 100) {
+      throw new Error(`Invalid certificate at position ${i}: too short`);
+    }
+    // Check for valid base64 characters
+    if (!/^[A-Za-z0-9+/=]+$/.test(cert)) {
+      throw new Error(`Invalid certificate at position ${i}: invalid base64 encoding`);
     }
   }
 
-  // In production, you would:
-  // 1. Build the certificate chain
-  // 2. Verify each certificate is signed by the next one in the chain
-  // 3. Verify the root certificate matches Apple's known root CA
-  // 4. Check certificate expiration dates
-  // 5. Check for certificate revocation
-
-  console.log('Certificate chain validation passed (basic)');
+  // Verify we can decode all certificates
+  for (let i = 0; i < x5cChain.length; i++) {
+    try {
+      const certPEM = `-----BEGIN CERTIFICATE-----\n${x5cChain[i].match(/.{1,64}/g)?.join('\n')}\n-----END CERTIFICATE-----`;
+      await jose.importX509(certPEM, 'ES256');
+    } catch (error) {
+      throw new Error(`Invalid certificate at position ${i}: failed to parse as X.509`);
+    }
+  }
 }
 
 /**
@@ -242,6 +298,18 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
+    // SECURITY: Check rate limit
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Rate limit exceeded. Please try again later.',
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(rateLimit.retryAfter || 60) },
+      });
+    }
+
     const requestBody: ReceiptValidationRequest = await req.json();
     const { signedTransaction, productId, transactionId, originalTransactionId, environment, platform } = requestBody;
 
@@ -249,7 +317,7 @@ serve(async (req) => {
       throw new Error('Missing required fields: signedTransaction, productId, and transactionId');
     }
 
-    console.log(`Validating receipt for user ${user.id}, product ${productId}, environment: ${environment}`);
+    // SECURITY: Don't log user IDs or product details to prevent information disclosure
 
     // Get product tier info
     const productInfo = PRODUCT_TIERS[productId];
@@ -258,39 +326,15 @@ serve(async (req) => {
     }
 
     // Verify and decode the JWS signed transaction
+    // SECURITY: Always require valid JWS verification - never bypass for any environment
     let transactionPayload: JWSTransactionDecodedPayload;
 
     try {
       transactionPayload = await verifyAndDecodeJWS(signedTransaction);
-      console.log('JWS verification successful:', {
-        transactionId: transactionPayload.transactionId,
-        productId: transactionPayload.productId,
-        environment: transactionPayload.environment,
-      });
     } catch (jwsError) {
-      // In sandbox/development, we might want to allow unverified transactions
-      // for testing purposes, but log a warning
-      if (environment === 'sandbox') {
-        console.warn('JWS verification failed in sandbox mode, proceeding with caution:', jwsError instanceof Error ? jwsError.message : 'Unknown error');
-        // Create a minimal payload from the request data for sandbox testing
-        transactionPayload = {
-          transactionId,
-          originalTransactionId: originalTransactionId || transactionId,
-          bundleId: EXPECTED_BUNDLE_ID,
-          productId,
-          purchaseDate: Date.now(),
-          originalPurchaseDate: Date.now(),
-          quantity: 1,
-          type: 'Auto-Renewable Subscription',
-          inAppOwnershipType: 'PURCHASED',
-          signedDate: Date.now(),
-          environment: 'Sandbox',
-          storefront: 'USA',
-          storefrontId: '143441',
-        };
-      } else {
-        throw new Error(`JWS verification failed: ${jwsError instanceof Error ? jwsError.message : 'Unknown error'}`);
-      }
+      // SECURITY: Never bypass JWS verification, even in sandbox mode
+      // Apple's sandbox environment provides valid signed transactions for testing
+      throw new Error(`JWS verification failed: ${jwsError instanceof Error ? jwsError.message : 'Unknown error'}`);
     }
 
     // Validate the transaction payload
@@ -323,7 +367,7 @@ serve(async (req) => {
       .single();
 
     if (existingSubscription) {
-      console.log(`Transaction ${transactionPayload.transactionId} already processed`);
+      // Transaction already processed - return cached result
       return new Response(JSON.stringify({
         success: true,
         message: 'Transaction already processed',
@@ -380,7 +424,7 @@ serve(async (req) => {
       // The client can retry or the user can restore purchases later
     }
 
-    console.log(`Successfully validated subscription for user ${user.id}: ${productInfo.tier} (${productInfo.period})`);
+    // Subscription validated successfully
 
     return new Response(JSON.stringify({
       success: true,

@@ -134,18 +134,70 @@ export const useDataBackup = () => {
     }
   }, [collectAppData, toast]);
 
+  // SECURITY: Validate backup data structure thoroughly
+  const validateBackupData = (data: unknown): data is BackupData => {
+    if (!data || typeof data !== 'object') {
+      return false;
+    }
+
+    const backup = data as Record<string, unknown>;
+
+    // Required fields
+    if (typeof backup.version !== 'string' || !backup.version) {
+      return false;
+    }
+    if (typeof backup.timestamp !== 'number' || backup.timestamp <= 0) {
+      return false;
+    }
+
+    // Validate timestamp is not in the future (prevent tampering)
+    if (backup.timestamp > Date.now() + 60000) { // Allow 1 minute tolerance
+      return false;
+    }
+
+    // Optional fields must be objects if present
+    const optionalFields = ['appState', 'xpSystem', 'streakSystem', 'settings', 'onboarding'];
+    for (const field of optionalFields) {
+      if (backup[field] !== undefined && (typeof backup[field] !== 'object' || backup[field] === null)) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   // Restore from backup file
   const restoreBackup = useCallback(async (file: File) => {
     setIsRestoringBackup(true);
-    
+
     try {
-      const text = await file.text();
-      const data: BackupData = JSON.parse(text);
-      
-      // Validate backup structure
-      if (!data.version || !data.timestamp) {
-        throw new Error('Invalid backup file format');
+      // SECURITY: Validate file size (max 10MB)
+      const MAX_FILE_SIZE = 10 * 1024 * 1024;
+      if (file.size > MAX_FILE_SIZE) {
+        throw new Error('Backup file is too large (max 10MB)');
       }
+
+      // SECURITY: Validate file type
+      if (!file.name.endsWith('.json')) {
+        throw new Error('Invalid file type. Please select a JSON backup file');
+      }
+
+      const text = await file.text();
+
+      // SECURITY: Parse JSON safely
+      let parsedData: unknown;
+      try {
+        parsedData = JSON.parse(text);
+      } catch {
+        throw new Error('Invalid JSON format in backup file');
+      }
+
+      // SECURITY: Validate backup structure thoroughly
+      if (!validateBackupData(parsedData)) {
+        throw new Error('Invalid backup file structure');
+      }
+
+      const data = parsedData;
       
       // Confirm restore with user
       const confirmed = window.confirm(

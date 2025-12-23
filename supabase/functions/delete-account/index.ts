@@ -1,18 +1,64 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
 
-// CORS configuration
+// SECURITY: Simple in-memory rate limiting for account deletion
+// Extra restrictive - only 3 attempts per 10 minutes
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 600000; // 10 minutes
+const RATE_LIMIT_MAX_REQUESTS = 3; // 3 requests per 10 minutes per user
+
+function checkRateLimit(userId: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true };
+  }
+
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, retryAfter: Math.ceil((userLimit.resetTime - now) / 1000) };
+  }
+
+  userLimit.count++;
+  return { allowed: true };
+}
+
+// CORS configuration - environment-based for security
+// SECURITY: Production origins loaded from environment, localhost only in development
+const getProductionOrigins = (): string[] => {
+  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
+  if (envOrigins) {
+    return envOrigins.split(',').map(o => o.trim()).filter(Boolean);
+  }
+  return [];
+};
+
 const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
-  'http://localhost:8080',
+  // Mobile app origins (always allowed)
   'capacitor://localhost',
   'ionic://localhost',
+  // Production origins from environment
+  ...getProductionOrigins(),
 ];
 
+// Only allow localhost in development/test environments
+const isDevelopment = Deno.env.get('ENVIRONMENT') !== 'production';
+if (isDevelopment) {
+  ALLOWED_ORIGINS.push('http://localhost:5173', 'http://localhost:8080');
+}
+
 const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  // SECURITY: Strict origin validation - reject unknown origins
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
+    return {
+      'Access-Control-Allow-Origin': 'null',
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    };
+  }
   return {
-    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
@@ -47,7 +93,19 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    console.log(`Starting account deletion for user ${user.id}`);
+    // SECURITY: Check rate limit (extra restrictive for account deletion)
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Rate limit exceeded. Please try again later.',
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(rateLimit.retryAfter || 600) },
+      });
+    }
+
+    // SECURITY: Don't log user IDs to prevent information disclosure
 
     // Create admin client for user deletion (requires service role key)
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -142,7 +200,7 @@ serve(async (req) => {
       throw new Error(`Failed to delete user: ${deleteUserError.message}`);
     }
 
-    console.log(`Account deletion complete for user ${user.id}`);
+    // Account deletion completed successfully
 
     return new Response(JSON.stringify({
       success: true,
