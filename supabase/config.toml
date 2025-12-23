@@ -2,12 +2,17 @@ project_id = "slpuitnaizlsemvedjge"
 
 [auth]
 enabled = true
+# PRODUCTION: Update site_url to your production domain
+# Example: site_url = "https://app.nomoinc.co"
 site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000"]
+# PRODUCTION: Add your production domain and any other redirect URLs
+# Example: additional_redirect_urls = ["https://app.nomoinc.co", "https://www.nomoinc.co", "capacitor://localhost", "ionic://localhost"]
+additional_redirect_urls = ["https://localhost:3000", "capacitor://localhost", "ionic://localhost"]
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
+# PRODUCTION: Set to true to require email verification
 enable_confirmations = false
 
 [db]

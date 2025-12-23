@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,6 +40,12 @@ export const PetInteraction = ({ petName, petType, onStatsUpdate }: PetInteracti
 
   const [isInteracting, setIsInteracting] = useState(false);
 
+  // Use ref for callback to prevent interval recreation on parent re-renders
+  const onStatsUpdateRef = useRef(onStatsUpdate);
+  useEffect(() => {
+    onStatsUpdateRef.current = onStatsUpdate;
+  }, [onStatsUpdate]);
+
   useEffect(() => {
     // Simulate stat decay over time
     const interval = setInterval(() => {
@@ -63,13 +69,14 @@ export const PetInteraction = ({ petName, petType, onStatsUpdate }: PetInteracti
         // Energy regenerates over time
         newStats.energy = Math.min(100, newStats.energy + 1);
 
-        onStatsUpdate?.(newStats);
+        // Use ref to call latest callback without recreating interval
+        onStatsUpdateRef.current?.(newStats);
         return newStats;
       });
     }, 60000); // Update every minute
 
     return () => clearInterval(interval);
-  }, [onStatsUpdate]);
+  }, []); // Empty deps - interval never recreated
 
   const feedPet = async () => {
     if (stats.hunger > 80) {

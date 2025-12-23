@@ -1,14 +1,17 @@
 /**
  * Error Reporting Service
  *
- * A simple error reporting service that can be extended with Sentry, Bugsnag, etc.
- * Currently logs errors to console and stores recent errors locally for debugging.
+ * Provides error tracking with Sentry integration for production
+ * and local storage fallback for development debugging.
  *
- * To add Sentry in the future:
- * 1. npm install @sentry/react @sentry/capacitor
- * 2. Initialize Sentry in main.tsx
- * 3. Replace reportError with Sentry.captureException
+ * Setup:
+ * 1. npm install @sentry/react
+ * 2. Set VITE_SENTRY_DSN in your .env file
+ * 3. Errors will automatically be sent to Sentry in production
  */
+
+import * as Sentry from '@sentry/react';
+import { env } from './env';
 
 const ERROR_STORAGE_KEY = 'nomo_error_log';
 const MAX_STORED_ERRORS = 50;
@@ -23,6 +26,8 @@ interface ErrorReport {
   url: string;
   componentStack?: string;
 }
+
+let isInitialized = false;
 
 // Store errors locally for debugging
 const getStoredErrors = (): ErrorReport[] => {
@@ -71,17 +76,23 @@ export const reportError = (
   };
 
   // Log to console in development
-  console.error('[ErrorReporting] Error captured:', errorReport);
+  if (env().isDevelopment) {
+    console.error('[ErrorReporting] Error captured:', errorReport);
+  }
 
-  // Store locally
+  // Store locally for debugging
   storeError(errorReport);
 
-  // TODO: Send to remote error tracking service
-  // Example with Sentry:
-  // Sentry.captureException(error, { extra: context });
-
-  // Example with custom backend:
-  // sendErrorToBackend(errorReport);
+  // Send to Sentry if initialized
+  if (isInitialized) {
+    Sentry.captureException(error, {
+      extra: {
+        ...context,
+        componentStack,
+        errorId: errorReport.id,
+      },
+    });
+  }
 };
 
 /**
@@ -91,9 +102,17 @@ export const reportWarning = (
   message: string,
   context?: Record<string, unknown>
 ): void => {
-  console.warn('[ErrorReporting] Warning:', message, context);
+  if (env().isDevelopment) {
+    console.warn('[ErrorReporting] Warning:', message, context);
+  }
 
-  // Could be sent to analytics or error tracking as a lower-priority issue
+  // Send to Sentry as a message (not an error)
+  if (isInitialized) {
+    Sentry.captureMessage(message, {
+      level: 'warning',
+      extra: context,
+    });
+  }
 };
 
 /**
@@ -104,9 +123,13 @@ export const setUserContext = (userId: string, email?: string): void => {
   // Store in sessionStorage for inclusion in error reports
   sessionStorage.setItem('error_user_context', JSON.stringify({ userId, email }));
 
-  // TODO: Set user context in error tracking service
-  // Example with Sentry:
-  // Sentry.setUser({ id: userId, email });
+  // Set user context in Sentry
+  if (isInitialized) {
+    Sentry.setUser({
+      id: userId,
+      email: email,
+    });
+  }
 };
 
 /**
@@ -116,9 +139,10 @@ export const setUserContext = (userId: string, email?: string): void => {
 export const clearUserContext = (): void => {
   sessionStorage.removeItem('error_user_context');
 
-  // TODO: Clear user context in error tracking service
-  // Example with Sentry:
-  // Sentry.setUser(null);
+  // Clear user context in Sentry
+  if (isInitialized) {
+    Sentry.setUser(null);
+  }
 };
 
 /**
@@ -174,21 +198,73 @@ export const globalPromiseRejectionHandler = (event: PromiseRejectionEvent): voi
 };
 
 /**
- * Initialize global error handlers
- * Call this in main.tsx
+ * Initialize error reporting
+ * Call this in main.tsx before rendering the app
  */
 export const initializeErrorReporting = (): void => {
+  const config = env();
+
+  // Initialize Sentry if DSN is configured
+  if (config.sentryDsn) {
+    Sentry.init({
+      dsn: config.sentryDsn,
+      environment: config.mode,
+      release: `nomo-phone@${config.appVersion}`,
+
+      // Only send errors in production by default
+      enabled: config.isProduction,
+
+      // Configure error filtering
+      beforeSend(event) {
+        // Don't send errors that contain sensitive data patterns
+        const errorMessage = event.exception?.values?.[0]?.value || '';
+        if (
+          errorMessage.includes('Bearer') ||
+          errorMessage.includes('password') ||
+          errorMessage.includes('api_key')
+        ) {
+          // Sanitize the message
+          if (event.exception?.values?.[0]) {
+            event.exception.values[0].value = '[Sanitized - contained sensitive data]';
+          }
+        }
+        return event;
+      },
+
+      // Set sample rates
+      tracesSampleRate: config.isProduction ? 0.1 : 1.0,
+      replaysSessionSampleRate: 0,
+      replaysOnErrorSampleRate: config.isProduction ? 0.1 : 0,
+
+      // Ignore common non-actionable errors
+      ignoreErrors: [
+        'ResizeObserver loop limit exceeded',
+        'ResizeObserver loop completed with undelivered notifications',
+        'Non-Error promise rejection captured',
+        /Loading chunk .* failed/,
+        /Network request failed/,
+      ],
+    });
+
+    isInitialized = true;
+    console.log('[ErrorReporting] Sentry initialized');
+  } else {
+    console.log('[ErrorReporting] Sentry DSN not configured - using local storage only');
+  }
+
   // Attach global handlers
   window.onerror = globalErrorHandler;
   window.onunhandledrejection = globalPromiseRejectionHandler;
 
   console.log('[ErrorReporting] Initialized');
-
-  // TODO: Initialize Sentry or other error tracking service here
-  // Example:
-  // Sentry.init({
-  //   dsn: 'YOUR_SENTRY_DSN',
-  //   environment: import.meta.env.MODE,
-  //   release: '1.0.0',
-  // });
 };
+
+/**
+ * Get the Sentry React error boundary for use with React components
+ */
+export const SentryErrorBoundary = Sentry.ErrorBoundary;
+
+/**
+ * Wrap a component with Sentry profiling (for performance monitoring)
+ */
+export const withSentryProfiler = Sentry.withProfiler;
