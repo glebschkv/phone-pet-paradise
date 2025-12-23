@@ -646,10 +646,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     isExclusive: true,
     spriteConfig: {
       spritePath: '/assets/sprites/DRAGON1_Flight.png',
-      frameCount: 12,
-      frameWidth: 256,
+      frameCount: 6,
+      frameWidth: 512,
       frameHeight: 256,
-      animationSpeed: 14
+      animationSpeed: 8
     }
   },
   {
@@ -665,10 +665,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     isExclusive: true,
     spriteConfig: {
       spritePath: '/assets/sprites/DRAGON2_Flight.png',
-      frameCount: 12,
-      frameWidth: 256,
+      frameCount: 6,
+      frameWidth: 512,
       frameHeight: 256,
-      animationSpeed: 14
+      animationSpeed: 8
     }
   },
   {
@@ -684,10 +684,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     isExclusive: true,
     spriteConfig: {
       spritePath: '/assets/sprites/DRAGON3_Flight.png',
-      frameCount: 12,
-      frameWidth: 256,
+      frameCount: 6,
+      frameWidth: 512,
       frameHeight: 256,
-      animationSpeed: 14
+      animationSpeed: 8
     }
   },
   {
