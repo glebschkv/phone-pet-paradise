@@ -168,7 +168,27 @@ serve(async (req) => {
       });
     }
 
-    const { triggerType, sessionMinutes } = await req.json();
+    const body = await req.json();
+    const { triggerType, sessionMinutes } = body;
+
+    // SECURITY: Validate input parameters
+    if (triggerType && typeof triggerType !== 'string') {
+      throw new Error('Invalid trigger type');
+    }
+
+    // Validate sessionMinutes if provided (used for single_session achievements)
+    let validatedSessionMinutes: number | undefined;
+    if (sessionMinutes !== undefined) {
+      if (typeof sessionMinutes !== 'number' || !Number.isFinite(sessionMinutes)) {
+        throw new Error('Invalid session duration');
+      }
+      // Apply same max limit as calculate-xp (480 minutes = 8 hours)
+      const MAX_SESSION_MINUTES = 480;
+      if (sessionMinutes < 0 || sessionMinutes > MAX_SESSION_MINUTES) {
+        throw new Error('Session duration out of range');
+      }
+      validatedSessionMinutes = Math.floor(sessionMinutes);
+    }
 
     // SECURITY: Don't log user IDs or session details to prevent information disclosure
 
@@ -226,8 +246,8 @@ serve(async (req) => {
           break;
         
         case 'single_session':
-          if (triggerType === 'session_complete' && sessionMinutes) {
-            shouldUnlock = sessionMinutes >= achievement.target;
+          if (triggerType === 'session_complete' && validatedSessionMinutes !== undefined) {
+            shouldUnlock = validatedSessionMinutes >= achievement.target;
           }
           break;
         
