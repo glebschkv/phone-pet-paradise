@@ -1,20 +1,63 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
 
-// CORS configuration - restrict to your app's domains in production
+// SECURITY: Simple in-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per user
+
+function checkRateLimit(userId: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true };
+  }
+
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, retryAfter: Math.ceil((userLimit.resetTime - now) / 1000) };
+  }
+
+  userLimit.count++;
+  return { allowed: true };
+}
+
+// CORS configuration - environment-based for security
+// SECURITY: Production origins loaded from environment, localhost only in development
+const getProductionOrigins = (): string[] => {
+  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
+  if (envOrigins) {
+    return envOrigins.split(',').map(o => o.trim()).filter(Boolean);
+  }
+  return [];
+};
+
 const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
-  'http://localhost:8080',
+  // Mobile app origins (always allowed)
   'capacitor://localhost',
   'ionic://localhost',
-  // Add your production domain here, e.g.:
-  // 'https://your-app.com',
+  // Production origins from environment
+  ...getProductionOrigins(),
 ];
 
+// Only allow localhost in development/test environments
+const isDevelopment = Deno.env.get('ENVIRONMENT') !== 'production';
+if (isDevelopment) {
+  ALLOWED_ORIGINS.push('http://localhost:5173', 'http://localhost:8080');
+}
+
 const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  // SECURITY: Strict origin validation - reject unknown origins
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
+    return {
+      'Access-Control-Allow-Origin': 'null',
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    };
+  }
   return {
-    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
@@ -113,9 +156,21 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
+    // SECURITY: Check rate limit
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Rate limit exceeded. Please try again later.',
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(rateLimit.retryAfter || 60) },
+      });
+    }
+
     const { triggerType, sessionMinutes } = await req.json();
 
-    console.log(`Processing achievements for user ${user.id}, trigger: ${triggerType}, session: ${sessionMinutes}`);
+    // SECURITY: Don't log user IDs or session details to prevent information disclosure
 
     // Get user's current achievements
     const { data: existingAchievements, error: achievementsError } = await supabase
@@ -197,7 +252,7 @@ serve(async (req) => {
             console.error(`Failed to insert achievement ${achievement.title}:`, insertError);
           } else {
             newlyUnlocked.push(achievement);
-            console.log(`Unlocked achievement: ${achievement.title} for user ${user.id}`);
+            // Achievement unlocked successfully
           }
         } catch (error) {
           console.error(`Error inserting achievement ${achievement.title}:`, error);

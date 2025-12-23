@@ -134,14 +134,48 @@ export function isValidEmail(email: string): boolean {
 
 /**
  * Validate password strength
+ * SECURITY: Enforce strong password requirements
  */
 export function validatePassword(password: string): { valid: boolean; message: string } {
-  if (password.length < 6) {
-    return { valid: false, message: 'Password must be at least 6 characters' };
-  }
+  // Minimum length requirement
   if (password.length < 8) {
-    return { valid: true, message: 'Consider using a longer password for better security' };
+    return { valid: false, message: 'Password must be at least 8 characters' };
   }
+
+  // Check for uppercase letter
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, message: 'Password must contain at least one uppercase letter' };
+  }
+
+  // Check for lowercase letter
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, message: 'Password must contain at least one lowercase letter' };
+  }
+
+  // Check for number
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, message: 'Password must contain at least one number' };
+  }
+
+  // Check for special character
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    return { valid: false, message: 'Password must contain at least one special character' };
+  }
+
+  // Check against common weak passwords
+  const commonPasswords = [
+    'password', 'password1', '12345678', 'qwerty123', 'letmein1',
+    'welcome1', 'admin123', 'iloveyou', 'sunshine1', 'princess1'
+  ];
+  if (commonPasswords.some(weak => password.toLowerCase().includes(weak))) {
+    return { valid: false, message: 'Password is too common. Please choose a stronger password' };
+  }
+
+  // Suggest longer password for maximum security
+  if (password.length < 12) {
+    return { valid: true, message: 'Consider using 12+ characters for maximum security' };
+  }
+
   return { valid: true, message: '' };
 }
 

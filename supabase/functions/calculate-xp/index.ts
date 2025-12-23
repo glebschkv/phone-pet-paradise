@@ -1,20 +1,76 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
 
-// CORS configuration - restrict to your app's domains in production
+// SECURITY: Simple in-memory rate limiting
+// Note: In production with multiple instances, use Redis or similar
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per user
+
+function checkRateLimit(userId: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+
+  if (!userLimit || now > userLimit.resetTime) {
+    // Reset or create new rate limit entry
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true };
+  }
+
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfter = Math.ceil((userLimit.resetTime - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+
+  userLimit.count++;
+  return { allowed: true };
+}
+
+// Clean up old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [userId, limit] of rateLimitMap.entries()) {
+    if (now > limit.resetTime) {
+      rateLimitMap.delete(userId);
+    }
+  }
+}, RATE_LIMIT_WINDOW_MS);
+
+// CORS configuration - environment-based for security
+// SECURITY: Production origins loaded from environment, localhost only in development
+const getProductionOrigins = (): string[] => {
+  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
+  if (envOrigins) {
+    return envOrigins.split(',').map(o => o.trim()).filter(Boolean);
+  }
+  return [];
+};
+
 const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
-  'http://localhost:8080',
+  // Mobile app origins (always allowed)
   'capacitor://localhost',
   'ionic://localhost',
-  // Add your production domain here, e.g.:
-  // 'https://your-app.com',
+  // Production origins from environment
+  ...getProductionOrigins(),
 ];
 
+// Only allow localhost in development/test environments
+const isDevelopment = Deno.env.get('ENVIRONMENT') !== 'production';
+if (isDevelopment) {
+  ALLOWED_ORIGINS.push('http://localhost:5173', 'http://localhost:8080');
+}
+
 const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  // SECURITY: Strict origin validation - reject unknown origins
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
+    return {
+      'Access-Control-Allow-Origin': 'null',
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    };
+  }
   return {
-    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
@@ -99,16 +155,47 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { sessionMinutes } = await req.json();
-
-    if (!sessionMinutes || sessionMinutes < 1) {
-      throw new Error('Invalid session duration');
+    // SECURITY: Check rate limit
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Rate limit exceeded. Please try again later.',
+      }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+          'Retry-After': String(rateLimit.retryAfter || 60),
+        },
+      });
     }
 
-    console.log(`Calculating XP for ${sessionMinutes} minute session for user ${user.id}`);
+    const body = await req.json();
+    const { sessionMinutes } = body;
 
-    // Calculate XP
-    const xpGained = calculateXPFromDuration(sessionMinutes);
+    // SECURITY: Comprehensive input validation
+    // Validate type
+    if (typeof sessionMinutes !== 'number' || !Number.isFinite(sessionMinutes)) {
+      throw new Error('Invalid session duration: must be a valid number');
+    }
+
+    // Validate minimum duration
+    if (sessionMinutes < 1) {
+      throw new Error('Invalid session duration: must be at least 1 minute');
+    }
+
+    // SECURITY: Validate maximum duration (8 hours = 480 minutes is a reasonable max for a single session)
+    const MAX_SESSION_MINUTES = 480;
+    if (sessionMinutes > MAX_SESSION_MINUTES) {
+      throw new Error(`Invalid session duration: cannot exceed ${MAX_SESSION_MINUTES} minutes`);
+    }
+
+    // Ensure it's an integer (no fractional minutes)
+    const validatedMinutes = Math.floor(sessionMinutes);
+
+    // Calculate XP using validated minutes
+    const xpGained = calculateXPFromDuration(validatedMinutes);
     
     // Get current user progress
     const { data: currentProgress, error: progressError } = await supabase
@@ -150,12 +237,12 @@ serve(async (req) => {
       throw new Error(`Failed to update progress: ${updateError.message}`);
     }
 
-    // Record the focus session
+    // Record the focus session using validated minutes
     const { error: sessionError } = await supabase
       .from('focus_sessions')
       .insert({
         user_id: user.id,
-        duration_minutes: sessionMinutes,
+        duration_minutes: validatedMinutes,
         xp_earned: xpGained,
         session_type: 'focus'
       });
@@ -165,7 +252,7 @@ serve(async (req) => {
       // Don't throw here, the XP calculation was successful
     }
 
-    console.log(`XP calculation complete: ${xpGained} XP gained, level ${oldLevel} -> ${newLevel}`);
+    // XP calculation completed successfully
 
     return new Response(JSON.stringify({
       success: true,
