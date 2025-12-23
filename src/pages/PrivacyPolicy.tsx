@@ -9,7 +9,7 @@ const PrivacyPolicy = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-indigo-950 text-white">
-      <div className="sticky top-0 z-10 bg-blue-900/95 backdrop-blur-sm border-b border-white/10 px-4 py-3">
+      <div className="sticky top-0 z-10 bg-blue-900/95 backdrop-blur-sm border-b border-white/10 px-4 py-3 pt-safe">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
           <Button
             variant="ghost"

@@ -45,6 +45,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
 
 	<!-- Privacy Usage Descriptions -->
 	<key>NSUserTrackingUsageDescription</key>
