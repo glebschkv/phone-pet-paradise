@@ -44,6 +44,7 @@ export interface AchievementSystemReturn {
 
 const ACHIEVEMENT_STORAGE_KEY = 'achievement-system-data';
 const ACHIEVEMENT_UNLOCK_EVENT = 'achievement-unlocked';
+const ACHIEVEMENT_CLAIMED_EVENT = 'achievement-claimed';
 
 // Achievement definitions with BOOSTED rewards for satisfying progression!
 const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'progress' | 'isUnlocked' | 'unlockedAt' | 'rewardsClaimed'>[] = [
@@ -832,6 +833,8 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [pendingUnlock, setPendingUnlock] = useState<AchievementUnlockEvent | null>(null);
   const pendingUnlockQueue = useRef<AchievementUnlockEvent[]>([]);
+  // Track claimed achievement IDs synchronously to prevent race conditions
+  const claimedIdsRef = useRef<Set<string>>(new Set());
 
   // Initialize achievements from definitions
   const initializeAchievements = useCallback(() => {
@@ -876,20 +879,49 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       if (saved) {
         const data = JSON.parse(saved);
         const merged = mergeWithDefinitions(data.achievements || []);
+        // Initialize claimed IDs ref from stored data
+        claimedIdsRef.current = new Set(
+          merged.filter(a => a.rewardsClaimed).map(a => a.id)
+        );
         setAchievements(merged);
       } else {
+        claimedIdsRef.current = new Set();
         setAchievements(initializeAchievements());
       }
     } catch (error) {
       console.error('Failed to load achievement data:', error);
+      claimedIdsRef.current = new Set();
       setAchievements(initializeAchievements());
     }
   }, [initializeAchievements, mergeWithDefinitions]);
 
-  // Save achievement data
+  // Save achievement data (merges to preserve claimed status from other instances)
   const saveAchievementData = useCallback((achievementData: Achievement[]) => {
     try {
-      localStorage.setItem(ACHIEVEMENT_STORAGE_KEY, JSON.stringify({ achievements: achievementData }));
+      // Read current localStorage to preserve any claimed status set by other instances
+      const saved = localStorage.getItem(ACHIEVEMENT_STORAGE_KEY);
+      let mergedData = achievementData;
+
+      if (saved) {
+        const currentData = JSON.parse(saved);
+        const currentAchievements: Achievement[] = currentData.achievements || [];
+        const claimedIds = new Set(
+          currentAchievements
+            .filter(a => a.rewardsClaimed)
+            .map(a => a.id)
+        );
+
+        // Merge: preserve any claimed status from localStorage
+        mergedData = achievementData.map(a => ({
+          ...a,
+          rewardsClaimed: a.rewardsClaimed || claimedIds.has(a.id)
+        }));
+
+        // Also update the ref with any newly discovered claimed IDs
+        claimedIds.forEach(id => claimedIdsRef.current.add(id));
+      }
+
+      localStorage.setItem(ACHIEVEMENT_STORAGE_KEY, JSON.stringify({ achievements: mergedData }));
     } catch (error) {
       console.error('Failed to save achievement data:', error);
     }
@@ -937,14 +969,37 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
   // Claim rewards for an achievement (called externally)
   const claimRewards = useCallback((achievementId: string): { xp: number; coins: number } => {
+    // Synchronous check - prevents race conditions from multiple calls
+    if (claimedIdsRef.current.has(achievementId)) {
+      return { xp: 0, coins: 0 };
+    }
+
+    // Also check localStorage for cross-component sync
+    try {
+      const saved = localStorage.getItem(ACHIEVEMENT_STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        const savedAchievement = (data.achievements || []).find((a: Achievement) => a.id === achievementId);
+        if (savedAchievement?.rewardsClaimed) {
+          claimedIdsRef.current.add(achievementId);
+          return { xp: 0, coins: 0 };
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check localStorage:', error);
+    }
+
     const achievement = achievements.find(a => a.id === achievementId);
     if (!achievement || !achievement.isUnlocked || achievement.rewardsClaimed) {
       return { xp: 0, coins: 0 };
     }
 
+    // Mark as claimed IMMEDIATELY in ref to prevent race conditions
+    claimedIdsRef.current.add(achievementId);
+
     const rewards = calculateRewards(achievement);
 
-    // Mark rewards as claimed
+    // Mark rewards as claimed in state and persist
     setAchievements(prev => {
       const updated = prev.map(a =>
         a.id === achievementId ? { ...a, rewardsClaimed: true } : a
@@ -952,6 +1007,11 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       saveAchievementData(updated);
       return updated;
     });
+
+    // Dispatch event for same-tab sync across hook instances
+    window.dispatchEvent(new CustomEvent(ACHIEVEMENT_CLAIMED_EVENT, {
+      detail: { achievementId }
+    }));
 
     return rewards;
   }, [achievements, calculateRewards, saveAchievementData]);
@@ -1223,10 +1283,47 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
   // Computed values
   const unlockedAchievements = achievements.filter(a => a.isUnlocked);
 
-  // Initialize on mount
+  // Initialize on mount and listen for storage changes (cross-component sync)
   useEffect(() => {
     loadAchievementData();
-  }, [loadAchievementData]);
+
+    // Listen for storage changes from other components/tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === ACHIEVEMENT_STORAGE_KEY && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          const merged = mergeWithDefinitions(data.achievements || []);
+          // Update claimed IDs ref
+          claimedIdsRef.current = new Set(
+            merged.filter(a => a.rewardsClaimed).map(a => a.id)
+          );
+          setAchievements(merged);
+        } catch (error) {
+          console.error('Failed to sync achievement data:', error);
+        }
+      }
+    };
+
+    // Listen for claim events from other hook instances in the same tab
+    const handleClaimEvent = (e: CustomEvent<{ achievementId: string }>) => {
+      const { achievementId } = e.detail;
+      // Update ref immediately
+      claimedIdsRef.current.add(achievementId);
+      // Update state to reflect the claim
+      setAchievements(prev =>
+        prev.map(a =>
+          a.id === achievementId ? { ...a, rewardsClaimed: true } : a
+        )
+      );
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener(ACHIEVEMENT_CLAIMED_EVENT, handleClaimEvent as EventListener);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener(ACHIEVEMENT_CLAIMED_EVENT, handleClaimEvent as EventListener);
+    };
+  }, [loadAchievementData, mergeWithDefinitions]);
 
   // Check achievement-based achievements when unlocks change
   useEffect(() => {
