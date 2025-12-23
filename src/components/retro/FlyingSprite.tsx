@@ -219,6 +219,8 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
           backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
           backgroundRepeat: 'no-repeat',
           imageRendering: 'pixelated',
+          // Flip sprite horizontally so it faces the direction of movement (right)
+          transform: 'scaleX(-1)',
         }}
       />
     </div>
