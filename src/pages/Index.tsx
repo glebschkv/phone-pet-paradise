@@ -42,6 +42,8 @@ const Index = () => {
   useEffect(() => {
     // First check if there's an equipped background in shop inventory
     const shopInventory = localStorage.getItem(SHOP_INVENTORY_KEY);
+    let themeInitialized = false;
+
     if (shopInventory) {
       try {
         const parsed = JSON.parse(shopInventory);
@@ -51,7 +53,7 @@ const Index = () => {
           if (background?.previewImage) {
             setBackgroundTheme(background.previewImage);
             localStorage.setItem(HOME_BACKGROUND_KEY, background.previewImage);
-            return;
+            themeInitialized = true;
           }
         }
       } catch (error) {
@@ -59,18 +61,21 @@ const Index = () => {
       }
     }
 
-    // Fall back to saved theme or biome default
-    const savedTheme = localStorage.getItem(HOME_BACKGROUND_KEY);
-    if (savedTheme) {
-      setBackgroundTheme(savedTheme);
-    } else if (currentBiome) {
-      // Initialize background based on current biome
-      const biomeBackground = BIOME_TO_BACKGROUND[currentBiome] || 'day';
-      setBackgroundTheme(biomeBackground);
-      localStorage.setItem(HOME_BACKGROUND_KEY, biomeBackground);
+    // Fall back to saved theme or biome default if not initialized
+    if (!themeInitialized) {
+      const savedTheme = localStorage.getItem(HOME_BACKGROUND_KEY);
+      if (savedTheme) {
+        setBackgroundTheme(savedTheme);
+      } else if (currentBiome) {
+        // Initialize background based on current biome
+        const biomeBackground = BIOME_TO_BACKGROUND[currentBiome] || 'day';
+        setBackgroundTheme(biomeBackground);
+        localStorage.setItem(HOME_BACKGROUND_KEY, biomeBackground);
+      }
     }
 
     // Listen for background theme changes from Shop/Collection
+    // This must always be set up regardless of initialization path
     const handleThemeChange = (event: CustomEvent<string>) => {
       const newTheme = event.detail;
       setBackgroundTheme(newTheme);
