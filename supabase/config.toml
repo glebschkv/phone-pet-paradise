@@ -42,3 +42,9 @@ verify_jwt = true
 
 [functions.process-achievements]
 verify_jwt = true
+
+[functions.validate-receipt]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true
