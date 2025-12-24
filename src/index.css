@@ -721,31 +721,6 @@
     color: hsl(35 70% 20%);
   }
 
-  /* Test coin button (dev) */
-  .test-coin-btn {
-    padding: 4px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    background: linear-gradient(180deg, hsl(280 60% 60%) 0%, hsl(280 50% 45%) 100%);
-    color: white;
-    border: 1px solid hsl(280 40% 35%);
-    border-radius: 6px;
-    cursor: pointer;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: transform 0.1s, box-shadow 0.1s;
-  }
-
-  .test-coin-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
-  }
-
-  .test-coin-btn:active {
-    transform: scale(0.95);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  }
-
   /* Streak chip specific */
   .streak-chip {
     background: linear-gradient(

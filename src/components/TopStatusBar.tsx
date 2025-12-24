@@ -182,15 +182,6 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
           <span className="chip-value">{coinSystem.balance.toLocaleString()}</span>
         </div>
 
-        {/* Test button for dev - adds 100k coins */}
-        <button
-          onClick={() => coinSystem.addCoins(100000)}
-          className="test-coin-btn"
-          title="Add 100k coins (dev)"
-        >
-          +100k
-        </button>
-
         {/* Right section: Streak + Settings */}
         <div className="top-bar-right">
           <div className={`stat-chip streak-chip ${hasActiveStreak ? 'active' : ''}`}>
