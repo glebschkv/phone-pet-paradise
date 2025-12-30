@@ -1,7 +1,13 @@
+/**
+ * @deprecated This hook is not yet ready for production.
+ * The guild/team system is planned for a future release.
+ * Do not use this hook in production code.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { Guild, GuildMember, GuildChallenge, SAMPLE_GUILDS, getGuildLevel, GUILD_LEVEL_REQUIREMENTS } from '@/data/GamificationData';
 
+/** @deprecated Guild system not yet implemented */
 export interface GuildState {
   currentGuild: Guild | null;
   myContribution: number; // Weekly focus minutes
@@ -20,6 +26,10 @@ interface GuildProgress {
 
 const GUILD_UPDATE_EVENT = 'petIsland_guildUpdate';
 
+/**
+ * @deprecated This hook is not yet ready for production.
+ * The guild/team system is planned for a future release.
+ */
 export const useGuildSystem = () => {
   const [state, setState] = useState<GuildState>({
     currentGuild: null,

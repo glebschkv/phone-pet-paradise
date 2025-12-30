@@ -541,8 +541,10 @@ export const getNextMilestone = (type: Milestone['type'], currentValue: number):
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILD / TEAM SYSTEM
+// @deprecated - Not yet ready for production. Planned for future release.
 // ═══════════════════════════════════════════════════════════════════════════
 
+/** @deprecated Guild system not yet implemented */
 export interface Guild {
   id: string;
   name: string;
@@ -557,6 +559,7 @@ export interface Guild {
   isPublic: boolean;
 }
 
+/** @deprecated Guild system not yet implemented */
 export interface GuildMember {
   id: string;
   name: string;
@@ -567,6 +570,7 @@ export interface GuildMember {
   isOnline: boolean;
 }
 
+/** @deprecated Guild system not yet implemented */
 export interface GuildChallenge {
   id: string;
   name: string;
@@ -583,7 +587,7 @@ export interface GuildChallenge {
   isCompleted: boolean;
 }
 
-// Sample guilds for demo purposes
+/** @deprecated Guild system not yet implemented - sample data only */
 export const SAMPLE_GUILDS: Guild[] = [
   {
     id: 'focus-masters',
@@ -626,11 +630,13 @@ export const SAMPLE_GUILDS: Guild[] = [
   },
 ];
 
+/** @deprecated Guild system not yet implemented */
 export const GUILD_LEVEL_REQUIREMENTS = [
   0, 1000, 3000, 6000, 10000, 15000, 22000, 30000, 40000, 52000,
   66000, 82000, 100000, 120000, 145000, 175000, 210000, 250000, 300000, 360000
 ];
 
+/** @deprecated Guild system not yet implemented */
 export const getGuildLevel = (totalMinutes: number): number => {
   for (let i = GUILD_LEVEL_REQUIREMENTS.length - 1; i >= 0; i--) {
     if (totalMinutes >= GUILD_LEVEL_REQUIREMENTS[i]) {

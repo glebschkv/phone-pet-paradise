@@ -1,14 +1,50 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
+interface AppStateBackup {
+  level?: number;
+  totalXP?: number;
+  coins?: number;
+  unlockedPets?: string[];
+  selectedPetIds?: string[];
+  [key: string]: unknown;
+}
+
+interface XPSystemBackup {
+  totalXP?: number;
+  currentLevel?: number;
+  xpToNextLevel?: number;
+  [key: string]: unknown;
+}
+
+interface StreakSystemBackup {
+  currentStreak?: number;
+  longestStreak?: number;
+  lastSessionDate?: string;
+  streakFreezeCount?: number;
+  [key: string]: unknown;
+}
+
+interface SettingsBackup {
+  theme?: string;
+  sounds?: boolean;
+  notifications?: boolean;
+  [key: string]: unknown;
+}
+
+interface OnboardingBackup {
+  completed?: boolean;
+  [key: string]: unknown;
+}
+
 interface BackupData {
   version: string;
   timestamp: number;
-  appState: any;
-  xpSystem: any;
-  streakSystem: any;
-  settings: any;
-  onboarding: any;
+  appState: AppStateBackup;
+  xpSystem: XPSystemBackup;
+  streakSystem: StreakSystemBackup;
+  settings: SettingsBackup;
+  onboarding: OnboardingBackup;
 }
 
 interface BackupMetadata {

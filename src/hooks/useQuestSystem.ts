@@ -36,7 +36,7 @@ export interface QuestSystemReturn {
   storyQuests: Quest[];
   activeQuests: Quest[];
   completedQuests: Quest[];
-  updateQuestProgress: (type: string, amount: number, metadata?: any) => void;
+  updateQuestProgress: (type: string, amount: number, metadata?: Record<string, unknown>) => void;
   completeQuest: (questId: string) => void;
   getQuestById: (questId: string) => Quest | undefined;
   generateDailyQuests: () => void;
@@ -174,10 +174,22 @@ export const useQuestSystem = (): QuestSystemReturn => {
     return `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }, []);
 
+  // Quest template type for generation
+  interface QuestTemplate {
+    title: string;
+    description: string;
+    objectives: Array<{
+      type: string;
+      target: number;
+      description: string;
+    }>;
+    rewards: QuestReward[];
+  }
+
   // Create quest from template
-  const createQuestFromTemplate = useCallback((template: any, type: 'daily' | 'weekly'): Quest => {
+  const createQuestFromTemplate = useCallback((template: QuestTemplate, type: 'daily' | 'weekly'): Quest => {
     const now = Date.now();
-    const expiresAt = type === 'daily' 
+    const expiresAt = type === 'daily'
       ? now + (24 * 60 * 60 * 1000) // 24 hours
       : now + (7 * 24 * 60 * 60 * 1000); // 7 days
 
@@ -186,12 +198,12 @@ export const useQuestSystem = (): QuestSystemReturn => {
       type,
       title: template.title,
       description: template.description,
-      objectives: template.objectives.map((obj: any) => ({
+      objectives: template.objectives.map((obj) => ({
         id: generateQuestId('objective'),
         description: obj.description,
         target: obj.target,
         current: 0,
-        type: obj.type
+        type: obj.type as QuestObjective['type']
       })),
       rewards: template.rewards,
       isCompleted: false,
@@ -252,7 +264,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
   }, [quests, createQuestFromTemplate, saveQuestData]);
 
   // Update quest progress
-  const updateQuestProgress = useCallback((type: string, amount: number, _metadata?: any) => {
+  const updateQuestProgress = useCallback((type: string, amount: number, _metadata?: Record<string, unknown>) => {
     setQuests(prev => {
       const updated = prev.map(quest => {
         if (quest.isCompleted) return quest;

@@ -294,17 +294,25 @@ class WidgetDataService {
     }
   }
 
-  // Native storage methods - these need to be implemented with a Capacitor plugin
+  /**
+   * Load widget data from native storage (App Groups on iOS, SharedPreferences on Android)
+   * Currently returns null - native implementation pending widget extension development
+   * @see ios/App/App/Sources/WidgetDataPlugin.swift for native implementation
+   */
   private async loadFromNative(): Promise<WidgetData | null> {
-    // TODO: Implement with Capacitor plugin
-    // This would call a native method to read from App Groups (iOS) or SharedPreferences (Android)
+    // Native implementation will be added when widget extension is developed
+    // This will call WidgetDataPlugin.loadData() on native side
     return null;
   }
 
+  /**
+   * Save widget data to native storage and trigger widget refresh
+   * Currently no-op - native implementation pending widget extension development
+   * @see ios/App/App/Sources/WidgetDataPlugin.swift for native implementation
+   */
   private async saveToNative(_data: WidgetData): Promise<void> {
-    // TODO: Implement with Capacitor plugin
-    // This would call a native method to write to App Groups (iOS) or SharedPreferences (Android)
-    // The native side would then trigger a widget refresh
+    // Native implementation will be added when widget extension is developed
+    // This will call WidgetDataPlugin.saveData() and trigger widget refresh
   }
 }
 

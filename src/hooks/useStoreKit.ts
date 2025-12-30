@@ -8,13 +8,22 @@ import { supabase } from '@/integrations/supabase/client';
 
 const PREMIUM_STORAGE_KEY = 'petIsland_premium';
 
+/** Server-validated subscription details */
+interface ValidatedSubscription {
+  tier: string;
+  expiresAt: string | null;
+  purchasedAt: string;
+  productId: string;
+  environment: string;
+}
+
 /**
  * Validate a purchase with the server
  * Standalone function to avoid circular dependency issues
  */
 async function serverValidatePurchase(
   purchase: PurchaseResult | RestoredPurchase
-): Promise<{ success: boolean; subscription?: any }> {
+): Promise<{ success: boolean; subscription?: ValidatedSubscription }> {
   try {
     // Check if user is authenticated
     const { data: { session } } = await supabase.auth.getSession();

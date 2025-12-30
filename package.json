@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@sentry/react": "^8.40.0",
+    "@sentry/capacitor": "^0.18.0",
     "@capacitor/android": "^7.4.2",
     "@capacitor/app": "^7.0.1",
     "@capacitor/cli": "^7.4.2",

@@ -65,6 +65,8 @@ export interface SubscriptionPlan {
   savings?: string;
   isPopular?: boolean;
   bonusCoins: number;
+  /** Free trial duration in days (Apple requires this for auto-renewable subscriptions) */
+  freeTrialDays?: number;
 }
 
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
@@ -77,6 +79,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     priceValue: 5.99,
     period: 'monthly',
     features: [
+      '7-day FREE trial',
       '2x Coin & XP multiplier',
       'All 13 ambient sounds',
       'Auto-break Pomodoro cycles',
@@ -88,6 +91,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     ],
     iapProductId: 'co.nomoinc.nomo.premium.monthly',
     bonusCoins: 1000,
+    freeTrialDays: 7,
   },
   {
     id: 'premium-yearly',
@@ -98,6 +102,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     priceValue: 44.99,
     period: 'yearly',
     features: [
+      '7-day FREE trial',
       '2x Coin & XP multiplier',
       'All 13 ambient sounds',
       'Auto-break Pomodoro cycles',
@@ -111,6 +116,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     savings: 'Save 37%',
     isPopular: true,
     bonusCoins: 2500,
+    freeTrialDays: 7,
   },
   {
     id: 'premium-plus-monthly',
@@ -121,6 +127,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     priceValue: 9.99,
     period: 'monthly',
     features: [
+      '7-day FREE trial',
       '3x Coin & XP multiplier',
       'Everything in Premium',
       'Battle Pass Premium included',
@@ -132,6 +139,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     ],
     iapProductId: 'co.nomoinc.nomo.premiumplus.monthly',
     bonusCoins: 3000,
+    freeTrialDays: 7,
   },
   {
     id: 'premium-plus-yearly',
@@ -142,6 +150,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     priceValue: 74.99,
     period: 'yearly',
     features: [
+      '7-day FREE trial',
       '3x Coin & XP multiplier',
       'Everything in Premium',
       'Battle Pass Premium included',
@@ -154,6 +163,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     iapProductId: 'co.nomoinc.nomo.premiumplus.yearly',
     savings: 'Save 37%',
     bonusCoins: 7500,
+    freeTrialDays: 7,
   },
   {
     id: 'premium-lifetime',
