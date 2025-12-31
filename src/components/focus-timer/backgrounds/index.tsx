@@ -11,10 +11,40 @@ export const FocusBackground = ({ theme }: { theme: string }) => {
       return <ForestBackground key="forest" />;
     case 'snow':
       return <SnowBackground key="snow" />;
-    default:
+    case 'sky':
       return <SkyBackground key="sky" />;
+    default:
+      return <MeadowBackground key="meadow" />;
   }
 };
+
+// Meadow Background (Default - Pixel Art)
+export const MeadowBackground = memo(() => (
+  <div className="absolute inset-0 overflow-hidden">
+    {/* Background image - fills screen with ground positioned above taskbar */}
+    <div
+      className="absolute left-0 right-0"
+      style={{
+        top: 0,
+        bottom: '70px', // Leave space above the taskbar
+        backgroundImage: 'url(/assets/backgrounds/meadow-bg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
+        backgroundRepeat: 'no-repeat',
+        imageRendering: 'pixelated',
+      }}
+    />
+    {/* Grass extension below to fill the taskbar area */}
+    <div
+      className="absolute bottom-0 left-0 right-0"
+      style={{
+        height: '70px',
+        background: 'linear-gradient(to bottom, #7ec850 0%, #5da83a 100%)',
+      }}
+    />
+  </div>
+));
+MeadowBackground.displayName = 'MeadowBackground';
 
 // Sky Background (Default - Day)
 export const SkyBackground = memo(() => (
