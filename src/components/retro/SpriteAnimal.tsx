@@ -39,6 +39,8 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   const frameWidth = spriteConfig?.frameWidth ?? 64;
   const frameHeight = spriteConfig?.frameHeight ?? 64;
   const animationSpeed = spriteConfig?.animationSpeed ?? 8;
+  const walkRows = spriteConfig?.walkRows ?? 1;      // Total rows in walk sprite
+  const frameRow = spriteConfig?.frameRow ?? (walkRows === 2 ? 1 : walkRows === 4 ? 2 : 0); // Default to east row
 
   // Update direction ref when state changes
   useEffect(() => {
@@ -202,7 +204,8 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   // For our sprites, they are 4 directions x 64px = 256x64 (horizontal)
   // We want south (first frame) for idle
   const backgroundPositionX = isIdle ? 0 : -(currentFrame * frameWidth * scale);
-  const backgroundPositionY = 0;
+  // For walking, use frameRow to select the east-facing row in multi-row sprites
+  const backgroundPositionY = isIdle ? 0 : -(frameRow * frameHeight * scale);
 
   // Get ground offset for positioning adjustment
   const groundOffset = animal.groundOffset || 0;
@@ -230,7 +233,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
           backgroundImage: `url(${currentSpritePath})`,
           backgroundSize: isIdle
             ? `${4 * scaledWidth}px ${scaledHeight}px`  // 4 directions for static sprite
-            : `${frameCount * scaledWidth}px ${scaledHeight}px`,  // Walk animation frames
+            : `${frameCount * scaledWidth}px ${walkRows * scaledHeight}px`,  // Walk animation with rows
           backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
           backgroundRepeat: 'no-repeat',
           imageRendering: 'pixelated',
