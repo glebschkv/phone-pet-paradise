@@ -1,11 +1,12 @@
 import { memo, useState, useEffect, useRef } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
 import { PositionRegistry } from './useAnimalPositions';
-import { getRandomSpecialAnimation, hasSpecialAnimations, SpecialAnimationConfig } from '@/data/SpecialAnimations';
 
-// Configuration for random special animations
-const SPECIAL_ANIMATION_MIN_INTERVAL = 5000; // Minimum 5 seconds between special animations
-const SPECIAL_ANIMATION_MAX_INTERVAL = 15000; // Maximum 15 seconds between special animations
+// Configuration for random idle pauses
+const IDLE_MIN_INTERVAL = 8000;  // Minimum 8 seconds between idle pauses
+const IDLE_MAX_INTERVAL = 15000; // Maximum 15 seconds between idle pauses
+const IDLE_DURATION_MIN = 2000;  // Minimum idle duration
+const IDLE_DURATION_MAX = 4000;  // Maximum idle duration
 
 interface SpriteAnimalProps {
   animal: AnimalData;
@@ -18,43 +19,36 @@ interface SpriteAnimalProps {
 export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionRegistry }: SpriteAnimalProps) => {
   const [currentPosition, setCurrentPosition] = useState(position);
   const [currentFrame, setCurrentFrame] = useState(0);
-
-  // State for special animations (only for triggering re-renders when sprite changes)
-  const [activeSpecialAnimation, setActiveSpecialAnimation] = useState<SpecialAnimationConfig | null>(null);
+  const [direction, setDirection] = useState<'left' | 'right'>(() => Math.random() > 0.5 ? 'right' : 'left');
+  const [isIdle, setIsIdle] = useState(false);
 
   // Refs for animation state
   const frameTimeRef = useRef(0);
   const positionRef = useRef(position);
-  const specialAnimationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const specialFrameCountRef = useRef(0);
-  const isPlayingSpecialRef = useRef(false);
-  // Ref to track special animation without causing effect restarts
-  const activeSpecialAnimationRef = useRef<SpecialAnimationConfig | null>(null);
+  const directionRef = useRef(direction);
+  const isIdleRef = useRef(false);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleDurationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const spriteConfig = animal.spriteConfig;
 
   // Get sprite config values (use defaults if no config)
-  const spritePath = spriteConfig?.spritePath ?? '';
-  const frameCount = spriteConfig?.frameCount ?? 1;
-  const frameWidth = spriteConfig?.frameWidth ?? 32;
-  const frameHeight = spriteConfig?.frameHeight ?? 32;
-  const animationSpeed = spriteConfig?.animationSpeed ?? 10;
-  const frameRow = spriteConfig?.frameRow ?? 0;
+  const walkSpritePath = spriteConfig?.spritePath ?? '';
+  const idleSpritePath = spriteConfig?.idleSprite ?? walkSpritePath;
+  const frameCount = spriteConfig?.frameCount ?? 6;
+  const frameWidth = spriteConfig?.frameWidth ?? 64;
+  const frameHeight = spriteConfig?.frameHeight ?? 64;
+  const animationSpeed = spriteConfig?.animationSpeed ?? 8;
 
-  // Check if this animal has special animations available
-  const canPlaySpecialAnimations = spriteConfig ? hasSpecialAnimations(spritePath) : false;
+  // Update direction ref when state changes
+  useEffect(() => {
+    directionRef.current = direction;
+  }, [direction]);
 
-  // Current animation config (either special or base)
-  const currentAnimConfig = isPlayingSpecialRef.current && activeSpecialAnimation
-    ? {
-        spritePath: activeSpecialAnimation.spritePath,
-        frameCount: activeSpecialAnimation.frameCount,
-        frameWidth: activeSpecialAnimation.frameWidth,
-        frameHeight: activeSpecialAnimation.frameHeight,
-        animationSpeed: activeSpecialAnimation.animationSpeed || animationSpeed
-      }
-    : { spritePath, frameCount, frameWidth, frameHeight, animationSpeed };
-
+  // Update idle ref when state changes
+  useEffect(() => {
+    isIdleRef.current = isIdle;
+  }, [isIdle]);
 
   // Register and unregister position on mount/unmount
   useEffect(() => {
@@ -64,43 +58,48 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
     };
   }, [animalId, position, positionRegistry]);
 
-  // Set up special animation timer
+  // Set up idle timer for occasional pauses
   useEffect(() => {
-    if (!canPlaySpecialAnimations) return;
-
-    const scheduleNextSpecialAnimation = () => {
-      if (specialAnimationTimerRef.current) {
-        clearTimeout(specialAnimationTimerRef.current);
+    const scheduleNextIdle = () => {
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
       }
 
-      const interval = Math.random() * (SPECIAL_ANIMATION_MAX_INTERVAL - SPECIAL_ANIMATION_MIN_INTERVAL) + SPECIAL_ANIMATION_MIN_INTERVAL;
+      const interval = Math.random() * (IDLE_MAX_INTERVAL - IDLE_MIN_INTERVAL) + IDLE_MIN_INTERVAL;
 
-      specialAnimationTimerRef.current = setTimeout(() => {
-        // Only trigger if not already playing a special animation
-        if (!isPlayingSpecialRef.current) {
-          const specialAnim = getRandomSpecialAnimation(spritePath);
-          if (specialAnim) {
-            isPlayingSpecialRef.current = true;
-            specialFrameCountRef.current = 0;
-            activeSpecialAnimationRef.current = specialAnim;
-            setActiveSpecialAnimation(specialAnim);
+      idleTimerRef.current = setTimeout(() => {
+        // Only trigger idle if not already idle
+        if (!isIdleRef.current) {
+          isIdleRef.current = true;
+          setIsIdle(true);
+          setCurrentFrame(0);
+
+          // Schedule end of idle
+          const idleDuration = Math.random() * (IDLE_DURATION_MAX - IDLE_DURATION_MIN) + IDLE_DURATION_MIN;
+          idleDurationTimerRef.current = setTimeout(() => {
+            isIdleRef.current = false;
+            setIsIdle(false);
             setCurrentFrame(0);
-          }
+            scheduleNextIdle();
+          }, idleDuration);
+        } else {
+          scheduleNextIdle();
         }
-        // Schedule the next one
-        scheduleNextSpecialAnimation();
       }, interval);
     };
 
     // Start the scheduling
-    scheduleNextSpecialAnimation();
+    scheduleNextIdle();
 
     return () => {
-      if (specialAnimationTimerRef.current) {
-        clearTimeout(specialAnimationTimerRef.current);
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+      }
+      if (idleDurationTimerRef.current) {
+        clearTimeout(idleDurationTimerRef.current);
       }
     };
-  }, [canPlaySpecialAnimations, spritePath]);
+  }, []);
 
   // Combined animation loop for both position and sprite frames
   useEffect(() => {
@@ -114,68 +113,65 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
       const deltaTime = Math.min(currentTime - lastTime, 100);
       lastTime = currentTime;
 
-      // Get the current config inside the loop using ref to avoid stale closure issues
-      const specialAnim = activeSpecialAnimationRef.current;
-      const loopAnimConfig = isPlayingSpecialRef.current && specialAnim
-        ? {
-            frameCount: specialAnim.frameCount,
-            animationSpeed: specialAnim.animationSpeed || animationSpeed
-          }
-        : { frameCount, animationSpeed };
-
-      const loopFrameDuration = 1000 / loopAnimConfig.animationSpeed;
+      const loopFrameDuration = 1000 / animationSpeed;
 
       // Update sprite frame based on time
       frameTimeRef.current += deltaTime;
       if (frameTimeRef.current >= loopFrameDuration) {
-        // Check if special animation has completed one full cycle BEFORE frame update
-        if (isPlayingSpecialRef.current) {
-          specialFrameCountRef.current++;
-          if (specialFrameCountRef.current >= loopAnimConfig.frameCount) {
-            // Special animation finished, update refs synchronously first
-            isPlayingSpecialRef.current = false;
-            specialFrameCountRef.current = 0;
-            activeSpecialAnimationRef.current = null;
-            // Then update state for re-render (won't restart the animation loop)
-            setActiveSpecialAnimation(null);
-            setCurrentFrame(0);
-            frameTimeRef.current = 0;
-            animationFrame = requestAnimationFrame(animate);
-            return;
-          }
+        if (isIdleRef.current) {
+          // For idle, just show static frame (south direction from 4-direction sprite)
+          // The idle sprite is a 4-direction sheet, south is typically row 0 or first frame
+          setCurrentFrame(0);
+        } else {
+          // Walking animation
+          setCurrentFrame(prev => (prev + 1) % frameCount);
         }
-
-        setCurrentFrame(prev => (prev + 1) % loopAnimConfig.frameCount);
         frameTimeRef.current = 0;
       }
 
-      // Get dynamic speed multiplier based on proximity to other animals
-      const speedMultiplier = positionRegistry.getSpeedMultiplier(
-        animalId,
-        positionRef.current,
-        speed
-      );
+      // Only move if not idle
+      if (!isIdleRef.current) {
+        // Get dynamic speed multiplier based on proximity to other animals
+        const speedMultiplier = positionRegistry.getSpeedMultiplier(
+          animalId,
+          positionRef.current,
+          speed
+        );
 
-      // Get separation offset to push apart from nearby animals
-      const separationOffset = positionRegistry.getSeparationOffset(
-        animalId,
-        positionRef.current
-      );
+        // Get separation offset to push apart from nearby animals
+        const separationOffset = positionRegistry.getSeparationOffset(
+          animalId,
+          positionRef.current
+        );
 
-      // Update position with adjusted speed and separation
-      const adjustedSpeed = speed * speedMultiplier;
-      const movement = (adjustedSpeed * (deltaTime / 1000)) / window.innerWidth;
+        // Update position with adjusted speed and separation
+        const adjustedSpeed = speed * speedMultiplier;
+        const movement = (adjustedSpeed * (deltaTime / 1000)) / window.innerWidth;
 
-      let newPosition = positionRef.current + movement + separationOffset;
+        // Apply movement based on direction
+        const directionMultiplier = directionRef.current === 'right' ? 1 : -1;
+        let newPosition = positionRef.current + (movement * directionMultiplier) + separationOffset;
 
-      // When fully off-screen right, wrap to off-screen left
-      if (newPosition > 1.15) {
-        newPosition = -0.15;
+        // Check boundaries and flip direction
+        const leftBoundary = 0.1;  // 10% from left
+        const rightBoundary = 0.9; // 90% from left (10% from right)
+
+        if (newPosition > rightBoundary && directionRef.current === 'right') {
+          // Hit right edge, turn around
+          directionRef.current = 'left';
+          setDirection('left');
+          newPosition = rightBoundary;
+        } else if (newPosition < leftBoundary && directionRef.current === 'left') {
+          // Hit left edge, turn around
+          directionRef.current = 'right';
+          setDirection('right');
+          newPosition = leftBoundary;
+        }
+
+        positionRef.current = newPosition;
+        positionRegistry.updatePosition(animalId, newPosition);
+        setCurrentPosition(newPosition);
       }
-
-      positionRef.current = newPosition;
-      positionRegistry.updatePosition(animalId, newPosition);
-      setCurrentPosition(newPosition);
 
       animationFrame = requestAnimationFrame(animate);
     };
@@ -187,37 +183,43 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
         cancelAnimationFrame(animationFrame);
       }
     };
-    // Note: activeSpecialAnimation removed from deps - we use activeSpecialAnimationRef to avoid animation loop restarts
   }, [spriteConfig, speed, animalId, positionRegistry, frameCount, animationSpeed]);
 
   // Early return AFTER all hooks
   if (!spriteConfig) return null;
 
-  // Scale up the sprite for better visibility (2.5x for crisp pixels)
+  // Scale up the sprite for better visibility
   const scale = 2.5;
-  const scaledWidth = currentAnimConfig.frameWidth * scale;
-  const scaledHeight = currentAnimConfig.frameHeight * scale;
+  const scaledWidth = frameWidth * scale;
+  const scaledHeight = frameHeight * scale;
 
-  // Calculate pixel-perfect background position (supports multi-row sprites)
-  const backgroundPositionX = -(currentFrame * currentAnimConfig.frameWidth * scale);
-  const backgroundPositionY = -(frameRow * currentAnimConfig.frameHeight * scale);
+  // Determine which sprite to use
+  const currentSpritePath = isIdle ? idleSpritePath : walkSpritePath;
 
-  // Get ground offset for positioning adjustment (handles sprites with empty space)
+  // For idle, we use the south-facing direction from the 4-direction static sprite
+  // The static sprite has 4 directions (64x256): South, West, East, North (top to bottom typically)
+  // or arranged as 4 columns (256x64): South, West, East, North
+  // For our sprites, they are 4 directions x 64px = 256x64 (horizontal)
+  // We want south (first frame) for idle
+  const backgroundPositionX = isIdle ? 0 : -(currentFrame * frameWidth * scale);
+  const backgroundPositionY = 0;
+
+  // Get ground offset for positioning adjustment
   const groundOffset = animal.groundOffset || 0;
+
+  // Flip sprite horizontally when walking left
+  const shouldFlip = !isIdle && direction === 'left';
 
   return (
     <div
       className="absolute"
       style={{
-        // Position the animal on the ground surface (at the top of the ground platform, above tab bar)
-        // groundOffset adjusts for sprites with empty space (negative = lower position)
         bottom: `${8 + groundOffset}%`,
         left: `${currentPosition * 100}%`,
         width: `${scaledWidth}px`,
         height: `${scaledHeight}px`,
         zIndex: 10,
-        transform: 'translateX(-50%)',
-        // GPU acceleration for smooth movement
+        transform: `translateX(-50%) ${shouldFlip ? 'scaleX(-1)' : ''}`,
         willChange: 'transform, left',
       }}
     >
@@ -225,14 +227,13 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
         style={{
           width: `${scaledWidth}px`,
           height: `${scaledHeight}px`,
-          backgroundImage: `url(${currentAnimConfig.spritePath})`,
-          // Use exact pixel dimensions for the sprite sheet (auto height for multi-row support)
-          backgroundSize: `${currentAnimConfig.frameCount * scaledWidth}px auto`,
+          backgroundImage: `url(${currentSpritePath})`,
+          backgroundSize: isIdle
+            ? `${4 * scaledWidth}px ${scaledHeight}px`  // 4 directions for static sprite
+            : `${frameCount * scaledWidth}px ${scaledHeight}px`,  // Walk animation frames
           backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
           backgroundRepeat: 'no-repeat',
-          // Critical for pixel art - no blurring
           imageRendering: 'pixelated',
-          // Prevent any smoothing
           WebkitFontSmoothing: 'none',
         }}
       />
