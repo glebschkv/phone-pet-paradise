@@ -1646,7 +1646,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Meadow',
     groundOffset: -5,
     spriteConfig: {
-      spritePath: '/assets/sprites/hamster_v2_Walk.png',
+      spritePath: '/assets/sprites/hamster_v3_Walk.png',
       frameCount: 4,
       frameWidth: 32,
       frameHeight: 32,
@@ -1664,10 +1664,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Night',
     groundOffset: -3,
     spriteConfig: {
-      spritePath: '/assets/sprites/cat_v2_Walk.png',
+      spritePath: '/assets/sprites/cat_v3_Walk.png',
       frameCount: 4,
-      frameWidth: 48,
-      frameHeight: 32,
+      frameWidth: 64,
+      frameHeight: 64,
       animationSpeed: 8
     }
   },
@@ -1682,10 +1682,10 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Forest',
     groundOffset: -8,
     spriteConfig: {
-      spritePath: '/assets/sprites/dragon_v2_Walk.png',
+      spritePath: '/assets/sprites/dragon_v3_Walk.png',
       frameCount: 4,
-      frameWidth: 48,
-      frameHeight: 48,
+      frameWidth: 64,
+      frameHeight: 64,
       animationSpeed: 10
     }
   },
