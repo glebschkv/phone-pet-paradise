@@ -1631,6 +1631,64 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       animationSpeed: 12
     }
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PIXELLAB GENERATED PETS - New AI-generated pixel art characters
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'chubby_hamster',
+    name: 'Chubby Hamster',
+    emoji: '🐹',
+    rarity: 'rare',
+    unlockLevel: 2,
+    description: 'An adorable round hamster with rosy cheeks and fluffy orange-white fur. Always happy and brings joy to your focus sessions!',
+    abilities: ['Cheek Pouch', 'Wheel Sprint', 'Cozy Nap', 'Snack Time'],
+    biome: 'Meadow',
+    groundOffset: -5,
+    spriteConfig: {
+      spritePath: '/assets/sprites/chubby_hamster_Walk.png',
+      frameCount: 4,
+      frameWidth: 32,
+      frameHeight: 32,
+      animationSpeed: 10
+    }
+  },
+  {
+    id: 'moonlight_cat',
+    name: 'Moonlight Cat',
+    emoji: '🐱',
+    rarity: 'epic',
+    unlockLevel: 8,
+    description: 'An elegant black cat with mystical yellow eyes and a glowing purple gem collar. Brings mysterious focus powers under the moonlight.',
+    abilities: ['Night Vision', 'Silent Paws', 'Gem Glow', 'Moon Dance'],
+    biome: 'Night',
+    groundOffset: -3,
+    spriteConfig: {
+      spritePath: '/assets/sprites/moonlight_cat_Walk.png',
+      frameCount: 4,
+      frameWidth: 48,
+      frameHeight: 48,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'ember_dragon',
+    name: 'Ember Dragon',
+    emoji: '🐉',
+    rarity: 'legendary',
+    unlockLevel: 15,
+    description: 'A cute baby dragon with vibrant red-orange scales and tiny wings. Breathes small flames to ignite your motivation!',
+    abilities: ['Flame Breath', 'Wing Flutter', 'Dragon Roar', 'Fire Shield'],
+    biome: 'Forest',
+    groundOffset: -8,
+    spriteConfig: {
+      spritePath: '/assets/sprites/ember_dragon_Walk.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 10
+    }
+  },
 ];
 
 // Biome configuration with background images
@@ -1639,7 +1697,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Meadow',
     unlockLevel: 0,
     description: 'A peaceful grassy realm where your journey begins. Gentle creatures roam freely.',
-    animals: ['hare', 'bird', 'lizard', 'slime1', 'dude-monster'],
+    animals: ['hare', 'bird', 'lizard', 'slime1', 'dude-monster', 'chubby_hamster'],
     backgroundImage: '/assets/worlds/GRASSYPATH.png'
   },
   {
@@ -1653,14 +1711,14 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Night',
     unlockLevel: 9,
     description: 'A mystical moonlit realm where nocturnal creatures thrive under the stars.',
-    animals: ['bear', 'snake', 'white-hare', 'vampire-bat'],
+    animals: ['bear', 'snake', 'white-hare', 'vampire-bat', 'moonlight_cat'],
     backgroundImage: '/assets/worlds/PURPLE_NIGHTSKY.png'
   },
   {
     name: 'Forest',
     unlockLevel: 13,
     description: 'Deep enchanted jungle filled with ancient wisdom and colorful life.',
-    animals: ['goblin-king', 'slime2', 'mech', 'horse', 'slime3', 'horse-jumping'],
+    animals: ['goblin-king', 'slime2', 'mech', 'horse', 'slime3', 'horse-jumping', 'ember_dragon'],
     backgroundImage: '/assets/worlds/JUNGLE_ISLAND.png'
   },
   {
