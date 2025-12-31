@@ -1682,11 +1682,11 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Forest',
     groundOffset: -8,
     spriteConfig: {
-      spritePath: '/assets/sprites/dragon_v3_Walk.png',
-      frameCount: 4,
+      spritePath: '/assets/sprites/dragon_v4_animated_Walk8.png',
+      frameCount: 8,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 10
+      animationSpeed: 12
     }
   },
 ];
