@@ -10,13 +10,13 @@ export interface PositionRegistry {
   updatePosition: (id: string, position: number) => void;
   removePosition: (id: string) => void;
   getNearestAnimal: (id: string, currentPosition: number) => NearbyAnimal | null;
+  getAnimalsInRange: (id: string, currentPosition: number, range: number) => NearbyAnimal[];
   getSpeedMultiplier: (id: string, currentPosition: number, baseSpeed: number) => number;
   getSeparationOffset: (id: string, currentPosition: number) => number;
 }
 
 /**
  * Hook to create a shared position registry for animals
- * Simplified version that just tracks positions and finds nearest animal
  */
 export function useAnimalPositionRegistry(): PositionRegistry {
   const positionsRef = useRef<Map<string, number>>(new Map());
@@ -54,7 +54,29 @@ export function useAnimalPositionRegistry(): PositionRegistry {
     return nearest;
   }, []);
 
-  // These are kept for interface compatibility but simplified
+  /**
+   * Get all animals within a certain range
+   */
+  const getAnimalsInRange = useCallback((id: string, currentPosition: number, range: number): NearbyAnimal[] => {
+    const positions = positionsRef.current;
+    const result: NearbyAnimal[] = [];
+
+    if (positions.size <= 1) return result;
+
+    positions.forEach((pos, animalId) => {
+      if (animalId === id) return;
+
+      const distance = Math.abs(pos - currentPosition);
+
+      if (distance < range) {
+        result.push({ id: animalId, position: pos });
+      }
+    });
+
+    return result;
+  }, []);
+
+  // Kept for interface compatibility
   const getSpeedMultiplier = useCallback(() => 1, []);
   const getSeparationOffset = useCallback(() => 0, []);
 
@@ -63,9 +85,10 @@ export function useAnimalPositionRegistry(): PositionRegistry {
     updatePosition,
     removePosition,
     getNearestAnimal,
+    getAnimalsInRange,
     getSpeedMultiplier,
     getSeparationOffset,
-  }), [updatePosition, removePosition, getNearestAnimal, getSpeedMultiplier, getSeparationOffset]);
+  }), [updatePosition, removePosition, getNearestAnimal, getAnimalsInRange, getSpeedMultiplier, getSeparationOffset]);
 }
 
 /**
@@ -104,6 +127,25 @@ export function useFlyingPositionRegistry(): PositionRegistry {
     return nearest;
   }, []);
 
+  const getAnimalsInRange = useCallback((id: string, currentPosition: number, range: number): NearbyAnimal[] => {
+    const positions = positionsRef.current;
+    const result: NearbyAnimal[] = [];
+
+    if (positions.size <= 1) return result;
+
+    positions.forEach((pos, animalId) => {
+      if (animalId === id) return;
+
+      const distance = Math.abs(pos - currentPosition);
+
+      if (distance < range) {
+        result.push({ id: animalId, position: pos });
+      }
+    });
+
+    return result;
+  }, []);
+
   const getSpeedMultiplier = useCallback(() => 1, []);
   const getSeparationOffset = useCallback(() => 0, []);
 
@@ -112,7 +154,8 @@ export function useFlyingPositionRegistry(): PositionRegistry {
     updatePosition,
     removePosition,
     getNearestAnimal,
+    getAnimalsInRange,
     getSpeedMultiplier,
     getSeparationOffset,
-  }), [updatePosition, removePosition, getNearestAnimal, getSpeedMultiplier, getSeparationOffset]);
+  }), [updatePosition, removePosition, getNearestAnimal, getAnimalsInRange, getSpeedMultiplier, getSeparationOffset]);
 }

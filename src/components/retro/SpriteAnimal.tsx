@@ -3,14 +3,19 @@ import { AnimalData } from '@/data/AnimalDatabase';
 import { PositionRegistry } from './useAnimalPositions';
 
 // Configuration for random idle pauses
-const IDLE_MIN_INTERVAL = 8000;  // Minimum 8 seconds between idle pauses
-const IDLE_MAX_INTERVAL = 15000; // Maximum 15 seconds between idle pauses
-const IDLE_DURATION_MIN = 2000;  // Minimum idle duration
-const IDLE_DURATION_MAX = 4000;  // Maximum idle duration
+const IDLE_MIN_INTERVAL = 8000;
+const IDLE_MAX_INTERVAL = 15000;
+const IDLE_DURATION_MIN = 2000;
+const IDLE_DURATION_MAX = 4000;
 
 // Movement boundaries
 const LEFT_BOUNDARY = 0.08;
 const RIGHT_BOUNDARY = 0.92;
+
+// Collision settings
+const COLLISION_DISTANCE = 0.06;      // How close before we check for collision
+const COLLISION_CHANCE = 0.15;        // 15% chance to actually collide when close
+const COLLISION_COOLDOWN = 3000;      // Don't check collision with same animal for 3 seconds
 
 interface SpriteAnimalProps {
   animal: AnimalData;
@@ -30,7 +35,10 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   const isIdleRef = useRef(false);
   const frameTimeRef = useRef(0);
 
-  // State for rendering (updated less frequently)
+  // Collision cooldown tracking - stores animal IDs we recently collided with
+  const collisionCooldownRef = useRef<Map<string, number>>(new Map());
+
+  // State for rendering
   const [renderPosition, setRenderPosition] = useState(position);
   const [renderDirection, setRenderDirection] = useState(directionRef.current);
 
@@ -40,7 +48,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
 
   const spriteConfig = animal.spriteConfig;
 
-  // Get sprite config values (use defaults if no config)
+  // Get sprite config values
   const walkSpritePath = spriteConfig?.spritePath ?? '';
   const idleSpritePath = spriteConfig?.idleSprite ?? walkSpritePath;
   const frameCount = spriteConfig?.frameCount ?? 6;
@@ -101,7 +109,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
     let animationFrame: number;
     let lastTime = performance.now();
     let renderUpdateAccum = 0;
-    const RENDER_UPDATE_INTERVAL = 16; // ~60fps for render state updates
+    const RENDER_UPDATE_INTERVAL = 16;
 
     const animate = (currentTime: number) => {
       const deltaTime = Math.min(currentTime - lastTime, 100);
@@ -133,27 +141,45 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
           newPosition -= movement;
         }
 
-        // Check for nearby animals and adjust
-        const nearbyAnimal = positionRegistry.getNearestAnimal(animalId, newPosition);
-        if (nearbyAnimal) {
-          const distance = Math.abs(nearbyAnimal.position - newPosition);
-          const minDistance = 0.08;
+        // Clean up expired collision cooldowns
+        const now = Date.now();
+        collisionCooldownRef.current.forEach((expiry, id) => {
+          if (now > expiry) {
+            collisionCooldownRef.current.delete(id);
+          }
+        });
 
-          if (distance < minDistance) {
-            // Too close - either stop or reverse direction
-            if (currentDir === 'right' && nearbyAnimal.position > newPosition) {
-              // Animal ahead to the right, turn around
-              directionRef.current = 'left';
-              newPosition = positionRef.current - movement;
-            } else if (currentDir === 'left' && nearbyAnimal.position < newPosition) {
-              // Animal ahead to the left, turn around
-              directionRef.current = 'right';
-              newPosition = positionRef.current + movement;
+        // Check for nearby animals - but only sometimes collide
+        const nearbyAnimals = positionRegistry.getAnimalsInRange(animalId, newPosition, COLLISION_DISTANCE);
+
+        for (const nearby of nearbyAnimals) {
+          // Skip if on cooldown with this animal
+          if (collisionCooldownRef.current.has(nearby.id)) {
+            continue;
+          }
+
+          // Random chance to collide
+          if (Math.random() < COLLISION_CHANCE) {
+            // Check if this animal is in our path
+            const isBlocking = (currentDir === 'right' && nearby.position > positionRef.current) ||
+                              (currentDir === 'left' && nearby.position < positionRef.current);
+
+            if (isBlocking) {
+              // Collision! Turn around
+              directionRef.current = currentDir === 'right' ? 'left' : 'right';
+              newPosition = positionRef.current; // Stay in place this frame
+
+              // Add cooldown so we don't immediately collide again
+              collisionCooldownRef.current.set(nearby.id, now + COLLISION_COOLDOWN);
+              break;
             }
+          } else {
+            // No collision - add a short cooldown anyway to prevent rapid re-checks
+            collisionCooldownRef.current.set(nearby.id, now + 500);
           }
         }
 
-        // Boundary checks
+        // Boundary checks - always enforce
         if (newPosition >= RIGHT_BOUNDARY) {
           newPosition = RIGHT_BOUNDARY;
           directionRef.current = 'left';
@@ -166,7 +192,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
         positionRegistry.updatePosition(animalId, newPosition);
       }
 
-      // Update render state periodically (not every frame)
+      // Update render state periodically
       renderUpdateAccum += deltaTime;
       if (renderUpdateAccum >= RENDER_UPDATE_INTERVAL) {
         setRenderPosition(positionRef.current);
@@ -203,7 +229,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   // Ground offset
   const groundOffset = animal.groundOffset || 0;
 
-  // Flip sprite when walking left (east sprites face right by default)
+  // Flip sprite when walking left
   const shouldFlip = !isIdle && renderDirection === 'left';
 
   return (
