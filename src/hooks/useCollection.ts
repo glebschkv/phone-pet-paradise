@@ -123,8 +123,8 @@ export const useCollection = (): UseCollectionReturn => {
         console.error('Failed to load active home pets:', error);
       }
     } else {
-      // Default: show first unlocked pet (hare) if nothing saved
-      setActiveHomePets(new Set(['hare']));
+      // Default: show first unlocked pet (dewdrop-frog) if nothing saved
+      setActiveHomePets(new Set(['dewdrop-frog']));
     }
   }, []);
 
