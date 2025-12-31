@@ -689,3 +689,15 @@ export const getBiomeByName = (name: string): BiomeData | undefined => {
 export const getUnlockedBiomes = (level: number): BiomeData[] => {
   return BIOME_DATABASE.filter(biome => biome.unlockLevel <= level);
 };
+
+// Flying/ground animal helpers for display purposes
+// Currently no flying characters - all are ground-based
+export const getFlyingAnimals = (animals: AnimalData[]): AnimalData[] => {
+  // No flying animals in current character set
+  return [];
+};
+
+export const getGroundAnimals = (animals: AnimalData[]): AnimalData[] => {
+  // All current animals are ground-based
+  return animals;
+};
