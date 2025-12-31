@@ -1,28 +1,22 @@
 import { useRef, useCallback, useMemo } from 'react';
 
-// Minimum distance between animals (as fraction of screen width)
-const MIN_DISTANCE = 0.12;
-
-// Speed adjustment factors
-const SLOW_DOWN_FACTOR = 0.3;  // Slow to 30% when too close
-const SPEED_UP_FACTOR = 1.4;   // Speed up to 140% when far apart
-const NORMAL_DISTANCE = 0.2;   // Distance at which speed is normal
-
-// Separation force settings
-const SEPARATION_FORCE = 0.003;  // How strongly to push apart per frame
-const SEPARATION_THRESHOLD = 0.10;  // Start separating when closer than this
+export interface NearbyAnimal {
+  id: string;
+  position: number;
+}
 
 export interface PositionRegistry {
   positions: Map<string, number>;
   updatePosition: (id: string, position: number) => void;
   removePosition: (id: string) => void;
+  getNearestAnimal: (id: string, currentPosition: number) => NearbyAnimal | null;
+  getAnimalsInRange: (id: string, currentPosition: number, range: number) => NearbyAnimal[];
   getSpeedMultiplier: (id: string, currentPosition: number, baseSpeed: number) => number;
   getSeparationOffset: (id: string, currentPosition: number) => number;
 }
 
 /**
  * Hook to create a shared position registry for animals
- * This allows animals to be aware of each other's positions and maintain spacing
  */
 export function useAnimalPositionRegistry(): PositionRegistry {
   const positionsRef = useRef<Map<string, number>>(new Map());
@@ -36,102 +30,69 @@ export function useAnimalPositionRegistry(): PositionRegistry {
   }, []);
 
   /**
-   * Calculate speed multiplier based on distance to nearest animal ahead
-   * - If too close to animal ahead: slow down
-   * - If far from animal ahead: speed up slightly
-   * - Otherwise: normal speed
+   * Find the nearest animal to the current position
    */
-  const getSpeedMultiplier = useCallback((id: string, currentPosition: number, _baseSpeed: number) => {
+  const getNearestAnimal = useCallback((id: string, currentPosition: number): NearbyAnimal | null => {
     const positions = positionsRef.current;
 
-    if (positions.size <= 1) return 1; // No other animals, normal speed
+    if (positions.size <= 1) return null;
 
-    let nearestAheadDistance = Infinity;
-    let nearestBehindDistance = Infinity;
+    let nearest: NearbyAnimal | null = null;
+    let nearestDistance = Infinity;
 
     positions.forEach((pos, animalId) => {
       if (animalId === id) return;
 
-      // Calculate distance considering screen wrap
-      // Animals ahead are at higher positions (to the right)
-      let distanceAhead = pos - currentPosition;
-      let distanceBehind = currentPosition - pos;
+      const distance = Math.abs(pos - currentPosition);
 
-      // Handle wrap-around: if distance is negative, add 1.3 (full screen + margins)
-      if (distanceAhead < 0) distanceAhead += 1.3;
-      if (distanceBehind < 0) distanceBehind += 1.3;
-
-      if (distanceAhead < nearestAheadDistance) {
-        nearestAheadDistance = distanceAhead;
-      }
-      if (distanceBehind < nearestBehindDistance) {
-        nearestBehindDistance = distanceBehind;
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = { id: animalId, position: pos };
       }
     });
 
-    // If too close to animal ahead, slow down significantly
-    if (nearestAheadDistance < MIN_DISTANCE) {
-      // The closer we are, the more we slow down
-      const closeness = 1 - (nearestAheadDistance / MIN_DISTANCE);
-      return SLOW_DOWN_FACTOR + (1 - SLOW_DOWN_FACTOR) * (1 - closeness);
-    }
-
-    // If there's a lot of space ahead but animal behind is close, speed up
-    if (nearestAheadDistance > NORMAL_DISTANCE && nearestBehindDistance < MIN_DISTANCE) {
-      return SPEED_UP_FACTOR;
-    }
-
-    // Normal speed
-    return 1;
+    return nearest;
   }, []);
 
   /**
-   * Calculate separation offset to actively push animals apart when they're too close
-   * Returns a position offset to apply directly to the animal's position
+   * Get all animals within a certain range
    */
-  const getSeparationOffset = useCallback((id: string, currentPosition: number) => {
+  const getAnimalsInRange = useCallback((id: string, currentPosition: number, range: number): NearbyAnimal[] => {
     const positions = positionsRef.current;
+    const result: NearbyAnimal[] = [];
 
-    if (positions.size <= 1) return 0;
-
-    let totalOffset = 0;
+    if (positions.size <= 1) return result;
 
     positions.forEach((pos, animalId) => {
       if (animalId === id) return;
 
-      // Calculate raw distance (can be negative)
-      let rawDistance = pos - currentPosition;
+      const distance = Math.abs(pos - currentPosition);
 
-      // Handle wrap-around for distance calculation
-      if (rawDistance > 0.65) rawDistance -= 1.3;
-      if (rawDistance < -0.65) rawDistance += 1.3;
-
-      const absDistance = Math.abs(rawDistance);
-
-      // If within separation threshold, apply repulsion force
-      if (absDistance < SEPARATION_THRESHOLD && absDistance > 0.001) {
-        // Strength increases as distance decreases (inverse relationship)
-        const strength = (SEPARATION_THRESHOLD - absDistance) / SEPARATION_THRESHOLD;
-        // Push away from the other animal (opposite direction)
-        const direction = rawDistance > 0 ? -1 : 1;
-        totalOffset += direction * SEPARATION_FORCE * strength * strength;
+      if (distance < range) {
+        result.push({ id: animalId, position: pos });
       }
     });
 
-    return totalOffset;
+    return result;
   }, []);
+
+  // Kept for interface compatibility
+  const getSpeedMultiplier = useCallback(() => 1, []);
+  const getSeparationOffset = useCallback(() => 0, []);
 
   return useMemo(() => ({
     positions: positionsRef.current,
     updatePosition,
     removePosition,
+    getNearestAnimal,
+    getAnimalsInRange,
     getSpeedMultiplier,
     getSeparationOffset,
-  }), [updatePosition, removePosition, getSpeedMultiplier, getSeparationOffset]);
+  }), [updatePosition, removePosition, getNearestAnimal, getAnimalsInRange, getSpeedMultiplier, getSeparationOffset]);
 }
 
 /**
- * Same concept for flying animals but with height consideration
+ * Same concept for flying animals
  */
 export function useFlyingPositionRegistry(): PositionRegistry {
   const positionsRef = useRef<Map<string, number>>(new Map());
@@ -144,67 +105,57 @@ export function useFlyingPositionRegistry(): PositionRegistry {
     positionsRef.current.delete(id);
   }, []);
 
-  const getSpeedMultiplier = useCallback((id: string, currentPosition: number, _baseSpeed: number) => {
+  const getNearestAnimal = useCallback((id: string, currentPosition: number): NearbyAnimal | null => {
     const positions = positionsRef.current;
 
-    if (positions.size <= 1) return 1;
+    if (positions.size <= 1) return null;
 
-    let nearestAheadDistance = Infinity;
+    let nearest: NearbyAnimal | null = null;
+    let nearestDistance = Infinity;
 
     positions.forEach((pos, animalId) => {
       if (animalId === id) return;
 
-      let distanceAhead = pos - currentPosition;
-      if (distanceAhead < 0) distanceAhead += 1.4; // Wrap distance for flying
+      const distance = Math.abs(pos - currentPosition);
 
-      if (distanceAhead < nearestAheadDistance) {
-        nearestAheadDistance = distanceAhead;
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = { id: animalId, position: pos };
       }
     });
 
-    // Flying animals have slightly larger minimum distance
-    const flyingMinDistance = 0.15;
-
-    if (nearestAheadDistance < flyingMinDistance) {
-      const closeness = 1 - (nearestAheadDistance / flyingMinDistance);
-      return SLOW_DOWN_FACTOR + (1 - SLOW_DOWN_FACTOR) * (1 - closeness);
-    }
-
-    return 1;
+    return nearest;
   }, []);
 
-  const getSeparationOffset = useCallback((id: string, currentPosition: number) => {
+  const getAnimalsInRange = useCallback((id: string, currentPosition: number, range: number): NearbyAnimal[] => {
     const positions = positionsRef.current;
+    const result: NearbyAnimal[] = [];
 
-    if (positions.size <= 1) return 0;
-
-    let totalOffset = 0;
-    const flyingSeparationThreshold = 0.12;
+    if (positions.size <= 1) return result;
 
     positions.forEach((pos, animalId) => {
       if (animalId === id) return;
 
-      let rawDistance = pos - currentPosition;
-      if (rawDistance > 0.7) rawDistance -= 1.4;
-      if (rawDistance < -0.7) rawDistance += 1.4;
+      const distance = Math.abs(pos - currentPosition);
 
-      const absDistance = Math.abs(rawDistance);
-
-      if (absDistance < flyingSeparationThreshold && absDistance > 0.001) {
-        const strength = (flyingSeparationThreshold - absDistance) / flyingSeparationThreshold;
-        const direction = rawDistance > 0 ? -1 : 1;
-        totalOffset += direction * SEPARATION_FORCE * strength * strength;
+      if (distance < range) {
+        result.push({ id: animalId, position: pos });
       }
     });
 
-    return totalOffset;
+    return result;
   }, []);
+
+  const getSpeedMultiplier = useCallback(() => 1, []);
+  const getSeparationOffset = useCallback(() => 0, []);
 
   return useMemo(() => ({
     positions: positionsRef.current,
     updatePosition,
     removePosition,
+    getNearestAnimal,
+    getAnimalsInRange,
     getSpeedMultiplier,
     getSeparationOffset,
-  }), [updatePosition, removePosition, getSpeedMultiplier, getSeparationOffset]);
+  }), [updatePosition, removePosition, getNearestAnimal, getAnimalsInRange, getSpeedMultiplier, getSeparationOffset]);
 }
