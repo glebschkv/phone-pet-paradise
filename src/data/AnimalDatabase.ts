@@ -1631,6 +1631,67 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       animationSpeed: 12
     }
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW AI-GENERATED SPRITES - Viral Trending Animals
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'capybara',
+    name: 'Capybara',
+    emoji: '🦫',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'The world\'s chillest animal! A calm and peaceful capybara with a citrus slice hat, bringing zen vibes to your focus sessions.',
+    abilities: ['Zen Mode', 'Peaceful Aura', 'Chill Vibes', 'Orange Power'],
+    biome: 'Meadow',
+    coinPrice: 2500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Capybara_Walk.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'axolotl',
+    name: 'Axolotl',
+    emoji: '🦎',
+    rarity: 'epic',
+    unlockLevel: 999,
+    description: 'An adorable pink axolotl with feathery gills! This rare aquatic friend brings regenerative focus energy to help you bounce back.',
+    abilities: ['Regenerate', 'Aqua Calm', 'Cute Waddle', 'Gill Power'],
+    biome: 'Night',
+    coinPrice: 2500,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Axolotl_Walk.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'shiba-inu',
+    name: 'Shiba Inu',
+    emoji: '🐕',
+    rarity: 'rare',
+    unlockLevel: 999,
+    description: 'Much wow! Very focus! The iconic doge brings meme energy and loyal companionship to your productivity sessions.',
+    abilities: ['Much Focus', 'Very Motivation', 'Doge Power', 'Wow Energy'],
+    biome: 'Meadow',
+    coinPrice: 1800,
+    isExclusive: true,
+    spriteConfig: {
+      spritePath: '/assets/sprites/Shiba_Walk.png',
+      frameCount: 6,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10
+    }
+  },
 ];
 
 // Biome configuration with background images
