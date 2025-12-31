@@ -13,9 +13,9 @@ const LEFT_BOUNDARY = 0.08;
 const RIGHT_BOUNDARY = 0.92;
 
 // Collision settings
-const COLLISION_DISTANCE = 0.06;      // How close before we check for collision
-const COLLISION_CHANCE = 0.15;        // 15% chance to actually collide when close
-const COLLISION_COOLDOWN = 3000;      // Don't check collision with same animal for 3 seconds
+const COLLISION_DISTANCE = 0.06;
+const COLLISION_CHANCE = 0.15;
+const COLLISION_COOLDOWN = 3000;
 
 interface SpriteAnimalProps {
   animal: AnimalData;
@@ -26,21 +26,24 @@ interface SpriteAnimalProps {
 }
 
 export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionRegistry }: SpriteAnimalProps) => {
-  const [currentFrame, setCurrentFrame] = useState(0);
-  const [isIdle, setIsIdle] = useState(false);
-
-  // Use refs for values that change frequently in animation loop
+  // All animation state managed via refs to avoid race conditions
   const positionRef = useRef(position);
   const directionRef = useRef<'left' | 'right'>(Math.random() > 0.5 ? 'right' : 'left');
   const isIdleRef = useRef(false);
+  const frameRef = useRef(0);
   const frameTimeRef = useRef(0);
+  const shouldResetFrameRef = useRef(false);
 
-  // Collision cooldown tracking - stores animal IDs we recently collided with
+  // Collision cooldown tracking
   const collisionCooldownRef = useRef<Map<string, number>>(new Map());
 
-  // State for rendering
-  const [renderPosition, setRenderPosition] = useState(position);
-  const [renderDirection, setRenderDirection] = useState(directionRef.current);
+  // Render state - only these trigger re-renders
+  const [renderState, setRenderState] = useState({
+    position: position,
+    direction: directionRef.current,
+    frame: 0,
+    isIdle: false,
+  });
 
   // Timer refs
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,14 +51,14 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
 
   const spriteConfig = animal.spriteConfig;
 
-  // Get sprite config values
-  const walkSpritePath = spriteConfig?.spritePath ?? '';
-  const idleSpritePath = spriteConfig?.idleSprite ?? walkSpritePath;
-  const frameCount = spriteConfig?.frameCount ?? 6;
-  const frameWidth = spriteConfig?.frameWidth ?? 64;
-  const frameHeight = spriteConfig?.frameHeight ?? 64;
-  const animationSpeed = spriteConfig?.animationSpeed ?? 8;
-  const walkRows = spriteConfig?.walkRows ?? 1;
+  // Get sprite config values - use || to catch empty strings too
+  const walkSpritePath = spriteConfig?.spritePath || '';
+  const idleSpritePath = spriteConfig?.idleSprite || walkSpritePath;
+  const frameCount = spriteConfig?.frameCount || 6;
+  const frameWidth = spriteConfig?.frameWidth || 64;
+  const frameHeight = spriteConfig?.frameHeight || 64;
+  const animationSpeed = spriteConfig?.animationSpeed || 8;
+  const walkRows = spriteConfig?.walkRows || 1;
   const frameRow = spriteConfig?.frameRow ?? (walkRows === 2 ? 1 : walkRows === 4 ? 2 : 0);
 
   // Register position on mount
@@ -66,7 +69,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
     };
   }, [animalId, positionRegistry]);
 
-  // Idle timer system
+  // Idle timer system - only sets refs, animation loop handles state updates
   useEffect(() => {
     const scheduleNextIdle = () => {
       if (idleTimerRef.current) {
@@ -77,15 +80,15 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
 
       idleTimerRef.current = setTimeout(() => {
         if (!isIdleRef.current) {
+          // Enter idle
           isIdleRef.current = true;
-          setIsIdle(true);
-          setCurrentFrame(0);
+          shouldResetFrameRef.current = true;
 
           const idleDuration = Math.random() * (IDLE_DURATION_MAX - IDLE_DURATION_MIN) + IDLE_DURATION_MIN;
           idleDurationTimerRef.current = setTimeout(() => {
+            // Exit idle
             isIdleRef.current = false;
-            setIsIdle(false);
-            setCurrentFrame(0);
+            shouldResetFrameRef.current = true;
             scheduleNextIdle();
           }, idleDuration);
         } else {
@@ -102,7 +105,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
     };
   }, []);
 
-  // Main animation loop
+  // Main animation loop - single source of truth for state updates
   useEffect(() => {
     if (!spriteConfig) return;
 
@@ -115,13 +118,21 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
       const deltaTime = Math.min(currentTime - lastTime, 100);
       lastTime = currentTime;
 
+      // Handle frame reset request (from idle transitions)
+      if (shouldResetFrameRef.current) {
+        frameRef.current = 0;
+        frameTimeRef.current = 0;
+        shouldResetFrameRef.current = false;
+      }
+
       // Update sprite frame
       const loopFrameDuration = 1000 / animationSpeed;
       frameTimeRef.current += deltaTime;
 
       if (frameTimeRef.current >= loopFrameDuration) {
         if (!isIdleRef.current) {
-          setCurrentFrame(prev => (prev + 1) % frameCount);
+          // Only increment frames when walking
+          frameRef.current = (frameRef.current + 1) % frameCount;
         }
         frameTimeRef.current = 0;
       }
@@ -153,33 +164,26 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
         const nearbyAnimals = positionRegistry.getAnimalsInRange(animalId, newPosition, COLLISION_DISTANCE);
 
         for (const nearby of nearbyAnimals) {
-          // Skip if on cooldown with this animal
           if (collisionCooldownRef.current.has(nearby.id)) {
             continue;
           }
 
-          // Random chance to collide
           if (Math.random() < COLLISION_CHANCE) {
-            // Check if this animal is in our path
             const isBlocking = (currentDir === 'right' && nearby.position > positionRef.current) ||
                               (currentDir === 'left' && nearby.position < positionRef.current);
 
             if (isBlocking) {
-              // Collision! Turn around
               directionRef.current = currentDir === 'right' ? 'left' : 'right';
-              newPosition = positionRef.current; // Stay in place this frame
-
-              // Add cooldown so we don't immediately collide again
+              newPosition = positionRef.current;
               collisionCooldownRef.current.set(nearby.id, now + COLLISION_COOLDOWN);
               break;
             }
           } else {
-            // No collision - add a short cooldown anyway to prevent rapid re-checks
             collisionCooldownRef.current.set(nearby.id, now + 500);
           }
         }
 
-        // Boundary checks - always enforce
+        // Boundary checks
         if (newPosition >= RIGHT_BOUNDARY) {
           newPosition = RIGHT_BOUNDARY;
           directionRef.current = 'left';
@@ -192,11 +196,15 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
         positionRegistry.updatePosition(animalId, newPosition);
       }
 
-      // Update render state periodically
+      // Update render state periodically - all in one setState to avoid partial updates
       renderUpdateAccum += deltaTime;
       if (renderUpdateAccum >= RENDER_UPDATE_INTERVAL) {
-        setRenderPosition(positionRef.current);
-        setRenderDirection(directionRef.current);
+        setRenderState({
+          position: positionRef.current,
+          direction: directionRef.current,
+          frame: frameRef.current,
+          isIdle: isIdleRef.current,
+        });
         renderUpdateAccum = 0;
       }
 
@@ -212,19 +220,27 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
     };
   }, [spriteConfig, speed, animalId, positionRegistry, frameCount, animationSpeed]);
 
-  if (!spriteConfig) return null;
+  if (!spriteConfig || !walkSpritePath) return null;
 
   // Scale up the sprite
   const scale = 2.5;
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
 
+  // Use render state for all display calculations
+  const { position: renderPosition, direction: renderDirection, frame: currentFrame, isIdle } = renderState;
+
   // Determine which sprite to use
   const currentSpritePath = isIdle ? idleSpritePath : walkSpritePath;
 
-  // Calculate background position
-  const backgroundPositionX = isIdle ? 0 : -(currentFrame * frameWidth * scale);
+  // Calculate background position - ensure frame is valid
+  const safeFrame = isIdle ? 0 : Math.min(currentFrame, frameCount - 1);
+  const backgroundPositionX = -(safeFrame * frameWidth * scale);
   const backgroundPositionY = isIdle ? 0 : -(frameRow * frameHeight * scale);
+
+  // Calculate background size
+  const bgWidth = isIdle ? 4 * scaledWidth : frameCount * scaledWidth;
+  const bgHeight = isIdle ? scaledHeight : walkRows * scaledHeight;
 
   // Ground offset
   const groundOffset = animal.groundOffset || 0;
@@ -250,9 +266,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
           width: `${scaledWidth}px`,
           height: `${scaledHeight}px`,
           backgroundImage: `url(${currentSpritePath})`,
-          backgroundSize: isIdle
-            ? `${4 * scaledWidth}px ${scaledHeight}px`
-            : `${frameCount * scaledWidth}px ${walkRows * scaledHeight}px`,
+          backgroundSize: `${bgWidth}px ${bgHeight}px`,
           backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
           backgroundRepeat: 'no-repeat',
           imageRendering: 'pixelated',
