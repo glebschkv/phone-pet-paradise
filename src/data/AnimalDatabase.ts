@@ -213,6 +213,25 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       walkRows: 2
     }
   },
+  {
+    id: 'frog-hood',
+    name: 'Frog Hood',
+    emoji: '🐸',
+    rarity: 'common',
+    unlockLevel: 5,
+    description: 'A cheerful kid in an adorable green frog hoodie, hopping with joy and spreading happy vibes.',
+    abilities: ['Froggy Hop', 'Lily Pad Shield', 'Ribbit Power'],
+    biome: 'Meadow',
+    spriteConfig: {
+      spritePath: '/assets/sprites/humanoid/frog-hood-walk.png',
+      idleSprite: '/assets/sprites/humanoid/frog-hood.png',
+      frameCount: 6,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 8,
+      walkRows: 4
+    }
+  },
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SUNSET BIOME (Levels 5, 8) - Golden hour creatures
@@ -617,7 +636,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Meadow',
     unlockLevel: 0,
     description: 'A peaceful meadow where your journey begins. Home to friendly creatures.',
-    animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king'],
+    animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood'],
     backgroundImage: '/assets/worlds/GRASSYPATH.png'
   },
   {
