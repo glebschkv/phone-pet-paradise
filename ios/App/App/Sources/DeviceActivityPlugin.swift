@@ -5,13 +5,6 @@ import FamilyControls
 import ManagedSettings
 import BackgroundTasks
 
-// MARK: - App Group for Data Sharing
-private let appGroupIdentifier = "group.co.nomoinc.nomo"
-private let blockedAppsKey = "blockedAppSelection"
-private let focusSessionActiveKey = "focusSessionActive"
-private let shieldAttemptsKey = "shieldAttempts"
-private let lastShieldAttemptKey = "lastShieldAttempt"
-
 // MARK: - Shared Data Manager
 class FocusDataManager {
     static let shared = FocusDataManager()
@@ -19,22 +12,22 @@ class FocusDataManager {
     private let userDefaults: UserDefaults?
 
     private init() {
-        userDefaults = UserDefaults(suiteName: appGroupIdentifier)
+        userDefaults = AppConfig.sharedUserDefaults
     }
 
     var isFocusSessionActive: Bool {
-        get { userDefaults?.bool(forKey: focusSessionActiveKey) ?? false }
-        set { userDefaults?.set(newValue, forKey: focusSessionActiveKey) }
+        get { userDefaults?.bool(forKey: AppConfig.StorageKeys.focusSessionActive) ?? false }
+        set { userDefaults?.set(newValue, forKey: AppConfig.StorageKeys.focusSessionActive) }
     }
 
     var shieldAttempts: Int {
-        get { userDefaults?.integer(forKey: shieldAttemptsKey) ?? 0 }
-        set { userDefaults?.set(newValue, forKey: shieldAttemptsKey) }
+        get { userDefaults?.integer(forKey: AppConfig.StorageKeys.shieldAttempts) ?? 0 }
+        set { userDefaults?.set(newValue, forKey: AppConfig.StorageKeys.shieldAttempts) }
     }
 
     var lastShieldAttemptTimestamp: Double {
-        get { userDefaults?.double(forKey: lastShieldAttemptKey) ?? 0 }
-        set { userDefaults?.set(newValue, forKey: lastShieldAttemptKey) }
+        get { userDefaults?.double(forKey: AppConfig.StorageKeys.lastShieldAttempt) ?? 0 }
+        set { userDefaults?.set(newValue, forKey: AppConfig.StorageKeys.lastShieldAttempt) }
     }
 
     func resetShieldAttempts() {
@@ -114,8 +107,8 @@ public class DeviceActivityPlugin: CAPPlugin {
         }
 
         // Store selection data in app group for extension access
-        if let userDefaults = UserDefaults(suiteName: appGroupIdentifier) {
-            userDefaults.set(selectionData, forKey: blockedAppsKey)
+        if let userDefaults = AppConfig.sharedUserDefaults {
+            userDefaults.set(selectionData, forKey: AppConfig.StorageKeys.blockedAppsSelection)
             userDefaults.synchronize()
         }
 
@@ -126,8 +119,8 @@ public class DeviceActivityPlugin: CAPPlugin {
     }
 
     @objc func getSelectedApps(_ call: CAPPluginCall) {
-        if let userDefaults = UserDefaults(suiteName: appGroupIdentifier),
-           let selectionData = userDefaults.string(forKey: blockedAppsKey) {
+        if let userDefaults = AppConfig.sharedUserDefaults,
+           let selectionData = userDefaults.string(forKey: AppConfig.StorageKeys.blockedAppsSelection) {
             call.resolve([
                 "hasSelection": true,
                 "selection": selectionData
@@ -141,8 +134,8 @@ public class DeviceActivityPlugin: CAPPlugin {
     }
 
     @objc func clearSelectedApps(_ call: CAPPluginCall) {
-        if let userDefaults = UserDefaults(suiteName: appGroupIdentifier) {
-            userDefaults.removeObject(forKey: blockedAppsKey)
+        if let userDefaults = AppConfig.sharedUserDefaults {
+            userDefaults.removeObject(forKey: AppConfig.StorageKeys.blockedAppsSelection)
             userDefaults.synchronize()
         }
 
@@ -167,8 +160,8 @@ public class DeviceActivityPlugin: CAPPlugin {
         FocusDataManager.shared.resetShieldAttempts()
 
         // Load selection from app group and apply shields
-        if let userDefaults = UserDefaults(suiteName: appGroupIdentifier),
-           let selectionData = userDefaults.data(forKey: blockedAppsKey) {
+        if let userDefaults = AppConfig.sharedUserDefaults,
+           let selectionData = userDefaults.data(forKey: AppConfig.StorageKeys.blockedAppsSelection) {
             do {
                 let selection = try JSONDecoder().decode(FamilyActivitySelection.self, from: selectionData)
 
@@ -259,7 +252,7 @@ public class DeviceActivityPlugin: CAPPlugin {
             return
         }
 
-        let activityName = DeviceActivityName("phoneUsageTracking")
+        let activityName = DeviceActivityName(AppConfig.ActivityMonitoring.activityName)
         let schedule = DeviceActivitySchedule(
             intervalStart: DateComponents(hour: 0, minute: 0),
             intervalEnd: DateComponents(hour: 23, minute: 59),
@@ -285,7 +278,7 @@ public class DeviceActivityPlugin: CAPPlugin {
     }
 
     @objc func stopMonitoring(_ call: CAPPluginCall) {
-        let activityName = DeviceActivityName("phoneUsageTracking")
+        let activityName = DeviceActivityName(AppConfig.ActivityMonitoring.activityName)
         deviceActivityCenter.stopMonitoring([activityName])
         isMonitoring = false
 
@@ -358,10 +351,14 @@ public class DeviceActivityPlugin: CAPPlugin {
     private func registerBackgroundTasks() {
         // Register background task for app lifecycle monitoring
         BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: "app.lovable.354c50c576064f429b59577c9adb3ef7.background-tracking",
+            forTaskWithIdentifier: AppConfig.backgroundTaskIdentifier,
             using: nil
-        ) { task in
-            self.handleBackgroundTracking(task: task as! BGAppRefreshTask)
+        ) { [weak self] task in
+            guard let refreshTask = task as? BGAppRefreshTask else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+            self?.handleBackgroundTracking(task: refreshTask)
         }
     }
 
@@ -379,24 +376,28 @@ public class DeviceActivityPlugin: CAPPlugin {
     }
 
     private func scheduleBackgroundAppRefresh() {
-        let request = BGAppRefreshTaskRequest(identifier: "app.lovable.354c50c576064f429b59577c9adb3ef7.background-tracking")
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60) // 15 minutes
+        let request = BGAppRefreshTaskRequest(identifier: AppConfig.backgroundTaskIdentifier)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: AppConfig.backgroundRefreshIntervalMinutes * 60)
 
-        try? BGTaskScheduler.shared.submit(request)
+        do {
+            try BGTaskScheduler.shared.submit(request)
+        } catch {
+            print("[DeviceActivityPlugin] Failed to schedule background refresh: \(error)")
+        }
     }
 
     // MARK: - App Group Helpers
 
     private func saveSelectionToAppGroup() {
         guard let selection = currentSelection,
-              let userDefaults = UserDefaults(suiteName: appGroupIdentifier) else { return }
+              let userDefaults = AppConfig.sharedUserDefaults else { return }
 
         do {
             let data = try JSONEncoder().encode(selection)
-            userDefaults.set(data, forKey: blockedAppsKey)
+            userDefaults.set(data, forKey: AppConfig.StorageKeys.blockedAppsSelection)
             userDefaults.synchronize()
         } catch {
-            print("Failed to save selection: \(error)")
+            print("[DeviceActivityPlugin] Failed to save selection: \(error)")
         }
     }
 

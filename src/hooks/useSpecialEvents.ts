@@ -25,6 +25,12 @@ export const useSpecialEvents = () => {
   const [activeEvents, setActiveEvents] = useState<SpecialEvent[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<SpecialEvent[]>([]);
 
+  // Memoized update function to avoid stale closures
+  const updateEvents = useCallback(() => {
+    setActiveEvents(getActiveEvents());
+    setUpcomingEvents(getUpcomingEvents());
+  }, []);
+
   // Load saved state
   useEffect(() => {
     const saved = storage.get<SpecialEventsState>(STORAGE_KEYS.SPECIAL_EVENTS);
@@ -38,12 +44,7 @@ export const useSpecialEvents = () => {
     // Check events every minute
     const interval = setInterval(updateEvents, 60000);
     return () => clearInterval(interval);
-  }, []);
-
-  const updateEvents = () => {
-    setActiveEvents(getActiveEvents());
-    setUpcomingEvents(getUpcomingEvents());
-  };
+  }, [updateEvents]);
 
   const saveState = useCallback((newState: SpecialEventsState) => {
     setState(newState);
