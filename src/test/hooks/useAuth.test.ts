@@ -37,7 +37,15 @@ vi.mock('@/lib/logger', () => ({
 
 // Import the mocked supabase after mocking
 import { supabase } from '@/integrations/supabase/client';
-const mockSupabase = supabase as any;
+const mockSupabase = supabase as unknown as {
+  auth: {
+    getSession: ReturnType<typeof vi.fn>;
+    signInWithPassword: ReturnType<typeof vi.fn>;
+    signUp: ReturnType<typeof vi.fn>;
+    signOut: ReturnType<typeof vi.fn>;
+    onAuthStateChange: ReturnType<typeof vi.fn>;
+  };
+};
 
 describe('useAuth', () => {
   const GUEST_ID_KEY = 'pet_paradise_guest_id';
@@ -275,8 +283,11 @@ describe('useAuth', () => {
       });
 
       // Mock window.location.href
-      delete (window as any).location;
-      window.location = { href: '' } as any;
+      Object.defineProperty(window, 'location', {
+        value: { href: '' },
+        writable: true,
+        configurable: true,
+      });
 
       const { result } = renderHook(() => useAuth());
 
@@ -300,8 +311,11 @@ describe('useAuth', () => {
       localStorage.setItem(GUEST_CHOSEN_KEY, 'true');
 
       // Mock window.location.href
-      delete (window as any).location;
-      window.location = { href: '' } as any;
+      Object.defineProperty(window, 'location', {
+        value: { href: '' },
+        writable: true,
+        configurable: true,
+      });
 
       const { result } = renderHook(() => useAuth());
 
