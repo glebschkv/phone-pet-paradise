@@ -609,6 +609,426 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       animationSpeed: 7
     }
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // OCEAN BIOME - Cute sea creatures and costume kids
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'crab-kid',
+    name: 'Crab Kid',
+    emoji: '🦀',
+    rarity: 'rare',
+    unlockLevel: 99,
+    coinPrice: 1200,
+    isExclusive: true,
+    description: 'A cute kid wearing an adorable orange crab costume with claws!',
+    abilities: ['Claw Snap', 'Shell Shield', 'Tide Power'],
+    biome: 'Ocean',
+    spriteConfig: {
+      spritePath: '/assets/sprites/ocean/crab-kid.png',
+      idleSprite: '/assets/sprites/ocean/crab-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 6
+    }
+  },
+  {
+    id: 'shark-kid',
+    name: 'Shark Kid',
+    emoji: '🦈',
+    rarity: 'rare',
+    unlockLevel: 99,
+    coinPrice: 1200,
+    isExclusive: true,
+    description: 'A playful kid in a blue shark hoodie with a fin on top!',
+    abilities: ['Shark Dash', 'Ocean Power', 'Fin Focus'],
+    biome: 'Ocean',
+    spriteConfig: {
+      spritePath: '/assets/sprites/ocean/shark-kid.png',
+      idleSprite: '/assets/sprites/ocean/shark-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 6
+    }
+  },
+  {
+    id: 'bubble-fish',
+    name: 'Bubble Fish',
+    emoji: '🐡',
+    rarity: 'common',
+    unlockLevel: 99,
+    coinPrice: 600,
+    isExclusive: true,
+    description: 'A cute round pufferfish that floats around with bubbles.',
+    abilities: ['Bubble Float', 'Puff Shield', 'Ocean Calm'],
+    biome: 'Ocean',
+    spriteConfig: {
+      spritePath: '/assets/sprites/ocean/bubble-fish.png',
+      idleSprite: '/assets/sprites/ocean/bubble-fish.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 5
+    }
+  },
+  {
+    id: 'pearl-otter',
+    name: 'Pearl Otter',
+    emoji: '🦦',
+    rarity: 'rare',
+    unlockLevel: 99,
+    coinPrice: 1500,
+    isExclusive: true,
+    description: 'A cute sea otter holding a glowing pearl treasure.',
+    abilities: ['Pearl Glow', 'Float Focus', 'Otter Joy'],
+    biome: 'Ocean',
+    spriteConfig: {
+      spritePath: '/assets/sprites/ocean/pearl-otter.png',
+      idleSprite: '/assets/sprites/ocean/pearl-otter.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 6
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SKY BIOME - Fluffy cloud creatures
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'sheep-kid',
+    name: 'Cloud Sheep Kid',
+    emoji: '🐑',
+    rarity: 'rare',
+    unlockLevel: 99,
+    coinPrice: 1200,
+    isExclusive: true,
+    description: 'A sleepy kid in a fluffy white sheep costume made of clouds.',
+    abilities: ['Cloud Float', 'Wool Shield', 'Dream Focus'],
+    biome: 'Sky',
+    spriteConfig: {
+      spritePath: '/assets/sprites/sky/sheep-kid.png',
+      idleSprite: '/assets/sprites/sky/sheep-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 5
+    }
+  },
+  {
+    id: 'rainbow-kid',
+    name: 'Rainbow Bird Kid',
+    emoji: '🌈',
+    rarity: 'epic',
+    unlockLevel: 99,
+    coinPrice: 2000,
+    isExclusive: true,
+    description: 'A cheerful kid wearing a colorful rainbow bird costume with small wings.',
+    abilities: ['Rainbow Power', 'Wing Flutter', 'Color Burst'],
+    biome: 'Sky',
+    spriteConfig: {
+      spritePath: '/assets/sprites/sky/rainbow-kid.png',
+      idleSprite: '/assets/sprites/sky/rainbow-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 7
+    }
+  },
+  {
+    id: 'cloud-bunny',
+    name: 'Cloud Bunny',
+    emoji: '☁️',
+    rarity: 'common',
+    unlockLevel: 99,
+    coinPrice: 800,
+    isExclusive: true,
+    description: 'A fluffy white bunny made entirely of soft clouds.',
+    abilities: ['Cloud Hop', 'Fluffy Shield', 'Sky Float'],
+    biome: 'Sky',
+    spriteConfig: {
+      spritePath: '/assets/sprites/sky/cloud-bunny.png',
+      idleSprite: '/assets/sprites/sky/cloud-bunny.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 5
+    }
+  },
+  {
+    id: 'wind-sprite',
+    name: 'Wind Sprite',
+    emoji: '💨',
+    rarity: 'rare',
+    unlockLevel: 99,
+    coinPrice: 1500,
+    isExclusive: true,
+    description: 'A wispy wind elemental spirit with flowing ribbons.',
+    abilities: ['Wind Dance', 'Breeze Boost', 'Air Flow'],
+    biome: 'Sky',
+    spriteConfig: {
+      spritePath: '/assets/sprites/sky/wind-sprite.png',
+      idleSprite: '/assets/sprites/sky/wind-sprite.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 8
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SWEET BIOME - Candy and dessert creatures
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'strawberry-kid',
+    name: 'Strawberry Kid',
+    emoji: '🍓',
+    rarity: 'rare',
+    unlockLevel: 99,
+    coinPrice: 1200,
+    isExclusive: true,
+    description: 'A sweet kid wearing a red strawberry costume with a green leaf hat.',
+    abilities: ['Sweet Boost', 'Berry Shield', 'Fresh Focus'],
+    biome: 'Sweet',
+    spriteConfig: {
+      spritePath: '/assets/sprites/sweet/strawberry-kid.png',
+      idleSprite: '/assets/sprites/sweet/strawberry-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 6
+    }
+  },
+  {
+    id: 'candy-kid',
+    name: 'Candy Kid',
+    emoji: '🍬',
+    rarity: 'rare',
+    unlockLevel: 99,
+    coinPrice: 1200,
+    isExclusive: true,
+    description: 'A happy kid wearing a pink and white candy swirl costume.',
+    abilities: ['Sugar Rush', 'Candy Shield', 'Sweet Focus'],
+    biome: 'Sweet',
+    spriteConfig: {
+      spritePath: '/assets/sprites/sweet/candy-kid.png',
+      idleSprite: '/assets/sprites/sweet/candy-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 7
+    }
+  },
+  {
+    id: 'macaron-cat',
+    name: 'Macaron Cat',
+    emoji: '🍪',
+    rarity: 'epic',
+    unlockLevel: 99,
+    coinPrice: 2500,
+    isExclusive: true,
+    description: 'A cute cat shaped like a pastel pink macaron cookie.',
+    abilities: ['Sweet Purr', 'Cookie Shield', 'Dessert Focus'],
+    biome: 'Sweet',
+    spriteConfig: {
+      spritePath: '/assets/sprites/sweet/macaron-cat.png',
+      idleSprite: '/assets/sprites/sweet/macaron-cat.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 5
+    }
+  },
+  {
+    id: 'honey-slime',
+    name: 'Honey Slime',
+    emoji: '🍯',
+    rarity: 'common',
+    unlockLevel: 99,
+    coinPrice: 700,
+    isExclusive: true,
+    description: 'A golden honey-colored slime that drips with sweetness.',
+    abilities: ['Honey Drip', 'Sticky Shield', 'Golden Focus'],
+    biome: 'Sweet',
+    spriteConfig: {
+      spritePath: '/assets/sprites/sweet/honey-slime.png',
+      idleSprite: '/assets/sprites/sweet/honey-slime.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 4
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MYTHICAL BIOME - Fantasy creatures
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'phoenix-kid',
+    name: 'Phoenix Kid',
+    emoji: '🔥',
+    rarity: 'epic',
+    unlockLevel: 99,
+    coinPrice: 3000,
+    isExclusive: true,
+    description: 'A confident kid wearing an orange and red phoenix costume with flame feathers.',
+    abilities: ['Flame Burst', 'Phoenix Rise', 'Fire Focus'],
+    biome: 'Mythical',
+    spriteConfig: {
+      spritePath: '/assets/sprites/mythical/phoenix-kid.png',
+      idleSprite: '/assets/sprites/mythical/phoenix-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'leaf-dragon-kid',
+    name: 'Leaf Dragon Kid',
+    emoji: '🐲',
+    rarity: 'epic',
+    unlockLevel: 99,
+    coinPrice: 3000,
+    isExclusive: true,
+    description: 'A curious kid wearing a green dragon costume covered in magical leaves.',
+    abilities: ['Leaf Storm', 'Dragon Roar', 'Nature Focus'],
+    biome: 'Mythical',
+    spriteConfig: {
+      spritePath: '/assets/sprites/mythical/leaf-dragon-kid.png',
+      idleSprite: '/assets/sprites/mythical/leaf-dragon-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 7
+    }
+  },
+  {
+    id: 'crystal-fox',
+    name: 'Crystal Fox',
+    emoji: '💎',
+    rarity: 'legendary',
+    unlockLevel: 99,
+    coinPrice: 5000,
+    isExclusive: true,
+    description: 'A mystical fox made of shimmering blue and purple crystals.',
+    abilities: ['Crystal Glow', 'Gem Shield', 'Prism Focus'],
+    biome: 'Mythical',
+    spriteConfig: {
+      spritePath: '/assets/sprites/mythical/crystal-fox.png',
+      idleSprite: '/assets/sprites/mythical/crystal-fox.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 6
+    }
+  },
+  {
+    id: 'moon-bunny',
+    name: 'Moon Bunny',
+    emoji: '🌙',
+    rarity: 'rare',
+    unlockLevel: 99,
+    coinPrice: 1800,
+    isExclusive: true,
+    description: 'A glowing white rabbit with a crescent moon marking on its forehead.',
+    abilities: ['Moon Glow', 'Lunar Shield', 'Night Focus'],
+    biome: 'Mythical',
+    spriteConfig: {
+      spritePath: '/assets/sprites/mythical/moon-bunny.png',
+      idleSprite: '/assets/sprites/mythical/moon-bunny.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 5
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COSMIC BIOME - Space and galaxy creatures
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'astro-kid',
+    name: 'Astro Kid',
+    emoji: '👨‍🚀',
+    rarity: 'epic',
+    unlockLevel: 99,
+    coinPrice: 2800,
+    isExclusive: true,
+    description: 'An excited kid wearing a white space astronaut suit with a round helmet.',
+    abilities: ['Space Jump', 'Orbit Shield', 'Zero-G Focus'],
+    biome: 'Cosmic',
+    spriteConfig: {
+      spritePath: '/assets/sprites/cosmic/astro-kid.png',
+      idleSprite: '/assets/sprites/cosmic/astro-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 6
+    }
+  },
+  {
+    id: 'alien-kid',
+    name: 'Alien Kid',
+    emoji: '👽',
+    rarity: 'rare',
+    unlockLevel: 99,
+    coinPrice: 1500,
+    isExclusive: true,
+    description: 'A friendly kid wearing a green alien costume with antennae.',
+    abilities: ['Beam Power', 'UFO Shield', 'Cosmic Focus'],
+    biome: 'Cosmic',
+    spriteConfig: {
+      spritePath: '/assets/sprites/cosmic/alien-kid.png',
+      idleSprite: '/assets/sprites/cosmic/alien-kid.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 6
+    }
+  },
+  {
+    id: 'nebula-axolotl',
+    name: 'Nebula Axolotl',
+    emoji: '🌌',
+    rarity: 'legendary',
+    unlockLevel: 99,
+    coinPrice: 5500,
+    isExclusive: true,
+    description: 'A cosmic axolotl with galaxy nebula colors of purple, pink, and blue.',
+    abilities: ['Nebula Glow', 'Star Dust', 'Galaxy Focus'],
+    biome: 'Cosmic',
+    spriteConfig: {
+      spritePath: '/assets/sprites/cosmic/nebula-axolotl.png',
+      idleSprite: '/assets/sprites/cosmic/nebula-axolotl.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 5
+    }
+  },
+  {
+    id: 'comet-cat',
+    name: 'Comet Cat',
+    emoji: '☄️',
+    rarity: 'epic',
+    unlockLevel: 99,
+    coinPrice: 3200,
+    isExclusive: true,
+    description: 'A magical cat with a glowing star trail tail like a comet.',
+    abilities: ['Comet Dash', 'Star Trail', 'Cosmic Focus'],
+    biome: 'Cosmic',
+    spriteConfig: {
+      spritePath: '/assets/sprites/cosmic/comet-cat.png',
+      idleSprite: '/assets/sprites/cosmic/comet-cat.png',
+      frameCount: 4,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 7
+    }
+  },
 ];
 
 // Biome definitions
@@ -661,6 +1081,42 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'Ancient ruins holding powerful warriors.',
     animals: ['dragon-knight'],
     backgroundImage: '/assets/worlds/RUINS.png'
+  },
+  // New themed biomes (Shop exclusive)
+  {
+    name: 'Ocean',
+    unlockLevel: 99,
+    description: 'A colorful underwater world filled with cute sea creatures.',
+    animals: ['crab-kid', 'shark-kid', 'bubble-fish', 'pearl-otter'],
+    backgroundImage: '/assets/worlds/GRASSYPATH.png'
+  },
+  {
+    name: 'Sky',
+    unlockLevel: 99,
+    description: 'A fluffy cloud kingdom high above the world.',
+    animals: ['sheep-kid', 'rainbow-kid', 'cloud-bunny', 'wind-sprite'],
+    backgroundImage: '/assets/worlds/SKYPLATFORM_WORLD.png'
+  },
+  {
+    name: 'Sweet',
+    unlockLevel: 99,
+    description: 'A magical candy land made of sweets and treats.',
+    animals: ['strawberry-kid', 'candy-kid', 'macaron-cat', 'honey-slime'],
+    backgroundImage: '/assets/worlds/WINDMILL.png'
+  },
+  {
+    name: 'Mythical',
+    unlockLevel: 99,
+    description: 'An enchanted realm of fantasy creatures.',
+    animals: ['phoenix-kid', 'leaf-dragon-kid', 'crystal-fox', 'moon-bunny'],
+    backgroundImage: '/assets/worlds/PURPLE_NIGHTSKY.png'
+  },
+  {
+    name: 'Cosmic',
+    unlockLevel: 99,
+    description: 'A galaxy far away filled with space explorers.',
+    animals: ['astro-kid', 'alien-kid', 'nebula-axolotl', 'comet-cat'],
+    backgroundImage: '/assets/worlds/JUNGLE_ISLAND.png'
   }
 ];
 

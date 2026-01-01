@@ -520,17 +520,91 @@ export const PET_BUNDLES: PetBundle[] = [
     totalValue: 2800, // 800+2000
     savings: '21%',
   },
+  // New themed bundles
+  {
+    id: 'bundle-ocean-adventure',
+    name: 'Ocean Adventure Bundle',
+    description: 'Dive into the sea! All 4 adorable ocean characters.',
+    category: 'bundles',
+    coinPrice: 3600,
+    icon: '🌊',
+    rarity: 'epic',
+    petIds: ['crab-kid', 'shark-kid', 'bubble-fish', 'pearl-otter'],
+    totalValue: 4500, // 1200+1200+600+1500
+    savings: '20%',
+  },
+  {
+    id: 'bundle-sky-kingdom',
+    name: 'Sky Kingdom Bundle',
+    description: 'Float among the clouds! All 4 fluffy sky characters.',
+    category: 'bundles',
+    coinPrice: 4400,
+    icon: '☁️',
+    rarity: 'epic',
+    petIds: ['sheep-kid', 'rainbow-kid', 'cloud-bunny', 'wind-sprite'],
+    totalValue: 5500, // 1200+2000+800+1500
+    savings: '20%',
+  },
+  {
+    id: 'bundle-sweet-treats',
+    name: 'Sweet Treats Bundle',
+    description: 'Sugar rush! All 4 delicious candy characters.',
+    category: 'bundles',
+    coinPrice: 4500,
+    icon: '🍬',
+    rarity: 'epic',
+    petIds: ['strawberry-kid', 'candy-kid', 'macaron-cat', 'honey-slime'],
+    totalValue: 5600, // 1200+1200+2500+700
+    savings: '20%',
+  },
+  {
+    id: 'bundle-mythical-legends',
+    name: 'Mythical Legends Bundle',
+    description: 'Unleash the magic! All 4 legendary fantasy characters.',
+    category: 'bundles',
+    coinPrice: 10200,
+    icon: '🐉',
+    rarity: 'legendary',
+    petIds: ['phoenix-kid', 'leaf-dragon-kid', 'crystal-fox', 'moon-bunny'],
+    totalValue: 12800, // 3000+3000+5000+1800
+    savings: '20%',
+  },
+  {
+    id: 'bundle-cosmic-explorers',
+    name: 'Cosmic Explorers Bundle',
+    description: 'Journey to the stars! All 4 amazing space characters.',
+    category: 'bundles',
+    coinPrice: 10400,
+    icon: '🚀',
+    rarity: 'legendary',
+    petIds: ['astro-kid', 'alien-kid', 'nebula-axolotl', 'comet-cat'],
+    totalValue: 13000, // 2800+1500+5500+3200
+    savings: '20%',
+  },
   {
     id: 'bundle-complete-collection',
     name: 'Complete Collection Bundle',
-    description: 'All 8 exclusive pets in one legendary bundle! The ultimate collector\'s dream.',
+    description: 'All 28 exclusive pets in one legendary bundle! The ultimate collector\'s dream.',
     category: 'bundles',
-    coinPrice: 18000,
+    coinPrice: 45000,
     icon: '👑',
     rarity: 'legendary',
-    petIds: ['clover-cat', 'slime-king', 'cute-ghost', 'kitsune-spirit', 'golden-moth', 'storm-spirit', 'cat-hood', 'robot-buddy'],
-    totalValue: 22800, // 800+2000+2500+5000+3000+4500+1500+3500
-    savings: '21%',
+    petIds: [
+      // Original exclusives
+      'clover-cat', 'slime-king', 'cute-ghost', 'kitsune-spirit', 'golden-moth', 'storm-spirit', 'cat-hood', 'robot-buddy',
+      // Ocean
+      'crab-kid', 'shark-kid', 'bubble-fish', 'pearl-otter',
+      // Sky
+      'sheep-kid', 'rainbow-kid', 'cloud-bunny', 'wind-sprite',
+      // Sweet
+      'strawberry-kid', 'candy-kid', 'macaron-cat', 'honey-slime',
+      // Mythical
+      'phoenix-kid', 'leaf-dragon-kid', 'crystal-fox', 'moon-bunny',
+      // Cosmic
+      'astro-kid', 'alien-kid', 'nebula-axolotl', 'comet-cat',
+    ],
+    totalValue: 64200,
+    savings: '30%',
   },
 ];
 
