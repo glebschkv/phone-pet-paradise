@@ -8,9 +8,6 @@ import Foundation
 
 class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
-    // App Group for shared data
-    // NOTE: Keep in sync with AppConfig.appGroupIdentifier in main app
-    private let appGroupIdentifier = "group.co.nomoinc.nomo"
     private let store = ManagedSettingsStore()
 
     // MARK: - Activity Started
@@ -22,7 +19,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         logEvent("Activity started: \(activity.rawValue)")
 
         // Check if this is our focus tracking activity
-        if activity.rawValue == "phoneUsageTracking" {
+        if activity.rawValue == SharedConstants.ActivityNames.phoneUsageTracking {
             markFocusSessionActive(true)
         }
     }
@@ -32,7 +29,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     override func intervalDidEnd(for activity: DeviceActivityName) {
         // Always try to clear shields when activity ends, even if other code fails
         defer {
-            if activity.rawValue == "phoneUsageTracking" {
+            if activity.rawValue == SharedConstants.ActivityNames.phoneUsageTracking {
                 clearShields()
             }
         }
@@ -43,7 +40,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         logEvent("Activity ended: \(activity.rawValue)")
 
         // Check if this is our focus tracking activity
-        if activity.rawValue == "phoneUsageTracking" {
+        if activity.rawValue == SharedConstants.ActivityNames.phoneUsageTracking {
             markFocusSessionActive(false)
         }
     }
@@ -74,8 +71,8 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     // MARK: - Helpers
 
     private func markFocusSessionActive(_ active: Bool) {
-        guard let userDefaults = UserDefaults(suiteName: appGroupIdentifier) else { return }
-        userDefaults.set(active, forKey: "focusSessionActive")
+        guard let userDefaults = SharedConstants.sharedUserDefaults else { return }
+        userDefaults.set(active, forKey: SharedConstants.StorageKeys.focusSessionActive)
         userDefaults.synchronize()
     }
 
@@ -86,19 +83,19 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     }
 
     private func logEvent(_ message: String) {
-        guard let userDefaults = UserDefaults(suiteName: appGroupIdentifier) else { return }
+        guard let userDefaults = SharedConstants.sharedUserDefaults else { return }
 
         // Append to activity log
-        var logs = userDefaults.stringArray(forKey: "activityLogs") ?? []
+        var logs = userDefaults.stringArray(forKey: SharedConstants.StorageKeys.activityLogs) ?? []
         let timestamp = ISO8601DateFormatter().string(from: Date())
         logs.append("[\(timestamp)] \(message)")
 
-        // Keep only last 100 logs
-        if logs.count > 100 {
-            logs = Array(logs.suffix(100))
+        // Keep only last N logs
+        if logs.count > SharedConstants.maxStoredLogs {
+            logs = Array(logs.suffix(SharedConstants.maxStoredLogs))
         }
 
-        userDefaults.set(logs, forKey: "activityLogs")
+        userDefaults.set(logs, forKey: SharedConstants.StorageKeys.activityLogs)
         userDefaults.synchronize()
     }
 }
