@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useSupabaseData } from './useSupabaseData';
 import { toast } from 'sonner';
+import { streakLogger } from '@/lib/logger';
 
 interface StreakData {
   currentStreak: number;
@@ -140,7 +141,7 @@ export const useBackendStreaks = () => {
 
       return reward || null;
     } catch (error) {
-      console.error('Error recording session:', error);
+      streakLogger.error('Error recording session:', error);
       toast.error('Failed to update streak');
       throw error;
     }
@@ -166,7 +167,7 @@ export const useBackendStreaks = () => {
 
         return true;
       } catch (error) {
-        console.error('Error using streak freeze:', error);
+        streakLogger.error('Error using streak freeze:', error);
         return false;
       }
     }
@@ -190,7 +191,7 @@ export const useBackendStreaks = () => {
         description: 'You can now protect your streak once.'
       });
     } catch (error) {
-      console.error('Error earning streak freeze:', error);
+      streakLogger.error('Error earning streak freeze:', error);
     }
   }, [isAuthenticated, progress, updateProgress]);
 
@@ -230,7 +231,7 @@ export const useBackendStreaks = () => {
 
       toast.success('Streak data reset');
     } catch (error) {
-      console.error('Error resetting streak:', error);
+      streakLogger.error('Error resetting streak:', error);
       toast.error('Failed to reset streak');
     }
   }, [isAuthenticated, updateProgress]);

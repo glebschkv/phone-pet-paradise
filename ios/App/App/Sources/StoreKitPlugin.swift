@@ -7,6 +7,7 @@ import StoreKit
  *
  * Capacitor plugin for StoreKit 2 in-app purchases.
  * Handles subscriptions, consumables, and non-consumables.
+ * Includes retry logic for network operations.
  */
 @objc(StoreKitPlugin)
 public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -49,13 +50,13 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                         ])
                     }
                 } catch {
-                    print("Transaction verification failed: \(error)")
+                    print("[StoreKitPlugin] Transaction verification failed: \(error)")
                 }
             }
         }
     }
 
-    // MARK: - Get Products
+    // MARK: - Get Products (with retry)
 
     @objc func getProducts(_ call: CAPPluginCall) {
         guard let productIds = call.getArray("productIds", String.self) else {
@@ -65,7 +66,10 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
 
         Task {
             do {
-                let storeProducts = try await Product.products(for: Set(productIds))
+                // Use retry logic for network operation
+                let storeProducts = try await withRetry {
+                    try await Product.products(for: Set(productIds))
+                }
 
                 var productsData: [[String: Any]] = []
                 for product in storeProducts {
@@ -108,10 +112,12 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
 
         Task {
             do {
-                // Get product if not cached
+                // Get product if not cached (with retry)
                 var product = self.products[productId]
                 if product == nil {
-                    let products = try await Product.products(for: [productId])
+                    let products = try await withRetry {
+                        try await Product.products(for: [productId])
+                    }
                     product = products.first
                     if let p = product {
                         self.products[productId] = p
@@ -130,7 +136,6 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                     let transaction = try self.checkVerified(verification)
 
                     // Get the JWS representation for server-side validation
-                    // This is the signed transaction payload that can be verified server-side
                     let jwsRepresentation = verification.jwsRepresentation
 
                     // Finish the transaction
@@ -174,12 +179,15 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    // MARK: - Restore Purchases
+    // MARK: - Restore Purchases (with retry)
 
     @objc func restorePurchases(_ call: CAPPluginCall) {
         Task {
             do {
-                try await AppStore.sync()
+                // Retry AppStore sync for network resilience
+                try await withRetry {
+                    try await AppStore.sync()
+                }
 
                 var restoredPurchases: [[String: Any]] = []
 
@@ -200,7 +208,7 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                             "environment": environment
                         ])
                     } catch {
-                        print("Failed to verify transaction: \(error)")
+                        print("[StoreKitPlugin] Failed to verify transaction: \(error)")
                     }
                 }
 
@@ -248,7 +256,7 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                         purchasedProducts.append(purchaseInfo)
                     }
                 } catch {
-                    print("Failed to verify entitlement: \(error)")
+                    print("[StoreKitPlugin] Failed to verify entitlement: \(error)")
                 }
             }
 
@@ -277,7 +285,7 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                         "revocationDate": transaction.revocationDate?.timeIntervalSince1970 as Any
                     ])
                 } catch {
-                    print("Failed to verify history transaction: \(error)")
+                    print("[StoreKitPlugin] Failed to verify history transaction: \(error)")
                 }
             }
 
@@ -289,15 +297,16 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func manageSubscriptions(_ call: CAPPluginCall) {
         Task { @MainActor in
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                do {
-                    try await AppStore.showManageSubscriptions(in: windowScene)
-                    call.resolve(["success": true])
-                } catch {
-                    call.reject("Failed to show subscription management: \(error.localizedDescription)")
-                }
-            } else {
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
                 call.reject("Could not get window scene")
+                return
+            }
+
+            do {
+                try await AppStore.showManageSubscriptions(in: windowScene)
+                call.resolve(["success": true])
+            } catch {
+                call.reject("Failed to show subscription management: \(error.localizedDescription)")
             }
         }
     }
@@ -307,7 +316,7 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
     private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
         switch result {
         case .unverified:
-            throw StoreKitError.failedVerification
+            throw StoreKitPluginError.failedVerification
         case .verified(let safe):
             return safe
         }
@@ -344,8 +353,6 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     private func getEnvironmentString(_ transaction: Transaction) -> String {
-        // Environment detection - check if we're in sandbox mode
-        // In StoreKit 2, the environment is part of the transaction
         if #available(iOS 16.0, *) {
             switch transaction.environment {
             case .sandbox:
@@ -353,12 +360,11 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
             case .production:
                 return "production"
             case .xcode:
-                return "sandbox"  // Xcode testing is also sandbox
+                return "sandbox"
             @unknown default:
                 return "production"
             }
         } else {
-            // iOS 15 fallback - use receipt URL check
             if let receiptURL = Bundle.main.appStoreReceiptURL,
                receiptURL.lastPathComponent == "sandboxReceipt" {
                 return "sandbox"
@@ -370,8 +376,22 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
 
 // MARK: - Errors
 
-enum StoreKitError: Error {
+enum StoreKitPluginError: Error, LocalizedError {
     case failedVerification
     case productNotFound
     case purchaseFailed
+    case networkError
+
+    var errorDescription: String? {
+        switch self {
+        case .failedVerification:
+            return "Transaction verification failed"
+        case .productNotFound:
+            return "Product not found"
+        case .purchaseFailed:
+            return "Purchase failed"
+        case .networkError:
+            return "Network error occurred"
+        }
+    }
 }

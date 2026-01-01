@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { getAmbientSoundById, AmbientSound } from '@/data/AmbientSoundsData';
 import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
+import { soundLogger } from '@/lib/logger';
 
 const SOUND_MIXER_STORAGE_KEY = 'petIsland_soundMixer';
 
@@ -272,7 +273,7 @@ export const useSoundMixer = () => {
 
       setState(prev => ({ ...prev, isPlaying: true }));
     } catch (error) {
-      console.error('Failed to start sound mixer:', error);
+      soundLogger.error('Failed to start sound mixer:', error);
     }
   }, [state.layers, state.masterVolume, stopAll, startSoundLayer]);
 

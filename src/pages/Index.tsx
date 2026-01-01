@@ -1,6 +1,8 @@
 import { RetroPixelPlatform } from "@/components/retro/RetroPixelPlatform";
+import { logger } from "@/lib/logger";
 import { GameUI } from "@/components/GameUI";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -57,7 +59,7 @@ const Index = () => {
           }
         }
       } catch (error) {
-        console.error('Failed to load shop inventory:', error);
+        logger.error('Failed to load shop inventory:', error);
       }
     }
 
@@ -103,65 +105,75 @@ const Index = () => {
   // Show loading state while checking auth
   if (isLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading Pet Paradise...</p>
+      <PageErrorBoundary pageName="home page">
+        <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading Pet Paradise...</p>
+          </div>
         </div>
-      </div>
+      </PageErrorBoundary>
     );
   }
 
   // Show auth button if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-primary">Pet Island Paradise</h1>
-          <p className="text-muted-foreground">Create an account to save your progress!</p>
-          <Button onClick={() => navigate('/auth')}>Get Started</Button>
+      <PageErrorBoundary pageName="home page">
+        <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-bold text-primary">Pet Island Paradise</h1>
+            <p className="text-muted-foreground">Create an account to save your progress!</p>
+            <Button onClick={() => navigate('/auth')}>Get Started</Button>
+          </div>
         </div>
-      </div>
+      </PageErrorBoundary>
     );
   }
-  
+
   // Show loading state while checking onboarding status
   if (hasCompletedOnboarding === null) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading Pet Paradise...</p>
+      <PageErrorBoundary pageName="home page">
+        <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading Pet Paradise...</p>
+          </div>
         </div>
-      </div>
+      </PageErrorBoundary>
     );
   }
 
   // Show onboarding if not completed
   if (!hasCompletedOnboarding) {
     return (
-      <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
-        <OnboardingFlow onComplete={completeOnboarding} />
-      </div>
+      <PageErrorBoundary pageName="home page">
+        <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
+          <OnboardingFlow onComplete={completeOnboarding} />
+        </div>
+      </PageErrorBoundary>
     );
   }
-  
-  return (
-    <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
-      {/* Retro Pixel Platform Scene */}
-      <ErrorBoundary>
-        <RetroPixelPlatform
-          unlockedAnimals={unlockedAnimals}
-          currentLevel={currentLevel}
-          backgroundTheme={backgroundTheme}
-        />
-      </ErrorBoundary>
 
-      {/* Game UI Overlay */}
-      <ErrorBoundary>
-        <GameUI />
-      </ErrorBoundary>
-    </div>
+  return (
+    <PageErrorBoundary pageName="home page">
+      <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
+        {/* Retro Pixel Platform Scene */}
+        <ErrorBoundary>
+          <RetroPixelPlatform
+            unlockedAnimals={unlockedAnimals}
+            currentLevel={currentLevel}
+            backgroundTheme={backgroundTheme}
+          />
+        </ErrorBoundary>
+
+        {/* Game UI Overlay */}
+        <ErrorBoundary>
+          <GameUI />
+        </ErrorBoundary>
+      </div>
+    </PageErrorBoundary>
   );
 };
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { settingsLogger } from "@/lib/logger";
 import { AppSettings } from "@/hooks/useSettings";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -25,7 +26,7 @@ export const SettingsData = ({ settings, onUpdate, onReset, onExport, onImport }
       await onImport(importFile);
       setImportFile(null);
     } catch (error) {
-      console.error('Import failed:', error);
+      settingsLogger.error('Import failed:', error);
     }
   };
 

@@ -1,4 +1,6 @@
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { Heart, ChevronDown, Settings } from "lucide-react";
 import { useState } from "react";
@@ -66,7 +68,7 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
           window.dispatchEvent(new CustomEvent('petIsland_shopUpdate', { detail: newInventory }));
         }
       } catch (error) {
-        console.error('Failed to update shop inventory:', error);
+        logger.error('Failed to update shop inventory:', error);
       }
     }
 

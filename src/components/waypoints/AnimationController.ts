@@ -1,4 +1,5 @@
 import { AnimationMixer, AnimationAction, AnimationClip } from 'three';
+import { logger } from "@/lib/logger";
 
 export interface AnimationState {
   current: string;
@@ -121,7 +122,7 @@ export class AnimationController {
       this.state.isTransitioning = false;
     }, 300);
 
-    console.log(`🎬 Animation transition: ${this.state.current} → ${targetName}`);
+    logger.debug(`🎬 Animation transition: ${this.state.current} → ${targetName}`);
   }
 
   /**
@@ -130,7 +131,7 @@ export class AnimationController {
   playAnimation(name: string, loop = true, fadeTime = 0.3) {
     const action = this.actions[name];
     if (!action) {
-      console.warn(`Animation "${name}" not found`);
+      logger.warn(`Animation "${name}" not found`);
       return;
     }
 

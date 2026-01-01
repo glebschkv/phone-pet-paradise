@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DeviceActivity } from '@/plugins/device-activity';
 import { Capacitor } from '@capacitor/core';
+import { focusModeLogger } from '@/lib/logger';
 
 const FOCUS_MODE_STORAGE_KEY = 'petIsland_focusMode';
 
@@ -94,7 +95,7 @@ export const useFocusMode = () => {
           setIsNativeBlocking(status.isBlocking);
           setIsFocusModeActive(status.focusSessionActive);
         } catch (error) {
-          console.error('Failed to check native blocking status:', error);
+          focusModeLogger.error('Failed to check native blocking status:', error);
         }
       }
     };
@@ -112,7 +113,7 @@ export const useFocusMode = () => {
       if (isNative) {
         DeviceActivity.setSelectedApps({
           selection: JSON.stringify(newSettings.blockedApps)
-        }).catch(console.error);
+        }).catch(err => focusModeLogger.error('Failed to set selected apps:', err));
       }
 
       return newSettings;
@@ -132,7 +133,7 @@ export const useFocusMode = () => {
       if (isNative) {
         DeviceActivity.setSelectedApps({
           selection: JSON.stringify(newApps)
-        }).catch(console.error);
+        }).catch(err => focusModeLogger.error('Failed to set selected apps:', err));
       }
 
       return newSettings;
@@ -172,7 +173,7 @@ export const useFocusMode = () => {
     if (!settings.enabled) return;
     setIsFocusModeActive(true);
 
-    console.log('Focus mode activating', {
+    focusModeLogger.debug('Focus mode activating', {
       blockedApps: settings.blockedApps.filter(a => a.isBlocked).map(a => a.name),
       blockedWebsites: settings.blockedWebsites,
       blockNotifications: settings.blockNotifications,
@@ -183,9 +184,9 @@ export const useFocusMode = () => {
       try {
         const result = await DeviceActivity.startAppBlocking();
         setIsNativeBlocking(result.success);
-        console.log('Native app blocking started:', result);
+        focusModeLogger.debug('Native app blocking started:', result);
       } catch (error) {
-        console.error('Failed to start native app blocking:', error);
+        focusModeLogger.error('Failed to start native app blocking:', error);
       }
     }
   }, [settings, isNative]);
@@ -193,17 +194,17 @@ export const useFocusMode = () => {
   // Deactivate focus mode (called when timer ends/stops)
   const deactivateFocusMode = useCallback(async () => {
     setIsFocusModeActive(false);
-    console.log('Focus mode deactivating');
+    focusModeLogger.debug('Focus mode deactivating');
 
     // Stop native app blocking if on iOS
     if (isNative) {
       try {
         const result = await DeviceActivity.stopAppBlocking();
         setIsNativeBlocking(false);
-        console.log('Native app blocking stopped:', result);
+        focusModeLogger.debug('Native app blocking stopped:', result);
         return result;
       } catch (error) {
-        console.error('Failed to stop native app blocking:', error);
+        focusModeLogger.error('Failed to stop native app blocking:', error);
       }
     }
 
@@ -225,7 +226,7 @@ export const useFocusMode = () => {
 
     // Clear native selection
     if (isNative) {
-      DeviceActivity.clearSelectedApps().catch(console.error);
+      DeviceActivity.clearSelectedApps().catch(err => focusModeLogger.error('Failed to clear selected apps:', err));
     }
   }, [isNative]);
 

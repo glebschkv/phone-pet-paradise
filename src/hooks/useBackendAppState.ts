@@ -156,11 +156,11 @@ export const useBackendAppState = () => {
         logger.debug('Achievement processing result:', achievementResult);
       }
 
-      // Update bond system for active pets
+      // Update bond system for active pets (parallel execution to avoid N+1)
       const activePets = supabaseData.pets.filter(pet => pet.is_favorite);
-      for (const pet of activePets) {
-        bondSystem.interactWithPet(pet.pet_type, 'focus_session');
-      }
+      await Promise.all(
+        activePets.map(pet => bondSystem.interactWithPet(pet.pet_type, 'focus_session'))
+      );
 
       // Dispatch custom event to sync other hook instances with new XP state
       // This ensures TopStatusBar and other components using useXPSystem get updated

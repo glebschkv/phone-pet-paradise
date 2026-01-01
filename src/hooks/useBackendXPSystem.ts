@@ -3,6 +3,7 @@ import { useSupabaseData } from './useSupabaseData';
 import { useAuth } from './useAuth';
 import { ANIMAL_DATABASE, BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { toast } from 'sonner';
+import { xpLogger } from '@/lib/logger';
 
 export interface XPReward {
   xpGained: number;
@@ -190,7 +191,7 @@ export const useBackendXPSystem = () => {
 
       // Calculate unlocked animals based on level
       const unlockedAnimals = getUnlockedAnimals(currentLevel).map(a => a.name);
-      console.log(`Backend XP: Level ${currentLevel}, unlocked animals:`, unlockedAnimals);
+      xpLogger.debug(`Backend XP: Level ${currentLevel}, unlocked animals:`, unlockedAnimals);
 
       // Calculate available biomes directly from BIOME_DATABASE based on level
       // This ensures biomes always match current database, not any cached data
@@ -201,7 +202,7 @@ export const useBackendXPSystem = () => {
       // Set current biome to the highest unlocked biome
       const currentBiome = availableBiomes[availableBiomes.length - 1] || 'Meadow';
 
-      console.log(`Backend XP: Available biomes:`, availableBiomes);
+      xpLogger.debug(`Backend XP: Available biomes:`, availableBiomes);
 
       setXPState({
         currentXP,
@@ -304,7 +305,7 @@ export const useBackendXPSystem = () => {
         unlockedRewards,
       };
     } catch (error) {
-      console.error('Error awarding XP:', error);
+      xpLogger.error('Error awarding XP:', error);
       toast.error('Failed to save session progress');
       throw error;
     }

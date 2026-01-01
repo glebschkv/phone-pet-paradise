@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from "@/lib/logger";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trophy, Share2, Lock, ChevronLeft, Check } from 'lucide-react';
 import { useAchievementSystem, Achievement } from '@/hooks/useAchievementSystem';
@@ -66,7 +67,7 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
           toast({ title: "Copied!", description: "Share text copied" });
         }
       } catch (e) {
-        console.error(e);
+        logger.error(e);
       }
     }
   };

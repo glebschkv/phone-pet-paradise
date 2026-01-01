@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { bondLogger } from '@/lib/logger';
 
 export interface BondData {
   animalId: string;
@@ -54,7 +55,7 @@ export const useBondSystem = (): BondSystemReturn => {
         setBonds(JSON.parse(saved));
       }
     } catch (error) {
-      console.error('Failed to load bond data:', error);
+      bondLogger.error('Failed to load bond data:', error);
     }
   }, []);
 
@@ -63,7 +64,7 @@ export const useBondSystem = (): BondSystemReturn => {
     try {
       localStorage.setItem(BOND_STORAGE_KEY, JSON.stringify(bondData));
     } catch (error) {
-      console.error('Failed to save bond data:', error);
+      bondLogger.error('Failed to save bond data:', error);
     }
   }, []);
 

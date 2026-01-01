@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useAchievementSystem } from './useAchievementSystem';
+import { achievementLogger } from '@/lib/logger';
 
 // Storage keys for tracking cumulative stats
 const TRACKING_STORAGE_KEY = 'achievement-tracking-stats';
@@ -69,7 +70,7 @@ export const useAchievementTracking = (): AchievementTrackingHook => {
         statsRef.current = { ...DEFAULT_STATS, ...JSON.parse(saved) };
       }
     } catch (error) {
-      console.error('Failed to load achievement tracking stats:', error);
+      achievementLogger.error('Failed to load achievement tracking stats:', error);
     }
   }, []);
 
@@ -78,7 +79,7 @@ export const useAchievementTracking = (): AchievementTrackingHook => {
     try {
       localStorage.setItem(TRACKING_STORAGE_KEY, JSON.stringify(statsRef.current));
     } catch (error) {
-      console.error('Failed to save achievement tracking stats:', error);
+      achievementLogger.error('Failed to save achievement tracking stats:', error);
     }
   }, []);
 

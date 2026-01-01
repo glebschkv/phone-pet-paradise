@@ -3,6 +3,7 @@ import { AnimalData, getAnimalById, getUnlockedAnimals, getAnimalsByBiome, ANIMA
 import { useBackendXPSystem } from '@/hooks/useBackendXPSystem';
 import { useXPSystem } from '@/hooks/useXPSystem';
 import { useAuth } from '@/hooks/useAuth';
+import { collectionLogger } from '@/lib/logger';
 
 const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
 
@@ -77,7 +78,7 @@ export const useCollection = (): UseCollectionReturn => {
           const parsed = JSON.parse(savedData);
           setShopOwnedCharacters(parsed.ownedCharacters || []);
         } catch (error) {
-          console.error('Failed to load shop inventory:', error);
+          collectionLogger.error('Failed to load shop inventory:', error);
         }
       }
     };
@@ -107,7 +108,7 @@ export const useCollection = (): UseCollectionReturn => {
         const favoritesArray = JSON.parse(savedFavorites);
         setFavorites(new Set(favoritesArray));
       } catch (error) {
-        console.error('Failed to load favorites:', error);
+        collectionLogger.error('Failed to load favorites:', error);
       }
     }
   }, []);
@@ -120,7 +121,7 @@ export const useCollection = (): UseCollectionReturn => {
         const activePetsArray = JSON.parse(savedActivePets);
         setActiveHomePets(new Set(activePetsArray));
       } catch (error) {
-        console.error('Failed to load active home pets:', error);
+        collectionLogger.error('Failed to load active home pets:', error);
       }
     } else {
       // Default: show first unlocked pet (dewdrop-frog) if nothing saved
@@ -133,7 +134,7 @@ export const useCollection = (): UseCollectionReturn => {
     try {
       localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(newFavorites)));
     } catch (error) {
-      console.error('Failed to save favorites:', error);
+      collectionLogger.error('Failed to save favorites:', error);
     }
   }, []);
 
@@ -145,7 +146,7 @@ export const useCollection = (): UseCollectionReturn => {
       // Dispatch event so home page can react immediately
       window.dispatchEvent(new CustomEvent('activeHomePetsChange', { detail: petsArray }));
     } catch (error) {
-      console.error('Failed to save active home pets:', error);
+      collectionLogger.error('Failed to save active home pets:', error);
     }
   }, []);
 

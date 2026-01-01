@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { streakLogger } from '@/lib/logger';
 
 interface StreakData {
   currentStreak: number;
@@ -48,7 +49,7 @@ export const useStreakSystem = () => {
         // Check if streak should be broken due to missing days
         checkStreakValidity(data);
       } catch (error) {
-        console.error('Failed to load streak data:', error);
+        streakLogger.error('Failed to load streak data:', error);
       }
     }
   }, []);

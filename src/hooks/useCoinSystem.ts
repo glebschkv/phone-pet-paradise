@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
 import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
+import { coinLogger } from '@/lib/logger';
 
 export interface CoinReward {
   coinsGained: number;
@@ -87,7 +88,7 @@ export const useCoinSystem = () => {
           totalSpent: parsed.totalSpent || 0,
         });
       } catch (error) {
-        console.error('Failed to load coin state:', error);
+        coinLogger.error('Failed to load coin state:', error);
       }
     }
   }, []);
@@ -123,7 +124,7 @@ export const useCoinSystem = () => {
           const parsed = JSON.parse(event.newValue);
           setCoinState(parsed);
         } catch (error) {
-          console.error('Failed to parse coin state from storage:', error);
+          coinLogger.error('Failed to parse coin state from storage:', error);
         }
       }
     };

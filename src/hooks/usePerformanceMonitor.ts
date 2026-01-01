@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { performanceLogger } from '@/lib/logger';
 
 interface PerformanceMetrics {
   fps: number;
@@ -120,9 +121,9 @@ export const usePerformanceMonitor = () => {
       }
       
       // Don't show toast for auto-optimizations to prevent spam
-      console.log('Performance optimization completed automatically');
+      performanceLogger.debug('Performance optimization completed automatically');
     } catch (error) {
-      console.error('Performance optimization failed:', error);
+      performanceLogger.error('Performance optimization failed:', error);
     } finally {
       setIsOptimizing(false);
     }
@@ -159,7 +160,7 @@ export const usePerformanceMonitor = () => {
         setSettings({ ...defaultSettings, ...JSON.parse(saved) });
       }
     } catch (error) {
-      console.error('Failed to load performance settings:', error);
+      performanceLogger.error('Failed to load performance settings:', error);
     }
   }, []);
 
@@ -170,7 +171,7 @@ export const usePerformanceMonitor = () => {
     try {
       localStorage.setItem('performance-settings', JSON.stringify(updated));
     } catch (error) {
-      console.error('Failed to save performance settings:', error);
+      performanceLogger.error('Failed to save performance settings:', error);
     }
   }, [settings]);
 
@@ -214,7 +215,7 @@ export const usePerformanceMonitor = () => {
         description: "Memory cleared and caches cleaned",
       });
     } catch (error) {
-      console.error('Performance optimization failed:', error);
+      performanceLogger.error('Performance optimization failed:', error);
     } finally {
       setIsOptimizing(false);
     }

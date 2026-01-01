@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDeviceActivity } from './useDeviceActivity';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface BackgroundTaskState {
   isActive: boolean;
@@ -35,7 +36,7 @@ export const useBackgroundProcessing = () => {
     // Record that app became inactive
     recordActiveTime();
     
-    console.log('Background session started at:', new Date(now).toISOString());
+    logger.debug('Background session started at:', new Date(now).toISOString());
   }, [recordActiveTime]);
 
   // End background session and calculate rewards
@@ -53,7 +54,7 @@ export const useBackgroundProcessing = () => {
         newRewards = Math.floor(sessionMinutes / 5); // 1 reward per 5 minutes
       }
       
-      console.log(`Background session ended. Duration: ${sessionMinutes.toFixed(1)} minutes, Rewards: ${newRewards}`);
+      logger.debug(`Background session ended. Duration: ${sessionMinutes.toFixed(1)} minutes, Rewards: ${newRewards}`);
       
       // Trigger haptic feedback for rewards
       if (newRewards > 0) {
@@ -192,7 +193,7 @@ export const useBackgroundProcessing = () => {
         localStorage.removeItem('background-session');
       }
     } catch (error) {
-      console.error('Failed to load background session:', error);
+      logger.error('Failed to load background session:', error);
     }
   }, [toast]);
 

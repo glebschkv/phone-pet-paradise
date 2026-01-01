@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { questLogger } from '@/lib/logger';
 
 const QUESTS_STORAGE_KEY = 'pet_paradise_quests';
 
@@ -129,7 +130,7 @@ export const useBackendQuests = (): QuestSystemReturn => {
     try {
       localStorage.setItem(QUESTS_STORAGE_KEY, JSON.stringify(questsData));
     } catch (error) {
-      console.error('Error saving quests to localStorage:', error);
+      questLogger.error('Error saving quests to localStorage:', error);
     }
   }, []);
 
@@ -138,7 +139,7 @@ export const useBackendQuests = (): QuestSystemReturn => {
       const data = localStorage.getItem(QUESTS_STORAGE_KEY);
       return data ? JSON.parse(data) : [];
     } catch (error) {
-      console.error('Error loading quests from localStorage:', error);
+      questLogger.error('Error loading quests from localStorage:', error);
       return [];
     }
   }, []);
@@ -191,7 +192,7 @@ export const useBackendQuests = (): QuestSystemReturn => {
 
       setQuests(convertedQuests);
     } catch (error) {
-      console.error('Error loading quests:', error);
+      questLogger.error('Error loading quests:', error);
       // Fall back to localStorage on error
       const savedQuests = loadQuestsFromStorage();
       setQuests(savedQuests);
@@ -257,7 +258,7 @@ export const useBackendQuests = (): QuestSystemReturn => {
         id: data.id
       };
     } catch (error) {
-      console.error('Error creating quest:', error);
+      questLogger.error('Error creating quest:', error);
       // Return local quest on error
       return newQuest;
     }
@@ -373,7 +374,7 @@ export const useBackendQuests = (): QuestSystemReturn => {
 
         updateLocalState();
       } catch (error) {
-        console.error('Error updating quest progress:', error);
+        questLogger.error('Error updating quest progress:', error);
         // Fall back to local update on error
         updateLocalState();
       }
@@ -417,7 +418,7 @@ export const useBackendQuests = (): QuestSystemReturn => {
 
       markComplete();
     } catch (error) {
-      console.error('Error completing quest:', error);
+      questLogger.error('Error completing quest:', error);
       // Fall back to local update on error
       markComplete();
     }

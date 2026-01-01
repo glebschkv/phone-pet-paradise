@@ -1,4 +1,5 @@
 import { WebPlugin } from '@capacitor/core';
+import { appReviewLogger } from "@/lib/logger";
 import type { AppReviewPlugin } from './index';
 
 /**
@@ -7,7 +8,7 @@ import type { AppReviewPlugin } from './index';
  */
 export class AppReviewWeb extends WebPlugin implements AppReviewPlugin {
   async requestReview(): Promise<{ success: boolean; message: string }> {
-    console.log('[AppReview Web] Review requested - opening App Store');
+    appReviewLogger.debug('[AppReview Web] Review requested - opening App Store');
 
     // On web, we can't show the native review dialog
     // Instead, we could redirect to the App Store page

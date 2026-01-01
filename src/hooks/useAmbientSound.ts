@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { getAmbientSoundById } from '@/data/AmbientSoundsData';
+import { soundLogger } from '@/lib/logger';
 
 const AMBIENT_STORAGE_KEY = 'petIsland_ambientSound';
 
@@ -200,7 +201,7 @@ export const useAmbientSound = () => {
 
       savePreferences({ currentSoundId: soundId, isPlaying: true });
     } catch (error) {
-      console.error('Failed to play ambient sound:', error);
+      soundLogger.error('Failed to play ambient sound:', error);
     }
   }, [state.volume, stop, createNoiseBuffer, createBinauralBeat, savePreferences]);
 

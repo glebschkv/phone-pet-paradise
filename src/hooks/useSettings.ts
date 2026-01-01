@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
+import { settingsLogger } from '@/lib/logger';
 
 export interface AppSettings {
   // Appearance
@@ -58,7 +59,7 @@ export const useSettings = () => {
         setSettings({ ...defaultSettings, ...savedSettings });
       }
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      settingsLogger.error('Failed to load settings:', error);
       toast({
         title: "Settings Error",
         description: "Failed to load saved settings. Using defaults.",
@@ -86,7 +87,7 @@ export const useSettings = () => {
         description: "Your preferences have been updated.",
       });
     } catch (error) {
-      console.error('Failed to save settings:', error);
+      settingsLogger.error('Failed to save settings:', error);
       toast({
         title: "Save Error",
         description: "Failed to save settings. Please try again.",
@@ -136,7 +137,7 @@ export const useSettings = () => {
         description: "Settings file has been downloaded.",
       });
     } catch (error) {
-      console.error('Failed to export settings:', error);
+      settingsLogger.error('Failed to export settings:', error);
       toast({
         title: "Export Error",
         description: "Failed to export settings.",
@@ -164,7 +165,7 @@ export const useSettings = () => {
           });
           resolve();
         } catch (error) {
-          console.error('Failed to import settings:', error);
+          settingsLogger.error('Failed to import settings:', error);
           toast({
             title: "Import Error",
             description: "Invalid settings file format.",

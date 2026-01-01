@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client'
+import { logger } from "@/lib/logger";
 import App from './App.tsx'
 import './index.css'
 import { STORAGE_KEYS } from './lib/storage-keys'
@@ -26,7 +27,7 @@ const initializeTheme = () => {
       }
     }
   } catch (error) {
-    console.error('Failed to initialize theme:', error);
+    logger.error('Failed to initialize theme:', error);
   }
 };
 
