@@ -8,6 +8,7 @@ import UIKit
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     // App Group for shared data
+    // NOTE: Keep in sync with AppConfig.appGroupIdentifier in main app
     private let appGroupIdentifier = "group.co.nomoinc.nomo"
 
     // MARK: - Shield Configuration for Applications

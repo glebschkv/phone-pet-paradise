@@ -208,14 +208,6 @@ describe('useSettings', () => {
 
       expect(result.current.settings.defaultFocusTime).toBe(originalFocusTime);
     });
-
-    // Note: This test is difficult to implement due to how localStorage errors are handled
-    // The error handling in updateSettings catches errors and shows toast
-    // but in practice localStorage rarely throws errors in test environment
-    it.skip('should handle localStorage errors gracefully', async () => {
-      // Skipped: Complex to mock localStorage errors in test environment
-      // Manual testing recommended for this scenario
-    });
   });
 
   describe('Reset to Defaults', () => {

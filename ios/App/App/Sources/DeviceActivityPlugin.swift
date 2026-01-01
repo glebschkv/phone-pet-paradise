@@ -43,7 +43,28 @@ class FocusDataManager {
 
 // MARK: - Device Activity Plugin
 @objc(DeviceActivityPlugin)
-public class DeviceActivityPlugin: CAPPlugin {
+public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "DeviceActivityPlugin"
+    public let jsName = "DeviceActivity"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "requestPermissions", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "checkPermissions", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "openAppPicker", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setSelectedApps", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getSelectedApps", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "clearSelectedApps", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "startAppBlocking", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "stopAppBlocking", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getBlockingStatus", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getShieldAttempts", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "resetShieldAttempts", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "startMonitoring", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "stopMonitoring", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getUsageData", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "recordActiveTime", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "triggerHapticFeedback", returnType: CAPPluginReturnPromise)
+    ]
+
     private var deviceActivityCenter = DeviceActivityCenter()
     private var authorizationCenter = AuthorizationCenter.shared
     private var isMonitoring = false

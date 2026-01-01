@@ -47,7 +47,6 @@ export function debounceWithOptions<T extends (...args: Parameters<T>) => Return
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let lastCallTime: number | null = null;
   let lastArgs: Parameters<T> | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
   let lastThis: ThisParameterType<T> | null = null;
 
   const invokeFunc = () => {
@@ -98,7 +97,6 @@ export function throttle<T extends (...args: Parameters<T>) => ReturnType<T>>(
   let lastCallTime = 0;
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let lastArgs: Parameters<T> | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
   let lastThis: ThisParameterType<T> | null = null;
 
   return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
@@ -213,7 +211,6 @@ export function createDebouncedFunction<T extends (...args: Parameters<T>) => Re
 } {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let lastArgs: Parameters<T> | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
   let lastThis: ThisParameterType<T> | null = null;
 
   const debouncedFn = function (this: ThisParameterType<T>, ...args: Parameters<T>) {
