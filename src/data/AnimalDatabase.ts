@@ -223,12 +223,13 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Froggy Hop', 'Lily Pad Shield', 'Ribbit Power'],
     biome: 'Meadow',
     spriteConfig: {
-      spritePath: '/assets/sprites/humanoid/frog-hood.png',
+      spritePath: '/assets/sprites/humanoid/frog-hood-walk.png',
       idleSprite: '/assets/sprites/humanoid/frog-hood.png',
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 4
     }
   },
   {
@@ -241,12 +242,13 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Bear Hug', 'Honey Power', 'Cozy Nap'],
     biome: 'Meadow',
     spriteConfig: {
-      spritePath: '/assets/sprites/humanoid/bear-hood.png',
+      spritePath: '/assets/sprites/humanoid/bear-hood-walk.png',
       idleSprite: '/assets/sprites/humanoid/bear-hood.png',
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 2
     }
   },
   {
