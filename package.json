@@ -23,7 +23,7 @@
     "@capacitor/local-notifications": "^7.0.1",
     "@capacitor/push-notifications": "^7.0.1",
     "@sentry/capacitor": "^1.1.0",
-    "@sentry/react": "^8.0.0",
+    "@sentry/react": "8.55.0",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",

@@ -315,17 +315,26 @@ export const initializeErrorReporting = (): void => {
 };
 
 /**
- * Create Sentry error boundary wrapper
+ * Get Sentry error boundary component
+ * Use this to wrap components that should report errors to Sentry
  */
-export const SentryErrorBoundary = IS_SENTRY_ENABLED
-  ? Sentry.ErrorBoundary
-  : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+export const getSentryErrorBoundary = () => {
+  if (IS_SENTRY_ENABLED) {
+    return Sentry.ErrorBoundary;
+  }
+  return null;
+};
 
 /**
  * Wrap component with Sentry profiling
  */
-export const withSentryProfiler = IS_SENTRY_ENABLED
-  ? Sentry.withProfiler
-  : <T extends object>(Component: React.ComponentType<T>) => Component;
+export function withSentryProfiler<T extends object>(
+  Component: React.ComponentType<T>
+): React.ComponentType<T> {
+  if (IS_SENTRY_ENABLED) {
+    return Sentry.withProfiler(Component);
+  }
+  return Component;
+}
 
 export { IS_SENTRY_ENABLED };

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { XP_CONFIG, TIMER_DURATIONS } from '@/lib/constants';
-import { calculateSessionXP, getLevelFromXP, getXPForLevel } from '@/types/xp-system';
+import { XP_CONFIG, TIMER_DURATIONS, getLevelFromXP, getXPForLevel } from '@/lib/constants';
+import { calculateSessionXP } from '@/types/xp-system';
 
 describe('XP System Utilities', () => {
   describe('calculateSessionXP', () => {
