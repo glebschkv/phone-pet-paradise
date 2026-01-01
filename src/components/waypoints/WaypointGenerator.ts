@@ -172,7 +172,7 @@ export class WaypointGenerator {
         position: zone.center.clone(),
         animation: zone.type === 'lookout' ? 'idle' : 'walk',
         duration: zone.type === 'lookout' ? 4.0 : 2.0,
-        type: zone.type as any,
+        type: zone.type as SmartWaypoint['type'],
         priority: zone.type === 'lookout' ? 3 : 2,
         lookAt: zone.type === 'lookout' ? new Vector3(0, zone.height, 0) : undefined
       });

@@ -71,7 +71,7 @@ export const usePerformanceMonitor = () => {
   // Memory monitoring
   const measureMemory = useCallback(() => {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const memory = (performance as unknown as { memory: { usedJSHeapSize: number } }).memory;
       const memoryMB = memory.usedJSHeapSize / (1024 * 1024);
       
       setMetrics(prev => ({
@@ -101,20 +101,20 @@ export const usePerformanceMonitor = () => {
     
     setIsOptimizing(true);
     setLastOptimizationTime(now);
-    
+
     try {
       // Force garbage collection if available
       if ('gc' in window) {
-        (window as any).gc();
+        (window as unknown as { gc: () => void }).gc();
       }
-      
+
       // Clear any large caches
       if ('caches' in window) {
         const cacheNames = await caches.keys();
         await Promise.all(
-          cacheNames.map(name => 
-            name.includes('three') || name.includes('models') 
-              ? caches.delete(name) 
+          cacheNames.map(name =>
+            name.includes('three') || name.includes('models')
+              ? caches.delete(name)
               : Promise.resolve()
           )
         );
@@ -195,21 +195,21 @@ export const usePerformanceMonitor = () => {
     try {
       // Force garbage collection if available
       if ('gc' in window) {
-        (window as any).gc();
+        (window as unknown as { gc: () => void }).gc();
       }
-      
+
       // Clear any large caches
       if ('caches' in window) {
         const cacheNames = await caches.keys();
         await Promise.all(
-          cacheNames.map(name => 
-            name.includes('three') || name.includes('models') 
-              ? caches.delete(name) 
+          cacheNames.map(name =>
+            name.includes('three') || name.includes('models')
+              ? caches.delete(name)
               : Promise.resolve()
           )
         );
       }
-      
+
       toast({
         title: "Performance Optimized",
         description: "Memory cleared and caches cleaned",

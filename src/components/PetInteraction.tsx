@@ -48,7 +48,7 @@ export const PetInteraction = ({ petName, petType, onStatsUpdate }: PetInteracti
         const hoursSinceLastFed = (now - prevStats.lastFed) / (1000 * 60 * 60);
         const hoursSinceLastPlayed = (now - prevStats.lastPlayed) / (1000 * 60 * 60);
 
-        let newStats = { ...prevStats };
+        const newStats = { ...prevStats };
 
         // Hunger (fullness) decreases over time - pet gets hungrier
         if (hoursSinceLastFed > 1) {

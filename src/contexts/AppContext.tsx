@@ -171,13 +171,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
         theme: action.payload,
       };
 
-    case 'SET_SETTINGS':
+    case 'SET_SETTINGS': {
       const newSettings = { ...state.settings, ...action.payload };
       localStorage.setItem(`${APP_CONFIG.STORAGE_PREFIX}settings`, JSON.stringify(newSettings));
       return {
         ...state,
         settings: newSettings,
       };
+    }
 
     case 'SET_LOADING':
       return {

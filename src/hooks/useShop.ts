@@ -458,7 +458,7 @@ export const useShop = () => {
           return purchaseBackground(itemId);
         }
         return purchaseBadge(itemId);
-      case 'powerups':
+      case 'powerups': {
         // Handle boosters and utility items
         if (itemId.includes('boost') || itemId.includes('pass')) {
           return purchaseBooster(itemId);
@@ -468,6 +468,7 @@ export const useShop = () => {
           return purchaseStreakFreeze(utilityItem.quantity, utilityItem.coinPrice);
         }
         return { success: false, message: 'Item not found' };
+      }
       default:
         return { success: false, message: 'Invalid category' };
     }

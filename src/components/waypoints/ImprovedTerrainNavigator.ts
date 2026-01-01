@@ -8,6 +8,12 @@ export interface NavigationResult {
   slopeAngle: number;
 }
 
+interface SizeConfig {
+  radius: number;
+  height: number;
+  heightOffset: number;
+}
+
 export class ImprovedTerrainNavigator {
   private raycaster: Raycaster;
   private tempVector: Vector3;
@@ -82,9 +88,9 @@ export class ImprovedTerrainNavigator {
    * Multi-point ground detection for better stability
    */
   private performMultiPointGroundCheck(
-    position: Vector3, 
-    meshes: Mesh[], 
-    sizeConfig: any
+    position: Vector3,
+    meshes: Mesh[],
+    sizeConfig: SizeConfig
   ): NavigationResult {
 
     const checkPoints = this.generateGroundCheckPoints(position, sizeConfig);
@@ -147,7 +153,7 @@ export class ImprovedTerrainNavigator {
   /**
    * Generate multiple check points around the animal's base
    */
-  private generateGroundCheckPoints(position: Vector3, sizeConfig: any): Vector3[] {
+  private generateGroundCheckPoints(position: Vector3, sizeConfig: SizeConfig): Vector3[] {
     const points = [position.clone()]; // Center point
 
     // Add surrounding points for better stability
@@ -176,7 +182,7 @@ export class ImprovedTerrainNavigator {
     currentPos: Vector3,
     direction: Vector3,
     meshes: Mesh[],
-    sizeConfig: any
+    sizeConfig: SizeConfig
   ): NavigationResult {
 
     // Cast ray forward to check for obstacles
@@ -219,7 +225,7 @@ export class ImprovedTerrainNavigator {
     from: Vector3,
     to: Vector3,
     meshes: Mesh[],
-    sizeConfig: any
+    sizeConfig: SizeConfig
   ): boolean {
 
     const direction = this.tempVector.subVectors(to, from).normalize();
@@ -250,7 +256,7 @@ export class ImprovedTerrainNavigator {
     currentPos: Vector3,
     blockedDirection: Vector3,
     meshes: Mesh[],
-    sizeConfig: any
+    sizeConfig: SizeConfig
   ): NavigationResult {
 
     // Try slight direction adjustments
@@ -281,7 +287,7 @@ export class ImprovedTerrainNavigator {
   private findNearestGroundPoint(
     position: Vector3,
     meshes: Mesh[],
-    sizeConfig: any
+    sizeConfig: SizeConfig
   ): NavigationResult {
 
     // Cast ray downward from higher position

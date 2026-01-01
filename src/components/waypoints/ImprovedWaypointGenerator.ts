@@ -15,6 +15,12 @@ export interface AnimalBehavior {
   explorationRadius: number;
 }
 
+interface AnimalData {
+  name: string;
+  type?: string;
+  size?: 'small' | 'medium' | 'large';
+}
+
 export class ImprovedWaypointGenerator {
   private raycaster: Raycaster;
 
@@ -26,8 +32,8 @@ export class ImprovedWaypointGenerator {
    * Generate smart waypoints based on animal behavior and terrain
    */
   generateWaypoints(
-    animalData: any, 
-    animalIndex: number, 
+    animalData: AnimalData,
+    animalIndex: number,
     islandMeshes: Mesh[]
   ): SmartWaypoint[] {
 
@@ -87,7 +93,7 @@ export class ImprovedWaypointGenerator {
   /**
    * Determine animal behavior based on database data
    */
-  private getAnimalBehavior(animalData: any): AnimalBehavior {
+  private getAnimalBehavior(animalData: AnimalData): AnimalBehavior {
     const name = animalData.name.toLowerCase();
 
     // Define behaviors for different animal types

@@ -306,7 +306,7 @@ export const useBattlePass = () => {
 
     if (bonusTiers > 0) {
       // Calculate XP needed to reach bonus tiers
-      let targetTier = Math.min(state.currentTier + bonusTiers, currentSeason.tiers.length);
+      const targetTier = Math.min(state.currentTier + bonusTiers, currentSeason.tiers.length);
       let cumulativeXP = 0;
 
       for (const tier of currentSeason.tiers) {

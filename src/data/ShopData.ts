@@ -580,7 +580,7 @@ export const getShopItemsByCategory = (category: ShopCategory): ShopItem[] => {
     case 'customize':
       // Combine backgrounds and badges
       return [...PREMIUM_BACKGROUNDS, ...PROFILE_BADGES];
-    case 'powerups':
+    case 'powerups': {
       // Combine boosters, utility items, and coins
       const boosters = BOOSTER_TYPES.map(booster => ({
         id: booster.id,
@@ -593,6 +593,7 @@ export const getShopItemsByCategory = (category: ShopCategory): ShopItem[] => {
         rarity: (booster.id === 'weekly_pass' ? 'epic' : booster.id === 'super_boost' ? 'rare' : 'common') as 'common' | 'rare' | 'epic' | 'legendary',
       }));
       return [...boosters, ...UTILITY_ITEMS, ...COIN_PACKS];
+    }
     case 'bundles':
       // All pet and background bundles
       return [...PET_BUNDLES, ...BACKGROUND_BUNDLES];

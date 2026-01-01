@@ -374,6 +374,38 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 }
 
+// MARK: - Retry Helper
+
+/**
+ * Retry helper with exponential backoff for network operations
+ */
+func withRetry<T>(
+    maxAttempts: Int = 3,
+    initialDelay: TimeInterval = 1.0,
+    maxDelay: TimeInterval = 10.0,
+    operation: () async throws -> T
+) async throws -> T {
+    var currentDelay = initialDelay
+    var lastError: Error?
+
+    for attempt in 1...maxAttempts {
+        do {
+            return try await operation()
+        } catch {
+            lastError = error
+            print("[StoreKitPlugin] Attempt \(attempt) failed: \(error.localizedDescription)")
+
+            if attempt < maxAttempts {
+                // Wait with exponential backoff
+                try await Task.sleep(nanoseconds: UInt64(currentDelay * 1_000_000_000))
+                currentDelay = min(currentDelay * 2, maxDelay)
+            }
+        }
+    }
+
+    throw lastError ?? StoreKitPluginError.networkError
+}
+
 // MARK: - Errors
 
 enum StoreKitPluginError: Error, LocalizedError {

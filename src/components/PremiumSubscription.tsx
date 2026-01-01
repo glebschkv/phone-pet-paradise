@@ -15,7 +15,7 @@ import {
   Settings,
   Snowflake,
   Award,
-  Infinity,
+  Infinity as InfinityIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePremiumStatus, SUBSCRIPTION_PLANS, SubscriptionPlan } from '@/hooks/usePremiumStatus';
@@ -63,7 +63,7 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
   'Early access to features': <Zap className="w-4 h-4" />,
   'Exclusive profile frames': <Star className="w-4 h-4" />,
   // Lifetime
-  'No recurring fees ever': <Infinity className="w-4 h-4" />,
+  'No recurring fees ever': <InfinityIcon className="w-4 h-4" />,
   'All future updates included': <RefreshCw className="w-4 h-4" />,
   'Exclusive Founder badge': <Star className="w-4 h-4" />,
   'Founder-only legendary pet': <Sparkles className="w-4 h-4" />,
