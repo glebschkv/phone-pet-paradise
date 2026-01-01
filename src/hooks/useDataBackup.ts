@@ -20,6 +20,16 @@ interface BackupMetadata {
   version: string;
 }
 
+// Get local backup metadata - defined outside hook to avoid dependency issues
+const getLocalBackupsUtil = (): BackupMetadata[] => {
+  try {
+    const saved = localStorage.getItem('backup-metadata');
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const useDataBackup = () => {
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [isRestoringBackup, setIsRestoringBackup] = useState(false);
@@ -112,15 +122,15 @@ export const useDataBackup = () => {
         version: data.version,
       };
       
-      const existingBackups = getLocalBackups();
+      const existingBackups = getLocalBackupsUtil();
       existingBackups.push(metadata);
       localStorage.setItem('backup-metadata', JSON.stringify(existingBackups));
-      
+
       toast({
         title: "Backup Created",
         description: `Backup saved as ${filename}`,
       });
-      
+
       return metadata;
     } catch (error) {
       backupLogger.error('Backup creation failed:', error);
@@ -248,15 +258,9 @@ export const useDataBackup = () => {
     }
   }, [createBackup, toast]);
 
-  // Get local backup metadata
+  // Get local backup metadata - wrapper around utility function
   const getLocalBackups = useCallback((): BackupMetadata[] => {
-    try {
-      const saved = localStorage.getItem('backup-metadata');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      backupLogger.error('Failed to load backup metadata:', error);
-      return [];
-    }
+    return getLocalBackupsUtil();
   }, []);
 
   // Auto backup
@@ -278,15 +282,15 @@ export const useDataBackup = () => {
   // Clear old backups
   const cleanupOldBackups = useCallback(() => {
     try {
-      const backups = getLocalBackups();
+      const backups = getLocalBackupsUtil();
       const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-      
+
       const filtered = backups.filter(backup => backup.timestamp > oneWeekAgo);
       localStorage.setItem('backup-metadata', JSON.stringify(filtered));
     } catch (error) {
       backupLogger.error('Backup cleanup failed:', error);
     }
-  }, [getLocalBackups]);
+  }, []);
 
   return {
     isCreatingBackup,

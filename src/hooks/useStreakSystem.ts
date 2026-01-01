@@ -40,21 +40,7 @@ export const useStreakSystem = () => {
     setStreakData(data);
   }, []);
 
-  const loadStreakData = useCallback(() => {
-    const saved = localStorage.getItem('pet_paradise_streak_data');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        setStreakData(data);
-        // Check if streak should be broken due to missing days
-        checkStreakValidity(data);
-      } catch (error) {
-        streakLogger.error('Failed to load streak data:', error);
-      }
-    }
-  }, []);
-
-  // Check streak validity
+  // Check streak validity - defined before loadStreakData
   const checkStreakValidity = useCallback((data: StreakData) => {
     if (!data.lastSessionDate) return;
 
@@ -81,6 +67,20 @@ export const useStreakSystem = () => {
       }
     }
   }, [saveStreakData]);
+
+  const loadStreakData = useCallback(() => {
+    const saved = localStorage.getItem('pet_paradise_streak_data');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        setStreakData(data);
+        // Check if streak should be broken due to missing days
+        checkStreakValidity(data);
+      } catch (error) {
+        streakLogger.error('Failed to load streak data:', error);
+      }
+    }
+  }, [checkStreakValidity]);
 
   useEffect(() => {
     loadStreakData();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSupabaseData } from './useSupabaseData';
 import { useAuth } from './useAuth';
 import { ANIMAL_DATABASE, BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
@@ -217,9 +217,12 @@ export const useBackendXPSystem = () => {
   }, [isAuthenticated, progress]);
 
   // Pre-sorted durations for performance
-  const sortedDurations = Object.keys(XP_REWARDS)
-    .map(Number)
-    .sort((a, b) => b - a); // Sort descending
+  const sortedDurations = useMemo(() =>
+    Object.keys(XP_REWARDS)
+      .map(Number)
+      .sort((a, b) => b - a), // Sort descending
+    []
+  );
 
   // Calculate XP gained from session duration
   const calculateXPFromDuration = useCallback((minutes: number): number => {
@@ -228,9 +231,9 @@ export const useBackendXPSystem = () => {
         return XP_REWARDS[duration as keyof typeof XP_REWARDS];
       }
     }
-    
+
     return 0; // No XP for sessions less than 25 minutes
-  }, []);
+  }, [sortedDurations]);
 
   // Calculate current level from total XP (starts at level 0)
   const calculateLevel = useCallback((totalXP: number): number => {

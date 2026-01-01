@@ -127,7 +127,7 @@ export const usePerformanceMonitor = () => {
     } finally {
       setIsOptimizing(false);
     }
-  }, [settings.autoOptimize, isOptimizing, lastOptimizationTime, toast]);
+  }, [settings.autoOptimize, isOptimizing, lastOptimizationTime]);
 
   // Start monitoring
   useEffect(() => {

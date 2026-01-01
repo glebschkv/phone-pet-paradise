@@ -1,19 +1,28 @@
-import { RetroPixelPlatform } from "@/components/retro/RetroPixelPlatform";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { logger } from "@/lib/logger";
-import { GameUI } from "@/components/GameUI";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
-import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useDataBackup } from "@/hooks/useDataBackup";
 import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { useEffect, useState } from "react";
+
+// Lazy load heavy components to reduce initial bundle size
+const RetroPixelPlatform = lazy(() => import("@/components/retro/RetroPixelPlatform").then(m => ({ default: m.RetroPixelPlatform })));
+const GameUI = lazy(() => import("@/components/GameUI").then(m => ({ default: m.GameUI })));
+const OnboardingFlow = lazy(() => import("@/components/onboarding/OnboardingFlow").then(m => ({ default: m.OnboardingFlow })));
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
+
+// Loading fallback for lazy-loaded components
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-full w-full">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  </div>
+);
 
 const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
 const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
@@ -150,7 +159,9 @@ const Index = () => {
     return (
       <PageErrorBoundary pageName="home page">
         <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
-          <OnboardingFlow onComplete={completeOnboarding} />
+          <Suspense fallback={<LoadingFallback />}>
+            <OnboardingFlow onComplete={completeOnboarding} />
+          </Suspense>
         </div>
       </PageErrorBoundary>
     );
@@ -161,16 +172,20 @@ const Index = () => {
       <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
         {/* Retro Pixel Platform Scene */}
         <ErrorBoundary>
-          <RetroPixelPlatform
-            unlockedAnimals={unlockedAnimals}
-            currentLevel={currentLevel}
-            backgroundTheme={backgroundTheme}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <RetroPixelPlatform
+              unlockedAnimals={unlockedAnimals}
+              currentLevel={currentLevel}
+              backgroundTheme={backgroundTheme}
+            />
+          </Suspense>
         </ErrorBoundary>
 
         {/* Game UI Overlay */}
         <ErrorBoundary>
-          <GameUI />
+          <Suspense fallback={<LoadingFallback />}>
+            <GameUI />
+          </Suspense>
         </ErrorBoundary>
       </div>
     </PageErrorBoundary>

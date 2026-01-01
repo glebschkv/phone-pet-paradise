@@ -50,8 +50,7 @@ export default defineConfig(({ mode }) => ({
           ],
           // 3D graphics - heavy, rarely used on every page
           'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
-          // Charts - only used on stats pages
-          'vendor-charts': ['recharts'],
+          // Note: recharts replaced with lightweight CSS-based SimpleBarChart
           // Animation library
           'vendor-motion': ['framer-motion'],
           // Data layer

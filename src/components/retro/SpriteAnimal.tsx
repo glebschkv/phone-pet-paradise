@@ -61,13 +61,14 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   const walkRows = spriteConfig?.walkRows || 1;
   const frameRow = spriteConfig?.frameRow ?? (walkRows === 2 ? 1 : walkRows === 4 ? 2 : 0);
 
-  // Register position on mount
+  // Register position on mount and sync when position prop changes
   useEffect(() => {
     positionRegistry.updatePosition(animalId, position);
+    positionRef.current = position;
     return () => {
       positionRegistry.removePosition(animalId);
     };
-  }, [animalId, positionRegistry]);
+  }, [animalId, positionRegistry, position]);
 
   // Idle timer system - only sets refs, animation loop handles state updates
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ANIMAL_DATABASE, BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { xpLogger as logger } from '@/lib/logger';
 import { safeJsonParse } from '@/lib/apiUtils';
@@ -360,9 +360,12 @@ useEffect(() => {
   }, []);
 
   // Pre-sorted durations for performance
-  const sortedDurations = Object.keys(XP_REWARDS)
-    .map(Number)
-    .sort((a, b) => b - a); // Sort descending
+  const sortedDurations = useMemo(() =>
+    Object.keys(XP_REWARDS)
+      .map(Number)
+      .sort((a, b) => b - a), // Sort descending
+    []
+  );
 
   // Helper to get subscription multiplier
   const getSubscriptionMultiplier = useCallback((): number => {
@@ -390,7 +393,7 @@ useEffect(() => {
     }
 
     return 0; // No XP for sessions less than 25 minutes
-  }, []);
+  }, [sortedDurations]);
 
   // Calculate current level from total XP (starts at level 0)
 const calculateLevel = useCallback((totalXP: number): number => {

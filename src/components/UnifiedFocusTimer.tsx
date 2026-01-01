@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import {
   BACKGROUND_THEME_KEY,
@@ -18,7 +18,9 @@ import { AmbientSoundPicker } from "./focus-timer/AmbientSoundPicker";
 import { BreakTransitionModal } from "./focus-timer/BreakTransitionModal";
 import { AppBlockingSection } from "./focus-timer/AppBlockingSection";
 import { ViewToggle } from "./focus-timer/ViewToggle";
-import { Analytics } from "./analytics";
+
+// Lazy load Analytics to reduce initial bundle (contains recharts)
+const Analytics = lazy(() => import("./analytics").then(m => ({ default: m.Analytics })));
 
 type TimerView = 'timer' | 'stats';
 
@@ -89,8 +91,14 @@ export const UnifiedFocusTimer = () => {
           <div className="sticky top-0 z-20 flex justify-center pt-4 pb-2">
             <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
           </div>
-          {/* Analytics Content */}
-          <Analytics />
+          {/* Analytics Content - Lazy loaded */}
+          <Suspense fallback={
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          }>
+            <Analytics />
+          </Suspense>
         </div>
       </div>
     );

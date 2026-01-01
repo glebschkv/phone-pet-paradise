@@ -77,7 +77,7 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
     // Dispatch event for other components to listen
     window.dispatchEvent(new CustomEvent(ACHIEVEMENT_UNLOCK_EVENT, { detail: event }));
-  }, [pendingUnlock, calculateRewards]);
+  }, [pendingUnlock]);
 
   // Dismiss the current pending unlock and show next if any
   const dismissPendingUnlock = useCallback(() => {
