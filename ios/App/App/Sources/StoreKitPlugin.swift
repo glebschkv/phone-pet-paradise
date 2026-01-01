@@ -380,6 +380,7 @@ enum StoreKitPluginError: Error, LocalizedError {
     case failedVerification
     case productNotFound
     case purchaseFailed
+    case networkError
 
     var errorDescription: String? {
         switch self {
@@ -389,6 +390,8 @@ enum StoreKitPluginError: Error, LocalizedError {
             return "Product not found"
         case .purchaseFailed:
             return "Purchase failed"
+        case .networkError:
+            return "Network error occurred"
         }
     }
 }
