@@ -212,7 +212,6 @@ export class WaypointGenerator {
    * Get animal size category
    */
   // @ts-expect-error - Method kept for potential future use
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private getAnimalSize(name: string): 'small' | 'medium' | 'large' {
     const small = ['rabbit', 'squirrel', 'rat', 'fish', 'crab', 'starfish'];
     const large = ['elephant', 'whale', 'bear', 'lion', 'tiger', 'giraffe', 'rhino'];

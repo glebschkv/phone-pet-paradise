@@ -9,6 +9,7 @@ import Foundation
 class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     // App Group for shared data
+    // NOTE: Keep in sync with AppConfig.appGroupIdentifier in main app
     private let appGroupIdentifier = "group.co.nomoinc.nomo"
     private let store = ManagedSettingsStore()
 
@@ -29,6 +30,13 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     // MARK: - Activity Ended
 
     override func intervalDidEnd(for activity: DeviceActivityName) {
+        // Always try to clear shields when activity ends, even if other code fails
+        defer {
+            if activity.rawValue == "phoneUsageTracking" {
+                clearShields()
+            }
+        }
+
         super.intervalDidEnd(for: activity)
 
         // Log activity end
@@ -37,7 +45,6 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         // Check if this is our focus tracking activity
         if activity.rawValue == "phoneUsageTracking" {
             markFocusSessionActive(false)
-            clearShields()
         }
     }
 

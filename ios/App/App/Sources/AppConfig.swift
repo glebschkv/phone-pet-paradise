@@ -55,6 +55,7 @@ enum AppConfig {
     // MARK: - Activity Monitoring
     enum ActivityMonitoring {
         static let activityName = "phoneUsageTracking"
+        static let scheduleEventName = "focusScheduleEvent"
         static let maxStoredLogs = 100
     }
 

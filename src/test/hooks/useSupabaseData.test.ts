@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSupabaseData, UserProfile, UserProgress, Pet, FocusSession } from '@/hooks/useSupabaseData';
 
+// Type for mocked auth state
+interface MockAuthState {
+  user: { id: string } | null;
+  isAuthenticated: boolean;
+  isGuestMode: boolean;
+}
+
 // Mock useAuth
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
@@ -118,7 +125,7 @@ describe('useSupabaseData', () => {
         user: null,
         isAuthenticated: false,
         isGuestMode: false,
-      } as any);
+      } as MockAuthState);
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -133,7 +140,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as any);
+      } as MockAuthState);
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -147,7 +154,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as any);
+      } as MockAuthState);
     });
 
     it('should load guest data from localStorage', async () => {
@@ -195,7 +202,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as any);
+      } as MockAuthState);
     });
 
     it('should update profile in localStorage', async () => {
@@ -229,7 +236,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as any);
+      } as MockAuthState);
     });
 
     it('should update progress in localStorage', async () => {
@@ -262,7 +269,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as any);
+      } as MockAuthState);
     });
 
     it('should add focus session to localStorage', async () => {
@@ -314,7 +321,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as any);
+      } as MockAuthState);
     });
 
     it('should add a new pet', async () => {
@@ -372,7 +379,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: false,
-      } as any);
+      } as MockAuthState);
     });
 
     it('should load data from Supabase when authenticated', async () => {
@@ -421,7 +428,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as any);
+      } as MockAuthState);
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -438,7 +445,7 @@ describe('useSupabaseData', () => {
         user: null,
         isAuthenticated: false,
         isGuestMode: false,
-      } as any);
+      } as MockAuthState);
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -458,7 +465,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as any);
+      } as MockAuthState);
     });
 
     it('should handle localStorage parse errors', async () => {
@@ -492,7 +499,7 @@ describe('useSupabaseData', () => {
         user: null,
         isAuthenticated: false,
         isGuestMode: false,
-      } as any);
+      } as MockAuthState);
 
       const { result } = renderHook(() => useSupabaseData());
 
