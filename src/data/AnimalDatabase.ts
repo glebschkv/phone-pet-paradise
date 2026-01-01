@@ -223,13 +223,66 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Froggy Hop', 'Lily Pad Shield', 'Ribbit Power'],
     biome: 'Meadow',
     spriteConfig: {
-      spritePath: '/assets/sprites/humanoid/frog-hood-walk.png',
+      spritePath: '/assets/sprites/humanoid/frog-hood.png',
       idleSprite: '/assets/sprites/humanoid/frog-hood.png',
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8,
-      walkRows: 4
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'bear-hood',
+    name: 'Bear Hood',
+    emoji: '🐻',
+    rarity: 'common',
+    unlockLevel: 6,
+    description: 'A cozy kid in a warm brown bear hoodie, spreading comfort and fuzzy hugs.',
+    abilities: ['Bear Hug', 'Honey Power', 'Cozy Nap'],
+    biome: 'Meadow',
+    spriteConfig: {
+      spritePath: '/assets/sprites/humanoid/bear-hood.png',
+      idleSprite: '/assets/sprites/humanoid/bear-hood.png',
+      frameCount: 6,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'shark-hood',
+    name: 'Shark Hood',
+    emoji: '🦈',
+    rarity: 'rare',
+    unlockLevel: 8,
+    description: 'A cool kid in a sleek blue shark hoodie, making waves wherever they go.',
+    abilities: ['Shark Bite', 'Ocean Wave', 'Fin Dash'],
+    biome: 'Sunset',
+    spriteConfig: {
+      spritePath: '/assets/sprites/humanoid/shark-hood.png',
+      idleSprite: '/assets/sprites/humanoid/shark-hood.png',
+      frameCount: 6,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 8
+    }
+  },
+  {
+    id: 'dino-kid',
+    name: 'Dino Kid',
+    emoji: '🦖',
+    rarity: 'rare',
+    unlockLevel: 10,
+    description: 'A fierce kid in a spiky green dinosaur costume, roaring with prehistoric power.',
+    abilities: ['Dino Roar', 'Tail Whip', 'Stomp Attack'],
+    biome: 'Forest',
+    spriteConfig: {
+      spritePath: '/assets/sprites/humanoid/dino-kid.png',
+      idleSprite: '/assets/sprites/humanoid/dino-kid.png',
+      frameCount: 6,
+      frameWidth: 64,
+      frameHeight: 64,
+      animationSpeed: 8
     }
   },
 
@@ -636,14 +689,14 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Meadow',
     unlockLevel: 0,
     description: 'A peaceful meadow where your journey begins. Home to friendly creatures.',
-    animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood'],
+    animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood', 'bear-hood'],
     backgroundImage: '/assets/worlds/GRASSYPATH.png'
   },
   {
     name: 'Sunset',
     unlockLevel: 5,
     description: 'Golden fields bathed in warm sunset light.',
-    animals: ['ember-fox', 'dusk-owl', 'golden-moth'],
+    animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood'],
     backgroundImage: '/assets/worlds/WINDMILL.png'
   },
   {
@@ -657,7 +710,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Forest',
     unlockLevel: 13,
     description: 'An enchanted forest where elemental spirits dwell.',
-    animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit'],
+    animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid'],
     backgroundImage: '/assets/worlds/JUNGLE_ISLAND.png'
   },
   {
