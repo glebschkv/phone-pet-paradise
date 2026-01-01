@@ -85,8 +85,13 @@ describe('useQuestSystem', () => {
       const { result } = renderHook(() => useQuestSystem());
 
       const storyQuest = result.current.getNextStoryQuest(1);
-      // Story quests exist for level 1
-      expect(storyQuest === undefined || storyQuest.type === 'story').toBe(true);
+      // Story quests exist for level 1 - check it has story quest properties
+      if (storyQuest) {
+        expect(storyQuest.id).toMatch(/^story-/);
+        expect(storyQuest.unlockLevel).toBe(1);
+      }
+      // May be undefined if already completed
+      expect(storyQuest === undefined || storyQuest.id.startsWith('story-')).toBe(true);
     });
 
     it('should return undefined for very high level', () => {

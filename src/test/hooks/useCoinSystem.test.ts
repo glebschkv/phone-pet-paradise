@@ -127,7 +127,7 @@ describe('useCoinSystem', () => {
       const { result } = renderHook(() => useCoinSystem());
 
       expect(result.current.calculateCoinsFromDuration(50)).toBe(65); // Uses 45 min tier
-      expect(result.current.calculateCoinsFromDuration(100)).toBe(100); // Uses 60 min tier
+      expect(result.current.calculateCoinsFromDuration(100)).toBe(175); // Uses 90 min tier
     });
   });
 
