@@ -5,11 +5,11 @@ import { backupLogger } from '@/lib/logger';
 interface BackupData {
   version: string;
   timestamp: number;
-  appState: any;
-  xpSystem: any;
-  streakSystem: any;
-  settings: any;
-  onboarding: any;
+  appState: Record<string, unknown>;
+  xpSystem: Record<string, unknown>;
+  streakSystem: Record<string, unknown>;
+  settings: Record<string, unknown>;
+  onboarding: Record<string, unknown>;
 }
 
 interface BackupMetadata {

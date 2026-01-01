@@ -15,7 +15,7 @@ interface PowerUpsTabProps {
   canAfford: (price: number) => boolean;
   isBoosterActive: () => boolean;
   getTimeRemainingFormatted: () => string;
-  activeBooster: any;
+  activeBooster: { boosterId: string; multiplier: number; activatedAt: number; expiresAt: number } | null;
   getCurrentMultiplier: () => number;
 }
 

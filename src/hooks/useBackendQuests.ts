@@ -41,13 +41,27 @@ export interface QuestSystemReturn {
   storyQuests: Quest[];
   activeQuests: Quest[];
   completedQuests: Quest[];
-  updateQuestProgress: (type: string, amount: number, metadata?: any) => Promise<void>;
+  updateQuestProgress: (type: string, amount: number, metadata?: Record<string, unknown>) => Promise<void>;
   completeQuest: (questId: string) => Promise<void>;
   getQuestById: (questId: string) => Quest | undefined;
   generateDailyQuests: () => Promise<void>;
   generateWeeklyQuests: () => Promise<void>;
   getNextStoryQuest: (currentLevel: number) => Quest | undefined;
   isLoading: boolean;
+}
+
+// Template types for quest generation
+interface QuestObjectiveTemplate {
+  type: string;
+  target: number;
+  description: string;
+}
+
+interface QuestTemplate {
+  title: string;
+  description: string;
+  objectives: QuestObjectiveTemplate[];
+  rewards: QuestReward[];
 }
 
 // Quest templates for generation
@@ -207,7 +221,7 @@ export const useBackendQuests = (): QuestSystemReturn => {
   }, []);
 
   // Create quest from template
-  const createQuestFromTemplate = useCallback(async (template: any, type: 'daily' | 'weekly'): Promise<Quest | null> => {
+  const createQuestFromTemplate = useCallback(async (template: QuestTemplate, type: 'daily' | 'weekly'): Promise<Quest | null> => {
     if (!user) return null;
 
     const newQuest: Quest = {
@@ -215,12 +229,12 @@ export const useBackendQuests = (): QuestSystemReturn => {
       type,
       title: template.title,
       description: template.description,
-      objectives: template.objectives.map((obj: any) => ({
+      objectives: template.objectives.map((obj: QuestObjectiveTemplate) => ({
         id: generateQuestId('objective'),
         description: obj.description,
         target: obj.target,
         current: 0,
-        type: obj.type
+        type: obj.type as QuestObjective['type']
       })),
       rewards: template.rewards,
       isCompleted: false,
@@ -316,7 +330,7 @@ export const useBackendQuests = (): QuestSystemReturn => {
   }, [quests, createQuestFromTemplate, isGuestMode, saveQuestsToStorage]);
 
   // Update quest progress
-  const updateQuestProgress = useCallback(async (type: string, amount: number, _metadata?: any) => {
+  const updateQuestProgress = useCallback(async (type: string, amount: number, _metadata?: Record<string, unknown>) => {
     if (!user) return;
 
     const activeQuests = quests.filter(q => !q.isCompleted);

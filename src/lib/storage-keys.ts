@@ -79,6 +79,15 @@ export const STORAGE_KEYS = {
   COIN_SYSTEM: `${PREFIX}coin_system`,
   COIN_BOOSTER: `${PREFIX}coin_booster`,
 
+  // Shop
+  SHOP_INVENTORY: `${PREFIX}shop_inventory`,
+
+  // Focus Mode
+  FOCUS_MODE: `${PREFIX}focus_mode`,
+  FOCUS_PRESETS: `${PREFIX}focus_presets`,
+  AMBIENT_SOUND: `${PREFIX}ambient_sound`,
+  SOUND_MIXER: `${PREFIX}sound_mixer`,
+
   // Device Activity
   SELECTED_APPS: `${PREFIX}selected_apps`,
   DEVICE_ACTIVITY: `${PREFIX}device_activity`,
@@ -107,6 +116,14 @@ const LEGACY_KEY_MAP: Record<string, StorageKey> = {
   petIsland_sessionNotes: STORAGE_KEYS.SESSION_NOTES,
   petIsland_xpUpdate: STORAGE_KEYS.XP_SYSTEM,
   petIsland_autoBreak: STORAGE_KEYS.APP_SETTINGS,
+  petIsland_coinSystem: STORAGE_KEYS.COIN_SYSTEM,
+  petIsland_premium: STORAGE_KEYS.PREMIUM_STATUS,
+  petIsland_shopInventory: STORAGE_KEYS.SHOP_INVENTORY,
+  petIsland_boosterSystem: STORAGE_KEYS.COIN_BOOSTER,
+  petIsland_soundMixer: STORAGE_KEYS.SOUND_MIXER,
+  petIsland_focusMode: STORAGE_KEYS.FOCUS_MODE,
+  petIsland_focusPresets: STORAGE_KEYS.FOCUS_PRESETS,
+  petIsland_ambientSound: STORAGE_KEYS.AMBIENT_SOUND,
 
   // pet_paradise_ prefix
   pet_paradise_guest_id: STORAGE_KEYS.GUEST_ID,

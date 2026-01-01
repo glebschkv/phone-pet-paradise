@@ -39,7 +39,7 @@ export class AnimationController {
     this.state.speed = speed;
     this.state.context = context;
 
-    let targetAnimation = this.selectAnimation(speed, context);
+    const targetAnimation = this.selectAnimation(speed, context);
     
     if (targetAnimation !== this.state.current && !this.state.isTransitioning) {
       this.transitionToAnimation(targetAnimation);

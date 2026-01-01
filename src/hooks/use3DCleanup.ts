@@ -76,12 +76,13 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
     children.forEach(child => disposeObject3D(child));
     
     // Dispose object properties
-    if ((object as any).geometry) {
-      disposeGeometry((object as any).geometry);
+    const meshLike = object as THREE.Mesh;
+    if (meshLike.geometry) {
+      disposeGeometry(meshLike.geometry);
     }
-    
-    if ((object as any).material) {
-      disposeMaterial((object as any).material);
+
+    if (meshLike.material) {
+      disposeMaterial(meshLike.material as THREE.Material);
     }
     
     // Remove from parent
@@ -146,8 +147,9 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
     }
     
     // Force garbage collection if available
-    if ('gc' in window && typeof (window as any).gc === 'function') {
-      (window as any).gc();
+    const windowWithGC = window as unknown as { gc?: () => void };
+    if (windowWithGC.gc && typeof windowWithGC.gc === 'function') {
+      windowWithGC.gc();
       if (cleanupConfig.enableLogging) {
         threeLogger.debug('Forced garbage collection');
       }
@@ -157,7 +159,7 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
   // Check memory usage
   const checkMemoryUsage = useCallback(() => {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const memory = (performance as unknown as { memory: { usedJSHeapSize: number } }).memory;
       const memoryMB = memory.usedJSHeapSize / (1024 * 1024);
       
       if (memoryMB > cleanupConfig.maxMemoryMB) {

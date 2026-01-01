@@ -204,7 +204,7 @@ describe('useFocusMode', () => {
 
       const saved = localStorage.getItem(STORAGE_KEY);
       const parsed = JSON.parse(saved!);
-      const youtubeApp = parsed.blockedApps.find((a: any) => a.id === 'youtube');
+      const youtubeApp = parsed.blockedApps.find((a: { id: string; isBlocked: boolean }) => a.id === 'youtube');
       expect(youtubeApp?.isBlocked).toBe(true);
     });
   });
@@ -372,7 +372,7 @@ describe('useFocusMode', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      let deactivateResult: any;
+      let deactivateResult: { success: boolean; shieldAttempts: number } | undefined;
       await act(async () => {
         deactivateResult = await result.current.deactivateFocusMode();
       });

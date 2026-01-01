@@ -97,9 +97,10 @@ export const SettingsAccount = () => {
       // Clear local storage and redirect
       localStorage.clear();
       window.location.href = '/auth';
-    } catch (error: any) {
+    } catch (error: unknown) {
       settingsLogger.error('Error deleting account:', error);
-      toast.error(error.message || 'Failed to delete account. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to delete account. Please try again.';
+      toast.error(message);
     } finally {
       setIsDeleting(false);
     }

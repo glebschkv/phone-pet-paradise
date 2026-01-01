@@ -12,9 +12,17 @@ const PREMIUM_STORAGE_KEY = 'petIsland_premium';
  * Validate a purchase with the server
  * Standalone function to avoid circular dependency issues
  */
+interface SubscriptionValidationResult {
+  tier?: string;
+  expiresAt?: string;
+  purchasedAt?: string;
+  productId?: string;
+  environment?: string;
+}
+
 async function serverValidatePurchase(
   purchase: PurchaseResult | RestoredPurchase
-): Promise<{ success: boolean; subscription?: any }> {
+): Promise<{ success: boolean; subscription?: SubscriptionValidationResult }> {
   try {
     // Check if user is authenticated
     const { data: { session } } = await supabase.auth.getSession();

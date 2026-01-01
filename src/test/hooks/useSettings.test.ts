@@ -375,14 +375,15 @@ describe('useSettings', () => {
       // Mock document.createElement
       const mockClick = vi.fn();
       const originalCreateElement = document.createElement.bind(document);
-      document.createElement = vi.fn((tagName: string) => {
+      const mockCreateElement = vi.fn((tagName: string) => {
         if (tagName === 'a') {
           const link = originalCreateElement('a');
           link.click = mockClick;
           return link;
         }
         return originalCreateElement(tagName);
-      }) as any;
+      });
+      document.createElement = mockCreateElement as typeof document.createElement;
 
       act(() => {
         result.current.exportSettings();
@@ -400,7 +401,7 @@ describe('useSettings', () => {
       // Restore
       global.URL.createObjectURL = originalCreateObjectURL;
       global.URL.revokeObjectURL = originalRevokeObjectURL;
-      document.createElement = originalCreateElement as any;
+      document.createElement = originalCreateElement;
     });
 
     it('should handle export errors', async () => {

@@ -102,7 +102,7 @@ export const useSupabaseData = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Save data to localStorage (for guest mode)
-  const saveToLocalStorage = useCallback((key: string, data: any) => {
+  const saveToLocalStorage = useCallback((key: string, data: unknown) => {
     try {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
@@ -210,7 +210,7 @@ export const useSupabaseData = () => {
       setProfile(profileData || createDefaultProfile(user.id));
       setProgress(progressData || createDefaultProgress(user.id));
       setPets(petsData && petsData.length > 0 ? petsData : [createDefaultPet(user.id)]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       supabaseLogger.error('Error loading user data from Supabase:', error);
       // Fall back to localStorage on error
       loadGuestData();
@@ -266,7 +266,7 @@ export const useSupabaseData = () => {
 
       setProfile(data);
       toast.success('Profile updated');
-    } catch (error: any) {
+    } catch (error: unknown) {
       supabaseLogger.error('Error updating profile:', error);
       // Fall back to local update on error
       setProfile(updatedProfile);
@@ -298,7 +298,7 @@ export const useSupabaseData = () => {
       if (error) throw error;
 
       setProgress(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       supabaseLogger.error('Error updating progress:', error);
       // Fall back to local update on error
       setProgress(updatedProgress);
@@ -355,7 +355,7 @@ export const useSupabaseData = () => {
           last_session_date: new Date().toISOString().split('T')[0]
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       supabaseLogger.error('Error adding focus session:', error);
       // Fall back to local storage on error
       const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions) || [];
@@ -415,7 +415,7 @@ export const useSupabaseData = () => {
 
       setPets(prev => [...prev, data]);
       toast.success(`${name} joined your island!`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       supabaseLogger.error('Error adding pet:', error);
       // Fall back to local storage on error
       const updatedPets = [...pets, newPet];
@@ -450,7 +450,7 @@ export const useSupabaseData = () => {
       if (error) throw error;
 
       setPets(prev => prev.map(pet => pet.id === petId ? data : pet));
-    } catch (error: any) {
+    } catch (error: unknown) {
       supabaseLogger.error('Error updating pet:', error);
       // Fall back to local storage on error
       const updatedPets = pets.map(pet =>
