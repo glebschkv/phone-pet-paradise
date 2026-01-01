@@ -261,12 +261,13 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Shark Bite', 'Ocean Wave', 'Fin Dash'],
     biome: 'Sunset',
     spriteConfig: {
-      spritePath: '/assets/sprites/humanoid/shark-hood.png',
+      spritePath: '/assets/sprites/humanoid/shark-hood-walk.png',
       idleSprite: '/assets/sprites/humanoid/shark-hood.png',
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 4
     }
   },
   {
@@ -279,12 +280,13 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     abilities: ['Dino Roar', 'Tail Whip', 'Stomp Attack'],
     biome: 'Forest',
     spriteConfig: {
-      spritePath: '/assets/sprites/humanoid/dino-kid.png',
+      spritePath: '/assets/sprites/humanoid/dino-kid-walk.png',
       idleSprite: '/assets/sprites/humanoid/dino-kid.png',
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 2
     }
   },
 
