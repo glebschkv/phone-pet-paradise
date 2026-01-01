@@ -8,7 +8,8 @@ import Foundation
  */
 enum AppConfig {
     // MARK: - App Identifiers
-    static let appGroupIdentifier = "group.co.nomoinc.nomo"
+    /// App Group identifier - references SharedConstants for consistency with extensions
+    static let appGroupIdentifier = SharedConstants.appGroupIdentifier
     static let bundleIdentifier = "co.nomoinc.nomo"
     static let appName = "NoMo Phone"
     static let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
@@ -20,10 +21,12 @@ enum AppConfig {
 
     // MARK: - Storage Keys
     enum StorageKeys {
-        static let blockedAppsSelection = "blockedAppSelection"
-        static let focusSessionActive = "focusSessionActive"
-        static let shieldAttempts = "shieldAttempts"
-        static let lastShieldAttempt = "lastShieldAttempt"
+        // Shared keys (also used by extensions) - reference SharedConstants
+        static let blockedAppsSelection = SharedConstants.StorageKeys.blockedAppsSelection
+        static let focusSessionActive = SharedConstants.StorageKeys.focusSessionActive
+        static let shieldAttempts = SharedConstants.StorageKeys.shieldAttempts
+        static let lastShieldAttempt = SharedConstants.StorageKeys.lastShieldAttempt
+        // App-only keys (not used by extensions)
         static let widgetData = "widgetData"
         static let timerState = "timerState"
         static let streakData = "streakData"
@@ -54,9 +57,9 @@ enum AppConfig {
 
     // MARK: - Activity Monitoring
     enum ActivityMonitoring {
-        static let activityName = "phoneUsageTracking"
+        static let activityName = SharedConstants.ActivityNames.phoneUsageTracking
         static let scheduleEventName = "focusScheduleEvent"
-        static let maxStoredLogs = 100
+        static let maxStoredLogs = SharedConstants.maxStoredLogs
     }
 
     // MARK: - Shared UserDefaults

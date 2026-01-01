@@ -7,10 +7,6 @@ import UIKit
 
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
-    // App Group for shared data
-    // NOTE: Keep in sync with AppConfig.appGroupIdentifier in main app
-    private let appGroupIdentifier = "group.co.nomoinc.nomo"
-
     // MARK: - Shield Configuration for Applications
 
     override func configuration(shielding application: Application) -> ShieldConfiguration {
@@ -81,11 +77,11 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     }
 
     private func recordShieldAttempt() {
-        guard let userDefaults = UserDefaults(suiteName: appGroupIdentifier) else { return }
+        guard let userDefaults = SharedConstants.sharedUserDefaults else { return }
 
-        let currentAttempts = userDefaults.integer(forKey: "shieldAttempts")
-        userDefaults.set(currentAttempts + 1, forKey: "shieldAttempts")
-        userDefaults.set(Date().timeIntervalSince1970, forKey: "lastShieldAttempt")
+        let currentAttempts = userDefaults.integer(forKey: SharedConstants.StorageKeys.shieldAttempts)
+        userDefaults.set(currentAttempts + 1, forKey: SharedConstants.StorageKeys.shieldAttempts)
+        userDefaults.set(Date().timeIntervalSince1970, forKey: SharedConstants.StorageKeys.lastShieldAttempt)
         userDefaults.synchronize()
     }
 
