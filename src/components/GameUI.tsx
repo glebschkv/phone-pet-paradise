@@ -2,18 +2,29 @@ import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { XPRewardModal } from "@/components/XPRewardModal";
 import { DailyLoginRewardModal } from "@/components/DailyLoginRewardModal";
 import { TopStatusBar } from "@/components/TopStatusBar";
-import { UnifiedFocusTimer } from "@/components/UnifiedFocusTimer";
 import { IOSTabBar } from "@/components/IOSTabBar";
-import { PetCollectionGrid } from "@/components/PetCollectionGrid";
-import { Settings } from "@/components/Settings";
-import { Shop } from "@/components/Shop";
-import { GamificationHub, MilestoneCelebration } from "@/components/gamification";
+import { MilestoneCelebration } from "@/components/gamification";
 import { AchievementTracker } from "@/components/AchievementTracker";
 import { useXPSystem } from "@/hooks/useXPSystem";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { useMilestoneCelebrations } from "@/hooks/useMilestoneCelebrations";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+
+// Lazy load heavy tab components for better initial load performance
+const UnifiedFocusTimer = lazy(() => import("@/components/UnifiedFocusTimer").then(m => ({ default: m.UnifiedFocusTimer })));
+const PetCollectionGrid = lazy(() => import("@/components/PetCollectionGrid").then(m => ({ default: m.PetCollectionGrid })));
+const Settings = lazy(() => import("@/components/Settings").then(m => ({ default: m.Settings })));
+const Shop = lazy(() => import("@/components/Shop").then(m => ({ default: m.Shop })));
+const GamificationHub = lazy(() => import("@/components/gamification").then(m => ({ default: m.GamificationHub })));
+
+// Loading fallback component
+const TabLoadingFallback = () => (
+  <div className="flex items-center justify-center h-full min-h-[200px]">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 
 export const GameUI = () => {
   const [currentTab, setCurrentTab] = useState("home");
@@ -80,20 +91,29 @@ export const GameUI = () => {
   };
 
   const renderContent = () => {
-    switch (currentTab) {
-      case "timer":
-        return <UnifiedFocusTimer />;
-      case "collection":
-        return <PetCollectionGrid />;
-      case "challenges":
-        return <GamificationHub onXPReward={handleXPReward} onCoinReward={handleCoinReward} />;
-      case "shop":
-        return <Shop />;
-      case "settings":
-        return <Settings />;
-      default:
-        return null;
-    }
+    const content = (() => {
+      switch (currentTab) {
+        case "timer":
+          return <UnifiedFocusTimer />;
+        case "collection":
+          return <PetCollectionGrid />;
+        case "challenges":
+          return <GamificationHub onXPReward={handleXPReward} onCoinReward={handleCoinReward} />;
+        case "shop":
+          return <Shop />;
+        case "settings":
+          return <Settings />;
+        default:
+          return null;
+      }
+    })();
+
+    // Wrap lazy-loaded components in Suspense
+    return content ? (
+      <Suspense fallback={<TabLoadingFallback />}>
+        {content}
+      </Suspense>
+    ) : null;
   };
 
   return (

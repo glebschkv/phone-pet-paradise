@@ -12,7 +12,10 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",
@@ -22,8 +25,6 @@
     "@capacitor/ios": "^7.4.2",
     "@capacitor/local-notifications": "^7.0.1",
     "@capacitor/push-notifications": "^7.0.1",
-    "@sentry/capacitor": "^1.1.0",
-    "@sentry/react": "8.55.0",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -54,6 +55,8 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
+    "@sentry/capacitor": "^1.1.0",
+    "@sentry/react": "8.55.0",
     "@supabase/supabase-js": "^2.55.0",
     "@tanstack/react-query": "^5.56.2",
     "class-variance-authority": "^0.7.1",
@@ -81,6 +84,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^6.4.0",
     "@testing-library/react": "^14.2.0",
@@ -99,6 +103,7 @@
     "jsdom": "^24.0.0",
     "lovable-tagger": "^1.1.7",
     "msw": "^2.2.0",
+    "playwright": "^1.57.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
