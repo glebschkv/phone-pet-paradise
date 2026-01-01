@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { coinLogger } from '@/lib/logger';
 
 export interface BoosterType {
   id: string;
@@ -90,7 +91,7 @@ export const useCoinBooster = () => {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedState));
         }
       } catch (error) {
-        console.error('Failed to load booster state:', error);
+        coinLogger.error('Failed to load booster state:', error);
       }
     }
   }, [checkExpiration]);

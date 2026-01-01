@@ -14,6 +14,7 @@ import {
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
+import { shopLogger } from '@/lib/logger';
 
 export interface PurchaseResult {
   success: boolean;
@@ -68,7 +69,7 @@ export const useShop = () => {
           loadedInventory.ownedBackgrounds.length +
           loadedInventory.ownedBadges.length;
       } catch (error) {
-        console.error('Failed to load shop inventory:', error);
+        shopLogger.error('Failed to load shop inventory:', error);
       }
     }
   }, []);

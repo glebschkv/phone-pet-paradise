@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { backupLogger } from '@/lib/logger';
 
 interface BackupData {
   version: string;
@@ -70,14 +71,14 @@ export const useDataBackup = () => {
                 break;
             }
           } catch (error) {
-            console.warn(`Failed to parse ${key}:`, error);
+            backupLogger.warn(`Failed to parse ${key}:`, error);
           }
         }
       });
 
       return data;
     } catch (error) {
-      console.error('Failed to collect app data:', error);
+      backupLogger.error('Failed to collect app data:', error);
       throw error;
     }
   }, []);
@@ -122,7 +123,7 @@ export const useDataBackup = () => {
       
       return metadata;
     } catch (error) {
-      console.error('Backup creation failed:', error);
+      backupLogger.error('Backup creation failed:', error);
       toast({
         title: "Backup Failed",
         description: "Failed to create backup. Please try again.",
@@ -235,7 +236,7 @@ export const useDataBackup = () => {
       setTimeout(() => window.location.reload(), 2000);
       
     } catch (error) {
-      console.error('Backup restore failed:', error);
+      backupLogger.error('Backup restore failed:', error);
       toast({
         title: "Restore Failed",
         description: "Failed to restore backup. Please check the file format.",
@@ -253,7 +254,7 @@ export const useDataBackup = () => {
       const saved = localStorage.getItem('backup-metadata');
       return saved ? JSON.parse(saved) : [];
     } catch (error) {
-      console.error('Failed to load backup metadata:', error);
+      backupLogger.error('Failed to load backup metadata:', error);
       return [];
     }
   }, []);
@@ -270,7 +271,7 @@ export const useDataBackup = () => {
         localStorage.setItem('last-auto-backup', now.toString());
       }
     } catch (error) {
-      console.error('Auto backup failed:', error);
+      backupLogger.error('Auto backup failed:', error);
     }
   }, [createBackup]);
 
@@ -283,7 +284,7 @@ export const useDataBackup = () => {
       const filtered = backups.filter(backup => backup.timestamp > oneWeekAgo);
       localStorage.setItem('backup-metadata', JSON.stringify(filtered));
     } catch (error) {
-      console.error('Backup cleanup failed:', error);
+      backupLogger.error('Backup cleanup failed:', error);
     }
   }, [getLocalBackups]);
 

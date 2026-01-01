@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { timerLogger } from "@/lib/logger";
 import {
   TimerState,
   TimerPreset,
@@ -81,7 +82,7 @@ export const useTimerPersistence = (): UseTimerPersistenceReturn => {
           setSelectedPreset(preset);
         }
       } catch (error) {
-        console.error('Failed to load timer state:', error);
+        timerLogger.error('Failed to load timer state:', error);
       }
     }
   }, []);

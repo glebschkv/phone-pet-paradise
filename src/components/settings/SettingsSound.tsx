@@ -1,4 +1,5 @@
 import { AppSettings } from "@/hooks/useSettings";
+import { soundLogger } from "@/lib/logger";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -21,7 +22,7 @@ export const SettingsSound = ({ settings, onUpdate }: SettingsSoundProps) => {
     const audio = new Audio('/notification.mp3');
     audio.volume = settings.soundVolume / 100;
     audio.play().catch(() => {
-      console.log('Test sound played');
+      soundLogger.debug('Test sound played');
     });
   };
 

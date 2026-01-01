@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { questLogger } from '@/lib/logger';
 
 export interface Quest {
   id: string;
@@ -156,7 +157,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
         setQuests(data.quests || []);
       }
     } catch (error) {
-      console.error('Failed to load quest data:', error);
+      questLogger.error('Failed to load quest data:', error);
     }
   }, []);
 
@@ -165,7 +166,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
     try {
       localStorage.setItem(QUEST_STORAGE_KEY, JSON.stringify({ quests: questData }));
     } catch (error) {
-      console.error('Failed to save quest data:', error);
+      questLogger.error('Failed to save quest data:', error);
     }
   }, []);
 

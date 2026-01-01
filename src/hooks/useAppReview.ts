@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AppReview } from '@/plugins/app-review';
+import { appReviewLogger } from '@/lib/logger';
 
 const REVIEW_STORAGE_KEY = 'nomo_app_review';
 
@@ -101,11 +102,11 @@ export const useAppReview = () => {
   // Request review via native API
   const requestReview = useCallback(async () => {
     try {
-      console.log('[AppReview] Requesting native review prompt');
+      appReviewLogger.debug('[AppReview] Requesting native review prompt');
       const result = await AppReview.requestReview();
-      console.log('[AppReview] Result:', result);
+      appReviewLogger.debug('[AppReview] Result:', result);
     } catch (error) {
-      console.error('[AppReview] Failed to request review:', error);
+      appReviewLogger.error('[AppReview] Failed to request review:', error);
     }
 
     // Record that we prompted

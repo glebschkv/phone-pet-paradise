@@ -10,6 +10,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { debounce } from '@/lib/debounce';
 import { NETWORK_CONFIG } from '@/lib/constants';
+import { widgetLogger } from '@/lib/logger';
 
 // Widget data structure that will be shared with native widgets
 export interface WidgetData {
@@ -137,7 +138,7 @@ class WidgetDataService {
         this.data = { ...this.getDefaultData(), ...JSON.parse(stored) };
       }
     } catch (error) {
-      console.error('[WidgetData] Failed to load:', error);
+      widgetLogger.error('Failed to load:', error);
     }
     return this.data;
   }
@@ -161,7 +162,7 @@ class WidgetDataService {
         this.saveToNativeDebounced(this.data);
       }
     } catch (error) {
-      console.error('[WidgetData] Failed to save:', error);
+      widgetLogger.error('Failed to save:', error);
     }
   }
 
@@ -178,7 +179,7 @@ class WidgetDataService {
       try {
         await WidgetDataPlugin.updateTimer({ timer: timerData });
       } catch (error) {
-        console.error('[WidgetData] Failed to update timer:', error);
+        widgetLogger.error('Failed to update timer:', error);
       }
     }
   }
@@ -196,7 +197,7 @@ class WidgetDataService {
       try {
         await WidgetDataPlugin.updateStreak({ streak: streakData });
       } catch (error) {
-        console.error('[WidgetData] Failed to update streak:', error);
+        widgetLogger.error('Failed to update streak:', error);
       }
     }
   }
@@ -233,7 +234,7 @@ class WidgetDataService {
       try {
         await WidgetDataPlugin.updateDailyProgress({ dailyProgress: newProgress });
       } catch (error) {
-        console.error('[WidgetData] Failed to update daily progress:', error);
+        widgetLogger.error('Failed to update daily progress:', error);
       }
     }
   }
@@ -251,7 +252,7 @@ class WidgetDataService {
       try {
         await WidgetDataPlugin.updateStats({ stats: statsData });
       } catch (error) {
-        console.error('[WidgetData] Failed to update stats:', error);
+        widgetLogger.error('Failed to update stats:', error);
       }
     }
   }
@@ -271,7 +272,7 @@ class WidgetDataService {
       try {
         await WidgetDataPlugin.refreshWidgets();
       } catch (error) {
-        console.error('[WidgetData] Failed to refresh widgets:', error);
+        widgetLogger.error('Failed to refresh widgets:', error);
       }
     }
   }
@@ -375,7 +376,7 @@ class WidgetDataService {
         });
       }
     } catch (error) {
-      console.error('[WidgetData] Failed to sync from app state:', error);
+      widgetLogger.error('Failed to sync from app state:', error);
     }
   }
 
@@ -385,7 +386,7 @@ class WidgetDataService {
       const result = await WidgetDataPlugin.loadData();
       return result.data;
     } catch (error) {
-      console.error('[WidgetData] Failed to load from native:', error);
+      widgetLogger.error('Failed to load from native:', error);
       return null;
     }
   }
@@ -394,7 +395,7 @@ class WidgetDataService {
     try {
       await WidgetDataPlugin.saveData({ data });
     } catch (error) {
-      console.error('[WidgetData] Failed to save to native:', error);
+      widgetLogger.error('Failed to save to native:', error);
     }
   }
 }

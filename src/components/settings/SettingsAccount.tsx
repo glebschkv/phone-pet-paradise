@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { settingsLogger } from "@/lib/logger";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,7 +98,7 @@ export const SettingsAccount = () => {
       localStorage.clear();
       window.location.href = '/auth';
     } catch (error: any) {
-      console.error('Error deleting account:', error);
+      settingsLogger.error('Error deleting account:', error);
       toast.error(error.message || 'Failed to delete account. Please try again.');
     } finally {
       setIsDeleting(false);

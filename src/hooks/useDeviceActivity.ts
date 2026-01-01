@@ -3,6 +3,7 @@ import { DeviceActivity } from '@/plugins/device-activity';
 import type { BlockingStatus, StartBlockingResult, StopBlockingResult } from '@/plugins/device-activity/definitions';
 import { Capacitor } from '@capacitor/core';
 import { useToast } from '@/hooks/use-toast';
+import { deviceActivityLogger } from '@/lib/logger';
 
 interface DeviceActivityState {
   // Permission state
@@ -110,7 +111,7 @@ export const useDeviceActivity = () => {
         }));
       }
     } catch (error) {
-      console.error('Failed to initialize device activity:', error);
+      deviceActivityLogger.error('Failed to initialize device activity:', error);
     } finally {
       setState(prev => ({ ...prev, isLoading: false }));
     }
@@ -149,7 +150,7 @@ export const useDeviceActivity = () => {
         });
       }
     } catch (error) {
-      console.error('Permission request failed:', error);
+      deviceActivityLogger.error('Permission request failed:', error);
       toast({
         title: "Permission Error",
         description: "Failed to request Screen Time permissions",
@@ -180,7 +181,7 @@ export const useDeviceActivity = () => {
 
       return result;
     } catch (error) {
-      console.error('Failed to start app blocking:', error);
+      deviceActivityLogger.error('Failed to start app blocking:', error);
       return {
         success: false,
         appsBlocked: 0,
@@ -204,7 +205,7 @@ export const useDeviceActivity = () => {
 
       return result;
     } catch (error) {
-      console.error('Failed to stop app blocking:', error);
+      deviceActivityLogger.error('Failed to stop app blocking:', error);
       return {
         success: false,
         shieldAttempts: 0
@@ -227,7 +228,7 @@ export const useDeviceActivity = () => {
 
       return status;
     } catch (error) {
-      console.error('Failed to get blocking status:', error);
+      deviceActivityLogger.error('Failed to get blocking status:', error);
       return {
         isBlocking: false,
         focusSessionActive: false,
@@ -249,7 +250,7 @@ export const useDeviceActivity = () => {
       }));
       return result.attempts;
     } catch (error) {
-      console.error('Failed to get shield attempts:', error);
+      deviceActivityLogger.error('Failed to get shield attempts:', error);
       return 0;
     }
   }, []);
@@ -264,7 +265,7 @@ export const useDeviceActivity = () => {
         lastShieldAttemptTimestamp: 0,
       }));
     } catch (error) {
-      console.error('Failed to reset shield attempts:', error);
+      deviceActivityLogger.error('Failed to reset shield attempts:', error);
     }
   }, []);
 
@@ -273,7 +274,7 @@ export const useDeviceActivity = () => {
     try {
       await DeviceActivity.openAppPicker();
     } catch (error) {
-      console.error('Failed to open app picker:', error);
+      deviceActivityLogger.error('Failed to open app picker:', error);
     }
   }, []);
 
@@ -313,7 +314,7 @@ export const useDeviceActivity = () => {
         isBlocking: false,
       }));
     } catch (error) {
-      console.error('Failed to clear selected apps:', error);
+      deviceActivityLogger.error('Failed to clear selected apps:', error);
     }
   }, [simulatedApps]);
 
@@ -330,7 +331,7 @@ export const useDeviceActivity = () => {
       }));
       return data;
     } catch (error) {
-      console.error('Failed to get usage data:', error);
+      deviceActivityLogger.error('Failed to get usage data:', error);
       return null;
     }
   }, []);
@@ -341,7 +342,7 @@ export const useDeviceActivity = () => {
       await DeviceActivity.recordActiveTime();
       setState(prev => ({ ...prev, lastActiveTime: Date.now() }));
     } catch (error) {
-      console.error('Failed to record active time:', error);
+      deviceActivityLogger.error('Failed to record active time:', error);
     }
   }, []);
 
@@ -350,7 +351,7 @@ export const useDeviceActivity = () => {
     try {
       await DeviceActivity.triggerHapticFeedback({ style });
     } catch (error) {
-      console.error('Haptic feedback failed:', error);
+      deviceActivityLogger.error('Haptic feedback failed:', error);
     }
   }, []);
 
@@ -359,7 +360,7 @@ export const useDeviceActivity = () => {
     const handleAppLifecycle = (event: CustomEvent<AppLifecycleEvent>) => {
       const { state: appState, timeAwayMinutes, timestamp, shieldAttempts: attempts } = event.detail;
 
-      console.log('App lifecycle change:', appState, timeAwayMinutes);
+      deviceActivityLogger.debug('App lifecycle change:', appState, timeAwayMinutes);
 
       setState(prev => ({
         ...prev,

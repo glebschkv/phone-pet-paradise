@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { supabaseLogger } from "@/lib/logger";
 import type { Database } from './types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -58,7 +59,7 @@ if (isSupabaseConfigured) {
     }
   });
 } else {
-  console.warn('Supabase environment variables not configured. Database features will be unavailable.');
+  supabaseLogger.warn('Supabase environment variables not configured. Database features will be unavailable.');
 }
 
 // Export a getter that throws a helpful error if Supabase is not configured

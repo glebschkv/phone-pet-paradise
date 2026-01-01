@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { achievementLogger } from '@/lib/logger';
 
 const ACHIEVEMENTS_STORAGE_KEY = 'pet_paradise_achievements';
 
@@ -169,7 +170,7 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
     try {
       localStorage.setItem(ACHIEVEMENTS_STORAGE_KEY, JSON.stringify(achievementsData));
     } catch (error) {
-      console.error('Error saving achievements to localStorage:', error);
+      achievementLogger.error('Error saving achievements to localStorage:', error);
     }
   }, []);
 
@@ -178,7 +179,7 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
       const data = localStorage.getItem(ACHIEVEMENTS_STORAGE_KEY);
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('Error loading achievements from localStorage:', error);
+      achievementLogger.error('Error loading achievements from localStorage:', error);
       return null;
     }
   }, []);
@@ -234,7 +235,7 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
 
       setAchievements(merged);
     } catch (error) {
-      console.error('Error loading achievements:', error);
+      achievementLogger.error('Error loading achievements:', error);
       // Fall back to localStorage on error
       const savedAchievements = loadAchievementsFromStorage();
       if (savedAchievements && savedAchievements.length > 0) {
@@ -302,7 +303,7 @@ export const useBackendAchievements = (): AchievementSystemReturn => {
 
         if (error) throw error;
       } catch (error) {
-        console.error('Error saving achievement:', error);
+        achievementLogger.error('Error saving achievement:', error);
         // For non-guest mode, revert on error
         if (!isGuestMode) {
           setAchievements(prev => prev.map(a =>

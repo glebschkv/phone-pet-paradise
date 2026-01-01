@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Mail, Lock, Sparkles, User, ArrowRight, Loader2 } from 'lucide-react';
 import { getAppBaseUrl, isValidEmail, validatePassword, sanitizeErrorMessage } from '@/lib/apiUtils';
+import { PageErrorBoundary } from '@/components/PageErrorBoundary';
 
 type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot-password';
 
@@ -177,14 +178,16 @@ export default function Auth() {
   // Show loading while checking auth state
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{
-        background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-      }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+      <PageErrorBoundary pageName="authentication page">
+        <div className="min-h-screen flex items-center justify-center" style={{
+          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
+        }}>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
         </div>
-      </div>
+      </PageErrorBoundary>
     );
   }
 
@@ -196,10 +199,11 @@ export default function Auth() {
   // Welcome screen with options
   if (mode === 'welcome') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
-        background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-      }}>
-        <div className="w-full max-w-sm space-y-8">
+      <PageErrorBoundary pageName="authentication page">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
+        }}>
+          <div className="w-full max-w-sm space-y-8">
           {/* Logo/Title */}
           <div className="text-center space-y-2">
             <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-500 flex items-center justify-center shadow-lg" style={{
@@ -268,17 +272,19 @@ export default function Auth() {
             Guest progress is saved locally and won't sync across devices
           </p>
         </div>
-      </div>
+        </div>
+      </PageErrorBoundary>
     );
   }
 
   // Magic Link form
   if (mode === 'magic-link') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
-        background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-      }}>
-        <div className="w-full max-w-sm space-y-6">
+      <PageErrorBoundary pageName="authentication page">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
+        }}>
+          <div className="w-full max-w-sm space-y-6">
           <button
             onClick={() => setMode('welcome')}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -336,17 +342,19 @@ export default function Auth() {
             </button>
           </p>
         </div>
-      </div>
+        </div>
+      </PageErrorBoundary>
     );
   }
 
   // Email + Password Sign In
   if (mode === 'email-password') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
-        background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-      }}>
-        <div className="w-full max-w-sm space-y-6">
+      <PageErrorBoundary pageName="authentication page">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
+        }}>
+          <div className="w-full max-w-sm space-y-6">
           <button
             onClick={() => setMode('welcome')}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -426,17 +434,19 @@ export default function Auth() {
             </button>
           </p>
         </div>
-      </div>
+        </div>
+      </PageErrorBoundary>
     );
   }
 
   // Sign Up form
   if (mode === 'signup') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
-        background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-      }}>
-        <div className="w-full max-w-sm space-y-6">
+      <PageErrorBoundary pageName="authentication page">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
+        }}>
+          <div className="w-full max-w-sm space-y-6">
           <button
             onClick={() => setMode('welcome')}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -509,17 +519,19 @@ export default function Auth() {
             </button>
           </p>
         </div>
-      </div>
+        </div>
+      </PageErrorBoundary>
     );
   }
 
   // Forgot Password form
   if (mode === 'forgot-password') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
-        background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-      }}>
-        <div className="w-full max-w-sm space-y-6">
+      <PageErrorBoundary pageName="authentication page">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
+        }}>
+          <div className="w-full max-w-sm space-y-6">
           <button
             onClick={() => setMode('email-password')}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -577,7 +589,8 @@ export default function Auth() {
             </button>
           </p>
         </div>
-      </div>
+        </div>
+      </PageErrorBoundary>
     );
   }
 

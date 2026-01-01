@@ -1,4 +1,5 @@
 import { WebPlugin } from '@capacitor/core';
+import { storeKitLogger } from "@/lib/logger";
 import type {
   StoreKitPlugin,
   StoreKitProduct,
@@ -11,7 +12,7 @@ import { SUBSCRIPTION_PLANS } from '@/hooks/usePremiumStatus';
 
 // Development-only logging
 const isDev = import.meta.env.DEV;
-const log = (...args: unknown[]) => isDev && console.log('[StoreKit Web]', ...args);
+const log = (...args: unknown[]) => isDev && storeKitLogger.debug('[StoreKit Web]', ...args);
 
 /**
  * Web fallback for StoreKit plugin.

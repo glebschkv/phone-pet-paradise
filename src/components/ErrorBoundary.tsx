@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { logger } from "@/lib/logger";
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
     reportError(error, { boundary: true, errorId }, errorInfo.componentStack || undefined);
 
     this.setState({ errorId });
-    console.error('Error caught by boundary:', error, errorInfo);
+    logger.error('Error caught by boundary:', error, errorInfo);
   }
 
   public render() {

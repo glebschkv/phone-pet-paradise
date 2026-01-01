@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
+import { threeLogger } from '@/lib/logger';
 
 interface CleanupConfig {
   autoCleanup: boolean;
@@ -25,7 +26,7 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
     if (geometry && typeof geometry.dispose === 'function') {
       geometry.dispose();
       if (cleanupConfig.enableLogging) {
-        console.log('🧹 Disposed geometry:', geometry.type);
+        threeLogger.debug('Disposed geometry:', geometry.type);
       }
     }
   }, [cleanupConfig.enableLogging]);
@@ -45,7 +46,7 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
         
         mat.dispose();
         if (cleanupConfig.enableLogging) {
-          console.log('🧹 Disposed material:', mat.type);
+          threeLogger.debug('Disposed material:', mat.type);
         }
       }
     });
@@ -56,7 +57,7 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
     if (texture && typeof texture.dispose === 'function') {
       texture.dispose();
       if (cleanupConfig.enableLogging) {
-        console.log('🧹 Disposed texture');
+        threeLogger.debug('Disposed texture');
       }
     }
   }, [cleanupConfig.enableLogging]);
@@ -92,9 +93,9 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
     object.clear();
     
     disposedObjects.current.add(objectId);
-    
+
     if (cleanupConfig.enableLogging) {
-      console.log('🧹 Disposed Object3D:', object.type, objectId);
+      threeLogger.debug('Disposed Object3D:', object.type, objectId);
     }
   }, [disposeGeometry, disposeMaterial, cleanupConfig.enableLogging]);
 
@@ -108,9 +109,9 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
     });
     
     scene.clear();
-    
+
     if (cleanupConfig.enableLogging) {
-      console.log('🧹 Cleaned up scene');
+      threeLogger.debug('Cleaned up scene');
     }
   }, [disposeObject3D, cleanupConfig.enableLogging]);
 
@@ -133,7 +134,7 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
     }
     
     if (cleanupConfig.enableLogging) {
-      console.log('🧹 Cleaned up renderer');
+      threeLogger.debug('Cleaned up renderer');
     }
   }, [cleanupConfig.enableLogging]);
 
@@ -148,7 +149,7 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
     if ('gc' in window && typeof (window as any).gc === 'function') {
       (window as any).gc();
       if (cleanupConfig.enableLogging) {
-        console.log('🧹 Forced garbage collection');
+        threeLogger.debug('Forced garbage collection');
       }
     }
   }, [cleanupConfig.enableLogging]);
@@ -162,7 +163,7 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
       if (memoryMB > cleanupConfig.maxMemoryMB) {
         forceGarbageCollection();
         if (cleanupConfig.enableLogging) {
-          console.warn('🧹 High memory usage detected:', memoryMB.toFixed(2), 'MB');
+          threeLogger.warn('High memory usage detected:', memoryMB.toFixed(2), 'MB');
         }
       }
     }
@@ -172,9 +173,9 @@ export const use3DCleanup = (config: Partial<CleanupConfig> = {}) => {
   const performCleanup = useCallback(() => {
     checkMemoryUsage();
     forceGarbageCollection();
-    
+
     if (cleanupConfig.enableLogging) {
-      console.log('🧹 Performed comprehensive cleanup');
+      threeLogger.debug('Performed comprehensive cleanup');
     }
   }, [checkMemoryUsage, forceGarbageCollection, cleanupConfig.enableLogging]);
 

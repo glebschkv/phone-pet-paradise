@@ -3,6 +3,7 @@ import { useXPSystem, XPReward } from '@/hooks/useXPSystem';
 import { useStreakSystem } from '@/hooks/useStreakSystem';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useDailyLoginRewards, DailyReward } from '@/hooks/useDailyLoginRewards';
+import { logger } from '@/lib/logger';
 
 interface AppStateData {
   lastActiveTime: number;
@@ -34,7 +35,7 @@ export const useAppStateTracking = () => {
         const parsed = JSON.parse(savedState);
         setAppState(prev => ({ ...prev, ...parsed }));
       } catch (error) {
-        console.error('Failed to parse saved app state:', error);
+        logger.error('Failed to parse saved app state:', error);
       }
     }
   }, []);

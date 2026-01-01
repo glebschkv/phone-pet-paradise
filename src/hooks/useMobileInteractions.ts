@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDeviceActivity } from './useDeviceActivity';
 import { useBackgroundProcessing } from './useBackgroundProcessing';
 import { useNotifications } from './useNotifications';
+import { logger } from '@/lib/logger';
 
 interface HapticOptions {
   style?: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
@@ -72,7 +73,7 @@ export const useMobileInteractions = () => {
           await triggerHaptic(style);
       }
     } catch (error) {
-      console.error('Haptic feedback failed:', error);
+      logger.error('Haptic feedback failed:', error);
     }
   }, [triggerHaptic]);
 
@@ -80,7 +81,7 @@ export const useMobileInteractions = () => {
   const handleButtonPress = useCallback(async (action: string, options: HapticOptions = {}) => {
     await hapticFeedback(options);
     
-    console.log(`Button pressed: ${action}`);
+    logger.debug(`Button pressed: ${action}`);
     
     // Track interaction analytics
     try {
@@ -90,7 +91,7 @@ export const useMobileInteractions = () => {
         deviceType: interaction.deviceType,
       }));
     } catch (error) {
-      console.error('Failed to track interaction:', error);
+      logger.error('Failed to track interaction:', error);
     }
   }, [hapticFeedback, interaction.deviceType]);
 
@@ -103,13 +104,13 @@ export const useMobileInteractions = () => {
     scheduleRewardNotification(xp, level);
     
     // Visual feedback could be added here
-    console.log(`Reward earned: ${xp} XP${level ? `, Level ${level}!` : ''}`);
+    logger.debug(`Reward earned: ${xp} XP${level ? `, Level ${level}!` : ''}`);
   }, [hapticFeedback, scheduleRewardNotification]);
 
   // Error handling with haptic feedback
   const handleError = useCallback(async (message: string) => {
     await hapticFeedback({ pattern: 'error', style: 'error' });
-    console.error('User error:', message);
+    logger.error('User error:', message);
   }, [hapticFeedback]);
 
   // Swipe gesture handling

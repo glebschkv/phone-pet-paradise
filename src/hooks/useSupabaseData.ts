@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { supabaseLogger } from '@/lib/logger';
 
 export interface UserProfile {
   id: string;
@@ -105,7 +106,7 @@ export const useSupabaseData = () => {
     try {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      supabaseLogger.error('Error saving to localStorage:', error);
     }
   }, []);
 
@@ -115,7 +116,7 @@ export const useSupabaseData = () => {
       const data = localStorage.getItem(key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('Error loading from localStorage:', error);
+      supabaseLogger.error('Error loading from localStorage:', error);
       return null;
     }
   }, []);
@@ -151,7 +152,7 @@ export const useSupabaseData = () => {
       setProgress(savedProgress);
       setPets(savedPets);
     } catch (error) {
-      console.error('Error loading guest data:', error);
+      supabaseLogger.error('Error loading guest data:', error);
       // Create defaults if loading fails
       const defaultProfile = createDefaultProfile(user.id);
       const defaultProgress = createDefaultProgress(user.id);
@@ -210,7 +211,7 @@ export const useSupabaseData = () => {
       setProgress(progressData || createDefaultProgress(user.id));
       setPets(petsData && petsData.length > 0 ? petsData : [createDefaultPet(user.id)]);
     } catch (error: any) {
-      console.error('Error loading user data from Supabase:', error);
+      supabaseLogger.error('Error loading user data from Supabase:', error);
       // Fall back to localStorage on error
       loadGuestData();
     } finally {
@@ -266,7 +267,7 @@ export const useSupabaseData = () => {
       setProfile(data);
       toast.success('Profile updated');
     } catch (error: any) {
-      console.error('Error updating profile:', error);
+      supabaseLogger.error('Error updating profile:', error);
       // Fall back to local update on error
       setProfile(updatedProfile);
       saveToLocalStorage(STORAGE_KEYS.profile, updatedProfile);
@@ -298,7 +299,7 @@ export const useSupabaseData = () => {
 
       setProgress(data);
     } catch (error: any) {
-      console.error('Error updating progress:', error);
+      supabaseLogger.error('Error updating progress:', error);
       // Fall back to local update on error
       setProgress(updatedProgress);
       saveToLocalStorage(STORAGE_KEYS.progress, updatedProgress);
@@ -355,7 +356,7 @@ export const useSupabaseData = () => {
         });
       }
     } catch (error: any) {
-      console.error('Error adding focus session:', error);
+      supabaseLogger.error('Error adding focus session:', error);
       // Fall back to local storage on error
       const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions) || [];
       savedSessions.push(newSession);
@@ -415,7 +416,7 @@ export const useSupabaseData = () => {
       setPets(prev => [...prev, data]);
       toast.success(`${name} joined your island!`);
     } catch (error: any) {
-      console.error('Error adding pet:', error);
+      supabaseLogger.error('Error adding pet:', error);
       // Fall back to local storage on error
       const updatedPets = [...pets, newPet];
       setPets(updatedPets);
@@ -450,7 +451,7 @@ export const useSupabaseData = () => {
 
       setPets(prev => prev.map(pet => pet.id === petId ? data : pet));
     } catch (error: any) {
-      console.error('Error updating pet:', error);
+      supabaseLogger.error('Error updating pet:', error);
       // Fall back to local storage on error
       const updatedPets = pets.map(pet =>
         pet.id === petId ? { ...pet, ...updates } : pet

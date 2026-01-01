@@ -1,4 +1,5 @@
 import { WebPlugin } from '@capacitor/core';
+import { deviceActivityLogger } from "@/lib/logger";
 import type {
   DeviceActivityPlugin,
   BlockingStatus,
@@ -10,7 +11,7 @@ import type {
 
 // Simple inline logger for the plugin (avoiding circular dependencies)
 const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
-const log = (...args: unknown[]) => isDev && console.log('[DeviceActivity Web]', ...args);
+const log = (...args: unknown[]) => isDev && deviceActivityLogger.debug('[DeviceActivity Web]', ...args);
 
 // Storage keys for web simulation
 const STORAGE_KEYS = {

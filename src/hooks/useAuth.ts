@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { authLogger } from '@/lib/logger';
 
 const GUEST_ID_KEY = 'pet_paradise_guest_id';
 const GUEST_CHOSEN_KEY = 'pet_paradise_guest_chosen';
@@ -58,7 +59,7 @@ export const useAuth = () => {
   useEffect(() => {
     // If Supabase is not configured, automatically use guest mode
     if (!isSupabaseConfigured) {
-      console.log('Supabase not configured, using guest mode');
+      authLogger.debug('Supabase not configured, using guest mode');
       enableGuestMode();
       setIsLoading(false);
       return;
@@ -70,7 +71,7 @@ export const useAuth = () => {
         const { data: { session: existingSession }, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.log('Auth check failed:', error.message);
+          authLogger.debug('Auth check failed:', error.message);
           // If auth check fails and user had chosen guest mode before, re-enable it
           if (hasChosenGuestMode()) {
             enableGuestMode();
@@ -93,7 +94,7 @@ export const useAuth = () => {
         // If no session and no guest choice, user will be null (not authenticated)
         // This will trigger redirect to auth page in Index.tsx
       } catch (error) {
-        console.log('Auth initialization failed');
+        authLogger.debug('Auth initialization failed');
         if (hasChosenGuestMode()) {
           enableGuestMode();
         }

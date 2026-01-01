@@ -1,4 +1,5 @@
 /**
+import { logger } from "@/lib/logger";
  * Debounce and Throttle Utilities
  *
  * Provides utilities for rate-limiting function calls to improve performance
@@ -190,7 +191,7 @@ export function rateLimit<T extends (...args: Parameters<T>) => ReturnType<T>>(
       return func.apply(this, args);
     }
 
-    console.warn('[RateLimit] Function call blocked - rate limit exceeded');
+    logger.warn('[RateLimit] Function call blocked - rate limit exceeded');
     return undefined;
   };
 }

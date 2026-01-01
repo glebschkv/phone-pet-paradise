@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 export interface DailyReward {
   day: number;
@@ -87,7 +88,7 @@ export const useDailyLoginRewards = () => {
           setShowRewardModal(true);
         }
       } catch (error) {
-        console.error('Failed to load daily login state:', error);
+        logger.error('Failed to load daily login state:', error);
         // First time user
         setPendingReward(DAILY_REWARDS[0]);
         setShowRewardModal(true);

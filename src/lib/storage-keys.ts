@@ -9,6 +9,7 @@
  */
 
 import { APP_CONFIG } from './constants';
+import { storageLogger } from '@/lib/logger';
 
 const PREFIX = APP_CONFIG.STORAGE_PREFIX; // 'nomo_'
 
@@ -153,13 +154,13 @@ function migrateKey(key: StorageKey): void {
       if (legacyValue !== null && currentValue === null) {
         localStorage.setItem(key, legacyValue);
         localStorage.removeItem(legacyKey);
-        console.log(`[Storage] Migrated ${legacyKey} -> ${key}`);
+        storageLogger.debug(`[Storage] Migrated ${legacyKey} -> ${key}`);
       } else if (legacyValue !== null) {
         // Clean up legacy key if new key already has data
         localStorage.removeItem(legacyKey);
       }
     } catch (error) {
-      console.error(`[Storage] Migration failed for ${legacyKey}:`, error);
+      storageLogger.error(`[Storage] Migration failed for ${legacyKey}:`, error);
     }
   }
 }
@@ -171,7 +172,7 @@ export function migrateAllStorageKeys(): void {
   Object.values(STORAGE_KEYS).forEach((key) => {
     migrateKey(key);
   });
-  console.log('[Storage] Key migration complete');
+  storageLogger.debug('[Storage] Key migration complete');
 }
 
 /**
@@ -194,7 +195,7 @@ export const storage = {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error(`[Storage] Failed to save: ${key}`, error);
+      storageLogger.error(`[Storage] Failed to save: ${key}`, error);
     }
   },
 
@@ -241,7 +242,7 @@ export const storage = {
     Object.values(STORAGE_KEYS).forEach((key) => {
       localStorage.removeItem(key);
     });
-    console.log('[Storage] All app storage cleared');
+    storageLogger.debug('[Storage] All app storage cleared');
   },
 
   /**
