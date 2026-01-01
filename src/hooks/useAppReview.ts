@@ -33,21 +33,6 @@ export const useAppReview = () => {
   const [state, setState] = useState<ReviewState>(defaultState);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
 
-  // Load state from storage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(REVIEW_STORAGE_KEY);
-      if (saved) {
-        setState(JSON.parse(saved));
-      }
-    } catch {
-      // Invalid data, use default
-    }
-
-    // Increment app opens
-    incrementAppOpens();
-  }, []);
-
   // Save state to storage
   const saveState = useCallback((newState: ReviewState) => {
     setState(newState);
@@ -62,6 +47,21 @@ export const useAppReview = () => {
       return newState;
     });
   }, []);
+
+  // Load state from storage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(REVIEW_STORAGE_KEY);
+      if (saved) {
+        setState(JSON.parse(saved));
+      }
+    } catch {
+      // Invalid data, use default
+    }
+
+    // Increment app opens
+    incrementAppOpens();
+  }, [incrementAppOpens]);
 
   // Record a completed focus session
   const recordFocusSession = useCallback(() => {

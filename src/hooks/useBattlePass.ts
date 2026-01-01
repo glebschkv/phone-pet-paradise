@@ -129,19 +129,43 @@ export const useBattlePass = () => {
       setState(initial);
       storage.set(STORAGE_KEYS.BATTLE_PASS, initial);
     }
-  }, [currentSeason?.id]);
+  }, [currentSeason]);
 
   // Listen for XP updates from focus sessions
   useEffect(() => {
     const handleXPUpdate = (event: CustomEvent<{ xp: number }>) => {
-      addBattlePassXP(event.detail.xp);
+      // Use setState directly to avoid dependency on addBattlePassXP
+      setState(prevState => {
+        const newXP = prevState.currentXP + event.detail.xp;
+        let newTier = 0;
+
+        if (currentSeason) {
+          let cumulativeXP = 0;
+          for (const t of currentSeason.tiers) {
+            cumulativeXP += t.xpRequired;
+            if (newXP >= cumulativeXP) {
+              newTier = t.tier;
+            } else {
+              break;
+            }
+          }
+        }
+
+        const newState: BattlePassState = {
+          ...prevState,
+          currentXP: newXP,
+          currentTier: newTier,
+        };
+        storage.set(STORAGE_KEYS.BATTLE_PASS, newState);
+        return newState;
+      });
     };
 
     window.addEventListener(BATTLE_PASS_XP_UPDATE_EVENT, handleXPUpdate as EventListener);
     return () => {
       window.removeEventListener(BATTLE_PASS_XP_UPDATE_EVENT, handleXPUpdate as EventListener);
     };
-  }, [state]);
+  }, [currentSeason]);
 
   const saveState = useCallback((newState: BattlePassState) => {
     setState(newState);

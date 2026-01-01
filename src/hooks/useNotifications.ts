@@ -36,66 +36,6 @@ export const useNotifications = () => {
   // Store listener cleanup functions
   const listenerCleanupRef = useRef<Array<() => Promise<void>>>([]);
 
-  const initializeNotifications = useCallback(async () => {
-    if (isInitialized) return;
-    
-    try {
-      if (!Capacitor.isNativePlatform()) {
-        // Web notification setup
-        if ('Notification' in window) {
-          const permission = await Notification.requestPermission();
-          setPermissions({
-            pushEnabled: permission === 'granted',
-            localEnabled: permission === 'granted',
-          });
-        }
-        setIsInitialized(true);
-        return;
-      }
-
-      // Request permissions
-      const [_pushPermissions, _localPermissions] = await Promise.all([
-        PushNotifications.requestPermissions(),
-        LocalNotifications.requestPermissions()
-      ]);
-
-      // Check final permission status
-      const [pushStatus, localStatus] = await Promise.all([
-        PushNotifications.checkPermissions(),
-        LocalNotifications.checkPermissions()
-      ]);
-
-      setPermissions({
-        pushEnabled: pushStatus.receive === 'granted',
-        localEnabled: localStatus.display === 'granted',
-      });
-
-      // Register for push notifications if permitted
-      if (pushStatus.receive === 'granted') {
-        await PushNotifications.register();
-      }
-
-      // Setup notification listeners
-      await setupNotificationListeners();
-
-      setIsInitialized(true);
-
-      toast({
-        title: "Notifications Ready",
-        description: "You'll receive helpful reminders and rewards notifications",
-      });
-
-    } catch (error) {
-      logger.error('Error initializing notifications:', error);
-      toast({
-        title: "Notification Setup Failed",
-        description: "Some notification features may not work",
-        variant: "destructive",
-      });
-      setIsInitialized(true);
-    }
-  }, [isInitialized, toast]);
-
   const setupNotificationListeners = useCallback(async () => {
     // Clear any existing listeners first
     for (const cleanup of listenerCleanupRef.current) {
@@ -160,6 +100,66 @@ export const useNotifications = () => {
     });
     listenerCleanupRef.current.push(() => localActionListener.remove());
   }, [toast]);
+
+  const initializeNotifications = useCallback(async () => {
+    if (isInitialized) return;
+
+    try {
+      if (!Capacitor.isNativePlatform()) {
+        // Web notification setup
+        if ('Notification' in window) {
+          const permission = await Notification.requestPermission();
+          setPermissions({
+            pushEnabled: permission === 'granted',
+            localEnabled: permission === 'granted',
+          });
+        }
+        setIsInitialized(true);
+        return;
+      }
+
+      // Request permissions
+      const [_pushPermissions, _localPermissions] = await Promise.all([
+        PushNotifications.requestPermissions(),
+        LocalNotifications.requestPermissions()
+      ]);
+
+      // Check final permission status
+      const [pushStatus, localStatus] = await Promise.all([
+        PushNotifications.checkPermissions(),
+        LocalNotifications.checkPermissions()
+      ]);
+
+      setPermissions({
+        pushEnabled: pushStatus.receive === 'granted',
+        localEnabled: localStatus.display === 'granted',
+      });
+
+      // Register for push notifications if permitted
+      if (pushStatus.receive === 'granted') {
+        await PushNotifications.register();
+      }
+
+      // Setup notification listeners
+      await setupNotificationListeners();
+
+      setIsInitialized(true);
+
+      toast({
+        title: "Notifications Ready",
+        description: "You'll receive helpful reminders and rewards notifications",
+      });
+
+    } catch (error) {
+      logger.error('Error initializing notifications:', error);
+      toast({
+        title: "Notification Setup Failed",
+        description: "Some notification features may not work",
+        variant: "destructive",
+      });
+      setIsInitialized(true);
+    }
+  }, [isInitialized, toast, setupNotificationListeners]);
 
   const scheduleLocalNotification = useCallback(async (options: NotificationOptions) => {
     if (!permissions.localEnabled) {
