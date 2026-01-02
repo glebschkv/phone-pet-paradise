@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Heart, 
-  Utensils, 
-  Gamepad2, 
+import {
+  Heart,
+  Utensils,
+  Gamepad2,
   Sparkles,
   Clock,
   Gift
@@ -28,7 +28,7 @@ interface PetInteractionProps {
   onStatsUpdate?: (stats: PetStats) => void;
 }
 
-export const PetInteraction = ({ petName, petType, onStatsUpdate }: PetInteractionProps) => {
+export const PetInteraction = memo(({ petName, petType, onStatsUpdate }: PetInteractionProps) => {
   const { toast } = useToast();
   const [stats, setStats] = useState<PetStats>({
     happiness: 80,
@@ -39,6 +39,12 @@ export const PetInteraction = ({ petName, petType, onStatsUpdate }: PetInteracti
   });
 
   const [isInteracting, setIsInteracting] = useState(false);
+
+  // Use ref to store callback to avoid recreating interval on callback changes
+  const onStatsUpdateRef = useRef(onStatsUpdate);
+  useEffect(() => {
+    onStatsUpdateRef.current = onStatsUpdate;
+  }, [onStatsUpdate]);
 
   useEffect(() => {
     // Simulate stat decay over time
@@ -63,13 +69,13 @@ export const PetInteraction = ({ petName, petType, onStatsUpdate }: PetInteracti
         // Energy regenerates over time
         newStats.energy = Math.min(100, newStats.energy + 1);
 
-        onStatsUpdate?.(newStats);
+        onStatsUpdateRef.current?.(newStats);
         return newStats;
       });
     }, 60000); // Update every minute
 
     return () => clearInterval(interval);
-  }, [onStatsUpdate]);
+  }, []); // Empty deps - uses ref for callback
 
   const feedPet = async () => {
     if (stats.hunger > 80) {
@@ -259,4 +265,6 @@ export const PetInteraction = ({ petName, petType, onStatsUpdate }: PetInteracti
       </CardContent>
     </Card>
   );
-};
+});
+
+PetInteraction.displayName = 'PetInteraction';

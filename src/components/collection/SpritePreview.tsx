@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { AnimalData } from "@/data/AnimalDatabase";
 
 interface SpritePreviewProps {
@@ -6,7 +6,7 @@ interface SpritePreviewProps {
   scale?: number;
 }
 
-export const SpritePreview = ({ animal, scale = 4 }: SpritePreviewProps) => {
+export const SpritePreview = memo(({ animal, scale = 4 }: SpritePreviewProps) => {
   const [currentFrame, setCurrentFrame] = useState(0);
   const frameTimeRef = useRef(0);
   const spriteConfig = animal.spriteConfig;
@@ -62,4 +62,6 @@ export const SpritePreview = ({ animal, scale = 4 }: SpritePreviewProps) => {
       }}
     />
   );
-};
+});
+
+SpritePreview.displayName = 'SpritePreview';

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { collectionLogger } from "@/lib/logger";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -178,7 +178,16 @@ export const PetCollectionGrid = () => {
     window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundTheme }));
   };
 
-  const filteredPets = filterAnimals(searchQuery, "all", "all");
+  // Memoize filtered pets to avoid recalculating on every render
+  const filteredPets = useMemo(
+    () => filterAnimals(searchQuery, "all", "all"),
+    [searchQuery, filterAnimals]
+  );
+
+  // Memoize handler to avoid recreating on every render
+  const handlePetClick = useCallback((pet: AnimalData) => {
+    setSelectedPet(pet);
+  }, []);
 
   return (
     <div className="h-full flex flex-col" style={{
@@ -220,7 +229,7 @@ export const PetCollectionGrid = () => {
                     isShopPet={isShopPet}
                     isFavorited={isFavorited}
                     isHomeActive={isHomeActive}
-                    onClick={() => setSelectedPet(pet)}
+                    onClick={() => handlePetClick(pet)}
                   />
                 );
               })}

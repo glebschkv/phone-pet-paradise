@@ -107,6 +107,9 @@ export const RetroPixelPlatform = memo(({ unlockedAnimals: _unlockedAnimals, cur
     };
   }, []);
 
+  // Convert array to Set for O(1) lookups instead of O(n)
+  const shopOwnedSet = useMemo(() => new Set(shopOwnedCharacters), [shopOwnedCharacters]);
+
   // Get active unlocked animals data
   // Check both level-based unlock AND shop purchase
   const activeAnimalData = useMemo(() => {
@@ -114,10 +117,10 @@ export const RetroPixelPlatform = memo(({ unlockedAnimals: _unlockedAnimals, cur
       .map(id => getAnimalById(id))
       .filter((animal): animal is AnimalData =>
         animal !== undefined &&
-        (animal.unlockLevel <= currentLevel || shopOwnedCharacters.includes(animal.id)) &&
+        (animal.unlockLevel <= currentLevel || shopOwnedSet.has(animal.id)) &&
         animal.spriteConfig !== undefined
       );
-  }, [activeHomePets, currentLevel, shopOwnedCharacters]);
+  }, [activeHomePets, currentLevel, shopOwnedSet]);
 
   // Separate ground and flying animals
   const groundAnimals = useMemo(() => getGroundAnimals(activeAnimalData), [activeAnimalData]);
