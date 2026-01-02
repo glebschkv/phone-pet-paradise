@@ -1,9 +1,7 @@
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
-import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { Heart, ChevronDown, Settings } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Popover,
   PopoverContent,
@@ -16,9 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BIOME_DATABASE } from "@/data/AnimalDatabase";
-
-const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
-const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
+import { useShopStore, useThemeStore } from "@/stores";
 
 const BIOME_CONFIG: Record<string, { bg: string; emoji: string }> = {
   'Meadow': { bg: 'day', emoji: '🌿' },
@@ -51,33 +47,24 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
   } = useAppStateTracking();
   const coinSystem = useCoinSystem();
 
-  const handleSwitchBiome = (biomeName: string) => {
+  // Use Zustand stores instead of localStorage/events
+  const equippedBackground = useShopStore((state) => state.equippedBackground);
+  const setEquippedBackground = useShopStore((state) => state.setEquippedBackground);
+  const setHomeBackground = useThemeStore((state) => state.setHomeBackground);
+
+  const handleSwitchBiome = useCallback((biomeName: string) => {
     switchBiome(biomeName);
 
     // Clear any equipped premium background when switching biomes
-    const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        if (parsed.equippedBackground) {
-          const newInventory = {
-            ...parsed,
-            equippedBackground: null,
-          };
-          localStorage.setItem(SHOP_INVENTORY_KEY, JSON.stringify(newInventory));
-          window.dispatchEvent(new CustomEvent('petIsland_shopUpdate', { detail: newInventory }));
-        }
-      } catch (error) {
-        logger.error('Failed to update shop inventory:', error);
-      }
+    if (equippedBackground) {
+      setEquippedBackground(null);
     }
 
     // Use the biome's background image if available, otherwise fall back to theme ID
     const biome = BIOME_DATABASE.find(b => b.name === biomeName);
     const backgroundTheme = biome?.backgroundImage || BIOME_CONFIG[biomeName]?.bg || 'day';
-    localStorage.setItem(HOME_BACKGROUND_KEY, backgroundTheme);
-    window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundTheme }));
-  };
+    setHomeBackground(backgroundTheme);
+  }, [switchBiome, equippedBackground, setEquippedBackground, setHomeBackground]);
 
   if (currentTab !== "home") return null;
 

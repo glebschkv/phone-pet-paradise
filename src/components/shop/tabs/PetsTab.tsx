@@ -1,11 +1,12 @@
-import { Check, Coins, Palette, Clock } from "lucide-react";
+import { Check, Coins, Palette, Clock, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShopInventory, ShopItem, PREMIUM_BACKGROUNDS } from "@/data/ShopData";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
 import { SpritePreview, BackgroundPreview } from "../ShopPreviewComponents";
 import { RARITY_COLORS, RARITY_BG, RARITY_BORDER, RARITY_GLOW } from "../styles";
-import { Star } from "lucide-react";
+import { useThemeStore } from "@/stores";
+import { useCallback } from "react";
 
 interface PetsTabProps {
   inventory: ShopInventory;
@@ -25,28 +26,28 @@ export const PetsTab = ({
   canAfford,
 }: PetsTabProps) => {
   const characters = getCoinExclusiveAnimals();
+  const setHomeBackground = useThemeStore((state) => state.setHomeBackground);
 
   // Separate backgrounds with previews from those without
   const backgroundsWithPreviews = PREMIUM_BACKGROUNDS.filter(bg => bg.previewImage);
   const backgroundsWithoutPreviews = PREMIUM_BACKGROUNDS.filter(bg => !bg.previewImage);
 
-  const handleEquipBackground = (bgId: string, e: React.MouseEvent) => {
+  const handleEquipBackground = useCallback((bgId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (inventory.equippedBackground === bgId) {
       // Unequip - reset to default theme
       equipBackground(null);
       toast.success("Background unequipped");
-      window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: 'day' }));
+      setHomeBackground('day');
     } else {
       equipBackground(bgId);
       toast.success("Background equipped!");
       // Find the background and get its preview image path
       const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === bgId);
-      // Dispatch the preview image path directly so RetroBackground can use it
       const imagePath = background?.previewImage || 'day';
-      window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: imagePath }));
+      setHomeBackground(imagePath);
     }
-  };
+  }, [inventory.equippedBackground, equipBackground, setHomeBackground]);
 
   const getRarityStars = (rarity: string) => {
     const count = rarity === 'common' ? 1 : rarity === 'rare' ? 2 : rarity === 'epic' ? 3 : 4;
