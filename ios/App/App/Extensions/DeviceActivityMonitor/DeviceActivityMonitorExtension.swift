@@ -9,6 +9,7 @@ import Foundation
 class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     private let store = ManagedSettingsStore()
+    private let helper = DeviceActivityMonitorHelper()
 
     // MARK: - Activity Started
 
@@ -16,11 +17,11 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         super.intervalDidStart(for: activity)
 
         // Log activity start
-        logEvent("Activity started: \(activity.rawValue)")
+        helper.logEvent("Activity started: \(activity.rawValue)")
 
         // Check if this is our focus tracking activity
-        if activity.rawValue == SharedConstants.ActivityNames.phoneUsageTracking {
-            markFocusSessionActive(true)
+        if helper.isPhoneUsageTrackingActivity(activity.rawValue) {
+            helper.markFocusSessionActive(true)
         }
     }
 
@@ -29,7 +30,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     override func intervalDidEnd(for activity: DeviceActivityName) {
         // Always try to clear shields when activity ends, even if other code fails
         defer {
-            if activity.rawValue == SharedConstants.ActivityNames.phoneUsageTracking {
+            if helper.isPhoneUsageTrackingActivity(activity.rawValue) {
                 clearShields()
             }
         }
@@ -37,11 +38,11 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         super.intervalDidEnd(for: activity)
 
         // Log activity end
-        logEvent("Activity ended: \(activity.rawValue)")
+        helper.logEvent("Activity ended: \(activity.rawValue)")
 
         // Check if this is our focus tracking activity
-        if activity.rawValue == SharedConstants.ActivityNames.phoneUsageTracking {
-            markFocusSessionActive(false)
+        if helper.isPhoneUsageTrackingActivity(activity.rawValue) {
+            helper.markFocusSessionActive(false)
         }
     }
 
@@ -50,7 +51,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
         super.eventDidReachThreshold(event, activity: activity)
 
-        logEvent("Event threshold reached: \(event.rawValue) for activity: \(activity.rawValue)")
+        helper.logEvent("Event threshold reached: \(event.rawValue) for activity: \(activity.rawValue)")
 
         // This can be used to trigger actions when usage thresholds are met
         // For example, increasing shield strictness or sending notifications
@@ -60,41 +61,20 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     override func intervalWillStartWarning(for activity: DeviceActivityName) {
         super.intervalWillStartWarning(for: activity)
-        logEvent("Activity will start warning: \(activity.rawValue)")
+        helper.logEvent("Activity will start warning: \(activity.rawValue)")
     }
 
     override func intervalWillEndWarning(for activity: DeviceActivityName) {
         super.intervalWillEndWarning(for: activity)
-        logEvent("Activity will end warning: \(activity.rawValue)")
+        helper.logEvent("Activity will end warning: \(activity.rawValue)")
     }
 
     // MARK: - Helpers
-
-    private func markFocusSessionActive(_ active: Bool) {
-        guard let userDefaults = SharedConstants.sharedUserDefaults else { return }
-        userDefaults.set(active, forKey: SharedConstants.StorageKeys.focusSessionActive)
-    }
 
     private func clearShields() {
         store.shield.applications = nil
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
-    }
-
-    private func logEvent(_ message: String) {
-        guard let userDefaults = SharedConstants.sharedUserDefaults else { return }
-
-        // Append to activity log
-        var logs = userDefaults.stringArray(forKey: SharedConstants.StorageKeys.activityLogs) ?? []
-        let timestamp = ISO8601DateFormatter().string(from: Date())
-        logs.append("[\(timestamp)] \(message)")
-
-        // Keep only last N logs
-        if logs.count > SharedConstants.maxStoredLogs {
-            logs = Array(logs.suffix(SharedConstants.maxStoredLogs))
-        }
-
-        userDefaults.set(logs, forKey: SharedConstants.StorageKeys.activityLogs)
     }
 }
 
