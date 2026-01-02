@@ -130,7 +130,6 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         // Store selection data in app group for extension access
         if let userDefaults = AppConfig.sharedUserDefaults {
             userDefaults.set(selectionData, forKey: AppConfig.StorageKeys.blockedAppsSelection)
-            userDefaults.synchronize()
         }
 
         call.resolve([
@@ -157,7 +156,6 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func clearSelectedApps(_ call: CAPPluginCall) {
         if let userDefaults = AppConfig.sharedUserDefaults {
             userDefaults.removeObject(forKey: AppConfig.StorageKeys.blockedAppsSelection)
-            userDefaults.synchronize()
         }
 
         // Clear any active shields
@@ -416,7 +414,6 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         do {
             let data = try JSONEncoder().encode(selection)
             userDefaults.set(data, forKey: AppConfig.StorageKeys.blockedAppsSelection)
-            userDefaults.synchronize()
         } catch {
             print("[DeviceActivityPlugin] Failed to save selection: \(error)")
         }
