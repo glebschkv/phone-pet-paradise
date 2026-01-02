@@ -313,6 +313,7 @@ export function AppProvider({ children }: AppProviderProps) {
 // Hook
 // ============================================================================
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppContext(): AppContextValue {
   const context = useContext(AppContext);
   if (context === undefined) {
@@ -322,6 +323,7 @@ export function useAppContext(): AppContextValue {
 }
 
 // Convenience hooks for specific parts of state
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppUser() {
   const { state } = useAppContext();
   return {
@@ -331,6 +333,7 @@ export function useAppUser() {
   };
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppPremium() {
   const { state } = useAppContext();
   return {
@@ -340,6 +343,7 @@ export function useAppPremium() {
   };
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppTheme() {
   const { state, setTheme } = useAppContext();
   return {
@@ -348,6 +352,7 @@ export function useAppTheme() {
   };
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppSettings() {
   const { state, updateSettings } = useAppContext();
   return {
@@ -356,6 +361,7 @@ export function useAppSettings() {
   };
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppStatus() {
   const { state, setLoading } = useAppContext();
   return {
