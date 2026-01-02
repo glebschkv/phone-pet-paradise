@@ -103,14 +103,14 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 // MARK: - Custom Activity Names
 
 extension DeviceActivityName {
-    static let focusSession = Self("focusSession")
-    static let phoneUsageTracking = Self("phoneUsageTracking")
+    static let focusSession = Self(SharedConstants.ActivityNames.focusSession)
+    static let phoneUsageTracking = Self(SharedConstants.ActivityNames.phoneUsageTracking)
 }
 
 // MARK: - Custom Event Names
 
 extension DeviceActivityEvent.Name {
-    static let focusSessionStarted = Self("focusSessionStarted")
-    static let focusSessionEnded = Self("focusSessionEnded")
-    static let blockedAppAttempt = Self("blockedAppAttempt")
+    static let focusSessionStarted = Self(SharedConstants.EventNames.focusSessionStarted)
+    static let focusSessionEnded = Self(SharedConstants.EventNames.focusSessionEnded)
+    static let blockedAppAttempt = Self(SharedConstants.EventNames.blockedAppAttempt)
 }
