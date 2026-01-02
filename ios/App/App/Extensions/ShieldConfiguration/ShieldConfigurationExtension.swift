@@ -82,7 +82,6 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
         let currentAttempts = userDefaults.integer(forKey: SharedConstants.StorageKeys.shieldAttempts)
         userDefaults.set(currentAttempts + 1, forKey: SharedConstants.StorageKeys.shieldAttempts)
         userDefaults.set(Date().timeIntervalSince1970, forKey: SharedConstants.StorageKeys.lastShieldAttempt)
-        userDefaults.synchronize()
     }
 
     private func getMotivationalMessage() -> String {

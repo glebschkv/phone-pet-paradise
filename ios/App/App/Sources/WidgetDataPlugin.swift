@@ -45,7 +45,6 @@ public class WidgetDataPlugin: CAPPlugin, CAPBridgedPlugin {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: data, options: [])
             sharedDefaults.set(jsonData, forKey: dataKey)
-            sharedDefaults.synchronize()
 
             // Trigger widget refresh
             reloadWidgets()
@@ -175,7 +174,6 @@ public class WidgetDataPlugin: CAPPlugin, CAPBridgedPlugin {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: existingData, options: [])
             sharedDefaults.set(jsonData, forKey: dataKey)
-            sharedDefaults.synchronize()
             reloadWidgets()
             completion(true, nil)
         } catch {

@@ -73,7 +73,6 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     private func markFocusSessionActive(_ active: Bool) {
         guard let userDefaults = SharedConstants.sharedUserDefaults else { return }
         userDefaults.set(active, forKey: SharedConstants.StorageKeys.focusSessionActive)
-        userDefaults.synchronize()
     }
 
     private func clearShields() {
@@ -96,7 +95,6 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         }
 
         userDefaults.set(logs, forKey: SharedConstants.StorageKeys.activityLogs)
-        userDefaults.synchronize()
     }
 }
 
