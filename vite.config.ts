@@ -24,41 +24,36 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         // Manual chunk splitting for better caching
-        manualChunks: {
+        manualChunks(id) {
           // Vendor chunks - split by usage pattern
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-radix': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-select',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-progress',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-label',
-            '@radix-ui/react-scroll-area',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-navigation-menu',
-          ],
-          // 3D graphics - heavy, rarely used on every page
-          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
-          // Note: recharts replaced with lightweight CSS-based SimpleBarChart
-          // Animation library
-          'vendor-motion': ['framer-motion'],
-          // Data layer
-          'vendor-data': ['@supabase/supabase-js', '@tanstack/react-query'],
-          // Error tracking - can load async
-          'vendor-monitoring': ['@sentry/react', '@sentry/capacitor'],
-          // Date utilities
-          'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge', 'class-variance-authority'],
+          if (id.includes('node_modules')) {
+            // React core
+            if (id.includes('/react-dom/') || id.includes('/react/') || id.includes('/react-router')) {
+              return 'vendor-react';
+            }
+            // All Radix UI packages (including internal dependencies)
+            if (id.includes('/@radix-ui/')) {
+              return 'vendor-radix';
+            }
+            // 3D graphics
+            if (id.includes('/three/') || id.includes('/@react-three/')) {
+              return 'vendor-three';
+            }
+            // Animation
+            if (id.includes('/framer-motion/')) {
+              return 'vendor-motion';
+            }
+            // Data layer
+            if (id.includes('/@supabase/') || id.includes('/@tanstack/')) {
+              return 'vendor-data';
+            }
+            // Note: Using minimal custom Sentry client (~3KB) instead of full SDK
+            // No vendor-monitoring chunk needed - Sentry packages are not imported
+            // Utilities
+            if (id.includes('/date-fns/') || id.includes('/clsx/') || id.includes('/tailwind-merge/') || id.includes('/class-variance-authority/')) {
+              return 'vendor-utils';
+            }
+          }
         },
       },
     },

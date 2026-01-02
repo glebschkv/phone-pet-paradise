@@ -1,13 +1,14 @@
 /**
  * Error Reporting Service
  *
- * Provides comprehensive error tracking with Sentry integration.
+ * Provides comprehensive error tracking with a minimal Sentry client (~3KB).
+ * For advanced features like Session Replay, the full SDK can be lazy-loaded.
  * Falls back to local storage when Sentry is not configured.
  */
 
-import * as Sentry from '@sentry/react';
 import { Capacitor } from '@capacitor/core';
 import { STORAGE_CONFIG, APP_CONFIG } from './constants';
+import { minimalSentry } from './minimalSentry';
 
 const ERROR_STORAGE_KEY = `${APP_CONFIG.STORAGE_PREFIX}error_log`;
 const MAX_STORED_ERRORS = STORAGE_CONFIG.MAX_STORED_ERRORS;
@@ -15,7 +16,9 @@ const MAX_STORED_ERRORS = STORAGE_CONFIG.MAX_STORED_ERRORS;
 // Environment check for Sentry DSN
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN || '';
 const IS_PRODUCTION = import.meta.env.PROD;
-const IS_SENTRY_ENABLED = Boolean(SENTRY_DSN);
+const IS_SENTRY_ENABLED = Boolean(SENTRY_DSN) && IS_PRODUCTION;
+
+let sentryInitialized = false;
 
 export interface ErrorReport {
   id: string;
@@ -60,6 +63,36 @@ const storeError = (error: ErrorReport) => {
 };
 
 /**
+ * Initialize the minimal Sentry client
+ */
+const initMinimalSentry = (): void => {
+  if (sentryInitialized || !IS_SENTRY_ENABLED) {
+    return;
+  }
+
+  minimalSentry.init({
+    dsn: SENTRY_DSN,
+    environment: import.meta.env.MODE,
+    release: `${APP_CONFIG.APP_NAME}@${APP_CONFIG.APP_VERSION}`,
+    beforeSend(event) {
+      // Filter out common non-actionable errors
+      const errorValue = event.exception?.values?.[0]?.value || event.message?.formatted || '';
+      if (errorValue.includes('Failed to fetch') || errorValue.includes('ResizeObserver')) {
+        return null;
+      }
+      return event;
+    },
+  });
+
+  // Set platform tag
+  minimalSentry.setTag('platform', Capacitor.getPlatform());
+  minimalSentry.setTag('appVersion', APP_CONFIG.APP_VERSION);
+
+  sentryInitialized = true;
+  console.log('[ErrorReporting] Minimal Sentry initialized');
+};
+
+/**
  * Report an error to the error tracking service
  */
 export const reportError = (
@@ -91,18 +124,12 @@ export const reportError = (
   storeError(errorReport);
 
   // Send to Sentry if configured
-  if (IS_SENTRY_ENABLED) {
-    Sentry.captureException(error, {
-      extra: {
-        ...context,
-        errorId,
-        componentStack,
-        platform: errorReport.platform,
-      },
-      tags: {
-        platform: errorReport.platform,
-        appVersion: APP_CONFIG.APP_VERSION,
-      },
+  if (IS_SENTRY_ENABLED && sentryInitialized) {
+    minimalSentry.captureException(error, {
+      ...context,
+      errorId,
+      componentStack,
+      platform: errorReport.platform,
     });
   }
 
@@ -120,8 +147,8 @@ export const reportWarning = (
     console.warn('[ErrorReporting] Warning:', message, context);
   }
 
-  if (IS_SENTRY_ENABLED) {
-    Sentry.captureMessage(message, {
+  if (IS_SENTRY_ENABLED && sentryInitialized) {
+    minimalSentry.captureMessage(message, {
       level: 'warning',
       extra: context,
     });
@@ -139,8 +166,8 @@ export const reportInfo = (
     console.info('[ErrorReporting] Info:', message, context);
   }
 
-  if (IS_SENTRY_ENABLED) {
-    Sentry.captureMessage(message, {
+  if (IS_SENTRY_ENABLED && sentryInitialized) {
+    minimalSentry.captureMessage(message, {
       level: 'info',
       extra: context,
     });
@@ -159,11 +186,8 @@ export const setUserContext = (userId: string, email?: string): void => {
   );
 
   // Set user context in Sentry
-  if (IS_SENTRY_ENABLED) {
-    Sentry.setUser({
-      id: userId,
-      email,
-    });
+  if (IS_SENTRY_ENABLED && sentryInitialized) {
+    minimalSentry.setUser({ id: userId, email });
   }
 };
 
@@ -174,8 +198,8 @@ export const setUserContext = (userId: string, email?: string): void => {
 export const clearUserContext = (): void => {
   sessionStorage.removeItem('error_user_context');
 
-  if (IS_SENTRY_ENABLED) {
-    Sentry.setUser(null);
+  if (IS_SENTRY_ENABLED && sentryInitialized) {
+    minimalSentry.setUser(null);
   }
 };
 
@@ -183,9 +207,9 @@ export const clearUserContext = (): void => {
  * Set additional context tags
  */
 export const setContextTags = (tags: Record<string, string>): void => {
-  if (IS_SENTRY_ENABLED) {
+  if (IS_SENTRY_ENABLED && sentryInitialized) {
     Object.entries(tags).forEach(([key, value]) => {
-      Sentry.setTag(key, value);
+      minimalSentry.setTag(key, value);
     });
   }
 };
@@ -198,13 +222,8 @@ export const addBreadcrumb = (
   category: string,
   data?: Record<string, unknown>
 ): void => {
-  if (IS_SENTRY_ENABLED) {
-    Sentry.addBreadcrumb({
-      message,
-      category,
-      data,
-      level: 'info',
-    });
+  if (IS_SENTRY_ENABLED && sentryInitialized) {
+    minimalSentry.addBreadcrumb({ message, category, data });
   }
 };
 
@@ -263,51 +282,14 @@ export const globalPromiseRejectionHandler = (
 };
 
 /**
- * Initialize error reporting with Sentry
+ * Initialize error reporting
+ * Sets up global handlers and initializes minimal Sentry client
  */
 export const initializeErrorReporting = (): void => {
-  // Initialize Sentry if DSN is provided
-  if (IS_SENTRY_ENABLED) {
-    Sentry.init({
-      dsn: SENTRY_DSN,
-      environment: import.meta.env.MODE,
-      release: `${APP_CONFIG.APP_NAME}@${APP_CONFIG.APP_VERSION}`,
-      integrations: [
-        Sentry.browserTracingIntegration(),
-        Sentry.replayIntegration({
-          maskAllText: false,
-          blockAllMedia: false,
-        }),
-      ],
-      // Performance Monitoring
-      tracesSampleRate: IS_PRODUCTION ? 0.1 : 1.0,
-      // Session Replay
-      replaysSessionSampleRate: IS_PRODUCTION ? 0.1 : 1.0,
-      replaysOnErrorSampleRate: 1.0,
-      // Filter out common non-actionable errors
-      beforeSend(event, hint) {
-        const error = hint.originalException;
-        if (error instanceof Error) {
-          // Filter out network errors that are common and non-actionable
-          if (error.message.includes('Failed to fetch')) {
-            return null;
-          }
-          // Filter out ResizeObserver errors
-          if (error.message.includes('ResizeObserver')) {
-            return null;
-          }
-        }
-        return event;
-      },
-    });
+  // Initialize minimal Sentry (production only, ~3KB)
+  initMinimalSentry();
 
-    // Set platform tag
-    Sentry.setTag('platform', Capacitor.getPlatform());
-
-    console.log('[ErrorReporting] Sentry initialized');
-  }
-
-  // Attach global handlers (fallback for non-Sentry errors)
+  // Attach global handlers (works without Sentry)
   window.onerror = globalErrorHandler;
   window.onunhandledrejection = globalPromiseRejectionHandler;
 
@@ -315,25 +297,22 @@ export const initializeErrorReporting = (): void => {
 };
 
 /**
- * Get Sentry error boundary component
- * Use this to wrap components that should report errors to Sentry
+ * Get Sentry error boundary component (if available)
+ * Note: Returns null since we use minimal client without React integration
+ * Use the custom ErrorBoundary component instead
  */
 export const getSentryErrorBoundary = () => {
-  if (IS_SENTRY_ENABLED) {
-    return Sentry.ErrorBoundary;
-  }
+  // We use custom error boundaries that call reportError()
   return null;
 };
 
 /**
- * Wrap component with Sentry profiling
+ * Wrap component with profiling (no-op since we use minimal client)
  */
 export function withSentryProfiler<T extends object>(
   Component: React.ComponentType<T>
 ): React.ComponentType<T> {
-  if (IS_SENTRY_ENABLED) {
-    return Sentry.withProfiler(Component);
-  }
+  // No-op - we use minimal client without profiling
   return Component;
 }
 

@@ -33,6 +33,13 @@ enum SharedConstants {
         static let focusSession = "focusSession"
     }
 
+    // MARK: - Event Names
+    enum EventNames {
+        static let focusSessionStarted = "focusSessionStarted"
+        static let focusSessionEnded = "focusSessionEnded"
+        static let blockedAppAttempt = "blockedAppAttempt"
+    }
+
     // MARK: - Limits
     static let maxStoredLogs = 100
 }
