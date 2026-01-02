@@ -1,5 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
-import { logger } from "@/lib/logger";
+import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
@@ -8,14 +7,15 @@ import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useDataBackup } from "@/hooks/useDataBackup";
 import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
+import { useThemeStore, useShopStore } from "@/stores";
 
 // Lazy load heavy components to reduce initial bundle size
 const RetroPixelPlatform = lazy(() => import("@/components/retro/RetroPixelPlatform").then(m => ({ default: m.RetroPixelPlatform })));
 const GameUI = lazy(() => import("@/components/GameUI").then(m => ({ default: m.GameUI })));
 const OnboardingFlow = lazy(() => import("@/components/onboarding/OnboardingFlow").then(m => ({ default: m.OnboardingFlow })));
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
 
 // Loading fallback for lazy-loaded components
 const LoadingFallback = () => (
@@ -23,9 +23,6 @@ const LoadingFallback = () => (
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
   </div>
 );
-
-const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
-const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
 
 // Map biome names to background theme IDs
 const BIOME_TO_BACKGROUND: Record<string, string> = {
@@ -47,57 +44,29 @@ const Index = () => {
   const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
   usePerformanceMonitor(); // Initialize performance monitoring
   const { autoBackup } = useDataBackup(); // Initialize auto-backup
-  const [backgroundTheme, setBackgroundTheme] = useState<string>('day');
 
-  // Load background theme from shop inventory or localStorage
+  // Use Zustand stores instead of localStorage + events
+  const backgroundTheme = useThemeStore((state) => state.homeBackground);
+  const setHomeBackground = useThemeStore((state) => state.setHomeBackground);
+  const equippedBackground = useShopStore((state) => state.equippedBackground);
+
+  // Initialize background theme based on equipped background or biome
   useEffect(() => {
-    // First check if there's an equipped background in shop inventory
-    const shopInventory = localStorage.getItem(SHOP_INVENTORY_KEY);
-    let themeInitialized = false;
-
-    if (shopInventory) {
-      try {
-        const parsed = JSON.parse(shopInventory);
-        if (parsed.equippedBackground) {
-          // Find the background and get its preview image
-          const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === parsed.equippedBackground);
-          if (background?.previewImage) {
-            setBackgroundTheme(background.previewImage);
-            localStorage.setItem(HOME_BACKGROUND_KEY, background.previewImage);
-            themeInitialized = true;
-          }
-        }
-      } catch (error) {
-        logger.error('Failed to load shop inventory:', error);
+    // If there's an equipped premium background, use it
+    if (equippedBackground) {
+      const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === equippedBackground);
+      if (background?.previewImage) {
+        setHomeBackground(background.previewImage);
+        return;
       }
     }
 
-    // Fall back to saved theme or biome default if not initialized
-    if (!themeInitialized) {
-      const savedTheme = localStorage.getItem(HOME_BACKGROUND_KEY);
-      if (savedTheme) {
-        setBackgroundTheme(savedTheme);
-      } else if (currentBiome) {
-        // Initialize background based on current biome
-        const biomeBackground = BIOME_TO_BACKGROUND[currentBiome] || 'day';
-        setBackgroundTheme(biomeBackground);
-        localStorage.setItem(HOME_BACKGROUND_KEY, biomeBackground);
-      }
+    // Otherwise, if background is still 'day' (default), set it based on current biome
+    if (backgroundTheme === 'day' && currentBiome && currentBiome !== 'Meadow') {
+      const biomeBackground = BIOME_TO_BACKGROUND[currentBiome] || 'day';
+      setHomeBackground(biomeBackground);
     }
-
-    // Listen for background theme changes from Shop/Collection
-    // This must always be set up regardless of initialization path
-    const handleThemeChange = (event: CustomEvent<string>) => {
-      const newTheme = event.detail;
-      setBackgroundTheme(newTheme);
-      localStorage.setItem(HOME_BACKGROUND_KEY, newTheme);
-    };
-
-    window.addEventListener('homeBackgroundChange', handleThemeChange as EventListener);
-    return () => {
-      window.removeEventListener('homeBackgroundChange', handleThemeChange as EventListener);
-    };
-  }, [currentBiome]);
+  }, [equippedBackground, currentBiome, backgroundTheme, setHomeBackground]);
 
   // Redirect to auth if not authenticated
   useEffect(() => {

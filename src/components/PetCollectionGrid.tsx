@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { collectionLogger } from "@/lib/logger";
+import { useState, useMemo, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -28,8 +27,7 @@ import { toast } from "sonner";
 import { CollectionFilters } from "./collection/CollectionFilters";
 import { PetCard } from "./collection/PetCard";
 import { PetDetailModal } from "./collection/PetDetailModal";
-
-const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
+import { useShopStore, useThemeStore } from "@/stores";
 
 // Biome icons match background themes
 const BIOME_ICONS = {
@@ -55,8 +53,6 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
   'Deep Ocean': 'deepocean',
 };
 
-const HOME_BACKGROUND_KEY = 'petIsland_homeBackground';
-
 export const PetCollectionGrid = () => {
   const {
     currentLevel,
@@ -75,110 +71,65 @@ export const PetCollectionGrid = () => {
     filterAnimals
   } = useCollection();
 
+  // Use Zustand stores instead of local state + events
+  const ownedBackgrounds = useShopStore((state) => state.ownedBackgrounds);
+  const equippedBackground = useShopStore((state) => state.equippedBackground);
+  const setEquippedBackground = useShopStore((state) => state.setEquippedBackground);
+  const setHomeBackground = useThemeStore((state) => state.setHomeBackground);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPet, setSelectedPet] = useState<AnimalData | null>(null);
   const [activeTab, setActiveTab] = useState<"pets" | "worlds">("pets");
   const [selectedBackground, setSelectedBackground] = useState<PremiumBackground | null>(null);
 
-  // Shop inventory state for backgrounds
-  const [ownedBackgrounds, setOwnedBackgrounds] = useState<string[]>([]);
-  const [equippedBackground, setEquippedBackground] = useState<string | null>(null);
+  // Handle equipping a background - now uses Zustand stores directly
+  const handleEquipBackground = useCallback((bgId: string) => {
+    const newEquipped = equippedBackground === bgId ? null : bgId;
+    setEquippedBackground(newEquipped);
 
-  // Load shop inventory
-  useEffect(() => {
-    const loadShopInventory = () => {
-      const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
-      if (savedData) {
-        try {
-          const parsed = JSON.parse(savedData);
-          setOwnedBackgrounds(parsed.ownedBackgrounds || []);
-          setEquippedBackground(parsed.equippedBackground || null);
-        } catch (error) {
-          collectionLogger.error('Failed to load shop inventory:', error);
-        }
-      }
-    };
-
-    loadShopInventory();
-
-    // Listen for shop updates
-    const handleShopUpdate = (event: CustomEvent) => {
-      if (event.detail) {
-        setOwnedBackgrounds(event.detail.ownedBackgrounds || []);
-        setEquippedBackground(event.detail.equippedBackground || null);
-      }
-    };
-
-    window.addEventListener('petIsland_shopUpdate', handleShopUpdate as EventListener);
-    return () => {
-      window.removeEventListener('petIsland_shopUpdate', handleShopUpdate as EventListener);
-    };
-  }, []);
-
-  // Handle equipping a background
-  const handleEquipBackground = (bgId: string) => {
-    const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        const newEquipped = parsed.equippedBackground === bgId ? null : bgId;
-        const newInventory = {
-          ...parsed,
-          equippedBackground: newEquipped,
-        };
-        localStorage.setItem(SHOP_INVENTORY_KEY, JSON.stringify(newInventory));
-        setEquippedBackground(newEquipped);
-
-        // Dispatch event for home screen and shop to pick up
-        window.dispatchEvent(new CustomEvent('petIsland_shopUpdate', { detail: newInventory }));
-
-        // Also update the home background
-        if (newEquipped) {
-          const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === bgId);
-          const imagePath = background?.previewImage || 'day';
-          window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: imagePath }));
-          toast.success("Background equipped!");
-        } else {
-          window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: 'day' }));
-          toast.success("Background unequipped");
-        }
-      } catch (error) {
-        collectionLogger.error('Failed to update shop inventory:', error);
-      }
+    // Update the home background
+    if (newEquipped) {
+      const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === bgId);
+      const imagePath = background?.previewImage || 'day';
+      setHomeBackground(imagePath);
+      toast.success("Background equipped!");
+    } else {
+      setHomeBackground('day');
+      toast.success("Background unequipped");
     }
-  };
+  }, [equippedBackground, setEquippedBackground, setHomeBackground]);
 
   // When switching biomes, also update the background and clear any equipped premium background
-  const handleSwitchBiome = (biomeName: string) => {
+  const handleSwitchBiome = useCallback((biomeName: string) => {
     switchBiome(biomeName);
 
     // Clear any equipped premium background when switching biomes
-    const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        if (parsed.equippedBackground) {
-          const newInventory = {
-            ...parsed,
-            equippedBackground: null,
-          };
-          localStorage.setItem(SHOP_INVENTORY_KEY, JSON.stringify(newInventory));
-          setEquippedBackground(null);
-          window.dispatchEvent(new CustomEvent('petIsland_shopUpdate', { detail: newInventory }));
-        }
-      } catch (error) {
-        collectionLogger.error('Failed to update shop inventory:', error);
-      }
+    if (equippedBackground) {
+      setEquippedBackground(null);
     }
 
     // Use the biome's background image if available, otherwise fall back to theme ID
     const biome = BIOME_DATABASE.find(b => b.name === biomeName);
     const backgroundTheme = biome?.backgroundImage || BIOME_TO_BACKGROUND[biomeName] || 'day';
-    localStorage.setItem(HOME_BACKGROUND_KEY, backgroundTheme);
-    window.dispatchEvent(new CustomEvent('homeBackgroundChange', { detail: backgroundTheme }));
-  };
+    setHomeBackground(backgroundTheme);
+  }, [switchBiome, equippedBackground, setEquippedBackground, setHomeBackground]);
 
-  const filteredPets = filterAnimals(searchQuery, "all", "all");
+  // Handle navigation to shop tab
+  const handleNavigateToShop = useCallback(() => {
+    // This event is still needed for tab navigation within the parent component
+    window.dispatchEvent(new CustomEvent('switchToTab', { detail: 'shop' }));
+  }, []);
+
+  // Memoize filtered pets to avoid recalculating on every render
+  const filteredPets = useMemo(
+    () => filterAnimals(searchQuery, "all", "all"),
+    [searchQuery, filterAnimals]
+  );
+
+  // Memoize handler to avoid recreating on every render
+  const handlePetClick = useCallback((pet: AnimalData) => {
+    setSelectedPet(pet);
+  }, []);
 
   return (
     <div className="h-full flex flex-col" style={{
@@ -220,7 +171,7 @@ export const PetCollectionGrid = () => {
                     isShopPet={isShopPet}
                     isFavorited={isFavorited}
                     isHomeActive={isHomeActive}
-                    onClick={() => setSelectedPet(pet)}
+                    onClick={() => handlePetClick(pet)}
                   />
                 );
               })}
@@ -478,7 +429,7 @@ export const PetCollectionGrid = () => {
                     <button
                       onClick={() => {
                         setSelectedBackground(null);
-                        window.dispatchEvent(new CustomEvent('switchToTab', { detail: 'shop' }));
+                        handleNavigateToShop();
                       }}
                       className="bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all active:scale-95 inline-flex items-center gap-2"
                     >
@@ -506,7 +457,7 @@ export const PetCollectionGrid = () => {
         onToggleHomeActive={() => selectedPet && toggleHomeActive(selectedPet.id)}
         onNavigateToShop={() => {
           setSelectedPet(null);
-          window.dispatchEvent(new CustomEvent('switchToTab', { detail: 'shop' }));
+          handleNavigateToShop();
         }}
       />
     </div>

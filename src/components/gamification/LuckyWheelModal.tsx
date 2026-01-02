@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { cn } from '@/lib/utils';
@@ -33,6 +33,38 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
   const recentWins = getRecentWins(5);
   const timeUntilNext = getTimeUntilNextSpin();
   const canSpin = canSpinToday() && !isSpinning && !localSpinning;
+
+  // Memoize expensive SVG path calculations - only recalculate when wheelConfig changes
+  const wheelPaths = useMemo(() => {
+    return wheelConfig.segments.map((segment, index) => {
+      const angle = 360 / wheelConfig.segmentCount;
+      const startAngle = index * angle;
+      const endAngle = startAngle + angle;
+
+      const startRad = (startAngle - 90) * (Math.PI / 180);
+      const endRad = (endAngle - 90) * (Math.PI / 180);
+
+      const x1 = 50 + 50 * Math.cos(startRad);
+      const y1 = 50 + 50 * Math.sin(startRad);
+      const x2 = 50 + 50 * Math.cos(endRad);
+      const y2 = 50 + 50 * Math.sin(endRad);
+
+      const largeArc = angle > 180 ? 1 : 0;
+
+      const midAngle = ((startAngle + endAngle) / 2 - 90) * (Math.PI / 180);
+      const textX = 50 + 32 * Math.cos(midAngle);
+      const textY = 50 + 32 * Math.sin(midAngle);
+      const textRotation = (startAngle + endAngle) / 2;
+
+      return {
+        segment,
+        path: `M50,50 L${x1},${y1} A50,50 0 ${largeArc},1 ${x2},${y2} Z`,
+        textX,
+        textY,
+        textRotation,
+      };
+    });
+  }, [wheelConfig]);
 
   const handleSpin = useCallback(async () => {
     if (!canSpin) return;
@@ -142,46 +174,26 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
               style={{ transform: `rotate(${rotation}deg)` }}
             >
               <svg viewBox="0 0 100 100" className="w-full h-full">
-                {wheelConfig.segments.map((segment, index) => {
-                  const angle = 360 / wheelConfig.segmentCount;
-                  const startAngle = index * angle;
-                  const endAngle = startAngle + angle;
-
-                  const startRad = (startAngle - 90) * (Math.PI / 180);
-                  const endRad = (endAngle - 90) * (Math.PI / 180);
-
-                  const x1 = 50 + 50 * Math.cos(startRad);
-                  const y1 = 50 + 50 * Math.sin(startRad);
-                  const x2 = 50 + 50 * Math.cos(endRad);
-                  const y2 = 50 + 50 * Math.sin(endRad);
-
-                  const largeArc = angle > 180 ? 1 : 0;
-
-                  const midAngle = ((startAngle + endAngle) / 2 - 90) * (Math.PI / 180);
-                  const textX = 50 + 32 * Math.cos(midAngle);
-                  const textY = 50 + 32 * Math.sin(midAngle);
-
-                  return (
-                    <g key={segment.id}>
-                      <path
-                        d={`M50,50 L${x1},${y1} A50,50 0 ${largeArc},1 ${x2},${y2} Z`}
-                        fill={segment.color}
-                        stroke="rgba(255,255,255,0.3)"
-                        strokeWidth="0.5"
-                      />
-                      <text
-                        x={textX}
-                        y={textY}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        className="text-[10px] fill-white font-bold"
-                        transform={`rotate(${(startAngle + endAngle) / 2}, ${textX}, ${textY})`}
-                      >
-                        {segment.emoji}
-                      </text>
-                    </g>
-                  );
-                })}
+                {wheelPaths.map(({ segment, path, textX, textY, textRotation }) => (
+                  <g key={segment.id}>
+                    <path
+                      d={path}
+                      fill={segment.color}
+                      stroke="rgba(255,255,255,0.3)"
+                      strokeWidth="0.5"
+                    />
+                    <text
+                      x={textX}
+                      y={textY}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="text-[10px] fill-white font-bold"
+                      transform={`rotate(${textRotation}, ${textX}, ${textY})`}
+                    >
+                      {segment.emoji}
+                    </text>
+                  </g>
+                ))}
                 {/* Center Hub */}
                 <circle cx="50" cy="50" r="10" fill="url(#centerGradient)" stroke="#fbbf24" strokeWidth="3" />
                 <defs>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDeviceActivity } from './useDeviceActivity';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/lib/logger';
@@ -22,6 +22,9 @@ export const useBackgroundProcessing = () => {
 
   const { triggerHaptic, recordActiveTime } = useDeviceActivity();
   const { toast } = useToast();
+
+  // Track timeouts to clean up on unmount
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Start background session tracking
   const startBackgroundSession = useCallback(() => {
@@ -59,13 +62,19 @@ export const useBackgroundProcessing = () => {
       // Trigger haptic feedback for rewards
       if (newRewards > 0) {
         triggerHaptic('success');
-        
+
+        // Clear any existing timeout before setting a new one
+        if (toastTimeoutRef.current) {
+          clearTimeout(toastTimeoutRef.current);
+        }
+
         // Show reward notification
-        setTimeout(() => {
+        toastTimeoutRef.current = setTimeout(() => {
           toast({
             title: "🎉 Welcome Back!",
             description: `You earned ${newRewards} reward${newRewards > 1 ? 's' : ''} for staying focused!`,
           });
+          toastTimeoutRef.current = null;
         }, 1000);
       }
       
@@ -159,6 +168,10 @@ export const useBackgroundProcessing = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pause', handleAppPause);
       window.removeEventListener('resume', handleAppResume);
+      // Clear any pending toast timeout
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
     };
   }, [startBackgroundSession, endBackgroundSession, state]);
 

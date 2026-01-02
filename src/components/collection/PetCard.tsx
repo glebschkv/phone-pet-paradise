@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { Heart, Lock, Home, Star, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimalData } from "@/data/AnimalDatabase";
@@ -19,7 +20,7 @@ interface PetCardProps {
   onClick: () => void;
 }
 
-export const PetCard = ({
+export const PetCard = memo(({
   pet,
   isLocked,
   isShopPet,
@@ -32,6 +33,16 @@ export const PetCard = ({
   const showAsShopPet = isLocked && isShopPet;
   const stars = RARITY_STARS[pet.rarity];
 
+  // Memoize inline styles to avoid recreation on every render
+  const buttonStyle = useMemo(() => ({
+    border: showAsShopPet
+      ? '2px solid hsl(35 80% 60%)'
+      : '2px solid hsl(var(--border))',
+    boxShadow: showAsLocked
+      ? 'none'
+      : '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
+  }), [showAsShopPet, showAsLocked]);
+
   return (
     <button
       onClick={onClick}
@@ -41,14 +52,7 @@ export const PetCard = ({
         showAsShopPet ? "bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20" :
         "bg-card"
       )}
-      style={{
-        border: showAsShopPet
-          ? '2px solid hsl(35 80% 60%)'
-          : '2px solid hsl(var(--border))',
-        boxShadow: showAsLocked
-          ? 'none'
-          : '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
-      }}
+      style={buttonStyle}
     >
       {/* Favorite heart */}
       {!isLocked && isFavorited && (
@@ -120,4 +124,6 @@ export const PetCard = ({
       </span>
     </button>
   );
-};
+});
+
+PetCard.displayName = 'PetCard';

@@ -1,11 +1,9 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { AnimalData, getAnimalById, getUnlockedAnimals, getAnimalsByBiome, ANIMAL_DATABASE, getXPUnlockableAnimals } from '@/data/AnimalDatabase';
 import { useBackendXPSystem } from '@/hooks/useBackendXPSystem';
 import { useXPSystem } from '@/hooks/useXPSystem';
 import { useAuth } from '@/hooks/useAuth';
-import { collectionLogger } from '@/lib/logger';
-
-const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
+import { useCollectionStore, useShopStore } from '@/stores';
 
 interface CollectionStats {
   totalAnimals: number;
@@ -42,9 +40,6 @@ interface UseCollectionReturn {
   filterAnimals: (searchQuery: string, rarity?: string, biome?: string) => AnimalData[];
 }
 
-const FAVORITES_STORAGE_KEY = 'petparadise-favorites';
-const ACTIVE_HOME_PETS_KEY = 'petparadise-active-home-pets';
-
 export const useCollection = (): UseCollectionReturn => {
   // Get both XP systems
   const { isAuthenticated } = useAuth();
@@ -52,7 +47,6 @@ export const useCollection = (): UseCollectionReturn => {
   const localXPSystem = useXPSystem();
 
   // Use the HIGHER level between local and backend to prevent progress appearing to regress
-  // This handles cases where local and backend are out of sync
   const backendLevel = backendXPSystem.currentLevel;
   const localLevel = localXPSystem.currentLevel;
   const currentLevel = Math.max(backendLevel, localLevel);
@@ -62,93 +56,18 @@ export const useCollection = (): UseCollectionReturn => {
   const xpSystem = (isAuthenticated && !backendIsLoading) ? backendXPSystem : localXPSystem;
   const { unlockedAnimals, currentBiome, availableBiomes } = xpSystem;
 
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [activeHomePets, setActiveHomePets] = useState<Set<string>>(new Set());
+  // Use Zustand stores instead of local state + events
+  const favoritesArray = useCollectionStore((state) => state.favorites);
+  const activeHomePetsArray = useCollectionStore((state) => state.activeHomePets);
+  const storeToggleFavorite = useCollectionStore((state) => state.toggleFavorite);
+  const storeToggleHomeActive = useCollectionStore((state) => state.toggleHomeActive);
 
-  // Track shop-purchased characters directly from shop inventory
-  // This ensures purchased pets show as owned regardless of XP system state
-  const [shopOwnedCharacters, setShopOwnedCharacters] = useState<string[]>([]);
+  // Use shop store for owned characters
+  const shopOwnedCharacters = useShopStore((state) => state.ownedCharacters);
 
-  // Load shop inventory from localStorage and listen for updates
-  useEffect(() => {
-    const loadShopInventory = () => {
-      const savedData = localStorage.getItem(SHOP_INVENTORY_KEY);
-      if (savedData) {
-        try {
-          const parsed = JSON.parse(savedData);
-          setShopOwnedCharacters(parsed.ownedCharacters || []);
-        } catch (error) {
-          collectionLogger.error('Failed to load shop inventory:', error);
-        }
-      }
-    };
-
-    // Load initial data
-    loadShopInventory();
-
-    // Listen for shop updates
-    const handleShopUpdate = (event: CustomEvent) => {
-      if (event.detail?.ownedCharacters) {
-        setShopOwnedCharacters(event.detail.ownedCharacters);
-      }
-    };
-
-    window.addEventListener('petIsland_shopUpdate', handleShopUpdate as EventListener);
-
-    return () => {
-      window.removeEventListener('petIsland_shopUpdate', handleShopUpdate as EventListener);
-    };
-  }, []);
-
-  // Load favorites from localStorage
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem(FAVORITES_STORAGE_KEY);
-    if (savedFavorites) {
-      try {
-        const favoritesArray = JSON.parse(savedFavorites);
-        setFavorites(new Set(favoritesArray));
-      } catch (error) {
-        collectionLogger.error('Failed to load favorites:', error);
-      }
-    }
-  }, []);
-
-  // Load active home pets from localStorage
-  useEffect(() => {
-    const savedActivePets = localStorage.getItem(ACTIVE_HOME_PETS_KEY);
-    if (savedActivePets) {
-      try {
-        const activePetsArray = JSON.parse(savedActivePets);
-        setActiveHomePets(new Set(activePetsArray));
-      } catch (error) {
-        collectionLogger.error('Failed to load active home pets:', error);
-      }
-    } else {
-      // Default: show first unlocked pet (dewdrop-frog) if nothing saved
-      setActiveHomePets(new Set(['dewdrop-frog']));
-    }
-  }, []);
-
-  // Save favorites to localStorage
-  const saveFavorites = useCallback((newFavorites: Set<string>) => {
-    try {
-      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(newFavorites)));
-    } catch (error) {
-      collectionLogger.error('Failed to save favorites:', error);
-    }
-  }, []);
-
-  // Save active home pets to localStorage
-  const saveActiveHomePets = useCallback((newActivePets: Set<string>) => {
-    try {
-      const petsArray = Array.from(newActivePets);
-      localStorage.setItem(ACTIVE_HOME_PETS_KEY, JSON.stringify(petsArray));
-      // Dispatch event so home page can react immediately
-      window.dispatchEvent(new CustomEvent('activeHomePetsChange', { detail: petsArray }));
-    } catch (error) {
-      collectionLogger.error('Failed to save active home pets:', error);
-    }
-  }, []);
+  // Convert arrays to Sets for backwards compatibility
+  const favorites = useMemo(() => new Set(favoritesArray), [favoritesArray]);
+  const activeHomePets = useMemo(() => new Set(activeHomePetsArray), [activeHomePetsArray]);
 
   // Get unlocked animals data (level-based + purchased coin-exclusive)
   const unlockedAnimalsData = useMemo(() => {
@@ -178,11 +97,11 @@ export const useCollection = (): UseCollectionReturn => {
   );
 
   const stats: CollectionStats = {
-    totalAnimals: xpUnlockableAnimals.length, // Only XP-unlockable for main progression
+    totalAnimals: xpUnlockableAnimals.length,
     unlockedAnimals: unlockedAnimalsData.filter(a => !a.isExclusive).length,
     shopPetsTotal: shopExclusiveAnimals.length,
     shopPetsOwned: ownedShopPets.length,
-    totalBiomes: availableBiomes.length + (5 - availableBiomes.length), // Total possible biomes
+    totalBiomes: availableBiomes.length + (5 - availableBiomes.length),
     unlockedBiomes: availableBiomes.length,
     favoritesCount: favorites.size,
     activeHomePetsCount: activeHomePets.size,
@@ -206,33 +125,15 @@ export const useCollection = (): UseCollectionReturn => {
     }
   };
 
-  // Toggle favorite status
+  // Toggle favorite status - now uses Zustand store
   const toggleFavorite = useCallback((animalId: string) => {
-    setFavorites(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(animalId)) {
-        newFavorites.delete(animalId);
-      } else {
-        newFavorites.add(animalId);
-      }
-      saveFavorites(newFavorites);
-      return newFavorites;
-    });
-  }, [saveFavorites]);
+    storeToggleFavorite(animalId);
+  }, [storeToggleFavorite]);
 
-  // Toggle home page display status
+  // Toggle home page display status - now uses Zustand store
   const toggleHomeActive = useCallback((animalId: string) => {
-    setActiveHomePets(prev => {
-      const newActivePets = new Set(prev);
-      if (newActivePets.has(animalId)) {
-        newActivePets.delete(animalId);
-      } else {
-        newActivePets.add(animalId);
-      }
-      saveActiveHomePets(newActivePets);
-      return newActivePets;
-    });
-  }, [saveActiveHomePets]);
+    storeToggleHomeActive(animalId);
+  }, [storeToggleHomeActive]);
 
   // Helper functions
   const isAnimalUnlocked = useCallback((animalId: string): boolean => {
@@ -246,7 +147,6 @@ export const useCollection = (): UseCollectionReturn => {
     if (shopOwnedCharacters.includes(animalId)) return true;
 
     // Check if purchased (in unlockedAnimals list but not by level)
-    // This handles coin-exclusive animals that were purchased from the shop
     if (unlockedAnimals.includes(animal.name)) return true;
 
     return false;
@@ -266,12 +166,10 @@ export const useCollection = (): UseCollectionReturn => {
 
   // Get active home pets data (animals shown on home page)
   const getActiveHomePetsData = useCallback((): AnimalData[] => {
-    // Only include unlocked pets that are active
     return Array.from(activeHomePets)
       .map(id => getAnimalById(id))
       .filter((animal): animal is AnimalData => {
         if (!animal || !animal.spriteConfig) return false;
-        // Check level-based unlock OR purchased from shop OR in unlockedAnimals list
         return animal.unlockLevel <= currentLevel ||
                shopOwnedCharacters.includes(animal.id) ||
                unlockedAnimals.includes(animal.name);
@@ -279,7 +177,6 @@ export const useCollection = (): UseCollectionReturn => {
   }, [activeHomePets, currentLevel, unlockedAnimals, shopOwnedCharacters]);
 
   // Filter animals based on search, rarity, and biome
-  // Shows all animals including shop-exclusive ones
   const filterAnimals = useCallback((searchQuery: string, rarity?: string, biome?: string): AnimalData[] => {
     return ANIMAL_DATABASE.filter(animal => {
       const matchesSearch = animal.name.toLowerCase().includes(searchQuery.toLowerCase());
