@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useCoinSystem } from './useCoinSystem';
 import { useCoinBooster } from './useCoinBooster';
 import { useStreakSystem } from './useStreakSystem';
@@ -14,7 +14,7 @@ import {
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
-import { shopLogger } from '@/lib/logger';
+import { useShopStore } from '@/stores';
 
 export interface PurchaseResult {
   success: boolean;
@@ -30,96 +30,62 @@ export interface ShopInventory {
   equippedBackground: string | null;
 }
 
-const STORAGE_KEY = 'petIsland_shopInventory';
-const SHOP_UPDATE_EVENT = 'petIsland_shopUpdate';
-
 export const useShop = () => {
   const coinSystem = useCoinSystem();
   const boosterSystem = useCoinBooster();
   const streakSystem = useStreakSystem();
 
-  const [inventory, setInventory] = useState<ShopInventory>({
-    ownedCharacters: [],
-    ownedBackgrounds: [],
-    ownedBadges: [],
-    equippedBadge: null,
-    equippedBackground: null,
-  });
+  // Use Zustand store for inventory - no more useState or localStorage manually
+  const ownedCharacters = useShopStore((state) => state.ownedCharacters);
+  const ownedBackgrounds = useShopStore((state) => state.ownedBackgrounds);
+  const ownedBadges = useShopStore((state) => state.ownedBadges);
+  const equippedBadge = useShopStore((state) => state.equippedBadge);
+  const equippedBackground = useShopStore((state) => state.equippedBackground);
+  const addOwnedCharacter = useShopStore((state) => state.addOwnedCharacter);
+  const addOwnedBackground = useShopStore((state) => state.addOwnedBackground);
+  const addOwnedBadge = useShopStore((state) => state.addOwnedBadge);
+  const addOwnedCharacters = useShopStore((state) => state.addOwnedCharacters);
+  const addOwnedBackgrounds = useShopStore((state) => state.addOwnedBackgrounds);
+  const storeSetEquippedBadge = useShopStore((state) => state.setEquippedBadge);
+  const storeSetEquippedBackground = useShopStore((state) => state.setEquippedBackground);
+  const storeResetShop = useShopStore((state) => state.resetShop);
+
+  // For backwards compatibility, provide inventory object
+  const inventory: ShopInventory = {
+    ownedCharacters,
+    ownedBackgrounds,
+    ownedBadges,
+    equippedBadge,
+    equippedBackground,
+  };
 
   // Track total purchases for achievements
-  const purchaseCountRef = useRef(0);
+  const purchaseCountRef = useRef(
+    ownedCharacters.length + ownedBackgrounds.length + ownedBadges.length
+  );
 
-  // Load inventory from localStorage
+  // Track purchase count changes for achievements
   useEffect(() => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        const loadedInventory = {
-          ownedCharacters: parsed.ownedCharacters || [],
-          ownedBackgrounds: parsed.ownedBackgrounds || [],
-          ownedBadges: parsed.ownedBadges || [],
-          equippedBadge: parsed.equippedBadge || null,
-          equippedBackground: parsed.equippedBackground || null,
-        };
-        setInventory(loadedInventory);
-        // Initialize purchase count ref
-        purchaseCountRef.current =
-          loadedInventory.ownedCharacters.length +
-          loadedInventory.ownedBackgrounds.length +
-          loadedInventory.ownedBadges.length;
-      } catch (error) {
-        shopLogger.error('Failed to load shop inventory:', error);
-      }
-    }
-  }, []);
-
-  // Listen for updates from other components
-  useEffect(() => {
-    const handleShopUpdate = (event: CustomEvent<ShopInventory>) => {
-      setInventory(event.detail);
-    };
-
-    window.addEventListener(SHOP_UPDATE_EVENT, handleShopUpdate as EventListener);
-
-    return () => {
-      window.removeEventListener(SHOP_UPDATE_EVENT, handleShopUpdate as EventListener);
-    };
-  }, []);
-
-  // Save inventory
-  const saveInventory = useCallback((newInventory: ShopInventory) => {
-    // Count total items as purchases
-    const totalItems =
-      newInventory.ownedCharacters.length +
-      newInventory.ownedBackgrounds.length +
-      newInventory.ownedBadges.length;
-
-    // Only dispatch if purchase count increased (new purchase)
+    const totalItems = ownedCharacters.length + ownedBackgrounds.length + ownedBadges.length;
     if (totalItems > purchaseCountRef.current) {
       purchaseCountRef.current = totalItems;
       dispatchAchievementEvent(ACHIEVEMENT_EVENTS.PURCHASE_MADE, {
         totalPurchases: totalItems,
       });
     }
-
-    setInventory(newInventory);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newInventory));
-    window.dispatchEvent(new CustomEvent(SHOP_UPDATE_EVENT, { detail: newInventory }));
-  }, []);
+  }, [ownedCharacters.length, ownedBackgrounds.length, ownedBadges.length]);
 
   // Check if item is owned
   const isOwned = useCallback((itemId: string, category: ShopCategory): boolean => {
     switch (category) {
       case 'pets':
-        return inventory.ownedCharacters.includes(itemId);
+        return ownedCharacters.includes(itemId);
       case 'customize':
-        // Check both backgrounds and badges
-        return inventory.ownedBackgrounds.includes(itemId) || inventory.ownedBadges.includes(itemId);
+        return ownedBackgrounds.includes(itemId) || ownedBadges.includes(itemId);
       default:
         return false;
     }
-  }, [inventory]);
+  }, [ownedCharacters, ownedBackgrounds, ownedBadges]);
 
   // Purchase a character
   const purchaseCharacter = useCallback((characterId: string): PurchaseResult => {
@@ -132,7 +98,7 @@ export const useShop = () => {
       return { success: false, message: 'This character cannot be purchased' };
     }
 
-    if (inventory.ownedCharacters.includes(characterId)) {
+    if (ownedCharacters.includes(characterId)) {
       return { success: false, message: 'You already own this character' };
     }
 
@@ -140,25 +106,15 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    // Verify the coin spend succeeded before updating inventory
     const spendSuccess = coinSystem.spendCoins(animal.coinPrice);
     if (!spendSuccess) {
       return { success: false, message: 'Failed to process payment' };
     }
 
-    const newInventory = {
-      ...inventory,
-      ownedCharacters: [...inventory.ownedCharacters, characterId],
-    };
-    saveInventory(newInventory);
-
-    // Dispatch event to unlock the animal in the XP system
-    window.dispatchEvent(new CustomEvent('petIsland_animalPurchased', {
-      detail: { animalId: characterId, animalName: animal.name }
-    }));
+    addOwnedCharacter(characterId);
 
     return { success: true, message: `${animal.name} purchased!`, item: animal };
-  }, [inventory, coinSystem, saveInventory]);
+  }, [ownedCharacters, coinSystem, addOwnedCharacter]);
 
   // Purchase a background
   const purchaseBackground = useCallback((backgroundId: string): PurchaseResult => {
@@ -167,7 +123,7 @@ export const useShop = () => {
       return { success: false, message: 'Background not found' };
     }
 
-    if (inventory.ownedBackgrounds.includes(backgroundId)) {
+    if (ownedBackgrounds.includes(backgroundId)) {
       return { success: false, message: 'You already own this background' };
     }
 
@@ -180,14 +136,10 @@ export const useShop = () => {
       return { success: false, message: 'Failed to process payment' };
     }
 
-    const newInventory = {
-      ...inventory,
-      ownedBackgrounds: [...inventory.ownedBackgrounds, backgroundId],
-    };
-    saveInventory(newInventory);
+    addOwnedBackground(backgroundId);
 
     return { success: true, message: `${background.name} purchased!`, item: background };
-  }, [inventory, coinSystem, saveInventory]);
+  }, [ownedBackgrounds, coinSystem, addOwnedBackground]);
 
   // Purchase a badge
   const purchaseBadge = useCallback((badgeId: string): PurchaseResult => {
@@ -196,7 +148,7 @@ export const useShop = () => {
       return { success: false, message: 'Badge not found' };
     }
 
-    if (inventory.ownedBadges.includes(badgeId)) {
+    if (ownedBadges.includes(badgeId)) {
       return { success: false, message: 'You already own this badge' };
     }
 
@@ -209,14 +161,10 @@ export const useShop = () => {
       return { success: false, message: 'Failed to process payment' };
     }
 
-    const newInventory = {
-      ...inventory,
-      ownedBadges: [...inventory.ownedBadges, badgeId],
-    };
-    saveInventory(newInventory);
+    addOwnedBadge(badgeId);
 
     return { success: true, message: `${badge.name} purchased!`, item: badge };
-  }, [inventory, coinSystem, saveInventory]);
+  }, [ownedBadges, coinSystem, addOwnedBadge]);
 
   // Unlock a character (without payment - used for bundles and rewards)
   const unlockCharacter = useCallback((characterId: string): boolean => {
@@ -225,23 +173,13 @@ export const useShop = () => {
       return false;
     }
 
-    if (inventory.ownedCharacters.includes(characterId)) {
+    if (ownedCharacters.includes(characterId)) {
       return true; // Already owned
     }
 
-    const newInventory = {
-      ...inventory,
-      ownedCharacters: [...inventory.ownedCharacters, characterId],
-    };
-    saveInventory(newInventory);
-
-    // Dispatch event to unlock the animal in the XP system
-    window.dispatchEvent(new CustomEvent('petIsland_animalPurchased', {
-      detail: { animalId: characterId, animalName: animal.name }
-    }));
-
+    addOwnedCharacter(characterId);
     return true;
-  }, [inventory, saveInventory]);
+  }, [ownedCharacters, addOwnedCharacter]);
 
   // Unlock a badge (without payment - used for bundles and rewards)
   const unlockBadge = useCallback((badgeId: string): boolean => {
@@ -250,18 +188,13 @@ export const useShop = () => {
       return false;
     }
 
-    if (inventory.ownedBadges.includes(badgeId)) {
+    if (ownedBadges.includes(badgeId)) {
       return true; // Already owned
     }
 
-    const newInventory = {
-      ...inventory,
-      ownedBadges: [...inventory.ownedBadges, badgeId],
-    };
-    saveInventory(newInventory);
-
+    addOwnedBadge(badgeId);
     return true;
-  }, [inventory, saveInventory]);
+  }, [ownedBadges, addOwnedBadge]);
 
   // Purchase a starter bundle (IAP simulation - grants all contents)
   const purchaseStarterBundle = useCallback((bundleId: string): PurchaseResult => {
@@ -321,7 +254,7 @@ export const useShop = () => {
     }
 
     // Check if all backgrounds are already owned
-    const allOwned = bundle.backgroundIds.every(id => inventory.ownedBackgrounds.includes(id));
+    const allOwned = bundle.backgroundIds.every(id => ownedBackgrounds.includes(id));
     if (allOwned) {
       return { success: false, message: 'You already own all backgrounds in this bundle' };
     }
@@ -336,15 +269,11 @@ export const useShop = () => {
     }
 
     // Add all backgrounds from the bundle that aren't already owned
-    const newBackgrounds = bundle.backgroundIds.filter(id => !inventory.ownedBackgrounds.includes(id));
-    const newInventory = {
-      ...inventory,
-      ownedBackgrounds: [...inventory.ownedBackgrounds, ...newBackgrounds],
-    };
-    saveInventory(newInventory);
+    const newBackgrounds = bundle.backgroundIds.filter(id => !ownedBackgrounds.includes(id));
+    addOwnedBackgrounds(newBackgrounds);
 
     return { success: true, message: `${bundle.name} purchased! ${newBackgrounds.length} backgrounds added!` };
-  }, [inventory, coinSystem, saveInventory]);
+  }, [ownedBackgrounds, coinSystem, addOwnedBackgrounds]);
 
   // Purchase a pet bundle
   const purchasePetBundle = useCallback((bundleId: string): PurchaseResult => {
@@ -354,7 +283,7 @@ export const useShop = () => {
     }
 
     // Check if all pets are already owned
-    const allOwned = bundle.petIds.every(id => inventory.ownedCharacters.includes(id));
+    const allOwned = bundle.petIds.every(id => ownedCharacters.includes(id));
     if (allOwned) {
       return { success: false, message: 'You already own all pets in this bundle' };
     }
@@ -369,39 +298,25 @@ export const useShop = () => {
     }
 
     // Add all pets from the bundle that aren't already owned
-    const newPets = bundle.petIds.filter(id => !inventory.ownedCharacters.includes(id));
-    const newInventory = {
-      ...inventory,
-      ownedCharacters: [...inventory.ownedCharacters, ...newPets],
-    };
-    saveInventory(newInventory);
-
-    // Dispatch events to unlock animals in the XP system
-    newPets.forEach(petId => {
-      const animal = getAnimalById(petId);
-      if (animal) {
-        window.dispatchEvent(new CustomEvent('petIsland_animalPurchased', {
-          detail: { animalId: petId, animalName: animal.name }
-        }));
-      }
-    });
+    const newPets = bundle.petIds.filter(id => !ownedCharacters.includes(id));
+    addOwnedCharacters(newPets);
 
     return { success: true, message: `${bundle.name} purchased! ${newPets.length} pets added!` };
-  }, [inventory, coinSystem, saveInventory]);
+  }, [ownedCharacters, coinSystem, addOwnedCharacters]);
 
   // Check if bundle is owned (all backgrounds in bundle are owned)
   const isBundleOwned = useCallback((bundleId: string): boolean => {
     const bundle = BACKGROUND_BUNDLES.find(b => b.id === bundleId);
     if (!bundle) return false;
-    return bundle.backgroundIds.every(id => inventory.ownedBackgrounds.includes(id));
-  }, [inventory]);
+    return bundle.backgroundIds.every(id => ownedBackgrounds.includes(id));
+  }, [ownedBackgrounds]);
 
   // Check if pet bundle is owned (all pets in bundle are owned)
   const isPetBundleOwned = useCallback((bundleId: string): boolean => {
     const bundle = PET_BUNDLES.find(b => b.id === bundleId);
     if (!bundle) return false;
-    return bundle.petIds.every(id => inventory.ownedCharacters.includes(id));
-  }, [inventory]);
+    return bundle.petIds.every(id => ownedCharacters.includes(id));
+  }, [ownedCharacters]);
 
   // Purchase a booster
   const purchaseBooster = useCallback((boosterId: string): PurchaseResult => {
@@ -476,33 +391,26 @@ export const useShop = () => {
 
   // Equip a badge
   const equipBadge = useCallback((badgeId: string | null) => {
-    if (badgeId && !inventory.ownedBadges.includes(badgeId)) {
+    if (badgeId && !ownedBadges.includes(badgeId)) {
       return false;
     }
-    saveInventory({ ...inventory, equippedBadge: badgeId });
+    storeSetEquippedBadge(badgeId);
     return true;
-  }, [inventory, saveInventory]);
+  }, [ownedBadges, storeSetEquippedBadge]);
 
   // Equip a background
   const equipBackground = useCallback((backgroundId: string | null) => {
-    if (backgroundId && !inventory.ownedBackgrounds.includes(backgroundId)) {
+    if (backgroundId && !ownedBackgrounds.includes(backgroundId)) {
       return false;
     }
-    saveInventory({ ...inventory, equippedBackground: backgroundId });
+    storeSetEquippedBackground(backgroundId);
     return true;
-  }, [inventory, saveInventory]);
+  }, [ownedBackgrounds, storeSetEquippedBackground]);
 
   // Reset shop data
   const resetShop = useCallback(() => {
-    const resetInventory: ShopInventory = {
-      ownedCharacters: [],
-      ownedBackgrounds: [],
-      ownedBadges: [],
-      equippedBadge: null,
-      equippedBackground: null,
-    };
-    saveInventory(resetInventory);
-  }, [saveInventory]);
+    storeResetShop();
+  }, [storeResetShop]);
 
   return {
     inventory,
