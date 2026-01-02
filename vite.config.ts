@@ -47,10 +47,8 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('/@supabase/') || id.includes('/@tanstack/')) {
               return 'vendor-data';
             }
-            // Monitoring
-            if (id.includes('/@sentry/')) {
-              return 'vendor-monitoring';
-            }
+            // Note: Using minimal custom Sentry client (~3KB) instead of full SDK
+            // No vendor-monitoring chunk needed - Sentry packages are not imported
             // Utilities
             if (id.includes('/date-fns/') || id.includes('/clsx/') || id.includes('/tailwind-merge/') || id.includes('/class-variance-authority/')) {
               return 'vendor-utils';
