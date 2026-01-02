@@ -114,7 +114,7 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func openAppPicker(_ call: CAPPluginCall) {
         // This method triggers the native FamilyActivityPicker
         // The actual picker UI is handled via SwiftUI - we need to notify the app to show it
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.notifyJS("showAppPicker", data: [:])
             call.resolve(["success": true])
         }
@@ -339,7 +339,7 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func triggerHapticFeedback(_ call: CAPPluginCall) {
         let style = call.getString("style") ?? "medium"
 
-        DispatchQueue.main.async {
+        Task { @MainActor in
             switch style {
             case "light":
                 let feedback = UIImpactFeedbackGenerator(style: .light)
@@ -360,9 +360,9 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
                 let feedback = UIImpactFeedbackGenerator(style: .medium)
                 feedback.impactOccurred()
             }
-        }
 
-        call.resolve(["success": true])
+            call.resolve(["success": true])
+        }
     }
 
     // MARK: - Background Tasks
