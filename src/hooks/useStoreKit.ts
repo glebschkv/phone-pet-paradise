@@ -1,10 +1,31 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { StoreKit, StoreKitProduct, PurchaseResult, SubscriptionStatus, RestoredPurchase } from '@/plugins/store-kit';
 import { SUBSCRIPTION_PLANS, dispatchSubscriptionChange } from './usePremiumStatus';
 import { useToast } from './use-toast';
 import { storeKitLogger as logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
+import { reportError } from '@/lib/errorReporting';
+
+/**
+ * Safe wrapper for StoreKit plugin calls with fallback and error reporting
+ */
+async function safeStoreKitCall<T>(
+  pluginCall: () => Promise<T>,
+  fallback: T,
+  errorContext: string
+): Promise<{ result: T; success: boolean }> {
+  try {
+    const result = await pluginCall();
+    return { result, success: true };
+  } catch (error) {
+    logger.error(`[${errorContext}] Plugin call failed:`, error);
+    if (error instanceof Error) {
+      reportError(error, { context: errorContext, plugin: 'StoreKit' });
+    }
+    return { result: fallback, success: false };
+  }
+}
 
 const PREMIUM_STORAGE_KEY = 'petIsland_premium';
 
@@ -91,6 +112,8 @@ interface UseStoreKitReturn {
   isLoading: boolean;
   isPurchasing: boolean;
   error: string | null;
+  pluginAvailable: boolean;
+  pluginError: Error | null;
   loadProducts: () => Promise<void>;
   purchaseProduct: (productId: string) => Promise<PurchaseResult>;
   restorePurchases: () => Promise<boolean>;
@@ -105,73 +128,101 @@ export const useStoreKit = (): UseStoreKitReturn => {
   const [isLoading, setIsLoading] = useState(true);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pluginAvailable, setPluginAvailable] = useState(true);
+  const [pluginError, setPluginError] = useState<Error | null>(null);
   const { toast } = useToast();
+
+  // Track if plugin has been verified
+  const pluginVerifiedRef = useRef(false);
 
   // Load products from App Store
   const loadProducts = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
-      const result = await StoreKit.getProducts({ productIds: ALL_PRODUCT_IDS });
-      setProducts(result.products);
+    const { result, success } = await safeStoreKitCall(
+      () => StoreKit.getProducts({ productIds: ALL_PRODUCT_IDS }),
+      { products: [] },
+      'getProducts'
+    );
 
-      logger.debug('Loaded products:', result.products.length);
-    } catch (err) {
-      logger.error('Failed to load products:', err);
+    if (!success) {
+      // Check if this is a plugin availability issue
+      if (!pluginVerifiedRef.current) {
+        const err = new Error('StoreKit plugin initialization failed');
+        setPluginAvailable(false);
+        setPluginError(err);
+      }
       setError('Failed to load products. Please try again.');
-    } finally {
-      setIsLoading(false);
+    } else {
+      pluginVerifiedRef.current = true;
+      setPluginAvailable(true);
+      setPluginError(null);
+      setProducts(result.products);
+      logger.debug('Loaded products:', result.products.length);
     }
+
+    setIsLoading(false);
   }, []);
 
   // Check current subscription status
   const checkSubscriptionStatus = useCallback(async () => {
-    try {
-      const status = await StoreKit.getSubscriptionStatus();
-      setSubscriptionStatus(status);
+    if (!pluginAvailable) {
+      logger.debug('Skipping subscription check - plugin unavailable');
+      return;
+    }
 
-      // Sync with local storage for offline access
-      if (status.hasActiveSubscription) {
-        const activeSub = status.activeSubscriptions[0] || status.purchasedProducts[0];
-        if (activeSub) {
-          const plan = SUBSCRIPTION_PLANS.find(p => p.iapProductId === activeSub.productId);
-          if (plan) {
-            const premiumState = {
-              tier: plan.tier,
-              expiresAt: activeSub.expirationDate
-                ? new Date(activeSub.expirationDate).toISOString()
-                : null,
-              purchasedAt: new Date(activeSub.purchaseDate).toISOString(),
-              planId: plan.id,
-              environment: activeSub.environment,
-            };
-            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+    const { result: status, success } = await safeStoreKitCall(
+      () => StoreKit.getSubscriptionStatus(),
+      { hasActiveSubscription: false, activeSubscriptions: [], purchasedProducts: [] },
+      'getSubscriptionStatus'
+    );
 
-            // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
-            dispatchSubscriptionChange(plan.tier);
+    if (!success) {
+      logger.error('Failed to check subscription status');
+      return;
+    }
 
-            // Also validate with server if we have the signed transaction
-            // This ensures server has the latest subscription state
-            if (activeSub.signedTransaction) {
-              // Fire and forget - don't block the UI
-              serverValidatePurchase(activeSub).catch(err => {
-                logger.warn('Background server validation failed:', err);
-              });
-            }
+    setSubscriptionStatus(status);
+
+    // Sync with local storage for offline access
+    if (status.hasActiveSubscription) {
+      const activeSub = status.activeSubscriptions[0] || status.purchasedProducts[0];
+      if (activeSub) {
+        const plan = SUBSCRIPTION_PLANS.find(p => p.iapProductId === activeSub.productId);
+        if (plan) {
+          const premiumState = {
+            tier: plan.tier,
+            expiresAt: activeSub.expirationDate
+              ? new Date(activeSub.expirationDate).toISOString()
+              : null,
+            purchasedAt: new Date(activeSub.purchaseDate).toISOString(),
+            planId: plan.id,
+            environment: activeSub.environment,
+          };
+          localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+
+          // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
+          dispatchSubscriptionChange(plan.tier);
+
+          // Also validate with server if we have the signed transaction
+          // This ensures server has the latest subscription state
+          if (activeSub.signedTransaction) {
+            // Fire and forget - don't block the UI
+            serverValidatePurchase(activeSub).catch(err => {
+              logger.warn('Background server validation failed:', err);
+            });
           }
         }
-      } else {
-        // No active subscription - clear local storage
-        localStorage.removeItem(PREMIUM_STORAGE_KEY);
-        dispatchSubscriptionChange('free');
       }
-
-      logger.debug('Subscription status:', status);
-    } catch (err) {
-      logger.error('Failed to check subscription:', err);
+    } else {
+      // No active subscription - clear local storage
+      localStorage.removeItem(PREMIUM_STORAGE_KEY);
+      dispatchSubscriptionChange('free');
     }
-  }, []);
+
+    logger.debug('Subscription status:', status);
+  }, [pluginAvailable]);
 
   // Validate purchase with server (wrapper that also updates local storage)
   const validatePurchaseWithServer = useCallback(async (
@@ -197,120 +248,155 @@ export const useStoreKit = (): UseStoreKitReturn => {
 
   // Purchase a product
   const purchaseProduct = useCallback(async (productId: string): Promise<PurchaseResult> => {
-    try {
-      setIsPurchasing(true);
-      setError(null);
+    const failedResult: PurchaseResult = {
+      success: false,
+      message: 'Purchase failed',
+    };
 
-      logger.debug('Starting purchase:', productId);
-      const result = await StoreKit.purchase({ productId });
+    if (!pluginAvailable) {
+      toast({
+        title: 'Purchases Unavailable',
+        description: 'In-app purchases are not available. Please restart the app.',
+        variant: 'destructive',
+      });
+      return { ...failedResult, message: 'Plugin unavailable' };
+    }
 
-      if (result.success) {
-        // Validate with server before showing success
-        const serverValidated = await validatePurchaseWithServer(result);
+    setIsPurchasing(true);
+    setError(null);
 
-        if (serverValidated) {
-          toast({
-            title: 'Purchase Successful!',
-            description: 'Thank you for your purchase.',
-          });
-        } else {
-          toast({
-            title: 'Purchase Processing',
-            description: 'Your purchase is being verified. It may take a moment to activate.',
-          });
-        }
+    logger.debug('Starting purchase:', productId);
+    const { result, success } = await safeStoreKitCall(
+      () => StoreKit.purchase({ productId }),
+      failedResult,
+      'purchase'
+    );
 
-        // Refresh subscription status
-        await checkSubscriptionStatus();
-      } else if (result.cancelled) {
-        // User cancelled - no toast needed
-        logger.debug('Purchase cancelled by user');
-      } else if (result.pending) {
+    if (!success) {
+      setIsPurchasing(false);
+      setError('Purchase failed. Please try again.');
+      toast({
+        title: 'Purchase Failed',
+        description: 'Unable to complete the purchase. Please try again.',
+        variant: 'destructive',
+      });
+      return result;
+    }
+
+    if (result.success) {
+      // Validate with server before showing success
+      const serverValidated = await validatePurchaseWithServer(result);
+
+      if (serverValidated) {
         toast({
-          title: 'Purchase Pending',
-          description: 'Your purchase is awaiting approval.',
+          title: 'Purchase Successful!',
+          description: 'Thank you for your purchase.',
+        });
+      } else {
+        toast({
+          title: 'Purchase Processing',
+          description: 'Your purchase is being verified. It may take a moment to activate.',
         });
       }
 
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Purchase failed';
-      setError(errorMessage);
+      // Refresh subscription status
+      await checkSubscriptionStatus();
+    } else if (result.cancelled) {
+      // User cancelled - no toast needed
+      logger.debug('Purchase cancelled by user');
+    } else if (result.pending) {
       toast({
-        title: 'Purchase Failed',
-        description: errorMessage,
-        variant: 'destructive',
+        title: 'Purchase Pending',
+        description: 'Your purchase is awaiting approval.',
       });
-      return {
-        success: false,
-        message: errorMessage,
-      };
-    } finally {
-      setIsPurchasing(false);
     }
-  }, [toast, checkSubscriptionStatus, validatePurchaseWithServer]);
+
+    setIsPurchasing(false);
+    return result;
+  }, [toast, checkSubscriptionStatus, validatePurchaseWithServer, pluginAvailable]);
 
   // Restore purchases
   const restorePurchases = useCallback(async (): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      logger.debug('Restoring purchases...');
-      const result = await StoreKit.restorePurchases();
-
-      if (result.success && result.restoredCount > 0) {
-        // Validate each restored purchase with the server
-        let validatedCount = 0;
-        for (const purchase of result.purchases) {
-          const validated = await validatePurchaseWithServer(purchase);
-          if (validated) {
-            validatedCount++;
-          }
-        }
-
-        toast({
-          title: 'Purchases Restored!',
-          description: `${result.restoredCount} purchase(s) restored successfully.`,
-        });
-
-        // Refresh subscription status
-        await checkSubscriptionStatus();
-        return true;
-      } else {
-        toast({
-          title: 'No Purchases Found',
-          description: 'No previous purchases were found to restore.',
-        });
-        return false;
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to restore purchases';
-      setError(errorMessage);
+    if (!pluginAvailable) {
       toast({
-        title: 'Restore Failed',
-        description: errorMessage,
+        title: 'Restore Unavailable',
+        description: 'In-app purchases are not available. Please restart the app.',
         variant: 'destructive',
       });
       return false;
-    } finally {
-      setIsLoading(false);
     }
-  }, [toast, checkSubscriptionStatus, validatePurchaseWithServer]);
+
+    setIsLoading(true);
+    setError(null);
+
+    logger.debug('Restoring purchases...');
+    const { result, success } = await safeStoreKitCall(
+      () => StoreKit.restorePurchases(),
+      { success: false, restoredCount: 0, purchases: [] },
+      'restorePurchases'
+    );
+
+    if (!success) {
+      setIsLoading(false);
+      setError('Failed to restore purchases. Please try again.');
+      toast({
+        title: 'Restore Failed',
+        description: 'Unable to restore purchases. Please try again.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    if (result.success && result.restoredCount > 0) {
+      // Validate each restored purchase with the server
+      for (const purchase of result.purchases) {
+        await validatePurchaseWithServer(purchase);
+      }
+
+      toast({
+        title: 'Purchases Restored!',
+        description: `${result.restoredCount} purchase(s) restored successfully.`,
+      });
+
+      // Refresh subscription status
+      await checkSubscriptionStatus();
+      setIsLoading(false);
+      return true;
+    } else {
+      toast({
+        title: 'No Purchases Found',
+        description: 'No previous purchases were found to restore.',
+      });
+      setIsLoading(false);
+      return false;
+    }
+  }, [toast, checkSubscriptionStatus, validatePurchaseWithServer, pluginAvailable]);
 
   // Open subscription management
   const manageSubscriptions = useCallback(async () => {
-    try {
-      await StoreKit.manageSubscriptions();
-    } catch (err) {
-      logger.error('Failed to open subscription management:', err);
+    if (!pluginAvailable) {
+      toast({
+        title: 'Feature Unavailable',
+        description: 'Subscription management is not available. Please restart the app.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const { success } = await safeStoreKitCall(
+      () => StoreKit.manageSubscriptions(),
+      { success: false },
+      'manageSubscriptions'
+    );
+
+    if (!success) {
       toast({
         title: 'Error',
         description: 'Failed to open subscription management.',
         variant: 'destructive',
       });
     }
-  }, [toast]);
+  }, [toast, pluginAvailable]);
 
   // Get product by ID
   const getProductById = useCallback((productId: string): StoreKitProduct | undefined => {
@@ -337,6 +423,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
         removeListener = remove;
       }).catch((err) => {
         logger.error('Failed to add transaction listener:', err);
+        // Don't mark plugin as unavailable - listener failure is non-critical
       });
     }
 
@@ -351,6 +438,8 @@ export const useStoreKit = (): UseStoreKitReturn => {
     isLoading,
     isPurchasing,
     error,
+    pluginAvailable,
+    pluginError,
     loadProducts,
     purchaseProduct,
     restorePurchases,
