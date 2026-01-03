@@ -10,7 +10,14 @@ import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { useMilestoneCelebrations } from "@/hooks/useMilestoneCelebrations";
 import { useState, lazy, Suspense } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import {
+  TimerDisplaySkeleton,
+  CollectionPageSkeleton,
+  ShopPageSkeleton,
+  SettingsSectionSkeleton,
+  AchievementGridSkeleton,
+} from "@/components/ui/skeleton-loaders";
+import { RewardModalErrorBoundary } from "@/components/FeatureErrorBoundary";
 
 // Lazy load heavy tab components for better initial load performance
 const UnifiedFocusTimer = lazy(() => import("@/components/UnifiedFocusTimer").then(m => ({ default: m.UnifiedFocusTimer })));
@@ -19,12 +26,23 @@ const Settings = lazy(() => import("@/components/Settings").then(m => ({ default
 const Shop = lazy(() => import("@/components/Shop").then(m => ({ default: m.Shop })));
 const GamificationHub = lazy(() => import("@/components/gamification").then(m => ({ default: m.GamificationHub })));
 
-// Loading fallback component
-const TabLoadingFallback = () => (
-  <div className="flex items-center justify-center h-full min-h-[200px]">
-    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-  </div>
-);
+// Context-aware loading skeleton based on tab
+const getTabSkeleton = (tab: string) => {
+  switch (tab) {
+    case "timer":
+      return <TimerDisplaySkeleton />;
+    case "collection":
+      return <CollectionPageSkeleton />;
+    case "shop":
+      return <ShopPageSkeleton />;
+    case "settings":
+      return <SettingsSectionSkeleton rows={5} />;
+    case "challenges":
+      return <AchievementGridSkeleton count={4} />;
+    default:
+      return null;
+  }
+};
 
 export const GameUI = () => {
   const [currentTab, setCurrentTab] = useState("home");
@@ -108,9 +126,9 @@ export const GameUI = () => {
       }
     })();
 
-    // Wrap lazy-loaded components in Suspense
+    // Wrap lazy-loaded components in Suspense with context-aware skeleton
     return content ? (
-      <Suspense fallback={<TabLoadingFallback />}>
+      <Suspense fallback={getTabSkeleton(currentTab)}>
         {content}
       </Suspense>
     ) : null;
@@ -138,26 +156,32 @@ export const GameUI = () => {
         />
 
         {/* XP Reward Modal */}
-        <XPRewardModal
-          isOpen={showRewardModal}
-          onClose={dismissRewardModal}
-          reward={currentReward}
-          newLevel={currentLevel}
-          levelProgress={getLevelProgress()}
-        />
+        <RewardModalErrorBoundary>
+          <XPRewardModal
+            isOpen={showRewardModal}
+            onClose={dismissRewardModal}
+            reward={currentReward}
+            newLevel={currentLevel}
+            levelProgress={getLevelProgress()}
+          />
+        </RewardModalErrorBoundary>
 
         {/* Daily Login Reward Modal */}
-        <DailyLoginRewardModal
-          isOpen={dailyLoginRewards.showRewardModal}
-          onClaim={handleDailyRewardClaim}
-          onDismiss={dailyLoginRewards.dismissModal}
-          reward={dailyLoginRewards.pendingReward}
-          currentStreak={dailyLoginRewards.loginState.currentStreak}
-          allRewards={dailyLoginRewards.dailyRewards}
-        />
+        <RewardModalErrorBoundary>
+          <DailyLoginRewardModal
+            isOpen={dailyLoginRewards.showRewardModal}
+            onClaim={handleDailyRewardClaim}
+            onDismiss={dailyLoginRewards.dismissModal}
+            reward={dailyLoginRewards.pendingReward}
+            currentStreak={dailyLoginRewards.loginState.currentStreak}
+            allRewards={dailyLoginRewards.dailyRewards}
+          />
+        </RewardModalErrorBoundary>
 
         {/* Milestone Celebration */}
-        <MilestoneCelebration onClaimReward={handleMilestoneClaim} />
+        <RewardModalErrorBoundary>
+          <MilestoneCelebration onClaimReward={handleMilestoneClaim} />
+        </RewardModalErrorBoundary>
       </div>
     </AchievementTracker>
   );

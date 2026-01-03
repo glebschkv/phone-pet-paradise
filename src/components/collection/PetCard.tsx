@@ -3,6 +3,7 @@ import { Heart, Lock, Home, Star, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimalData } from "@/data/AnimalDatabase";
 import { SpritePreview } from "./SpritePreview";
+import { ariaLabel } from "@/lib/accessibility";
 
 const RARITY_STARS = {
   common: 1,
@@ -43,9 +44,16 @@ export const PetCard = memo(({
       : '0 3px 0 hsl(var(--border) / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
   }), [showAsShopPet, showAsLocked]);
 
+  // Generate accessible label
+  const accessibleLabel = useMemo(() =>
+    ariaLabel.petCard(pet.name, isLocked, pet.unlockLevel),
+    [pet.name, isLocked, pet.unlockLevel]
+  );
+
   return (
     <button
       onClick={onClick}
+      aria-label={accessibleLabel}
       className={cn(
         "rounded-lg p-3 flex flex-col items-center relative transition-all active:scale-95",
         showAsLocked ? "bg-muted/50" :

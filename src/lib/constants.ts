@@ -304,6 +304,30 @@ export const BIOME_CONFIG = {
     volcano: 30,
     space: 40,
   } as const,
+
+  /** Map biome names to background theme IDs */
+  BIOME_TO_BACKGROUND: {
+    'Meadow': 'day',
+    'Sunset': 'sunset',
+    'Night': 'night',
+    'Forest': 'forest',
+    'Snow': 'snow',
+    'City': 'city',
+    'Ruins': 'ruins',
+    'Deep Ocean': 'deepocean',
+  } as const,
+
+  /** Biome display icons (emoji) */
+  BIOME_ICONS: {
+    'Meadow': '☀️',
+    'Sunset': '🌅',
+    'Night': '🌙',
+    'Forest': '🌲',
+    'Snow': '❄️',
+    'City': '🏙️',
+    'Ruins': '🏛️',
+    'Deep Ocean': '🌊',
+  } as const,
 } as const;
 
 // ============================================================================

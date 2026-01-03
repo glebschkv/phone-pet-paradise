@@ -1,7 +1,12 @@
 import { memo, useState, useEffect, useRef } from 'react';
 import { AnimalData } from '@/data/AnimalDatabase';
 import { PositionRegistry } from './useAnimalPositions';
-import { getRandomSpecialAnimation, hasSpecialAnimations, SpecialAnimationConfig } from '@/data/SpecialAnimations';
+import {
+  getRandomSpecialAnimationSync,
+  hasSpecialAnimationsSync,
+  preloadSpecialAnimations,
+  type SpecialAnimationConfig
+} from '@/data/LazySpecialAnimations';
 
 // Configuration for random special animations
 const SPECIAL_ANIMATION_MIN_INTERVAL = 5000; // Minimum 5 seconds between special animations
@@ -42,8 +47,13 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
   const animationSpeed = spriteConfig?.animationSpeed ?? 10;
   const frameRow = spriteConfig?.frameRow ?? 0;
 
-  // Check if this animal has special animations available
-  const canPlaySpecialAnimations = spriteConfig ? hasSpecialAnimations(spritePath) : false;
+  // Preload special animations data in the background on mount
+  useEffect(() => {
+    preloadSpecialAnimations();
+  }, []);
+
+  // Check if this animal has special animations available (uses sync version)
+  const canPlaySpecialAnimations = spriteConfig ? hasSpecialAnimationsSync(spritePath) : false;
 
   // Current animation config (either special or base)
   const currentAnimConfig = isPlayingSpecialRef.current && activeSpecialAnimation
@@ -78,7 +88,7 @@ export const FlyingSprite = memo(({ animal, animalId, startPosition, heightOffse
       specialAnimationTimerRef.current = setTimeout(() => {
         // Only trigger if not already playing a special animation
         if (!isPlayingSpecialRef.current) {
-          const specialAnim = getRandomSpecialAnimation(spritePath);
+          const specialAnim = getRandomSpecialAnimationSync(spritePath);
           if (specialAnim) {
             isPlayingSpecialRef.current = true;
             specialFrameCountRef.current = 0;

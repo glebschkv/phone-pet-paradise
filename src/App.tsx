@@ -7,7 +7,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NativePluginProvider } from "@/contexts/NativePluginContext";
 import { PluginUnavailableBanner } from "@/components/PluginUnavailableBanner";
 import { lazy, Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { HomePageSkeleton } from "@/components/ui/skeleton-loaders";
 
 // Lazy load pages for better initial bundle size
 const Index = lazy(() => import("./pages/Index"));
@@ -16,10 +16,10 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Page loading fallback
+// Page loading fallback with skeleton for better perceived performance
 const PageLoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen bg-background">
-    <Loader2 className="w-10 h-10 animate-spin text-primary" />
+  <div className="min-h-screen bg-background">
+    <HomePageSkeleton className="h-screen" />
   </div>
 );
 
