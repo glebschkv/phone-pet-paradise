@@ -1,5 +1,7 @@
+import { useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { TimerPreset, TIMER_PRESETS } from "./constants";
+import { ARIA_LABELS } from "@/lib/accessibility";
 
 interface TimerPresetGridProps {
   selectedPreset: TimerPreset;
@@ -12,11 +14,61 @@ export const TimerPresetGrid = ({
   isRunning,
   onSelectPreset
 }: TimerPresetGridProps) => {
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard navigation for arrow keys within the grid
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, currentIndex: number) => {
+    if (isRunning) return;
+
+    const cols = 3;
+    const total = TIMER_PRESETS.length;
+    let nextIndex = currentIndex;
+
+    switch (e.key) {
+      case 'ArrowLeft':
+        nextIndex = currentIndex > 0 ? currentIndex - 1 : total - 1;
+        e.preventDefault();
+        break;
+      case 'ArrowRight':
+        nextIndex = currentIndex < total - 1 ? currentIndex + 1 : 0;
+        e.preventDefault();
+        break;
+      case 'ArrowUp':
+        nextIndex = currentIndex >= cols ? currentIndex - cols : currentIndex + (Math.ceil(total / cols) - 1) * cols;
+        if (nextIndex >= total) nextIndex = currentIndex;
+        e.preventDefault();
+        break;
+      case 'ArrowDown':
+        nextIndex = currentIndex + cols < total ? currentIndex + cols : currentIndex % cols;
+        e.preventDefault();
+        break;
+      default:
+        return;
+    }
+
+    // Focus the next button
+    const buttons = gridRef.current?.querySelectorAll('button');
+    if (buttons && buttons[nextIndex]) {
+      (buttons[nextIndex] as HTMLButtonElement).focus();
+    }
+  }, [isRunning]);
+
   return (
     <div className="w-full max-w-sm">
-      <p className="text-xs text-center text-muted-foreground mb-3 font-medium">Choose Focus Mode</p>
-      <div className="grid grid-cols-3 gap-2">
-        {TIMER_PRESETS.map((preset) => {
+      <p className="text-xs text-center text-muted-foreground mb-3 font-medium" id="preset-grid-label">Choose Focus Mode</p>
+      <div
+        ref={gridRef}
+        className="grid grid-cols-3 gap-2"
+        role="radiogroup"
+        aria-labelledby="preset-grid-label"
+        aria-describedby={isRunning ? "preset-grid-disabled" : undefined}
+      >
+        {isRunning && (
+          <span id="preset-grid-disabled" className="sr-only">
+            Preset selection disabled while timer is running
+          </span>
+        )}
+        {TIMER_PRESETS.map((preset, index) => {
           const Icon = preset.icon;
           const isSelected = selectedPreset.id === preset.id;
           const isBreak = preset.type === 'break';
@@ -25,9 +77,14 @@ export const TimerPresetGrid = ({
             <button
               key={preset.id}
               onClick={() => onSelectPreset(preset)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
               disabled={isRunning}
+              role="radio"
+              aria-checked={isSelected}
+              aria-label={`${preset.name}: ${preset.duration} minutes${isBreak ? ' (break)' : ''}`}
+              tabIndex={isSelected ? 0 : -1}
               className={cn(
-                "p-3 rounded-lg text-center active-scale transition-all",
+                "p-3 rounded-lg text-center active-scale transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                 isRunning && "opacity-50 cursor-not-allowed"
               )}
               style={{
