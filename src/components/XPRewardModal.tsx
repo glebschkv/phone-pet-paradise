@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { XPReward } from "@/hooks/useBackendXPSystem";
+import { XPReward } from "@/hooks/useXPSystem";
 import { Star, Gift, Zap, Trophy, Flame } from "lucide-react";
 
 interface XPRewardModalProps {

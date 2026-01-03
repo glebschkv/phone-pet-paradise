@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAuth } from './useAuth';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { achievementLogger as logger } from '@/lib/logger';
 import {
   Achievement,
   AchievementReward,
@@ -35,9 +38,33 @@ export interface AchievementSystemReturn {
   pendingUnlock: AchievementUnlockEvent | null;
   dismissPendingUnlock: () => void;
   claimRewards: (achievementId: string) => { xp: number; coins: number };
+  // For compatibility with old useBackendAchievements consumers
+  isLoading: boolean;
+  loadAchievements?: () => Promise<void>;
 }
 
+/**
+ * Unified Achievement System Hook
+ *
+ * This is the consolidated achievement system that replaces both useAchievementSystem
+ * and useBackendAchievements.
+ *
+ * Architecture:
+ * - Uses achievementService.ts for all 60+ achievement definitions
+ * - localStorage is the primary storage (offline-first)
+ * - When authenticated, unlocks sync to Supabase in the background
+ * - All operations are synchronous for immediate UI response
+ *
+ * Features:
+ * - Full achievement library (60+ achievements across all categories)
+ * - Pending unlock queue with modal display
+ * - Reward claiming with race condition prevention
+ * - Cross-tab and cross-component synchronization
+ * - Optional Supabase sync when authenticated
+ */
 export const useAchievementSystem = (): AchievementSystemReturn => {
+  const { isAuthenticated, user } = useAuth();
+
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [pendingUnlock, setPendingUnlock] = useState<AchievementUnlockEvent | null>(null);
   const pendingUnlockQueue = useRef<AchievementUnlockEvent[]>([]);
@@ -46,7 +73,7 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
   // Track queued unlock IDs to prevent duplicates from event listeners
   const queuedUnlockIdsRef = useRef<Set<string>>(new Set());
 
-  // Load achievement data
+  // Load achievement data from localStorage
   const loadAchievementData = useCallback(() => {
     const loaded = loadFromStorage();
     if (loaded) {
@@ -57,6 +84,37 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       setAchievements(initializeAchievements());
     }
   }, []);
+
+  // Sync achievement unlock to backend (fire-and-forget)
+  const syncUnlockToBackend = useCallback(async (achievement: Achievement) => {
+    if (!isAuthenticated || !user || !isSupabaseConfigured) return;
+
+    try {
+      const xpReward = achievement.rewards.find(r => r.type === 'xp')?.amount || 0;
+
+      const { error } = await supabase
+        .from('achievements')
+        .insert({
+          user_id: user.id,
+          title: achievement.title,
+          description: achievement.description,
+          achievement_type: achievement.category,
+          reward_xp: xpReward
+        });
+
+      if (error) {
+        // Ignore duplicate errors (achievement already synced)
+        if (!error.message.includes('duplicate')) {
+          logger.error('Failed to sync achievement unlock:', error);
+        }
+      } else {
+        logger.debug('Synced achievement unlock to backend:', achievement.title);
+      }
+    } catch (error) {
+      logger.error('Error syncing achievement unlock:', error);
+      // Don't throw - local state is source of truth
+    }
+  }, [isAuthenticated, user]);
 
   // Queue an achievement unlock for display
   const queueAchievementUnlock = useCallback((achievement: Achievement) => {
@@ -77,7 +135,10 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
     // Dispatch event for other components to listen
     window.dispatchEvent(new CustomEvent(ACHIEVEMENT_UNLOCK_EVENT, { detail: event }));
-  }, [pendingUnlock]);
+
+    // Sync to backend asynchronously
+    syncUnlockToBackend(achievement);
+  }, [pendingUnlock, syncUnlockToBackend]);
 
   // Dismiss the current pending unlock and show next if any
   const dismissPendingUnlock = useCallback(() => {
@@ -130,6 +191,9 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
   // Update progress for specific achievement
   const updateProgress = useCallback((achievementId: string, progress: number) => {
+    // Collect achievements that need to be queued for unlock notification
+    const toQueue: Achievement[] = [];
+
     setAchievements(prev => {
       const updated = prev.map(achievement => {
         if (achievement.id === achievementId && !achievement.isUnlocked) {
@@ -144,7 +208,8 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
               unlockedAt: Date.now(),
               rewardsClaimed: false
             };
-            queueAchievementUnlock(unlockedAchievement);
+            // Collect for queuing AFTER state update (avoid nested state updates)
+            toQueue.push(unlockedAchievement);
             return unlockedAchievement;
           }
 
@@ -158,6 +223,12 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
       saveToStorage(updated);
       return updated;
+    });
+
+    // Queue achievement unlocks AFTER the state update completes
+    // This avoids nested state updates which can cause React batching issues
+    toQueue.forEach(achievement => {
+      queueAchievementUnlock(achievement);
     });
   }, [queueAchievementUnlock]);
 
@@ -180,8 +251,8 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
               unlockedAt: Date.now(),
               rewardsClaimed: false
             };
+            // Collect for queuing AFTER state update (avoid nested state updates)
             newlyUnlocked.push(unlockedAchievement);
-            queueAchievementUnlock(unlockedAchievement);
             return unlockedAchievement;
           }
 
@@ -196,6 +267,12 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
       saveToStorage(updated);
       return updated;
+    });
+
+    // Queue achievement unlocks AFTER the state update completes
+    // This avoids nested state updates which can cause React batching issues
+    newlyUnlocked.forEach(achievement => {
+      queueAchievementUnlock(achievement);
     });
 
     return newlyUnlocked;
@@ -304,6 +381,52 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
     }
   }, [achievements, checkAndUnlockAchievements]);
 
+  // Async load function for compatibility with useBackendAchievements
+  const loadAchievements = useCallback(async () => {
+    loadAchievementData();
+
+    // If authenticated, also fetch from backend and merge
+    if (isAuthenticated && user && isSupabaseConfigured) {
+      try {
+        const { data: backendAchievements, error } = await supabase
+          .from('achievements')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (error) {
+          logger.error('Failed to fetch backend achievements:', error);
+          return;
+        }
+
+        if (backendAchievements && backendAchievements.length > 0) {
+          // Merge backend unlocks with local state
+          setAchievements(prev => {
+            const updated = prev.map(achievement => {
+              const backendMatch = backendAchievements.find(
+                ba => ba.title === achievement.title
+              );
+
+              if (backendMatch && !achievement.isUnlocked) {
+                return {
+                  ...achievement,
+                  isUnlocked: true,
+                  unlockedAt: new Date(backendMatch.unlocked_at).getTime(),
+                  progress: achievement.target
+                };
+              }
+              return achievement;
+            });
+
+            saveToStorage(updated);
+            return updated;
+          });
+        }
+      } catch (error) {
+        logger.error('Error loading backend achievements:', error);
+      }
+    }
+  }, [loadAchievementData, isAuthenticated, user]);
+
   return {
     achievements,
     unlockedAchievements,
@@ -315,6 +438,9 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
     shareAchievement,
     pendingUnlock,
     dismissPendingUnlock,
-    claimRewards
+    claimRewards,
+    // For compatibility with old useBackendAchievements consumers
+    isLoading: false,
+    loadAchievements
   };
 };

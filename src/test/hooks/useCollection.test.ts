@@ -3,29 +3,14 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useCollection } from '@/hooks/useCollection';
 import { useCollectionStore, useShopStore } from '@/stores';
 
-// Mock the dependencies
-vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({
-    isAuthenticated: false,
-  }),
-}));
-
-vi.mock('@/hooks/useBackendXPSystem', () => ({
-  useBackendXPSystem: () => ({
-    currentLevel: 1,
-    unlockedAnimals: [],
-    currentBiome: 'forest',
-    availableBiomes: ['forest'],
-    isLoading: false,
-  }),
-}));
-
+// Mock the dependencies - useXPSystem now handles both local and backend sync internally
 vi.mock('@/hooks/useXPSystem', () => ({
   useXPSystem: () => ({
     currentLevel: 1,
     unlockedAnimals: ['Dewdrop Frog'],
     currentBiome: 'forest',
     availableBiomes: ['forest'],
+    isLoading: false,
   }),
 }));
 

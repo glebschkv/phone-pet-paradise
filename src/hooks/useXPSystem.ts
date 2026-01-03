@@ -3,6 +3,8 @@ import { ANIMAL_DATABASE, BIOME_DATABASE, getUnlockedAnimals } from '@/data/Anim
 import { xpLogger as logger } from '@/lib/logger';
 import { safeJsonParse } from '@/lib/apiUtils';
 import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
+import { useAuth } from './useAuth';
+import { useSupabaseData } from './useSupabaseData';
 
 export interface XPReward {
   xpGained: number;
@@ -40,7 +42,6 @@ const XP_UPDATE_EVENT = 'petIsland_xpUpdate';
 const ANIMAL_PURCHASED_EVENT = 'petIsland_animalPurchased';
 
 // Random bonus XP system - creates variable rewards (slot machine psychology)
-// 20% chance of bonus, with different tiers
 interface BonusResult {
   hasBonusXP: boolean;
   bonusMultiplier: number;
@@ -50,19 +51,19 @@ interface BonusResult {
 const calculateRandomBonus = (): BonusResult => {
   const roll = Math.random() * 100;
 
-  // 5% chance: Jackpot (2.5x XP) - increased from 2%
+  // 5% chance: Jackpot (2.5x XP)
   if (roll < 5) {
     return { hasBonusXP: true, bonusMultiplier: 2.5, bonusType: 'jackpot' };
   }
-  // 10% chance: Super Lucky (1.75x XP) - increased from 5%
+  // 10% chance: Super Lucky (1.75x XP)
   if (roll < 15) {
     return { hasBonusXP: true, bonusMultiplier: 1.75, bonusType: 'super_lucky' };
   }
-  // 20% chance: Lucky (1.5x XP) - increased from 13%
+  // 20% chance: Lucky (1.5x XP)
   if (roll < 35) {
     return { hasBonusXP: true, bonusMultiplier: 1.5, bonusType: 'lucky' };
   }
-  // 65% chance: No bonus - reduced from 80%
+  // 65% chance: No bonus
   return { hasBonusXP: false, bonusMultiplier: 1.0, bonusType: 'none' };
 };
 
@@ -71,20 +72,19 @@ export const MAX_LEVEL = 50 as const;
 // XP rewards based on session duration (in minutes)
 // Boosted rewards - progression should feel satisfying and impactful!
 const XP_REWARDS = {
-  25: 25,   // 25 minutes = 25 XP (minimum focus session) - doubled
-  30: 35,   // 30 minutes = 35 XP - more than doubled for quick wins
-  45: 55,   // 45 minutes = 55 XP - doubled
-  60: 80,   // 1 hour = 80 XP - sweet spot, more than doubled
-  90: 125,  // 90 minutes (deep work) = 125 XP - more than doubled
-  120: 180, // 2 hours = 180 XP - more than doubled
-  180: 280, // 3 hours = 280 XP - more than doubled
-  240: 400, // 4 hours = 400 XP - more than doubled
-  300: 550, // 5 hours = 550 XP - more than doubled
+  25: 25,   // 25 minutes = 25 XP (minimum focus session)
+  30: 35,   // 30 minutes = 35 XP - good for quick wins
+  45: 55,   // 45 minutes = 55 XP
+  60: 80,   // 1 hour = 80 XP - sweet spot for progression
+  90: 125,  // 90 minutes (deep work) = 125 XP
+  120: 180, // 2 hours = 180 XP
+  180: 280, // 3 hours = 280 XP
+  240: 400, // 4 hours = 400 XP
+  300: 550, // 5 hours = 550 XP
 };
 
 // Level progression: XP required for each level
 // Early levels are quick (1-2 sessions), mid levels moderate (3-5 sessions), late levels rewarding (5+ sessions)
-// This creates an addicting but sustainable progression curve
 const LEVEL_REQUIREMENTS = [
   0,    // Level 0 (starting - Meadow Hare)
   15,   // Level 1 - Songbird (1 session)
@@ -116,16 +116,11 @@ const calculateLevelRequirement = (level: number): number => {
     result = LEVEL_REQUIREMENTS[level];
   } else {
     // For levels 13+, continue with a smooth progression
-    // Base: last defined level's XP + incremental growth
     let totalXP = LEVEL_REQUIREMENTS[LEVEL_REQUIREMENTS.length - 1]; // Level 12 = 530
     let increment = 80; // Starting increment after level 12
 
     for (let i = LEVEL_REQUIREMENTS.length; i <= level; i++) {
       totalXP += increment;
-      // Gradually increase XP needed per level (addicting but challenging)
-      // Early teens: 80-100 XP per level (2-3 sessions)
-      // Level 20s: 100-150 XP per level (3-5 sessions)
-      // Level 30s+: 150-200+ XP per level (5+ sessions for legendaries)
       if (i < 20) {
         increment += 8;  // Small increase for levels 13-19
       } else if (i < 30) {
@@ -141,6 +136,8 @@ const calculateLevelRequirement = (level: number): number => {
   return result;
 };
 
+// Export for use in other modules
+export { calculateLevelRequirement };
 
 // Generate unlocks by level from the database (animals and biomes)
 const UNLOCKS_BY_LEVEL: Record<number, UnlockedReward[]> = {};
@@ -177,15 +174,35 @@ const NAME_MAP: Record<string, string> = ANIMAL_DATABASE.reduce((acc, a) => {
 }, {} as Record<string, string>);
 
 const normalizeAnimalList = (list: string[] | undefined): string[] => {
-  // If no list provided, get animals unlocked at level 1 (starting level)
   const defaultAnimals = list ?? getUnlockedAnimals(1).map(a => a.name);
   const names = defaultAnimals.map((n) => NAME_MAP[n?.toLowerCase?.() || ''] || n);
-  // Deduplicate while preserving order
   return Array.from(new Set(names));
 };
 
+/**
+ * Unified XP System Hook
+ *
+ * This is the consolidated XP system that replaces both useXPSystem and useBackendXPSystem.
+ *
+ * Architecture:
+ * - localStorage is the primary storage (offline-first)
+ * - When authenticated, changes sync to Supabase in the background
+ * - All operations are synchronous for immediate UI response
+ * - Backend sync happens asynchronously without blocking
+ *
+ * Features:
+ * - Boosted XP rewards for satisfying progression
+ * - Random bonus system (lucky/super_lucky/jackpot)
+ * - Subscription multipliers
+ * - Cross-tab synchronization
+ * - Direct XP awards (for achievements, rewards, etc.)
+ */
 export const useXPSystem = () => {
-  // Get proper starting animals (level 0 and 1) - Start at level 0 to ensure Black Dog is included
+  // Auth and backend sync
+  const { isAuthenticated } = useAuth();
+  const { progress, updateProgress, addFocusSession } = useSupabaseData();
+
+  // Get proper starting animals (level 0 and 1)
   const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
   logger.debug('Starting animals for level 0:', startingAnimals);
 
@@ -194,68 +211,122 @@ export const useXPSystem = () => {
 
   const [xpState, setXPState] = useState<XPSystemState>({
     currentXP: 0,
-    currentLevel: 0, // Start at level 0 to include Meadow Hare
-    xpToNextLevel: 15, // Level 1 requires 15 XP
+    currentLevel: 0,
+    xpToNextLevel: 15,
     totalXPForCurrentLevel: 0,
     unlockedAnimals: startingAnimals,
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
   });
 
-// Load saved state from localStorage
-useEffect(() => {
-  const savedData = localStorage.getItem(STORAGE_KEY);
-  const defaultStartingAnimals = getUnlockedAnimals(0).map(a => a.name);
+  // Sync state from backend when authenticated and progress loads
+  useEffect(() => {
+    if (isAuthenticated && progress) {
+      const backendLevel = progress.current_level;
+      const backendXP = progress.total_xp;
 
-  if (savedData) {
-    const parsed = safeJsonParse<Partial<XPSystemState> & { currentXP?: number }>(savedData, {});
-    logger.debug('Loading saved XP state:', parsed);
+      // Use the higher of local or backend values to prevent regression
+      const currentLocal = xpStateRef.current;
+      const effectiveLevel = currentLocal
+        ? Math.max(backendLevel, currentLocal.currentLevel)
+        : backendLevel;
+      const effectiveXP = currentLocal
+        ? Math.max(backendXP, currentLocal.currentXP)
+        : backendXP;
 
-    if (parsed && typeof parsed.currentXP === 'number') {
-      // Normalize animal names and ensure starting animals are included
-      const savedAnimals = normalizeAnimalList(parsed.unlockedAnimals || []);
-      const allAnimals = Array.from(new Set([...defaultStartingAnimals, ...savedAnimals]));
+      if (effectiveLevel !== currentLocal?.currentLevel || effectiveXP !== currentLocal?.currentXP) {
+        const currentLevelXP = calculateLevelRequirement(effectiveLevel);
+        const nextLevelXP = effectiveLevel >= MAX_LEVEL
+          ? calculateLevelRequirement(effectiveLevel)
+          : calculateLevelRequirement(effectiveLevel + 1);
+        const xpToNextLevel = effectiveLevel >= MAX_LEVEL ? 0 : nextLevelXP - effectiveXP;
 
-      // Recalculate level from saved XP to ensure consistency
-      let level = 0;
-      while (level < MAX_LEVEL && parsed.currentXP >= calculateLevelRequirement(level + 1)) {
-        level++;
+        const unlockedAnimals = getUnlockedAnimals(effectiveLevel).map(a => a.name);
+        const availableBiomes = BIOME_DATABASE
+          .filter(biome => biome.unlockLevel <= effectiveLevel)
+          .map(biome => biome.name);
+        const currentBiome = availableBiomes[availableBiomes.length - 1] || 'Meadow';
+
+        const newState = {
+          currentXP: effectiveXP,
+          currentLevel: effectiveLevel,
+          xpToNextLevel,
+          totalXPForCurrentLevel: currentLevelXP,
+          unlockedAnimals,
+          currentBiome,
+          availableBiomes,
+        };
+
+        setXPState(newState);
+        xpStateRef.current = newState;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+        logger.debug('Synced with backend:', newState);
       }
+    }
+  }, [isAuthenticated, progress]);
 
-      // Calculate XP to next level
-      const currentLevelXP = calculateLevelRequirement(level);
-      const nextLevelXP = level >= MAX_LEVEL
-        ? calculateLevelRequirement(level)
-        : calculateLevelRequirement(level + 1);
-      const xpToNextLevel = level >= MAX_LEVEL ? 0 : nextLevelXP - parsed.currentXP;
+  // Load saved state from localStorage
+  useEffect(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    const defaultStartingAnimals = getUnlockedAnimals(0).map(a => a.name);
 
-      // Recalculate available biomes from BIOME_DATABASE based on level
-      // This ensures biomes always match current database, not old localStorage data
-      const availableBiomes = BIOME_DATABASE
-        .filter(biome => biome.unlockLevel <= level)
-        .map(biome => biome.name);
+    if (savedData) {
+      const parsed = safeJsonParse<Partial<XPSystemState> & { currentXP?: number }>(savedData, {});
+      logger.debug('Loading saved XP state:', parsed);
 
-      // Validate currentBiome against available biomes
-      const currentBiome = availableBiomes.includes(parsed.currentBiome || '')
-        ? parsed.currentBiome!
-        : availableBiomes[availableBiomes.length - 1] || 'Meadow';
+      if (parsed && typeof parsed.currentXP === 'number') {
+        const savedAnimals = normalizeAnimalList(parsed.unlockedAnimals || []);
+        const allAnimals = Array.from(new Set([...defaultStartingAnimals, ...savedAnimals]));
 
-      const newState = {
-        currentXP: parsed.currentXP || 0,
-        currentLevel: level,
-        xpToNextLevel: Math.max(0, xpToNextLevel),
-        totalXPForCurrentLevel: currentLevelXP,
-        unlockedAnimals: allAnimals,
-        currentBiome,
-        availableBiomes,
-      };
-      setXPState(newState);
-      xpStateRef.current = newState;
+        // Recalculate level from saved XP to ensure consistency
+        let level = 0;
+        while (level < MAX_LEVEL && parsed.currentXP >= calculateLevelRequirement(level + 1)) {
+          level++;
+        }
 
-      logger.debug(`Restored XP state: Level ${level}, ${parsed.currentXP} XP, ${allAnimals.length} animals`);
+        const currentLevelXP = calculateLevelRequirement(level);
+        const nextLevelXP = level >= MAX_LEVEL
+          ? calculateLevelRequirement(level)
+          : calculateLevelRequirement(level + 1);
+        const xpToNextLevel = level >= MAX_LEVEL ? 0 : nextLevelXP - parsed.currentXP;
+
+        const availableBiomes = BIOME_DATABASE
+          .filter(biome => biome.unlockLevel <= level)
+          .map(biome => biome.name);
+
+        const currentBiome = availableBiomes.includes(parsed.currentBiome || '')
+          ? parsed.currentBiome!
+          : availableBiomes[availableBiomes.length - 1] || 'Meadow';
+
+        const newState = {
+          currentXP: parsed.currentXP || 0,
+          currentLevel: level,
+          xpToNextLevel: Math.max(0, xpToNextLevel),
+          totalXPForCurrentLevel: currentLevelXP,
+          unlockedAnimals: allAnimals,
+          currentBiome,
+          availableBiomes,
+        };
+        setXPState(newState);
+        xpStateRef.current = newState;
+
+        logger.debug(`Restored XP state: Level ${level}, ${parsed.currentXP} XP, ${allAnimals.length} animals`);
+      } else {
+        logger.warn('Invalid saved XP data, starting fresh');
+        const newState = {
+          currentXP: 0,
+          currentLevel: 0,
+          xpToNextLevel: 15,
+          totalXPForCurrentLevel: 0,
+          unlockedAnimals: defaultStartingAnimals,
+          currentBiome: 'Meadow',
+          availableBiomes: ['Meadow'],
+        };
+        setXPState(newState);
+        xpStateRef.current = newState;
+      }
     } else {
-      // Invalid data - fall back to defaults
-      logger.warn('Invalid saved XP data, starting fresh');
+      logger.debug('No saved XP state, starting fresh with animals:', defaultStartingAnimals);
       const newState = {
         currentXP: 0,
         currentLevel: 0,
@@ -268,22 +339,7 @@ useEffect(() => {
       setXPState(newState);
       xpStateRef.current = newState;
     }
-  } else {
-    // No saved data - initialize with defaults
-    logger.debug('No saved XP state, starting fresh with animals:', defaultStartingAnimals);
-    const newState = {
-      currentXP: 0,
-      currentLevel: 0,
-      xpToNextLevel: 15, // Level 1 requires 15 XP
-      totalXPForCurrentLevel: 0,
-      unlockedAnimals: defaultStartingAnimals,
-      currentBiome: 'Meadow',
-      availableBiomes: ['Meadow'],
-    };
-    setXPState(newState);
-    xpStateRef.current = newState;
-  }
-}, []);
+  }, []);
 
   // Listen for XP updates from other hook instances (cross-component sync)
   useEffect(() => {
@@ -293,10 +349,8 @@ useEffect(() => {
       xpStateRef.current = event.detail;
     };
 
-    // Listen for custom events from same window (other hook instances)
     window.addEventListener(XP_UPDATE_EVENT, handleXPUpdate as EventListener);
 
-    // Listen for storage events from other tabs/windows
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === STORAGE_KEY && event.newValue) {
         const parsed = safeJsonParse<XPSystemState>(event.newValue, xpStateRef.current || xpState);
@@ -322,7 +376,7 @@ useEffect(() => {
 
       setXPState(prev => {
         if (prev.unlockedAnimals.includes(animalName)) {
-          return prev; // Already unlocked
+          return prev;
         }
 
         const updatedState = {
@@ -351,19 +405,39 @@ useEffect(() => {
       const updatedState = { ...merged, unlockedAnimals: normalizedAnimals };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedState));
       xpStateRef.current = updatedState;
-
-      // Dispatch custom event to notify other hook instances in the same window
       window.dispatchEvent(new CustomEvent(XP_UPDATE_EVENT, { detail: updatedState }));
-
       return updatedState;
     });
   }, []);
+
+  // Sync to backend (fire-and-forget, doesn't block UI)
+  const syncToBackend = useCallback(async (newTotalXP: number, newLevel: number, sessionMinutes?: number, xpGained?: number) => {
+    if (!isAuthenticated) return;
+
+    try {
+      // If this was from a session, record it
+      if (sessionMinutes && xpGained) {
+        await addFocusSession(sessionMinutes, xpGained);
+      }
+
+      // Update user progress
+      await updateProgress({
+        total_xp: newTotalXP,
+        current_level: newLevel,
+        last_session_date: new Date().toISOString().split('T')[0]
+      });
+      logger.debug('Synced to backend:', { newTotalXP, newLevel });
+    } catch (error) {
+      logger.error('Failed to sync to backend (will retry on next action):', error);
+      // Don't throw - local state is source of truth
+    }
+  }, [isAuthenticated, addFocusSession, updateProgress]);
 
   // Pre-sorted durations for performance
   const sortedDurations = useMemo(() =>
     Object.keys(XP_REWARDS)
       .map(Number)
-      .sort((a, b) => b - a), // Sort descending
+      .sort((a, b) => b - a),
     []
   );
 
@@ -391,28 +465,24 @@ useEffect(() => {
         return XP_REWARDS[duration as keyof typeof XP_REWARDS];
       }
     }
-
-    return 0; // No XP for sessions less than 25 minutes
+    return 0;
   }, [sortedDurations]);
 
-  // Calculate current level from total XP (starts at level 0)
-const calculateLevel = useCallback((totalXP: number): number => {
-  let level = 0;
-  while (level < MAX_LEVEL && totalXP >= calculateLevelRequirement(level + 1)) {
-    level++;
-  }
-  return level;
-}, []);
+  // Calculate current level from total XP
+  const calculateLevel = useCallback((totalXP: number): number => {
+    let level = 0;
+    while (level < MAX_LEVEL && totalXP >= calculateLevelRequirement(level + 1)) {
+      level++;
+    }
+    return level;
+  }, []);
 
   // Award XP and handle level ups with random bonus chance
   const awardXP = useCallback((sessionMinutes: number): XPReward => {
     const baseXP = calculateXPFromDuration(sessionMinutes);
     const subscriptionMultiplier = getSubscriptionMultiplier();
-
-    // Calculate random bonus
     const bonus = calculateRandomBonus();
 
-    // Apply subscription multiplier first, then random bonus
     const xpAfterSubscription = Math.round(baseXP * subscriptionMultiplier);
     const xpGained = Math.round(xpAfterSubscription * bonus.bonusMultiplier);
     const bonusXP = xpGained - baseXP;
@@ -422,39 +492,32 @@ const calculateLevel = useCallback((totalXP: number): number => {
     const newLevel = calculateLevel(newTotalXP);
     const leveledUp = newLevel > oldLevel;
 
-// Calculate XP progress for new level
-const currentLevelXP = calculateLevelRequirement(newLevel);
-const nextLevelXP = newLevel >= MAX_LEVEL 
-  ? calculateLevelRequirement(newLevel) 
-  : calculateLevelRequirement(newLevel + 1);
-const xpToNextLevel = newLevel >= MAX_LEVEL ? 0 : nextLevelXP - newTotalXP;
+    const currentLevelXP = calculateLevelRequirement(newLevel);
+    const nextLevelXP = newLevel >= MAX_LEVEL
+      ? calculateLevelRequirement(newLevel)
+      : calculateLevelRequirement(newLevel + 1);
+    const xpToNextLevel = newLevel >= MAX_LEVEL ? 0 : nextLevelXP - newTotalXP;
 
-// Determine unlocked rewards
-const unlockedRewards: UnlockedReward[] = [];
-if (leveledUp) {
-  for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
-    if (UNLOCKS_BY_LEVEL[lvl]) {
-      unlockedRewards.push(...UNLOCKS_BY_LEVEL[lvl]);
+    const unlockedRewards: UnlockedReward[] = [];
+    if (leveledUp) {
+      for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
+        if (UNLOCKS_BY_LEVEL[lvl]) {
+          unlockedRewards.push(...UNLOCKS_BY_LEVEL[lvl]);
+        }
+      }
     }
-  }
-}
 
-    // Update state
     const newAnimals = [...xpState.unlockedAnimals];
-
-    // Add unlocked animals
     unlockedRewards.forEach(reward => {
       if (reward.type === 'animal' && !newAnimals.includes(reward.name)) {
         newAnimals.push(reward.name);
       }
     });
 
-    // Recalculate biomes from BIOME_DATABASE based on new level
     const newBiomes = BIOME_DATABASE
       .filter(biome => biome.unlockLevel <= newLevel)
       .map(biome => biome.name);
 
-    // Auto-switch to newest biome if a new one was unlocked
     const oldBiomes = BIOME_DATABASE
       .filter(biome => biome.unlockLevel <= oldLevel)
       .map(biome => biome.name);
@@ -470,6 +533,9 @@ if (leveledUp) {
       currentBiome: newCurrentBiome,
       availableBiomes: newBiomes,
     });
+
+    // Sync to backend asynchronously (doesn't block)
+    syncToBackend(newTotalXP, newLevel, sessionMinutes, xpGained);
 
     return {
       xpGained,
@@ -484,23 +550,21 @@ if (leveledUp) {
       unlockedRewards,
       subscriptionMultiplier,
     };
-  }, [xpState, calculateXPFromDuration, calculateLevel, saveState, getSubscriptionMultiplier]);
+  }, [xpState, calculateXPFromDuration, calculateLevel, saveState, getSubscriptionMultiplier, syncToBackend]);
 
-  // Add direct XP (for daily login rewards, bonuses, etc.) - handles level-ups properly
+  // Add direct XP (for achievements, daily login, bonuses, etc.)
   const addDirectXP = useCallback((xpAmount: number): XPReward => {
     const oldLevel = xpState.currentLevel;
     const newTotalXP = xpState.currentXP + xpAmount;
     const newLevel = calculateLevel(newTotalXP);
     const leveledUp = newLevel > oldLevel;
 
-    // Calculate XP progress for new level
     const currentLevelXP = calculateLevelRequirement(newLevel);
     const nextLevelXP = newLevel >= MAX_LEVEL
       ? calculateLevelRequirement(newLevel)
       : calculateLevelRequirement(newLevel + 1);
     const xpToNextLevel = newLevel >= MAX_LEVEL ? 0 : nextLevelXP - newTotalXP;
 
-    // Determine unlocked rewards
     const unlockedRewards: UnlockedReward[] = [];
     if (leveledUp) {
       for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
@@ -510,7 +574,6 @@ if (leveledUp) {
       }
     }
 
-    // Update state
     const newAnimals = [...xpState.unlockedAnimals];
     unlockedRewards.forEach(reward => {
       if (reward.type === 'animal' && !newAnimals.includes(reward.name)) {
@@ -518,7 +581,6 @@ if (leveledUp) {
       }
     });
 
-    // Recalculate biomes
     const newBiomes = BIOME_DATABASE
       .filter(biome => biome.unlockLevel <= newLevel)
       .map(biome => biome.name);
@@ -539,6 +601,9 @@ if (leveledUp) {
       availableBiomes: newBiomes,
     });
 
+    // Sync to backend asynchronously
+    syncToBackend(newTotalXP, newLevel);
+
     return {
       xpGained: xpAmount,
       baseXP: xpAmount,
@@ -550,20 +615,20 @@ if (leveledUp) {
       newLevel,
       leveledUp,
       unlockedRewards,
-      subscriptionMultiplier: 1, // Direct XP doesn't use multipliers
+      subscriptionMultiplier: 1,
     };
-  }, [xpState, calculateLevel, saveState]);
+  }, [xpState, calculateLevel, saveState, syncToBackend]);
 
-// Get progress percentage for current level
-const getLevelProgress = useCallback((): number => {
-  if (xpState.currentLevel >= MAX_LEVEL) return 100;
-  const currentLevelXP = calculateLevelRequirement(xpState.currentLevel);
-  const nextLevelXP = calculateLevelRequirement(xpState.currentLevel + 1);
-  const progressXP = xpState.currentXP - currentLevelXP;
-  const totalXPNeeded = Math.max(1, nextLevelXP - currentLevelXP);
+  // Get progress percentage for current level
+  const getLevelProgress = useCallback((): number => {
+    if (xpState.currentLevel >= MAX_LEVEL) return 100;
+    const currentLevelXP = calculateLevelRequirement(xpState.currentLevel);
+    const nextLevelXP = calculateLevelRequirement(xpState.currentLevel + 1);
+    const progressXP = xpState.currentXP - currentLevelXP;
+    const totalXPNeeded = Math.max(1, nextLevelXP - currentLevelXP);
 
-  return Math.min(100, (progressXP / totalXPNeeded) * 100);
-}, [xpState]);
+    return Math.min(100, (progressXP / totalXPNeeded) * 100);
+  }, [xpState]);
 
   // Switch biome
   const switchBiome = useCallback((biomeName: string) => {
@@ -577,8 +642,8 @@ const getLevelProgress = useCallback((): number => {
     const startingAnimals = getUnlockedAnimals(0).map(a => a.name);
     const resetState: XPSystemState = {
       currentXP: 0,
-      currentLevel: 0, // Start at level 0
-      xpToNextLevel: 15, // Level 1 requires 15 XP
+      currentLevel: 0,
+      xpToNextLevel: 15,
       totalXPForCurrentLevel: 0,
       unlockedAnimals: startingAnimals,
       currentBiome: 'Meadow',
@@ -597,5 +662,7 @@ const getLevelProgress = useCallback((): number => {
     resetProgress,
     calculateXPFromDuration,
     getSubscriptionMultiplier,
+    // For compatibility with old useBackendXPSystem consumers
+    isLoading: false,
   };
 };
