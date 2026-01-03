@@ -17,6 +17,7 @@ import {
   SettingsSectionSkeleton,
   AchievementGridSkeleton,
 } from "@/components/ui/skeleton-loaders";
+import { RewardModalErrorBoundary } from "@/components/FeatureErrorBoundary";
 
 // Lazy load heavy tab components for better initial load performance
 const UnifiedFocusTimer = lazy(() => import("@/components/UnifiedFocusTimer").then(m => ({ default: m.UnifiedFocusTimer })));
@@ -155,26 +156,32 @@ export const GameUI = () => {
         />
 
         {/* XP Reward Modal */}
-        <XPRewardModal
-          isOpen={showRewardModal}
-          onClose={dismissRewardModal}
-          reward={currentReward}
-          newLevel={currentLevel}
-          levelProgress={getLevelProgress()}
-        />
+        <RewardModalErrorBoundary>
+          <XPRewardModal
+            isOpen={showRewardModal}
+            onClose={dismissRewardModal}
+            reward={currentReward}
+            newLevel={currentLevel}
+            levelProgress={getLevelProgress()}
+          />
+        </RewardModalErrorBoundary>
 
         {/* Daily Login Reward Modal */}
-        <DailyLoginRewardModal
-          isOpen={dailyLoginRewards.showRewardModal}
-          onClaim={handleDailyRewardClaim}
-          onDismiss={dailyLoginRewards.dismissModal}
-          reward={dailyLoginRewards.pendingReward}
-          currentStreak={dailyLoginRewards.loginState.currentStreak}
-          allRewards={dailyLoginRewards.dailyRewards}
-        />
+        <RewardModalErrorBoundary>
+          <DailyLoginRewardModal
+            isOpen={dailyLoginRewards.showRewardModal}
+            onClaim={handleDailyRewardClaim}
+            onDismiss={dailyLoginRewards.dismissModal}
+            reward={dailyLoginRewards.pendingReward}
+            currentStreak={dailyLoginRewards.loginState.currentStreak}
+            allRewards={dailyLoginRewards.dailyRewards}
+          />
+        </RewardModalErrorBoundary>
 
         {/* Milestone Celebration */}
-        <MilestoneCelebration onClaimReward={handleMilestoneClaim} />
+        <RewardModalErrorBoundary>
+          <MilestoneCelebration onClaimReward={handleMilestoneClaim} />
+        </RewardModalErrorBoundary>
       </div>
     </AchievementTracker>
   );

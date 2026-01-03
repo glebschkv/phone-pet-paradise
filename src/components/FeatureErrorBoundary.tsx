@@ -172,3 +172,37 @@ export const StreaksErrorBoundary = ({ children }: { children: ReactNode }) => (
     {children}
   </FeatureErrorBoundary>
 );
+
+// Modal-specific error boundaries with compact fallback
+export const ModalErrorBoundary = ({ children, modalName }: { children: ReactNode; modalName: string }) => (
+  <FeatureErrorBoundary
+    featureName={modalName}
+    fallback={
+      <div className="p-4 text-center text-sm text-muted-foreground">
+        <AlertTriangle className="w-6 h-6 mx-auto mb-2 text-amber-500" />
+        <p>Unable to load {modalName.toLowerCase()}</p>
+      </div>
+    }
+    showRetry={false}
+  >
+    {children}
+  </FeatureErrorBoundary>
+);
+
+export const RewardModalErrorBoundary = ({ children }: { children: ReactNode }) => (
+  <ModalErrorBoundary modalName="Reward">
+    {children}
+  </ModalErrorBoundary>
+);
+
+export const PurchaseModalErrorBoundary = ({ children }: { children: ReactNode }) => (
+  <ModalErrorBoundary modalName="Purchase">
+    {children}
+  </ModalErrorBoundary>
+);
+
+export const PetDetailErrorBoundary = ({ children }: { children: ReactNode }) => (
+  <ModalErrorBoundary modalName="Pet Details">
+    {children}
+  </ModalErrorBoundary>
+);
