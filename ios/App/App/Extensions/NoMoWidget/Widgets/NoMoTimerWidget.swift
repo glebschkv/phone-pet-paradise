@@ -8,14 +8,14 @@ import WidgetKit
  * Shows remaining time and session type.
  */
 struct NoMoTimerWidget: Widget {
-    let kind = AppConfig.Widget.timerWidgetKind
+    let kind = "NoMoTimerWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: TimerProvider()) { entry in
             TimerWidgetView(entry: entry)
         }
-        .configurationDisplayName(Strings.Widget.timerTitle)
-        .description("Track your focus session progress")
+        .configurationDisplayName(WidgetStrings.timerTitle)
+        .description(NSLocalizedString("widget.timer_description", value: "Track your focus session progress", comment: ""))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -119,11 +119,11 @@ struct TimerWidgetView: View {
                         .font(.largeTitle)
                         .foregroundColor(WidgetColors.accent)
 
-                    Text(Strings.Widget.noSession)
+                    Text(WidgetStrings.noSession)
                         .font(.subheadline)
                         .foregroundColor(WidgetColors.secondary)
 
-                    Text("Tap to start")
+                    Text(WidgetStrings.tapToStart)
                         .font(.caption2)
                         .foregroundColor(WidgetColors.tertiary)
                 }

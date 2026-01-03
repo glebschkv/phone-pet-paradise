@@ -8,14 +8,14 @@ import WidgetKit
  * Shows level, XP, total focus time, and sessions.
  */
 struct NoMoStatsWidget: Widget {
-    let kind = AppConfig.Widget.statsWidgetKind
+    let kind = "NoMoStatsWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StatsProvider()) { entry in
             StatsWidgetView(entry: entry)
         }
-        .configurationDisplayName(Strings.Widget.statsTitle)
-        .description("View your overall focus statistics")
+        .configurationDisplayName(WidgetStrings.statsTitle)
+        .description(NSLocalizedString("widget.stats_description", value: "View your overall focus statistics", comment: ""))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -92,19 +92,16 @@ struct StatsWidgetView: View {
                 HStack {
                     Image(systemName: "star.circle.fill")
                         .foregroundColor(.yellow)
-                    Text("Level \(entry.level)")
+                    Text(WidgetStrings.level(entry.level))
                         .font(.headline)
                         .foregroundColor(.white)
                 }
 
                 // XP
                 HStack(spacing: 4) {
-                    Text("\(entry.totalXP)")
+                    Text(WidgetStrings.xp(entry.totalXP))
                         .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(WidgetColors.accent)
-                    Text("XP")
-                        .font(.caption)
-                        .foregroundColor(WidgetColors.secondary)
                 }
 
                 // Stats grid
@@ -112,13 +109,13 @@ struct StatsWidgetView: View {
                     StatItem(
                         icon: "clock.fill",
                         value: entry.formattedFocusTime,
-                        label: "focused"
+                        label: WidgetStrings.focused
                     )
 
                     StatItem(
                         icon: "checkmark.circle.fill",
                         value: "\(entry.totalSessions)",
-                        label: "sessions"
+                        label: WidgetStrings.sessions
                     )
                 }
             }

@@ -1,0 +1,26 @@
+/*
+  Localizable.strings (English)
+  NoMo Widget Extension
+
+  Localization for widget extension UI.
+*/
+
+// Widget Titles
+"widget.timer_title" = "Focus Timer";
+"widget.streak_title" = "Current Streak";
+"widget.progress_title" = "Daily Progress";
+"widget.stats_title" = "Focus Stats";
+
+// Widget Content
+"widget.no_session" = "No active session";
+"widget.tap_to_start" = "Tap to start";
+"widget.streak_days" = "%d days";
+"widget.minutes_remaining" = "%d min remaining";
+"widget.percent_complete" = "%d%% complete";
+"widget.sessions" = "sessions";
+"widget.focused" = "focused";
+"widget.record" = "Record!";
+
+// Stats
+"stats.level" = "Level %d";
+"stats.xp" = "%d XP";

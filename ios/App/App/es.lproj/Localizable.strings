@@ -1,0 +1,125 @@
+/*
+  Localizable.strings (Spanish)
+  NoMo Phone
+
+  Spanish localization for all user-facing strings.
+*/
+
+// MARK: - Shield Configuration
+
+"shield.title" = "¡Mantente enfocado!";
+"shield.return_button" = "Volver a NoMo";
+"shield.app_blocked" = "%@ está bloqueada";
+"shield.category_blocked" = "%@ está bloqueada durante tu sesión de enfoque";
+"shield.domain_blocked" = "%@ está bloqueado durante tu sesión de enfoque";
+"shield.web_category_blocked" = "La navegación web en %@ está bloqueada";
+
+// Shield Motivational Messages
+"shield.motivation.1" = "¡Tu mascota de enfoque cuenta contigo!";
+"shield.motivation.2" = "¡Mantente fuerte - tu yo futuro te lo agradecerá!";
+"shield.motivation.3" = "¡Cada minuto de enfoque te da recompensas!";
+"shield.motivation.4" = "¡Lo estás haciendo genial! ¡Sigue enfocado!";
+"shield.motivation.5" = "¡Las distracciones pueden esperar - tus metas no!";
+"shield.motivation.6" = "¡Enfócate ahora, navega después!";
+"shield.motivation.7" = "¡Tu racha depende de ti!";
+"shield.motivation.8" = "¡Ya casi! ¡No te rindas ahora!";
+"shield.motivation.9" = "¡Enfoque = XP = Subir de Nivel!";
+"shield.motivation.10" = "¡Tu mascota cree en ti!";
+
+// MARK: - Blocking
+
+"blocking.selection_saved" = "Selección de apps guardada";
+"blocking.no_apps" = "No hay apps configuradas para bloquear";
+"blocking.session_started" = "Sesión de enfoque iniciada";
+"blocking.session_ended" = "Sesión de enfoque terminada";
+
+// MARK: - Permissions
+
+"permissions.granted" = "concedido";
+"permissions.denied" = "denegado";
+"permissions.family_controls_required" = "Se requiere permiso de Controles Familiares";
+
+// MARK: - Widgets
+
+"widget.timer_title" = "Temporizador de Enfoque";
+"widget.streak_title" = "Racha Actual";
+"widget.progress_title" = "Progreso Diario";
+"widget.stats_title" = "Estadísticas de Enfoque";
+"widget.no_session" = "Sin sesión activa";
+"widget.focus_session" = "Sesión de Enfoque";
+"widget.streak_days" = "%d días";
+"widget.minutes_remaining" = "%d min restantes";
+"widget.percent_complete" = "%d%% completado";
+"widget.tap_to_start" = "Toca para iniciar";
+"widget.sessions" = "sesiones";
+"widget.focused" = "enfocado";
+"widget.record" = "¡Récord!";
+
+// MARK: - StoreKit
+
+"storekit.purchase_success" = "Compra exitosa";
+"storekit.purchase_cancelled" = "Usuario canceló la compra";
+"storekit.purchase_pending" = "Compra pendiente de aprobación";
+"storekit.restore_success" = "Compras restauradas exitosamente";
+
+// MARK: - Errors
+
+"error.missing_parameter" = "Falta el parámetro requerido: %@";
+"error.invalid_parameter" = "Parámetro inválido '%@': %@";
+"error.invalid_format" = "Formato inválido para '%@'. Esperado: %@";
+"error.permission_denied" = "Permiso de %@ denegado";
+"error.permission_not_determined" = "Permiso de %@ aún no solicitado";
+"error.permission_restricted" = "%@ está restringido en este dispositivo";
+"error.product_not_found" = "Producto no encontrado: %@";
+"error.purchase_failed" = "Compra fallida: %@";
+"error.purchase_cancelled" = "La compra fue cancelada";
+"error.purchase_pending" = "La compra está pendiente de aprobación";
+"error.transaction_verification_failed" = "Verificación de transacción fallida";
+"error.no_active_subscription" = "No se encontró suscripción activa";
+"error.monitoring_failed" = "Monitoreo fallido: %@";
+"error.selection_decoding_failed" = "Error al decodificar selección de apps";
+"error.activity_scheduling_failed" = "Programación de actividad fallida: %@";
+"error.blocking_not_configured" = "El bloqueo de apps no está configurado";
+"error.shield_application_failed" = "Error al aplicar el escudo: %@";
+"error.shared_container_unavailable" = "Contenedor compartido no disponible";
+"error.data_encoding_failed" = "Error al codificar datos";
+"error.data_decoding_failed" = "Error al decodificar datos";
+"error.window_scene_unavailable" = "Escena de ventana no disponible";
+"error.background_task_failed" = "Tarea en segundo plano fallida: %@";
+"error.network_error" = "Error de red: %@";
+"error.network_error_generic" = "Ocurrió un error de red";
+"error.unknown" = "Ocurrió un error: %@";
+
+// MARK: - General
+
+"general.success" = "Éxito";
+"general.error" = "Error";
+"general.cancel" = "Cancelar";
+"general.ok" = "OK";
+"general.done" = "Listo";
+"general.loading" = "Cargando...";
+"general.retry" = "Reintentar";
+
+// MARK: - Time Formatting
+
+"time.hours" = "%d horas";
+"time.minutes" = "%d minutos";
+"time.seconds" = "%d segundos";
+"time.hours_short" = "%dh";
+"time.minutes_short" = "%dm";
+"time.seconds_short" = "%ds";
+
+// MARK: - Stats
+
+"stats.level" = "Nivel %d";
+"stats.xp" = "%d XP";
+"stats.total_focus_time" = "Tiempo Total de Enfoque";
+"stats.total_sessions" = "Sesiones Totales";
+"stats.current_streak" = "Racha Actual";
+"stats.longest_streak" = "Racha Más Larga";
+
+// MARK: - Session Types
+
+"session.focus" = "Enfoque";
+"session.short_break" = "Descanso Corto";
+"session.long_break" = "Descanso Largo";

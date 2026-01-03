@@ -8,14 +8,14 @@ import WidgetKit
  * Shows streak count and motivational progress.
  */
 struct NoMoStreakWidget: Widget {
-    let kind = AppConfig.Widget.streakWidgetKind
+    let kind = "NoMoStreakWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StreakProvider()) { entry in
             StreakWidgetView(entry: entry)
         }
-        .configurationDisplayName(Strings.Widget.streakTitle)
-        .description("Track your daily focus streak")
+        .configurationDisplayName(WidgetStrings.streakTitle)
+        .description(NSLocalizedString("widget.streak_description", value: "Track your daily focus streak", comment: ""))
         .supportedFamilies([.systemSmall])
     }
 }
@@ -90,7 +90,7 @@ struct StreakWidgetView: View {
                     .font(.system(size: 40, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
 
-                Text(Strings.Widget.streakDays(entry.currentStreak))
+                Text(WidgetStrings.streakDays(entry.currentStreak))
                     .font(.caption)
                     .foregroundColor(WidgetColors.secondary)
 
@@ -99,7 +99,7 @@ struct StreakWidgetView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "star.fill")
                             .font(.caption2)
-                        Text("Record!")
+                        Text(WidgetStrings.record)
                             .font(.caption2)
                     }
                     .foregroundColor(.yellow)

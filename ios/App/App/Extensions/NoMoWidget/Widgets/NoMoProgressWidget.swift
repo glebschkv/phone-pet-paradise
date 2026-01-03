@@ -8,14 +8,14 @@ import WidgetKit
  * Shows completed sessions and time focused.
  */
 struct NoMoProgressWidget: Widget {
-    let kind = AppConfig.Widget.progressWidgetKind
+    let kind = "NoMoProgressWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: ProgressProvider()) { entry in
             ProgressWidgetView(entry: entry)
         }
-        .configurationDisplayName(Strings.Widget.progressTitle)
-        .description("Track your daily focus progress")
+        .configurationDisplayName(WidgetStrings.progressTitle)
+        .description(NSLocalizedString("widget.progress_description", value: "Track your daily focus progress", comment: ""))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -103,8 +103,8 @@ struct ProgressWidgetView: View {
                         .rotationEffect(.degrees(-90))
 
                     VStack(spacing: 2) {
-                        Text("\(entry.percentComplete)%")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                        Text(WidgetStrings.percentComplete(entry.percentComplete))
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
 
                         if entry.isGoalReached {
@@ -122,7 +122,7 @@ struct ProgressWidgetView: View {
                         .font(.caption)
                         .foregroundColor(WidgetColors.secondary)
 
-                    Text("\(entry.sessionsCompleted) sessions")
+                    Text("\(entry.sessionsCompleted) \(WidgetStrings.sessions)")
                         .font(.caption2)
                         .foregroundColor(WidgetColors.tertiary)
                 }
