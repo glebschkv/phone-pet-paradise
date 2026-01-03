@@ -6,11 +6,13 @@ import StoreKit
  * StoreKitPlugin
  *
  * Capacitor plugin for StoreKit 2 in-app purchases.
- * Handles subscriptions, consumables, and non-consumables.
- * Includes retry logic for network operations.
+ * Thin coordinator that delegates to focused managers.
  */
 @objc(StoreKitPlugin)
 public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
+
+    // MARK: - Plugin Configuration
+
     public let identifier = "StoreKitPlugin"
     public let jsName = "StoreKit"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -22,82 +24,55 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "manageSubscriptions", returnType: CAPPluginReturnPromise)
     ]
 
-    private var products: [String: Product] = [:]
-    private var updateListenerTask: Task<Void, Error>?
+    // MARK: - Dependencies
+
+    private let productManager: StoreKitProductManager
+    private let transactionManager: StoreKitTransactionManager
+    private let purchaseService: StoreKitPurchaseService
+
+    // MARK: - Initialization
+
+    public override init() {
+        self.productManager = .shared
+        self.transactionManager = .shared
+        self.purchaseService = .shared
+        super.init()
+    }
 
     public override func load() {
-        // Start listening for transaction updates
-        updateListenerTask = listenForTransactions()
+        Log.storeKit.info("StoreKitPlugin loading")
+        setupTransactionHandler()
+        transactionManager.startListening()
     }
 
     deinit {
-        updateListenerTask?.cancel()
+        transactionManager.stopListening()
     }
 
-    // MARK: - Transaction Listener
+    // MARK: - Transaction Handler Setup
 
-    private func listenForTransactions() -> Task<Void, Error> {
-        return Task.detached { [weak self] in
-            for await result in Transaction.updates {
-                do {
-                    let transaction = try self?.checkVerified(result)
-                    if let transaction = transaction {
-                        await transaction.finish()
-                        self?.notifyListeners("transactionUpdated", data: [
-                            "productId": transaction.productID,
-                            "transactionId": String(transaction.id),
-                            "purchaseDate": transaction.purchaseDate.timeIntervalSince1970
-                        ])
-                    }
-                } catch {
-                    print("[StoreKitPlugin] Transaction verification failed: \(error)")
-                }
-            }
+    private func setupTransactionHandler() {
+        transactionManager.setTransactionHandler { [weak self] data in
+            self?.notifyListeners("transactionUpdated", data: data)
         }
     }
 
-    // MARK: - Get Products (with retry)
+    // MARK: - Get Products
 
     @objc func getProducts(_ call: CAPPluginCall) {
-        guard let productIds = call.getArray("productIds", String.self) else {
-            call.reject("Missing productIds parameter")
+        guard let productIds = call.getArray("productIds", String.self), !productIds.isEmpty else {
+            call.reject("Missing or empty productIds parameter", "STOREKIT_INVALID_PARAMS")
             return
         }
 
         Task {
             do {
-                // Use retry logic for network operation
-                let storeProducts = try await withRetry {
-                    try await Product.products(for: Set(productIds))
-                }
-
-                var productsData: [[String: Any]] = []
-                for product in storeProducts {
-                    self.products[product.id] = product
-
-                    var productData: [String: Any] = [
-                        "id": product.id,
-                        "displayName": product.displayName,
-                        "description": product.description,
-                        "price": product.price.description,
-                        "displayPrice": product.displayPrice,
-                        "type": self.productTypeString(product.type)
-                    ]
-
-                    // Add subscription info if applicable
-                    if let subscription = product.subscription {
-                        productData["subscriptionPeriod"] = [
-                            "unit": self.periodUnitString(subscription.subscriptionPeriod.unit),
-                            "value": subscription.subscriptionPeriod.value
-                        ]
-                    }
-
-                    productsData.append(productData)
-                }
-
+                let products = try await productManager.fetchProducts(productIds: productIds)
+                let productsData = products.map { productManager.productToDictionary($0) }
                 call.resolve(["products": productsData])
             } catch {
-                call.reject("Failed to fetch products: \(error.localizedDescription)")
+                Log.storeKit.failure("getProducts failed", error: error)
+                call.reject("Failed to fetch products: \(error.localizedDescription)", errorCode(from: error))
             }
         }
     }
@@ -105,190 +80,68 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
     // MARK: - Purchase
 
     @objc func purchase(_ call: CAPPluginCall) {
-        guard let productId = call.getString("productId") else {
-            call.reject("Missing productId parameter")
+        guard let productId = call.getString("productId"), !productId.isEmpty else {
+            call.reject("Missing productId parameter", "STOREKIT_INVALID_PARAMS")
             return
         }
 
         Task {
             do {
-                // Get product if not cached (with retry)
-                var product = self.products[productId]
-                if product == nil {
-                    let products = try await withRetry {
-                        try await Product.products(for: [productId])
-                    }
-                    product = products.first
-                    if let p = product {
-                        self.products[productId] = p
-                    }
-                }
-
-                guard let product = product else {
-                    call.reject("Product not found: \(productId)")
-                    return
-                }
-
-                let result = try await product.purchase()
+                let result = try await purchaseService.purchase(productId: productId)
 
                 switch result {
-                case .success(let verification):
-                    let transaction = try self.checkVerified(verification)
+                case .success(let success):
+                    call.resolve(success.asDictionary)
 
-                    // Get the JWS representation for server-side validation
-                    let jwsRepresentation = verification.jwsRepresentation
-
-                    // Finish the transaction
-                    await transaction.finish()
-
-                    // Determine environment (sandbox vs production)
-                    let environment = self.getEnvironmentString(transaction)
-
-                    call.resolve([
-                        "success": true,
-                        "transactionId": String(transaction.id),
-                        "originalTransactionId": String(transaction.originalID),
-                        "productId": transaction.productID,
-                        "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
-                        "expirationDate": transaction.expirationDate?.timeIntervalSince1970 as Any,
-                        "signedTransaction": jwsRepresentation,
-                        "environment": environment,
-                        "storefrontCountryCode": transaction.storefrontCountryCode
-                    ])
-
-                case .userCancelled:
+                case .cancelled:
                     call.resolve([
                         "success": false,
                         "cancelled": true,
-                        "message": "User cancelled the purchase"
+                        "message": Strings.StoreKit.purchaseCancelled
                     ])
 
                 case .pending:
                     call.resolve([
                         "success": false,
                         "pending": true,
-                        "message": "Purchase is pending approval"
+                        "message": Strings.StoreKit.purchasePending
                     ])
-
-                @unknown default:
-                    call.reject("Unknown purchase result")
                 }
             } catch {
-                call.reject("Purchase failed: \(error.localizedDescription)")
+                Log.storeKit.failure("purchase failed", error: error)
+                call.reject("Purchase failed: \(error.localizedDescription)", errorCode(from: error))
             }
         }
     }
 
-    // MARK: - Restore Purchases (with retry)
+    // MARK: - Restore Purchases
 
     @objc func restorePurchases(_ call: CAPPluginCall) {
         Task {
             do {
-                // Retry AppStore sync for network resilience
-                try await withRetry {
-                    try await AppStore.sync()
-                }
-
-                var restoredPurchases: [[String: Any]] = []
-
-                // Get all current entitlements
-                for await result in Transaction.currentEntitlements {
-                    do {
-                        let transaction = try self.checkVerified(result)
-                        let jwsRepresentation = result.jwsRepresentation
-                        let environment = self.getEnvironmentString(transaction)
-
-                        restoredPurchases.append([
-                            "productId": transaction.productID,
-                            "transactionId": String(transaction.id),
-                            "originalTransactionId": String(transaction.originalID),
-                            "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
-                            "expirationDate": transaction.expirationDate?.timeIntervalSince1970 as Any,
-                            "signedTransaction": jwsRepresentation,
-                            "environment": environment
-                        ])
-                    } catch {
-                        print("[StoreKitPlugin] Failed to verify transaction: \(error)")
-                    }
-                }
-
-                call.resolve([
-                    "success": true,
-                    "restoredCount": restoredPurchases.count,
-                    "purchases": restoredPurchases
-                ])
+                let result = try await purchaseService.restorePurchases()
+                call.resolve(result.asDictionary)
             } catch {
-                call.reject("Failed to restore purchases: \(error.localizedDescription)")
+                Log.storeKit.failure("restorePurchases failed", error: error)
+                call.reject("Failed to restore purchases: \(error.localizedDescription)", errorCode(from: error))
             }
         }
     }
 
-    // MARK: - Get Subscription Status
+    // MARK: - Subscription Status
 
     @objc func getSubscriptionStatus(_ call: CAPPluginCall) {
         Task {
-            var activeSubscriptions: [[String: Any]] = []
-            var purchasedProducts: [[String: Any]] = []
-
-            // Check all current entitlements
-            for await result in Transaction.currentEntitlements {
-                do {
-                    let transaction = try self.checkVerified(result)
-                    let jwsRepresentation = result.jwsRepresentation
-                    let environment = self.getEnvironmentString(transaction)
-
-                    let purchaseInfo: [String: Any] = [
-                        "productId": transaction.productID,
-                        "transactionId": String(transaction.id),
-                        "originalTransactionId": String(transaction.originalID),
-                        "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
-                        "expirationDate": transaction.expirationDate?.timeIntervalSince1970 as Any,
-                        "isUpgraded": transaction.isUpgraded,
-                        "signedTransaction": jwsRepresentation,
-                        "environment": environment
-                    ]
-
-                    if transaction.expirationDate != nil {
-                        // This is a subscription
-                        activeSubscriptions.append(purchaseInfo)
-                    } else {
-                        // This is a non-consumable or lifetime purchase
-                        purchasedProducts.append(purchaseInfo)
-                    }
-                } catch {
-                    print("[StoreKitPlugin] Failed to verify entitlement: \(error)")
-                }
-            }
-
-            call.resolve([
-                "hasActiveSubscription": !activeSubscriptions.isEmpty || !purchasedProducts.isEmpty,
-                "activeSubscriptions": activeSubscriptions,
-                "purchasedProducts": purchasedProducts
-            ])
+            let status = await purchaseService.getSubscriptionStatus()
+            call.resolve(status.asDictionary)
         }
     }
 
-    // MARK: - Get Purchase History
+    // MARK: - Purchase History
 
     @objc func getPurchaseHistory(_ call: CAPPluginCall) {
         Task {
-            var history: [[String: Any]] = []
-
-            for await result in Transaction.all {
-                do {
-                    let transaction = try self.checkVerified(result)
-                    history.append([
-                        "productId": transaction.productID,
-                        "transactionId": String(transaction.id),
-                        "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
-                        "expirationDate": transaction.expirationDate?.timeIntervalSince1970 as Any,
-                        "revocationDate": transaction.revocationDate?.timeIntervalSince1970 as Any
-                    ])
-                } catch {
-                    print("[StoreKitPlugin] Failed to verify history transaction: \(error)")
-                }
-            }
-
+            let history = await purchaseService.getPurchaseHistory()
             call.resolve(["history": history])
         }
     }
@@ -297,101 +150,40 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func manageSubscriptions(_ call: CAPPluginCall) {
         Task { @MainActor in
-            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-                call.reject("Could not get window scene")
-                return
-            }
-
             do {
-                try await AppStore.showManageSubscriptions(in: windowScene)
+                try await purchaseService.showManageSubscriptions()
                 call.resolve(["success": true])
             } catch {
-                call.reject("Failed to show subscription management: \(error.localizedDescription)")
+                Log.storeKit.failure("manageSubscriptions failed", error: error)
+                call.reject("Failed to show subscription management: \(error.localizedDescription)", errorCode(from: error))
             }
         }
     }
 
-    // MARK: - Helper Methods
+    // MARK: - Error Handling
 
-    private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
-        switch result {
-        case .unverified:
-            throw StoreKitPluginError.failedVerification
-        case .verified(let safe):
-            return safe
+    private func errorCode(from error: Error) -> String {
+        if let storeKitError = error as? StoreKitError {
+            return storeKitError.errorCode
         }
-    }
-
-    private func productTypeString(_ type: Product.ProductType) -> String {
-        switch type {
-        case .consumable:
-            return "consumable"
-        case .nonConsumable:
-            return "nonConsumable"
-        case .autoRenewable:
-            return "autoRenewable"
-        case .nonRenewable:
-            return "nonRenewable"
-        @unknown default:
-            return "unknown"
-        }
-    }
-
-    private func periodUnitString(_ unit: Product.SubscriptionPeriod.Unit) -> String {
-        switch unit {
-        case .day:
-            return "day"
-        case .week:
-            return "week"
-        case .month:
-            return "month"
-        case .year:
-            return "year"
-        @unknown default:
-            return "unknown"
-        }
-    }
-
-    private func getEnvironmentString(_ transaction: Transaction) -> String {
-        if #available(iOS 16.0, *) {
-            switch transaction.environment {
-            case .sandbox:
-                return "sandbox"
-            case .production:
-                return "production"
-            case .xcode:
-                return "sandbox"
-            @unknown default:
-                return "production"
-            }
-        } else {
-            if let receiptURL = Bundle.main.appStoreReceiptURL,
-               receiptURL.lastPathComponent == "sandboxReceipt" {
-                return "sandbox"
-            }
-            return "production"
-        }
+        return "STOREKIT_UNKNOWN"
     }
 }
 
-// MARK: - Errors
+// MARK: - Strings Extension
 
-enum StoreKitPluginError: Error, LocalizedError {
-    case failedVerification
-    case productNotFound
-    case purchaseFailed
-    case networkError
+extension Strings {
+    enum StoreKit {
+        static var purchaseCancelled: String {
+            NSLocalizedString("storekit.purchase_cancelled",
+                             value: "User cancelled the purchase",
+                             comment: "Message when user cancels a purchase")
+        }
 
-    var errorDescription: String? {
-        switch self {
-        case .failedVerification:
-            return "Transaction verification failed"
-        case .productNotFound:
-            return "Product not found"
-        case .purchaseFailed:
-            return "Purchase failed"
-        case .networkError:
-            return "Network error occurred"
+        static var purchasePending: String {
+            NSLocalizedString("storekit.purchase_pending",
+                             value: "Purchase is pending approval",
+                             comment: "Message when purchase requires approval")
         }
     }
 }

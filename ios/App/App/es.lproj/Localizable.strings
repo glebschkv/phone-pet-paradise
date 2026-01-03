@@ -61,6 +61,7 @@
 "storekit.purchase_cancelled" = "Usuario canceló la compra";
 "storekit.purchase_pending" = "Compra pendiente de aprobación";
 "storekit.restore_success" = "Compras restauradas exitosamente";
+"storekit.transaction_verification_failed" = "Verificación de transacción fallida";
 
 // MARK: - Errors
 
