@@ -1,8 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { AnimalData, getAnimalById, getUnlockedAnimals, getAnimalsByBiome, ANIMAL_DATABASE, getXPUnlockableAnimals } from '@/data/AnimalDatabase';
-import { useBackendXPSystem } from '@/hooks/useBackendXPSystem';
 import { useXPSystem } from '@/hooks/useXPSystem';
-import { useAuth } from '@/hooks/useAuth';
 import { useCollectionStore, useShopStore } from '@/stores';
 
 interface CollectionStats {
@@ -41,20 +39,9 @@ interface UseCollectionReturn {
 }
 
 export const useCollection = (): UseCollectionReturn => {
-  // Get both XP systems
-  const { isAuthenticated } = useAuth();
-  const backendXPSystem = useBackendXPSystem();
-  const localXPSystem = useXPSystem();
-
-  // Use the HIGHER level between local and backend to prevent progress appearing to regress
-  const backendLevel = backendXPSystem.currentLevel;
-  const localLevel = localXPSystem.currentLevel;
-  const currentLevel = Math.max(backendLevel, localLevel);
-
-  // For other properties, prefer backend when authenticated and loaded, otherwise local
-  const backendIsLoading = 'isLoading' in backendXPSystem && backendXPSystem.isLoading;
-  const xpSystem = (isAuthenticated && !backendIsLoading) ? backendXPSystem : localXPSystem;
-  const { unlockedAnimals, currentBiome, availableBiomes } = xpSystem;
+  // Use the unified XP system - it handles local/backend sync internally
+  const xpSystem = useXPSystem();
+  const { currentLevel, unlockedAnimals, currentBiome, availableBiomes } = xpSystem;
 
   // Use Zustand stores instead of local state + events
   const favoritesArray = useCollectionStore((state) => state.favorites);
