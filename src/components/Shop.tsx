@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Coins,
-  ShoppingBag,
-  Zap,
-  Clock,
-} from "lucide-react";
+import { Coins, ShoppingBag, Zap, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
@@ -15,20 +10,16 @@ import {
   SHOP_CATEGORIES,
   ShopItem,
   BackgroundBundle,
-  PET_BUNDLES,
   PetBundle,
 } from "@/data/ShopData";
-import { getCoinExclusiveAnimals, AnimalData, getAnimalById } from "@/data/AnimalDatabase";
+import { AnimalData } from "@/data/AnimalDatabase";
 import { PremiumSubscription } from "@/components/PremiumSubscription";
 import { toast } from "sonner";
 import { FeaturedTab } from "@/components/shop/tabs/FeaturedTab";
 import { PetsTab } from "@/components/shop/tabs/PetsTab";
 import { PowerUpsTab } from "@/components/shop/tabs/PowerUpsTab";
+import { BundlesTab } from "@/components/shop/tabs/BundlesTab";
 import { PurchaseConfirmDialog } from "@/components/shop/PurchaseConfirmDialog";
-import { SpritePreview, BundlePreviewCarousel } from "@/components/shop/ShopPreviewComponents";
-import { RARITY_COLORS, RARITY_BG, RARITY_BORDER, RARITY_GLOW } from "@/components/shop/styles";
-import { Check, Star } from "lucide-react";
-import { BACKGROUND_BUNDLES } from "@/data/ShopData";
 
 export const Shop = () => {
   const [activeCategory, setActiveCategory] = useState<ShopCategory>("featured");
@@ -85,199 +76,6 @@ export const Shop = () => {
     }
   };
 
-  const getRarityStars = (rarity: string) => {
-    const count = rarity === 'common' ? 1 : rarity === 'rare' ? 2 : rarity === 'epic' ? 3 : 4;
-    return [...Array(count)].map((_, i) => (
-      <Star
-        key={i}
-        className={cn(
-          "w-3 h-3",
-          rarity === 'legendary' ? "text-amber-400 fill-amber-400 animate-pulse" : "text-amber-400 fill-amber-400"
-        )}
-      />
-    ));
-  };
-
-
-  // Bundles tab - Pet Bundles + Background Bundles
-  const renderBundles = () => {
-    return (
-      <div className="space-y-4">
-        {/* Pet Bundles */}
-        <div>
-          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <span>🐾</span> Pet Bundles
-          </h4>
-          <div className="space-y-2">
-            {PET_BUNDLES.map((bundle) => {
-              // Check if user owns all pets in bundle
-              const ownedPets = bundle.petIds.filter(id => inventory.ownedCharacters.includes(id));
-              const allOwned = ownedPets.length === bundle.petIds.length;
-              const partialOwned = ownedPets.length > 0 && ownedPets.length < bundle.petIds.length;
-              const affordable = canAfford(bundle.coinPrice || 0);
-
-              // Get preview animals for the bundle
-              const previewAnimals = bundle.petIds.slice(0, 3).map(id => getAnimalById(id)).filter(Boolean) as AnimalData[];
-
-              return (
-                <button
-                  key={bundle.id}
-                  onClick={() => {
-                    if (!allOwned) {
-                      setSelectedItem(bundle as unknown as ShopItem);
-                      setShowPurchaseConfirm(true);
-                    } else {
-                      toast.info("You already own all pets in this bundle!");
-                    }
-                  }}
-                  className={cn(
-                    "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden",
-                    allOwned
-                      ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                      : partialOwned
-                      ? "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700"
-                      : RARITY_BG[bundle.rarity || 'common'],
-                    !allOwned && RARITY_BORDER[bundle.rarity || 'common']
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    {/* Bundle preview - show sprites */}
-                    <div className="flex-shrink-0 w-20 h-16 rounded-lg bg-white/50 dark:bg-black/20 flex items-center justify-center overflow-hidden">
-                      {previewAnimals.length > 0 && previewAnimals[0]?.spriteConfig ? (
-                        <SpritePreview
-                          animal={previewAnimals[0]}
-                          scale={Math.min(1.2, 56 / Math.max(previewAnimals[0].spriteConfig.frameWidth, previewAnimals[0].spriteConfig.frameHeight))}
-                        />
-                      ) : (
-                        <span className="text-3xl">{bundle.icon}</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm">{bundle.name}</span>
-                        {allOwned ? (
-                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center gap-1">
-                            <Check className="w-2.5 h-2.5" /> OWNED
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
-                            SAVE {bundle.savings}
-                          </span>
-                        )}
-                        <span className={cn(
-                          "px-1.5 py-0.5 text-[8px] font-bold rounded capitalize",
-                          bundle.rarity === 'legendary' ? "bg-amber-200 text-amber-800" :
-                          bundle.rarity === 'epic' ? "bg-purple-200 text-purple-800" :
-                          bundle.rarity === 'rare' ? "bg-blue-200 text-blue-800" : "bg-gray-200 text-gray-800"
-                        )}>
-                          {bundle.rarity}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                        {bundle.description}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <span className="text-[10px] text-muted-foreground">
-                          {bundle.petIds.length} pets
-                        </span>
-                        {partialOwned && (
-                          <span className="text-[10px] text-amber-600 dark:text-amber-400">
-                            ({ownedPets.length}/{bundle.petIds.length} owned)
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] text-muted-foreground line-through">
-                          {bundle.totalValue.toLocaleString()}
-                        </span>
-                        {!allOwned && (
-                          <div className={cn(
-                            "flex items-center gap-1 text-xs font-bold",
-                            affordable ? "text-amber-600" : "text-red-500"
-                          )}>
-                            <Coins className="w-3 h-3" />
-                            {bundle.coinPrice?.toLocaleString()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Background Bundles */}
-        <div>
-          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <span>🖼️</span> Background Bundles
-          </h4>
-          <div className="space-y-2">
-            {BACKGROUND_BUNDLES.map((bundle) => {
-              const owned = isBundleOwned(bundle.id);
-              const affordable = canAfford(bundle.coinPrice || 0);
-              return (
-                <button
-                  key={bundle.id}
-                  onClick={() => {
-                    if (!owned) {
-                      setSelectedItem(bundle);
-                      setShowPurchaseConfirm(true);
-                    }
-                  }}
-                  className={cn(
-                    "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden",
-                    owned
-                      ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                      : "bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border-sky-200 dark:border-sky-700"
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-20">
-                      <BundlePreviewCarousel images={bundle.previewImages} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm">{bundle.name}</span>
-                        {owned ? (
-                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center gap-1">
-                            <Check className="w-2.5 h-2.5" /> OWNED
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
-                            SAVE {bundle.savings}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                        {bundle.description}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] text-muted-foreground line-through">
-                          {bundle.totalValue.toLocaleString()}
-                        </span>
-                        {!owned && (
-                          <div className={cn(
-                            "flex items-center gap-1 text-xs font-bold",
-                            affordable ? "text-amber-600" : "text-red-500"
-                          )}>
-                            <Coins className="w-3 h-3" />
-                            {bundle.coinPrice?.toLocaleString()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const renderContent = () => {
     switch (activeCategory) {
       case 'featured':
@@ -310,7 +108,15 @@ export const Shop = () => {
           />
         );
       case 'bundles':
-        return renderBundles();
+        return (
+          <BundlesTab
+            inventory={inventory}
+            isBundleOwned={isBundleOwned}
+            setSelectedItem={setSelectedItem}
+            setShowPurchaseConfirm={setShowPurchaseConfirm}
+            canAfford={canAfford}
+          />
+        );
       case 'powerups':
         return (
           <PowerUpsTab
