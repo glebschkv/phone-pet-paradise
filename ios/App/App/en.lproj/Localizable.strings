@@ -1,0 +1,127 @@
+/*
+  Localizable.strings (English)
+  NoMo Phone
+
+  Base English localization for all user-facing strings.
+  Generated from Strings.swift - keep in sync.
+*/
+
+// MARK: - Shield Configuration
+
+"shield.title" = "Stay Focused!";
+"shield.return_button" = "Return to NoMo";
+"shield.app_blocked" = "%@ is blocked";
+"shield.category_blocked" = "%@ is blocked during your focus session";
+"shield.domain_blocked" = "%@ is blocked during your focus session";
+"shield.web_category_blocked" = "Web browsing in %@ is blocked";
+
+// Shield Motivational Messages
+"shield.motivation.1" = "Your focus pet is counting on you!";
+"shield.motivation.2" = "Stay strong - your future self will thank you!";
+"shield.motivation.3" = "Every minute of focus earns you rewards!";
+"shield.motivation.4" = "You're doing great! Keep focusing!";
+"shield.motivation.5" = "Distractions can wait - your goals can't!";
+"shield.motivation.6" = "Focus now, scroll later!";
+"shield.motivation.7" = "Your streak depends on you!";
+"shield.motivation.8" = "Almost there! Don't give up now!";
+"shield.motivation.9" = "Focus = XP = Level Up!";
+"shield.motivation.10" = "Your pet believes in you!";
+
+// MARK: - Blocking
+
+"blocking.selection_saved" = "App selection saved";
+"blocking.no_apps" = "No apps configured for blocking";
+"blocking.session_started" = "Focus session started";
+"blocking.session_ended" = "Focus session ended";
+
+// MARK: - Permissions
+
+"permissions.granted" = "granted";
+"permissions.denied" = "denied";
+"permissions.family_controls_required" = "Family Controls permission is required";
+
+// MARK: - Widgets
+
+"widget.timer_title" = "Focus Timer";
+"widget.streak_title" = "Current Streak";
+"widget.progress_title" = "Daily Progress";
+"widget.stats_title" = "Focus Stats";
+"widget.no_session" = "No active session";
+"widget.focus_session" = "Focus Session";
+"widget.streak_days" = "%d days";
+"widget.minutes_remaining" = "%d min remaining";
+"widget.percent_complete" = "%d%% complete";
+"widget.tap_to_start" = "Tap to start";
+"widget.sessions" = "sessions";
+"widget.focused" = "focused";
+"widget.record" = "Record!";
+
+// MARK: - StoreKit
+
+"storekit.purchase_success" = "Purchase successful";
+"storekit.purchase_cancelled" = "User cancelled the purchase";
+"storekit.purchase_pending" = "Purchase is pending approval";
+"storekit.restore_success" = "Purchases restored successfully";
+"storekit.transaction_verification_failed" = "Transaction verification failed";
+
+// MARK: - Errors
+
+"error.missing_parameter" = "Missing required parameter: %@";
+"error.invalid_parameter" = "Invalid parameter '%@': %@";
+"error.invalid_format" = "Invalid format for '%@'. Expected: %@";
+"error.permission_denied" = "%@ permission denied";
+"error.permission_not_determined" = "%@ permission not yet requested";
+"error.permission_restricted" = "%@ is restricted on this device";
+"error.product_not_found" = "Product not found: %@";
+"error.purchase_failed" = "Purchase failed: %@";
+"error.purchase_cancelled" = "Purchase was cancelled";
+"error.purchase_pending" = "Purchase is pending approval";
+"error.transaction_verification_failed" = "Transaction verification failed";
+"error.no_active_subscription" = "No active subscription found";
+"error.monitoring_failed" = "Monitoring failed: %@";
+"error.selection_decoding_failed" = "Failed to decode app selection";
+"error.activity_scheduling_failed" = "Activity scheduling failed: %@";
+"error.blocking_not_configured" = "App blocking is not configured";
+"error.shield_application_failed" = "Failed to apply shield: %@";
+"error.shared_container_unavailable" = "Shared container is unavailable";
+"error.data_encoding_failed" = "Failed to encode data";
+"error.data_decoding_failed" = "Failed to decode data";
+"error.window_scene_unavailable" = "Window scene is unavailable";
+"error.background_task_failed" = "Background task failed: %@";
+"error.network_error" = "Network error: %@";
+"error.network_error_generic" = "A network error occurred";
+"error.unknown" = "An error occurred: %@";
+
+// MARK: - General
+
+"general.success" = "Success";
+"general.error" = "Error";
+"general.cancel" = "Cancel";
+"general.ok" = "OK";
+"general.done" = "Done";
+"general.loading" = "Loading...";
+"general.retry" = "Retry";
+
+// MARK: - Time Formatting
+
+"time.hours" = "%d hours";
+"time.minutes" = "%d minutes";
+"time.seconds" = "%d seconds";
+"time.hours_short" = "%dh";
+"time.minutes_short" = "%dm";
+"time.seconds_short" = "%ds";
+
+// MARK: - Stats
+
+"stats.level" = "Level %d";
+"stats.xp" = "%d XP";
+"stats.total_focus_time" = "Total Focus Time";
+"stats.total_sessions" = "Total Sessions";
+"stats.current_streak" = "Current Streak";
+"stats.longest_streak" = "Longest Streak";
+
+// MARK: - Session Types
+
+"session.focus" = "Focus";
+"session.short_break" = "Short Break";
+"session.long_break" = "Long Break";
