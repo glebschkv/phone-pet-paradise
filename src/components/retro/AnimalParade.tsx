@@ -5,9 +5,10 @@ import { useAnimalPositionRegistry } from './useAnimalPositions';
 
 interface AnimalParadeProps {
   unlockedAnimals: AnimalData[];
+  groundLevel?: number; // Percentage from bottom where characters walk
 }
 
-export const AnimalParade = memo(({ unlockedAnimals }: AnimalParadeProps) => {
+export const AnimalParade = memo(({ unlockedAnimals, groundLevel = 8 }: AnimalParadeProps) => {
   // Create shared position registry for collision-aware spacing
   const positionRegistry = useAnimalPositionRegistry();
 
@@ -42,6 +43,7 @@ export const AnimalParade = memo(({ unlockedAnimals }: AnimalParadeProps) => {
           position={position}
           speed={speed}
           positionRegistry={positionRegistry}
+          groundLevel={groundLevel}
         />
       ))}
     </div>

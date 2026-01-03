@@ -30,6 +30,7 @@ export interface BiomeData {
   description: string;
   animals: string[];
   backgroundImage?: string;
+  groundLevel?: number; // Percentage from bottom where characters should walk (default: 8)
 }
 
 // Complete animal database with new chibi pixel art characters
@@ -694,49 +695,56 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 0,
     description: 'A peaceful meadow where your journey begins. Home to friendly creatures.',
     animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood', 'bear-hood'],
-    backgroundImage: '/assets/worlds/GRASSYPATH.png'
+    backgroundImage: '/assets/worlds/GRASSYPATH.png',
+    groundLevel: 10
   },
   {
     name: 'Sunset',
     unlockLevel: 5,
     description: 'Golden fields bathed in warm sunset light.',
     animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood'],
-    backgroundImage: '/assets/worlds/WINDMILL.png'
+    backgroundImage: '/assets/worlds/WINDMILL.png',
+    groundLevel: 8
   },
   {
     name: 'Night',
     unlockLevel: 9,
     description: 'A mystical realm under the stars where nocturnal creatures thrive.',
     animals: ['luna-moth', 'star-jelly', 'shadow-cat', 'cute-ghost', 'kitsune-spirit'],
-    backgroundImage: '/assets/worlds/PURPLE_NIGHTSKY.png'
+    backgroundImage: '/assets/worlds/PURPLE_NIGHTSKY.png',
+    groundLevel: 0
   },
   {
     name: 'Forest',
     unlockLevel: 13,
     description: 'An enchanted forest where elemental spirits dwell.',
     animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid'],
-    backgroundImage: '/assets/worlds/JUNGLE_ISLAND.png'
+    backgroundImage: '/assets/worlds/JUNGLE_ISLAND.png',
+    groundLevel: 15
   },
   {
     name: 'Snow',
     unlockLevel: 19,
     description: 'A winter wonderland of magical costume characters.',
     animals: ['star-wizard', 'mushroom-kid', 'bunny-hood', 'cat-hood'],
-    backgroundImage: '/assets/worlds/SKYPLATFORM_WORLD.png'
+    backgroundImage: '/assets/worlds/SKYPLATFORM_WORLD.png',
+    groundLevel: 12
   },
   {
     name: 'City',
     unlockLevel: 24,
     description: 'A bustling city where unique characters gather.',
     animals: ['flower-fairy', 'penguin-kid', 'pirate-kid', 'robot-buddy'],
-    backgroundImage: '/assets/worlds/CITYFORPEOPLE.png'
+    backgroundImage: '/assets/worlds/CITYFORPEOPLE.png',
+    groundLevel: 5
   },
   {
     name: 'Ruins',
     unlockLevel: 29,
     description: 'Ancient ruins holding powerful warriors.',
     animals: ['dragon-knight'],
-    backgroundImage: '/assets/worlds/RUINS.png'
+    backgroundImage: '/assets/worlds/RUINS.png',
+    groundLevel: 5
   }
 ];
 
@@ -774,6 +782,37 @@ export const getCoinExclusiveAnimals = getShopExclusiveAnimals;
 
 export const getBiomeByName = (name: string): BiomeData | undefined => {
   return BIOME_DATABASE.find(biome => biome.name === name);
+};
+
+// Theme name to biome name mapping
+const THEME_TO_BIOME: Record<string, string> = {
+  'day': 'Meadow',
+  'sunset': 'Sunset',
+  'night': 'Night',
+  'forest': 'Forest',
+  'snow': 'Snow',
+  'city': 'City',
+  'ruins': 'Ruins',
+};
+
+// Get ground level percentage based on background theme or image path
+export const getGroundLevelForTheme = (theme: string): number => {
+  const DEFAULT_GROUND_LEVEL = 8;
+
+  // If theme is an image path, find the biome that uses it
+  if (theme.startsWith('/') || theme.startsWith('http')) {
+    const biome = BIOME_DATABASE.find(b => b.backgroundImage === theme);
+    return biome?.groundLevel ?? DEFAULT_GROUND_LEVEL;
+  }
+
+  // Map theme name to biome and get groundLevel
+  const biomeName = THEME_TO_BIOME[theme];
+  if (biomeName) {
+    const biome = getBiomeByName(biomeName);
+    return biome?.groundLevel ?? DEFAULT_GROUND_LEVEL;
+  }
+
+  return DEFAULT_GROUND_LEVEL;
 };
 
 export const getUnlockedBiomes = (level: number): BiomeData[] => {
