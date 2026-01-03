@@ -289,4 +289,164 @@ enum Strings {
             localized("session.long_break", comment: "Long break session type")
         }
     }
+
+    // MARK: - Accessibility
+
+    /// Accessibility strings for VoiceOver and assistive technologies
+    /// These provide comprehensive descriptions for all UI elements
+    enum Accessibility {
+
+        // MARK: - Icon Descriptions
+
+        enum Icons {
+            static var timer: String { localized("a11y.icon.timer") }
+            static var moon: String { localized("a11y.icon.moon") }
+            static var flameActive: String { localized("a11y.icon.flame_active") }
+            static var flameInactive: String { localized("a11y.icon.flame_inactive") }
+            static var star: String { localized("a11y.icon.star") }
+            static var snowflake: String { localized("a11y.icon.snowflake") }
+            static var checkmark: String { localized("a11y.icon.checkmark") }
+            static var clock: String { localized("a11y.icon.clock") }
+            static var level: String { localized("a11y.icon.level") }
+        }
+
+        // MARK: - Widget Labels
+
+        enum Widgets {
+            static var timer: String { localized("a11y.widget.timer") }
+            static var streak: String { localized("a11y.widget.streak") }
+            static var progress: String { localized("a11y.widget.progress") }
+            static var stats: String { localized("a11y.widget.stats") }
+        }
+
+        // MARK: - Hints
+
+        enum Hints {
+            static var tapToOpen: String { localized("a11y.hint.tap_to_open") }
+            static var tapToStart: String { localized("a11y.hint.tap_to_start") }
+            static var liveProgress: String { localized("a11y.hint.live_progress") }
+        }
+
+        // MARK: - Time
+
+        enum Time {
+            static func remainingMinutesSeconds(_ minutes: Int, _ seconds: Int) -> String {
+                localized("a11y.time.remaining_minutes_seconds", minutes, seconds)
+            }
+            static func remainingMinutes(_ minutes: Int) -> String {
+                localized("a11y.time.remaining_minutes", minutes)
+            }
+            static func remainingSeconds(_ seconds: Int) -> String {
+                localized("a11y.time.remaining_seconds", seconds)
+            }
+        }
+
+        // MARK: - Progress
+
+        enum Progress {
+            static var complete: String { localized("a11y.progress.complete") }
+            static func percent(_ percent: Int) -> String {
+                localized("a11y.progress.percent", percent)
+            }
+            static var goalReached: String { localized("a11y.progress.goal_reached") }
+            static func summary(percent: Int, focus: Int, goal: Int, sessions: Int) -> String {
+                localized("a11y.progress.summary", percent, focus, goal, sessions)
+            }
+        }
+
+        // MARK: - Streak
+
+        enum Streak {
+            static func record(_ days: Int) -> String {
+                localized("a11y.streak.record", days)
+            }
+            static var none: String { localized("a11y.streak.none") }
+            static var oneDay: String { localized("a11y.streak.one_day") }
+            static func days(_ count: Int) -> String {
+                localized("a11y.streak.days", count)
+            }
+            static func summary(_ days: Int) -> String {
+                localized("a11y.streak.summary", days)
+            }
+            static func summaryRecord(_ days: Int) -> String {
+                localized("a11y.streak.summary_record", days)
+            }
+        }
+
+        // MARK: - Freeze
+
+        enum Freeze {
+            static var one: String { localized("a11y.freeze.one") }
+            static func multiple(_ count: Int) -> String {
+                localized("a11y.freeze.multiple", count)
+            }
+        }
+
+        // MARK: - Focus
+
+        enum Focus {
+            static func timeProgress(_ current: Int, _ goal: Int) -> String {
+                localized("a11y.focus.time_progress", current, goal)
+            }
+        }
+
+        // MARK: - Sessions
+
+        enum Sessions {
+            static var one: String { localized("a11y.sessions.one") }
+            static func multiple(_ count: Int) -> String {
+                localized("a11y.sessions.multiple", count)
+            }
+        }
+
+        // MARK: - Total Time
+
+        enum TotalTime {
+            static func hoursMinutes(_ hours: Int, _ minutes: Int) -> String {
+                localized("a11y.total.hours_minutes", hours, minutes)
+            }
+            static func hours(_ hours: Int) -> String {
+                localized("a11y.total.hours", hours)
+            }
+            static func minutes(_ minutes: Int) -> String {
+                localized("a11y.total.minutes", minutes)
+            }
+        }
+
+        // MARK: - Timer
+
+        enum Timer {
+            static func running(_ type: String, _ time: String) -> String {
+                localized("a11y.timer.running", type, time)
+            }
+            static var idle: String { localized("a11y.timer.idle") }
+            static func summaryActive(_ type: String, _ time: String, _ percent: Int) -> String {
+                localized("a11y.timer.summary_active", type, time, percent)
+            }
+            static var summaryInactive: String { localized("a11y.timer.summary_inactive") }
+        }
+
+        // MARK: - Stats
+
+        enum StatsA11y {
+            static func xp(_ amount: Int) -> String {
+                localized("a11y.stats.xp", amount)
+            }
+            static func level(_ level: Int) -> String {
+                localized("a11y.stats.level", level)
+            }
+            static func summary(level: Int, xp: Int, focusTime: String, sessions: Int) -> String {
+                localized("a11y.stats.summary", level, xp, focusTime, sessions)
+            }
+        }
+
+        // MARK: - Shield
+
+        enum Shield {
+            static var title: String { localized("a11y.shield.title") }
+            static var description: String { localized("a11y.shield.description") }
+            static var returnButton: String { localized("a11y.shield.return_button") }
+            static var returnHint: String { localized("a11y.shield.return_hint") }
+        }
+    }
 }

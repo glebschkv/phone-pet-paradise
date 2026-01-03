@@ -6,6 +6,14 @@ import WidgetKit
  *
  * Displays the current focus timer status.
  * Shows remaining time and session type.
+ *
+ * Accessibility Features:
+ * - Full VoiceOver support with comprehensive labels and hints
+ * - Dynamic Type support for all text
+ * - Reduced motion support
+ * - High contrast support
+ * - Semantic accessibility structure
+ * - Updates frequently trait for live timer
  */
 struct NoMoTimerWidget: Widget {
     let kind = "NoMoTimerWidget"
@@ -75,10 +83,55 @@ struct TimerEntry: TimelineEntry {
         return Double(sessionDuration - timeRemaining) / Double(sessionDuration)
     }
 
+    var progressPercent: Int {
+        Int(progress * 100)
+    }
+
     var formattedTime: String {
         let minutes = timeRemaining / 60
         let seconds = timeRemaining % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    var minutes: Int {
+        timeRemaining / 60
+    }
+
+    var seconds: Int {
+        timeRemaining % 60
+    }
+
+    // MARK: - Accessibility
+
+    /// Full accessibility label for the widget
+    var accessibilityLabel: String {
+        if isRunning {
+            let type = sessionType ?? WidgetAccessibilityStrings.sessionTypeFocus
+            let timeDescription = AccessibilityFormatters.timeRemaining(minutes: minutes, seconds: seconds)
+            return String(
+                format: WidgetAccessibilityStrings.timerSummaryActive,
+                type,
+                timeDescription,
+                progressPercent
+            )
+        }
+        return WidgetAccessibilityStrings.timerSummaryInactive
+    }
+
+    /// Accessibility hint for the widget
+    var accessibilityHint: String {
+        if isRunning {
+            return WidgetAccessibilityStrings.hintLiveProgress
+        }
+        return WidgetAccessibilityStrings.hintTapToStart
+    }
+
+    /// Accessibility value for the timer
+    var accessibilityValue: String {
+        if isRunning {
+            return AccessibilityFormatters.timeRemaining(minutes: minutes, seconds: seconds)
+        }
+        return ""
     }
 }
 
@@ -86,6 +139,8 @@ struct TimerEntry: TimelineEntry {
 
 struct TimerWidgetView: View {
     let entry: TimerEntry
+    @Environment(\.colorSchemeContrast) var contrast
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
         ZStack {
@@ -94,42 +149,95 @@ struct TimerWidgetView: View {
 
             VStack(spacing: 8) {
                 if entry.isRunning {
-                    // Active session
-                    Image(systemName: "timer")
-                        .font(.title2)
-                        .foregroundColor(WidgetColors.accent)
-
-                    Text(entry.formattedTime)
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-
-                    if let sessionType = entry.sessionType {
-                        Text(sessionType)
-                            .font(.caption)
-                            .foregroundColor(WidgetColors.secondary)
-                    }
-
-                    // Progress bar
-                    ProgressView(value: entry.progress)
-                        .progressViewStyle(LinearProgressViewStyle(tint: WidgetColors.accent))
-                        .padding(.horizontal)
+                    activeSessionView
                 } else {
-                    // No active session
-                    Image(systemName: "moon.stars.fill")
-                        .font(.largeTitle)
-                        .foregroundColor(WidgetColors.accent)
-
-                    Text(WidgetStrings.noSession)
-                        .font(.subheadline)
-                        .foregroundColor(WidgetColors.secondary)
-
-                    Text(WidgetStrings.tapToStart)
-                        .font(.caption2)
-                        .foregroundColor(WidgetColors.tertiary)
+                    inactiveSessionView
                 }
             }
             .padding()
         }
+        // Apply comprehensive accessibility to entire widget
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(entry.accessibilityLabel)
+        .accessibilityHint(entry.accessibilityHint)
+        .accessibilityValue(entry.accessibilityValue)
+        .accessibilityAddTraits(entry.isRunning ? .updatesFrequently : [])
+    }
+
+    // MARK: - Active Session View
+
+    private var activeSessionView: some View {
+        VStack(spacing: 8) {
+            // Timer icon
+            Image(systemName: "timer")
+                .font(.title2)
+                .foregroundColor(accessibleAccentColor)
+                .accessibilityHidden(true)
+
+            // Time display
+            Text(entry.formattedTime)
+                .font(AccessibleFonts.timerDisplay)
+                .foregroundColor(accessiblePrimaryTextColor)
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
+                .accessibilityHidden(true)
+
+            // Session type
+            if let sessionType = entry.sessionType {
+                Text(sessionType)
+                    .font(AccessibleFonts.caption)
+                    .foregroundColor(accessibleSecondaryTextColor)
+                    .accessibilityHidden(true)
+            }
+
+            // Progress bar
+            ProgressView(value: entry.progress)
+                .progressViewStyle(LinearProgressViewStyle(tint: accessibleAccentColor))
+                .padding(.horizontal)
+                .accessibilityHidden(true)
+        }
+    }
+
+    // MARK: - Inactive Session View
+
+    private var inactiveSessionView: some View {
+        VStack(spacing: 8) {
+            // Moon icon
+            Image(systemName: "moon.stars.fill")
+                .font(.largeTitle)
+                .foregroundColor(accessibleAccentColor)
+                .accessibilityHidden(true)
+
+            // No session message
+            Text(WidgetStrings.noSession)
+                .font(AccessibleFonts.subheadline)
+                .foregroundColor(accessibleSecondaryTextColor)
+                .accessibilityHidden(true)
+
+            // Tap to start instruction
+            Text(WidgetStrings.tapToStart)
+                .font(AccessibleFonts.caption2)
+                .foregroundColor(accessibleTertiaryTextColor)
+                .accessibilityHidden(true)
+        }
+    }
+
+    // MARK: - Accessible Colors
+
+    private var accessibleAccentColor: Color {
+        contrast == .increased ? WidgetColors.accentHighContrast : WidgetColors.accent
+    }
+
+    private var accessiblePrimaryTextColor: Color {
+        contrast == .increased ? .white : .white
+    }
+
+    private var accessibleSecondaryTextColor: Color {
+        contrast == .increased ? WidgetColors.secondaryHighContrast : WidgetColors.secondary
+    }
+
+    private var accessibleTertiaryTextColor: Color {
+        contrast == .increased ? WidgetColors.tertiaryHighContrast : WidgetColors.tertiary
     }
 }
 
@@ -138,8 +246,29 @@ struct TimerWidgetView: View {
 #if DEBUG
 struct TimerWidget_Previews: PreviewProvider {
     static var previews: some View {
-        TimerWidgetView(entry: .placeholder)
-            .previewContext(WidgetPreviewContext(family: .systemSmall))
+        Group {
+            // Active session
+            TimerWidgetView(entry: .placeholder)
+                .previewContext(WidgetPreviewContext(family: .systemSmall))
+                .previewDisplayName("Active Session")
+
+            // Inactive session
+            TimerWidgetView(entry: TimerEntry(
+                date: Date(),
+                isRunning: false,
+                timeRemaining: 0,
+                sessionDuration: 0,
+                sessionType: nil,
+                taskLabel: nil
+            ))
+                .previewContext(WidgetPreviewContext(family: .systemSmall))
+                .previewDisplayName("No Session")
+
+            // Medium size
+            TimerWidgetView(entry: .placeholder)
+                .previewContext(WidgetPreviewContext(family: .systemMedium))
+                .previewDisplayName("Medium Widget")
+        }
     }
 }
 #endif

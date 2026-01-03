@@ -6,6 +6,14 @@ import WidgetKit
  *
  * Displays overall focus statistics.
  * Shows level, XP, total focus time, and sessions.
+ *
+ * Accessibility Features:
+ * - Full VoiceOver support with comprehensive labels and hints
+ * - Dynamic Type support for all text
+ * - Semantic grouping of related statistics
+ * - High contrast support
+ * - Proper accessibility traits for statistics
+ * - Localized number and time formatting
  */
 struct NoMoStatsWidget: Widget {
     let kind = "NoMoStatsWidget"
@@ -75,12 +83,47 @@ struct StatsEntry: TimelineEntry {
         }
         return "\(minutes)m"
     }
+
+    var focusTimeHours: Int {
+        totalFocusTime / 60
+    }
+
+    var focusTimeMinutes: Int {
+        totalFocusTime % 60
+    }
+
+    // MARK: - Accessibility
+
+    /// Full accessibility label for the widget
+    var accessibilityLabel: String {
+        let focusTimeDescription = AccessibilityFormatters.totalFocusTime(
+            hours: focusTimeHours,
+            minutes: focusTimeMinutes
+        )
+        return WidgetAccessibilityStrings.statsSummary(
+            level: level,
+            xp: totalXP,
+            focusTime: focusTimeDescription,
+            sessions: totalSessions
+        )
+    }
+
+    /// Accessibility hint for the widget
+    var accessibilityHint: String {
+        WidgetAccessibilityStrings.hintTapToOpen
+    }
+
+    /// Accessibility value for XP
+    var accessibilityValue: String {
+        AccessibilityFormatters.xp(amount: totalXP)
+    }
 }
 
 // MARK: - Widget View
 
 struct StatsWidgetView: View {
     let entry: StatsEntry
+    @Environment(\.colorSchemeContrast) var contrast
 
     var body: some View {
         ZStack {
@@ -89,60 +132,120 @@ struct StatsWidgetView: View {
 
             VStack(spacing: 12) {
                 // Level badge
-                HStack {
-                    Image(systemName: "star.circle.fill")
-                        .foregroundColor(.yellow)
-                    Text(WidgetStrings.level(entry.level))
-                        .font(.headline)
-                        .foregroundColor(.white)
-                }
+                levelBadge
 
-                // XP
-                HStack(spacing: 4) {
-                    Text(WidgetStrings.xp(entry.totalXP))
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundColor(WidgetColors.accent)
-                }
+                // XP display
+                xpDisplay
 
                 // Stats grid
-                HStack(spacing: 16) {
-                    StatItem(
-                        icon: "clock.fill",
-                        value: entry.formattedFocusTime,
-                        label: WidgetStrings.focused
-                    )
-
-                    StatItem(
-                        icon: "checkmark.circle.fill",
-                        value: "\(entry.totalSessions)",
-                        label: WidgetStrings.sessions
-                    )
-                }
+                statsGrid
             }
             .padding()
         }
+        // Apply comprehensive accessibility to entire widget
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(entry.accessibilityLabel)
+        .accessibilityHint(entry.accessibilityHint)
+        .accessibilityValue(entry.accessibilityValue)
+    }
+
+    // MARK: - Subviews
+
+    private var levelBadge: some View {
+        HStack {
+            Image(systemName: "star.circle.fill")
+                .foregroundColor(levelColor)
+                .accessibilityHidden(true)
+            Text(WidgetStrings.level(entry.level))
+                .font(AccessibleFonts.headline)
+                .foregroundColor(primaryTextColor)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var xpDisplay: some View {
+        HStack(spacing: 4) {
+            Text(WidgetStrings.xp(entry.totalXP))
+                .font(AccessibleFonts.title)
+                .foregroundColor(accentColor)
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var statsGrid: some View {
+        HStack(spacing: 16) {
+            AccessibleStatItem(
+                icon: "clock.fill",
+                value: entry.formattedFocusTime,
+                label: WidgetStrings.focused,
+                iconColor: accentColor,
+                valueColor: primaryTextColor,
+                labelColor: tertiaryTextColor
+            )
+
+            AccessibleStatItem(
+                icon: "checkmark.circle.fill",
+                value: "\(entry.totalSessions)",
+                label: WidgetStrings.sessions,
+                iconColor: accentColor,
+                valueColor: primaryTextColor,
+                labelColor: tertiaryTextColor
+            )
+        }
+    }
+
+    // MARK: - Accessible Colors
+
+    private var accentColor: Color {
+        contrast == .increased ? WidgetColors.accentHighContrast : WidgetColors.accent
+    }
+
+    private var primaryTextColor: Color {
+        .white
+    }
+
+    private var tertiaryTextColor: Color {
+        contrast == .increased ? WidgetColors.tertiaryHighContrast : WidgetColors.tertiary
+    }
+
+    private var levelColor: Color {
+        contrast == .increased ? WidgetColors.levelHighContrast : .yellow
     }
 }
 
-struct StatItem: View {
+// MARK: - Accessible Stat Item
+
+/// Accessible statistic item with proper VoiceOver support
+struct AccessibleStatItem: View {
     let icon: String
     let value: String
     let label: String
+    let iconColor: Color
+    let valueColor: Color
+    let labelColor: Color
 
     var body: some View {
         VStack(spacing: 2) {
             Image(systemName: icon)
                 .font(.caption)
-                .foregroundColor(WidgetColors.accent)
+                .foregroundColor(iconColor)
+                .accessibilityHidden(true)
 
             Text(value)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                .foregroundColor(.white)
+                .font(AccessibleFonts.subheadline)
+                .foregroundColor(valueColor)
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
+                .accessibilityHidden(true)
 
             Text(label)
-                .font(.caption2)
-                .foregroundColor(WidgetColors.tertiary)
+                .font(AccessibleFonts.caption2)
+                .foregroundColor(labelColor)
+                .accessibilityHidden(true)
         }
+        .accessibilityHidden(true)
     }
 }
 
@@ -151,8 +254,39 @@ struct StatItem: View {
 #if DEBUG
 struct StatsWidget_Previews: PreviewProvider {
     static var previews: some View {
-        StatsWidgetView(entry: .placeholder)
-            .previewContext(WidgetPreviewContext(family: .systemSmall))
+        Group {
+            // Default stats
+            StatsWidgetView(entry: .placeholder)
+                .previewContext(WidgetPreviewContext(family: .systemSmall))
+                .previewDisplayName("Default Stats")
+
+            // High level
+            StatsWidgetView(entry: StatsEntry(
+                date: Date(),
+                level: 50,
+                totalXP: 125000,
+                totalFocusTime: 12000,
+                totalSessions: 500
+            ))
+                .previewContext(WidgetPreviewContext(family: .systemSmall))
+                .previewDisplayName("High Level")
+
+            // New user
+            StatsWidgetView(entry: StatsEntry(
+                date: Date(),
+                level: 1,
+                totalXP: 50,
+                totalFocusTime: 25,
+                totalSessions: 1
+            ))
+                .previewContext(WidgetPreviewContext(family: .systemSmall))
+                .previewDisplayName("New User")
+
+            // Medium size
+            StatsWidgetView(entry: .placeholder)
+                .previewContext(WidgetPreviewContext(family: .systemMedium))
+                .previewDisplayName("Medium Widget")
+        }
     }
 }
 #endif
