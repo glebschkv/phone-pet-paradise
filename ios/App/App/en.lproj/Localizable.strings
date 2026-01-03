@@ -125,3 +125,99 @@
 "session.focus" = "Focus";
 "session.short_break" = "Short Break";
 "session.long_break" = "Long Break";
+
+// MARK: - Accessibility: Icon Descriptions
+
+"a11y.icon.timer" = "Timer";
+"a11y.icon.moon" = "Focus mode";
+"a11y.icon.flame_active" = "Active streak";
+"a11y.icon.flame_inactive" = "No current streak";
+"a11y.icon.star" = "Personal best";
+"a11y.icon.snowflake" = "Streak freeze available";
+"a11y.icon.checkmark" = "Goal completed";
+"a11y.icon.clock" = "Total focus time";
+"a11y.icon.level" = "Current level";
+
+// MARK: - Accessibility: Widget Labels
+
+"a11y.widget.timer" = "Focus Timer Widget";
+"a11y.widget.streak" = "Focus Streak Widget";
+"a11y.widget.progress" = "Daily Progress Widget";
+"a11y.widget.stats" = "Focus Statistics Widget";
+
+// MARK: - Accessibility: Hints
+
+"a11y.hint.tap_to_open" = "Double tap to open NoMo app";
+"a11y.hint.tap_to_start" = "Double tap to start a new focus session";
+"a11y.hint.live_progress" = "This information updates automatically";
+
+// MARK: - Accessibility: Time Formatting
+
+"a11y.time.remaining_minutes_seconds" = "%d minutes and %d seconds remaining";
+"a11y.time.remaining_minutes" = "%d minutes remaining";
+"a11y.time.remaining_seconds" = "%d seconds remaining";
+
+// MARK: - Accessibility: Progress
+
+"a11y.progress.complete" = "Daily goal complete";
+"a11y.progress.percent" = "%d percent of daily goal";
+
+// MARK: - Accessibility: Streak
+
+"a11y.streak.record" = "%d day streak, this is your personal best";
+"a11y.streak.none" = "No current streak, start focusing to build your streak";
+"a11y.streak.one_day" = "1 day streak";
+"a11y.streak.days" = "%d day streak";
+"a11y.freeze.one" = "1 streak freeze available";
+"a11y.freeze.multiple" = "%d streak freezes available";
+
+// MARK: - Accessibility: Focus Time
+
+"a11y.focus.time_progress" = "%d of %d minutes focused today";
+"a11y.sessions.one" = "1 session completed today";
+"a11y.sessions.multiple" = "%d sessions completed today";
+
+// MARK: - Accessibility: Total Time
+
+"a11y.total.hours_minutes" = "%d hours and %d minutes total focus time";
+"a11y.total.hours" = "%d hours total focus time";
+"a11y.total.minutes" = "%d minutes total focus time";
+
+// MARK: - Accessibility: Stats
+
+"a11y.stats.xp" = "%d experience points";
+"a11y.stats.level" = "Level %d";
+
+// MARK: - Accessibility: Timer State
+
+"a11y.timer.running" = "%@ session in progress, %@ remaining";
+"a11y.timer.idle" = "No active focus session";
+"a11y.session.focus" = "Focus";
+
+// MARK: - Accessibility: Timer Widget Summary
+
+"a11y.timer.summary_active" = "Focus Timer: %@ session, %@ remaining, %d percent complete";
+"a11y.timer.summary_inactive" = "Focus Timer: No active session. Double tap to start focusing";
+
+// MARK: - Accessibility: Streak Widget Summary
+
+"a11y.streak.summary" = "Focus Streak: %d days";
+"a11y.streak.summary_record" = "Focus Streak: %d days, personal best";
+"a11y.streak.summary_freezes" = "Focus Streak: %d days, %d freezes available";
+"a11y.streak.summary_record_freezes" = "Focus Streak: %d days, personal best, %d freezes available";
+
+// MARK: - Accessibility: Progress Widget Summary
+
+"a11y.progress.summary" = "Daily Progress: %d percent, %d of %d minutes focused, %d sessions completed";
+"a11y.progress.goal_reached" = "Congratulations! You've reached your daily focus goal";
+
+// MARK: - Accessibility: Stats Widget Summary
+
+"a11y.stats.summary" = "Focus Stats: Level %d, %d XP, %@ total focus time, %d sessions completed";
+
+// MARK: - Accessibility: Shield
+
+"a11y.shield.title" = "App blocked during focus session";
+"a11y.shield.description" = "This app is blocked to help you stay focused. You can return to NoMo to continue your session.";
+"a11y.shield.return_button" = "Return to NoMo app";
+"a11y.shield.return_hint" = "Double tap to close this blocked app and return to NoMo";

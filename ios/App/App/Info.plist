@@ -75,5 +75,38 @@
 	<!-- Minimum iOS Version -->
 	<key>MinimumOSVersion</key>
 	<string>15.0</string>
+
+	<!-- Accessibility Features -->
+	<!--
+	 * NoMo Phone Accessibility Implementation
+	 *
+	 * This app implements comprehensive accessibility support:
+	 * - Full VoiceOver support with labels, hints, and traits
+	 * - Dynamic Type support for all text elements
+	 * - High Contrast mode support
+	 * - Reduced Motion support
+	 * - WCAG 2.1 Level AAA color contrast compliance
+	 *
+	 * All widgets are fully accessible:
+	 * - Focus Timer Widget: Live progress updates, time announcements
+	 * - Streak Widget: Streak status, record indicators
+	 * - Progress Widget: Goal progress, completion announcements
+	 * - Stats Widget: Level, XP, focus time summaries
+	 *
+	 * Shield screens provide accessible blocking notifications
+	 * with clear instructions for returning to the app.
+	-->
+
+	<!-- Accessibility Usage Description -->
+	<key>NSAccessibilityUsageDescription</key>
+	<string>NoMo Phone is designed to be fully accessible. All features support VoiceOver, Dynamic Type, and other assistive technologies.</string>
+
+	<!-- Large Content Viewer Support -->
+	<key>UILargeContentViewerInteractionEnabled</key>
+	<true/>
+
+	<!-- Supports RTL Languages -->
+	<key>UIUserInterfaceLayoutDirection</key>
+	<string>Automatic</string>
 </dict>
 </plist>

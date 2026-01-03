@@ -124,3 +124,99 @@
 "session.focus" = "Enfoque";
 "session.short_break" = "Descanso Corto";
 "session.long_break" = "Descanso Largo";
+
+// MARK: - Accessibility: Icon Descriptions
+
+"a11y.icon.timer" = "Temporizador";
+"a11y.icon.moon" = "Modo de enfoque";
+"a11y.icon.flame_active" = "Racha activa";
+"a11y.icon.flame_inactive" = "Sin racha actual";
+"a11y.icon.star" = "Récord personal";
+"a11y.icon.snowflake" = "Congelación de racha disponible";
+"a11y.icon.checkmark" = "Meta completada";
+"a11y.icon.clock" = "Tiempo total de enfoque";
+"a11y.icon.level" = "Nivel actual";
+
+// MARK: - Accessibility: Widget Labels
+
+"a11y.widget.timer" = "Widget de Temporizador de Enfoque";
+"a11y.widget.streak" = "Widget de Racha de Enfoque";
+"a11y.widget.progress" = "Widget de Progreso Diario";
+"a11y.widget.stats" = "Widget de Estadísticas de Enfoque";
+
+// MARK: - Accessibility: Hints
+
+"a11y.hint.tap_to_open" = "Doble toque para abrir la app NoMo";
+"a11y.hint.tap_to_start" = "Doble toque para iniciar una nueva sesión de enfoque";
+"a11y.hint.live_progress" = "Esta información se actualiza automáticamente";
+
+// MARK: - Accessibility: Time Formatting
+
+"a11y.time.remaining_minutes_seconds" = "%d minutos y %d segundos restantes";
+"a11y.time.remaining_minutes" = "%d minutos restantes";
+"a11y.time.remaining_seconds" = "%d segundos restantes";
+
+// MARK: - Accessibility: Progress
+
+"a11y.progress.complete" = "Meta diaria completada";
+"a11y.progress.percent" = "%d por ciento de la meta diaria";
+
+// MARK: - Accessibility: Streak
+
+"a11y.streak.record" = "Racha de %d días, este es tu récord personal";
+"a11y.streak.none" = "Sin racha actual, empieza a enfocarte para construir tu racha";
+"a11y.streak.one_day" = "Racha de 1 día";
+"a11y.streak.days" = "Racha de %d días";
+"a11y.freeze.one" = "1 congelación de racha disponible";
+"a11y.freeze.multiple" = "%d congelaciones de racha disponibles";
+
+// MARK: - Accessibility: Focus Time
+
+"a11y.focus.time_progress" = "%d de %d minutos enfocados hoy";
+"a11y.sessions.one" = "1 sesión completada hoy";
+"a11y.sessions.multiple" = "%d sesiones completadas hoy";
+
+// MARK: - Accessibility: Total Time
+
+"a11y.total.hours_minutes" = "%d horas y %d minutos de tiempo total de enfoque";
+"a11y.total.hours" = "%d horas de tiempo total de enfoque";
+"a11y.total.minutes" = "%d minutos de tiempo total de enfoque";
+
+// MARK: - Accessibility: Stats
+
+"a11y.stats.xp" = "%d puntos de experiencia";
+"a11y.stats.level" = "Nivel %d";
+
+// MARK: - Accessibility: Timer State
+
+"a11y.timer.running" = "Sesión de %@ en progreso, %@ restantes";
+"a11y.timer.idle" = "Sin sesión de enfoque activa";
+"a11y.session.focus" = "Enfoque";
+
+// MARK: - Accessibility: Timer Widget Summary
+
+"a11y.timer.summary_active" = "Temporizador de Enfoque: sesión de %@, %@ restantes, %d por ciento completado";
+"a11y.timer.summary_inactive" = "Temporizador de Enfoque: Sin sesión activa. Doble toque para comenzar a enfocarte";
+
+// MARK: - Accessibility: Streak Widget Summary
+
+"a11y.streak.summary" = "Racha de Enfoque: %d días";
+"a11y.streak.summary_record" = "Racha de Enfoque: %d días, récord personal";
+"a11y.streak.summary_freezes" = "Racha de Enfoque: %d días, %d congelaciones disponibles";
+"a11y.streak.summary_record_freezes" = "Racha de Enfoque: %d días, récord personal, %d congelaciones disponibles";
+
+// MARK: - Accessibility: Progress Widget Summary
+
+"a11y.progress.summary" = "Progreso Diario: %d por ciento, %d de %d minutos enfocados, %d sesiones completadas";
+"a11y.progress.goal_reached" = "¡Felicidades! Has alcanzado tu meta diaria de enfoque";
+
+// MARK: - Accessibility: Stats Widget Summary
+
+"a11y.stats.summary" = "Estadísticas de Enfoque: Nivel %d, %d XP, %@ tiempo total de enfoque, %d sesiones completadas";
+
+// MARK: - Accessibility: Shield
+
+"a11y.shield.title" = "App bloqueada durante la sesión de enfoque";
+"a11y.shield.description" = "Esta app está bloqueada para ayudarte a mantener el enfoque. Puedes volver a NoMo para continuar tu sesión.";
+"a11y.shield.return_button" = "Volver a la app NoMo";
+"a11y.shield.return_hint" = "Doble toque para cerrar esta app bloqueada y volver a NoMo";
