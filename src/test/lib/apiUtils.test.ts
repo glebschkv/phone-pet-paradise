@@ -291,11 +291,13 @@ describe('apiUtils', () => {
 
       const promise = withRetry(fn, { maxRetries: 2 });
 
-      // Advance through all retries
-      await vi.advanceTimersByTimeAsync(1000);
-      await vi.advanceTimersByTimeAsync(2000);
+      // Attach the rejection handler BEFORE advancing timers to prevent unhandled rejection
+      const expectation = expect(promise).rejects.toThrow('network error');
 
-      await expect(promise).rejects.toThrow('network error');
+      // Run all timers to completion
+      await vi.runAllTimersAsync();
+
+      await expectation;
       expect(fn).toHaveBeenCalledTimes(3); // Initial + 2 retries
 
       vi.useRealTimers();

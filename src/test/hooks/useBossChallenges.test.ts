@@ -621,9 +621,14 @@ describe('useBossChallenges', () => {
     it('should accumulate focus minutes across sessions', () => {
       const { result } = renderHook(() => useBossChallenges());
 
+      // Each recordFocusSession must be in separate act() to allow state to update
       act(() => {
         result.current.recordFocusSession(30);
+      });
+      act(() => {
         result.current.recordFocusSession(45);
+      });
+      act(() => {
         result.current.recordFocusSession(60);
       });
 

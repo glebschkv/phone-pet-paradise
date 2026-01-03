@@ -364,7 +364,9 @@ describe('useStoreKit', () => {
 
       const { result } = renderHook(() => useStoreKit());
 
+      // Wait for the error to be set after failed load
       await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
         expect(result.current.error).toBe('Failed to load products. Please try again.');
       });
 
@@ -582,11 +584,12 @@ describe('useStoreKit', () => {
         purchaseResult = await result.current.purchaseProduct('co.nomoinc.nomo.premium.monthly');
       });
 
+      // safeStoreKitCall returns a generic failed result with default message
       expect(purchaseResult).toEqual({
         success: false,
-        message: 'Payment failed',
+        message: 'Purchase failed',
       });
-      expect(result.current.error).toBe('Payment failed');
+      expect(result.current.error).toBe('Purchase failed. Please try again.');
     });
 
     it('should show error toast on purchase failure', async () => {
@@ -602,10 +605,11 @@ describe('useStoreKit', () => {
         await result.current.purchaseProduct('co.nomoinc.nomo.premium.monthly');
       });
 
+      // Toast shows generic error message from implementation
       expect(mockToastFn).toHaveBeenCalledWith(
         expect.objectContaining({
           title: 'Purchase Failed',
-          description: 'Payment declined',
+          description: 'Unable to complete the purchase. Please try again.',
           variant: 'destructive',
         })
       );
@@ -794,7 +798,7 @@ describe('useStoreKit', () => {
       });
 
       expect(restoreResult).toBe(false);
-      expect(result.current.error).toBe('Network error');
+      expect(result.current.error).toBe('Failed to restore purchases. Please try again.');
     });
 
     it('should show error toast on restore failure', async () => {
@@ -813,7 +817,7 @@ describe('useStoreKit', () => {
       expect(mockToastFn).toHaveBeenCalledWith(
         expect.objectContaining({
           title: 'Restore Failed',
-          description: 'Connection failed',
+          description: 'Unable to restore purchases. Please try again.',
           variant: 'destructive',
         })
       );
@@ -1111,7 +1115,8 @@ describe('useStoreKit', () => {
         await result.current.purchaseProduct('co.nomoinc.nomo.premium.monthly');
       });
 
-      expect(result.current.error).toBe('No internet connection');
+      // safeStoreKitCall wraps errors into generic messages
+      expect(result.current.error).toBe('Purchase failed. Please try again.');
       expect(mockToastFn).toHaveBeenCalledWith(
         expect.objectContaining({
           title: 'Purchase Failed',
@@ -1133,7 +1138,8 @@ describe('useStoreKit', () => {
         await result.current.restorePurchases();
       });
 
-      expect(result.current.error).toBe('Server unavailable');
+      // safeStoreKitCall wraps errors into generic messages
+      expect(result.current.error).toBe('Failed to restore purchases. Please try again.');
     });
 
     it('should allow retry after network failure', async () => {
@@ -1142,7 +1148,9 @@ describe('useStoreKit', () => {
 
       const { result } = renderHook(() => useStoreKit());
 
+      // Wait for error to be set after failed load
       await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
         expect(result.current.error).toBe('Failed to load products. Please try again.');
       });
 

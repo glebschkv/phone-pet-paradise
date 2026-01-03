@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useShop } from '@/hooks/useShop';
 import type { ShopInventory } from '@/hooks/useShop';
+import { useShopStore } from '@/stores';
 
 // Mock dependencies
 const mockCoinSystem = {
@@ -32,6 +33,17 @@ vi.mock('@/hooks/useCoinBooster', () => ({
 vi.mock('@/hooks/useStreakSystem', () => ({
   useStreakSystem: () => mockStreakSystem,
 }));
+
+// Helper to set up Zustand store state
+const setShopState = (inventory: Partial<ShopInventory>) => {
+  useShopStore.setState({
+    ownedCharacters: inventory.ownedCharacters ?? [],
+    ownedBackgrounds: inventory.ownedBackgrounds ?? [],
+    ownedBadges: inventory.ownedBadges ?? [],
+    equippedBadge: inventory.equippedBadge ?? null,
+    equippedBackground: inventory.equippedBackground ?? null,
+  });
+};
 
 // Mock achievement tracking
 vi.mock('@/hooks/useAchievementTracking', () => ({
@@ -136,11 +148,18 @@ vi.mock('@/data/ShopData', () => ({
 }));
 
 describe('useShop', () => {
-  const STORAGE_KEY = 'petIsland_shopInventory';
-
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+
+    // Reset Zustand store to initial state
+    useShopStore.setState({
+      ownedCharacters: [],
+      ownedBackgrounds: [],
+      ownedBadges: [],
+      equippedBadge: null,
+      equippedBackground: null,
+    });
 
     // Default mock implementations
     mockCoinSystem.canAfford.mockReturnValue(true);
@@ -166,7 +185,7 @@ describe('useShop', () => {
       });
     });
 
-    it('should load saved inventory from localStorage', () => {
+    it('should load saved inventory from store', () => {
       const savedInventory: ShopInventory = {
         ownedCharacters: ['dog'],
         ownedBackgrounds: ['bg-ocean'],
@@ -175,29 +194,26 @@ describe('useShop', () => {
         equippedBackground: 'bg-ocean',
       };
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedInventory));
+      setShopState(savedInventory);
 
       const { result } = renderHook(() => useShop());
 
       expect(result.current.inventory).toEqual(savedInventory);
     });
 
-    it('should handle corrupted localStorage data gracefully', () => {
-      localStorage.setItem(STORAGE_KEY, 'invalid json');
-
+    it('should handle empty store gracefully', () => {
+      // Store is already reset to empty in beforeEach
       const { result } = renderHook(() => useShop());
 
-      // Should fall back to empty inventory
+      // Should have empty inventory
       expect(result.current.inventory.ownedCharacters).toEqual([]);
     });
 
     it('should handle partial inventory data', () => {
-      const partialInventory = {
+      // Set only characters, others default to empty
+      setShopState({
         ownedCharacters: ['dog'],
-        // Missing other fields
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(partialInventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -209,15 +225,9 @@ describe('useShop', () => {
 
   describe('isOwned Checks', () => {
     it('should correctly identify owned characters', () => {
-      const inventory: ShopInventory = {
+      setShopState({
         ownedCharacters: ['dog'],
-        ownedBackgrounds: [],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -226,15 +236,9 @@ describe('useShop', () => {
     });
 
     it('should correctly identify owned backgrounds', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
+      setShopState({
         ownedBackgrounds: ['bg-ocean'],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -243,15 +247,9 @@ describe('useShop', () => {
     });
 
     it('should correctly identify owned badges', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
-        ownedBackgrounds: [],
+      setShopState({
         ownedBadges: ['badge-gold'],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -375,15 +373,9 @@ describe('useShop', () => {
     });
 
     it('should fail to purchase already owned character', () => {
-      const inventory: ShopInventory = {
+      setShopState({
         ownedCharacters: ['dog'],
-        ownedBackgrounds: [],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -433,15 +425,9 @@ describe('useShop', () => {
     });
 
     it('should fail to purchase already owned background', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
+      setShopState({
         ownedBackgrounds: ['bg-ocean'],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -457,15 +443,9 @@ describe('useShop', () => {
     });
 
     it('should fail to purchase bundle when all items owned', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
+      setShopState({
         ownedBackgrounds: ['bg-ocean', 'bg-forest'],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -483,15 +463,9 @@ describe('useShop', () => {
 
   describe('equipBadge Function', () => {
     it('should successfully equip owned badge', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
-        ownedBackgrounds: [],
+      setShopState({
         ownedBadges: ['badge-gold'],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -517,15 +491,10 @@ describe('useShop', () => {
     });
 
     it('should allow unequipping badge by passing null', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
-        ownedBackgrounds: [],
+      setShopState({
         ownedBadges: ['badge-gold'],
         equippedBadge: 'badge-gold',
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -541,15 +510,9 @@ describe('useShop', () => {
 
   describe('equipBackground Function', () => {
     it('should successfully equip owned background', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
+      setShopState({
         ownedBackgrounds: ['bg-ocean'],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -575,15 +538,10 @@ describe('useShop', () => {
     });
 
     it('should allow unequipping background by passing null', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
+      setShopState({
         ownedBackgrounds: ['bg-ocean'],
-        ownedBadges: [],
-        equippedBadge: null,
         equippedBackground: 'bg-ocean',
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -625,15 +583,9 @@ describe('useShop', () => {
     });
 
     it('should return true if character already owned', () => {
-      const inventory: ShopInventory = {
+      setShopState({
         ownedCharacters: ['dog'],
-        ownedBackgrounds: [],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -648,15 +600,9 @@ describe('useShop', () => {
 
   describe('Bundle Ownership Checks', () => {
     it('should correctly check if background bundle is owned', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
+      setShopState({
         ownedBackgrounds: ['bg-ocean', 'bg-forest'],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -664,15 +610,9 @@ describe('useShop', () => {
     });
 
     it('should return false if bundle partially owned', () => {
-      const inventory: ShopInventory = {
-        ownedCharacters: [],
+      setShopState({
         ownedBackgrounds: ['bg-ocean'],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -680,15 +620,9 @@ describe('useShop', () => {
     });
 
     it('should correctly check if pet bundle is owned', () => {
-      const inventory: ShopInventory = {
+      setShopState({
         ownedCharacters: ['dog', 'cat'],
-        ownedBackgrounds: [],
-        ownedBadges: [],
-        equippedBadge: null,
-        equippedBackground: null,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
@@ -698,15 +632,13 @@ describe('useShop', () => {
 
   describe('resetShop', () => {
     it('should reset shop inventory to defaults', () => {
-      const inventory: ShopInventory = {
+      setShopState({
         ownedCharacters: ['dog'],
         ownedBackgrounds: ['bg-ocean'],
         ownedBadges: ['badge-gold'],
         equippedBadge: 'badge-gold',
         equippedBackground: 'bg-ocean',
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+      });
 
       const { result } = renderHook(() => useShop());
 
