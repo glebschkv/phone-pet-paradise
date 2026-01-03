@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useCollection } from '@/hooks/useCollection';
+import { useCollectionStore, useShopStore } from '@/stores';
 
 // Mock the dependencies
 vi.mock('@/hooks/useAuth', () => ({
@@ -111,13 +112,22 @@ vi.mock('@/data/AnimalDatabase', () => ({
 }));
 
 describe('useCollection', () => {
-  const FAVORITES_KEY = 'petparadise-favorites';
-  const ACTIVE_PETS_KEY = 'petparadise-active-home-pets';
-  const SHOP_INVENTORY_KEY = 'petIsland_shopInventory';
-
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+
+    // Reset Zustand stores to known state
+    useCollectionStore.setState({
+      activeHomePets: [],
+      favorites: [],
+    });
+    useShopStore.setState({
+      ownedCharacters: [],
+      ownedBackgrounds: [],
+      ownedBadges: [],
+      equippedBadge: null,
+      equippedBackground: null,
+    });
   });
 
   afterEach(() => {
@@ -132,8 +142,9 @@ describe('useCollection', () => {
       expect(result.current.allAnimals.length).toBeGreaterThan(0);
     });
 
-    it('should load favorites from localStorage', async () => {
-      localStorage.setItem(FAVORITES_KEY, JSON.stringify(['dewdrop-frog']));
+    it('should load favorites from store', async () => {
+      // Set up store state
+      useCollectionStore.setState({ favorites: ['dewdrop-frog'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -142,8 +153,9 @@ describe('useCollection', () => {
       });
     });
 
-    it('should load active home pets from localStorage', async () => {
-      localStorage.setItem(ACTIVE_PETS_KEY, JSON.stringify(['moss-turtle']));
+    it('should load active home pets from store', async () => {
+      // Set up store state
+      useCollectionStore.setState({ activeHomePets: ['moss-turtle'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -152,17 +164,17 @@ describe('useCollection', () => {
       });
     });
 
-    it('should set default active pet if nothing saved', async () => {
+    it('should have empty active pets when nothing in store', async () => {
       const { result } = renderHook(() => useCollection());
 
       await waitFor(() => {
-        expect(result.current.activeHomePets.has('dewdrop-frog')).toBe(true);
+        // Store is reset to empty in beforeEach
+        expect(result.current.activeHomePets.size).toBe(0);
       });
     });
 
-    it('should handle invalid localStorage data gracefully', () => {
-      localStorage.setItem(FAVORITES_KEY, 'invalid json');
-
+    it('should handle empty store gracefully', () => {
+      // Store is already reset to empty in beforeEach
       const { result } = renderHook(() => useCollection());
 
       expect(result.current.favorites.size).toBe(0);
@@ -187,7 +199,8 @@ describe('useCollection', () => {
     });
 
     it('should remove animal from favorites', async () => {
-      localStorage.setItem(FAVORITES_KEY, JSON.stringify(['dewdrop-frog']));
+      // Set up store state with a favorite
+      useCollectionStore.setState({ favorites: ['dewdrop-frog'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -204,7 +217,7 @@ describe('useCollection', () => {
       });
     });
 
-    it('should persist favorites to localStorage', async () => {
+    it('should persist favorites to store', async () => {
       const { result } = renderHook(() => useCollection());
 
       act(() => {
@@ -212,17 +225,16 @@ describe('useCollection', () => {
       });
 
       await waitFor(() => {
-        const saved = localStorage.getItem(FAVORITES_KEY);
-        expect(saved).not.toBeNull();
-        const parsed = JSON.parse(saved!);
-        expect(parsed).toContain('moss-turtle');
+        // Check the Zustand store state
+        const storeState = useCollectionStore.getState();
+        expect(storeState.favorites).toContain('moss-turtle');
       });
     });
   });
 
   describe('toggleHomeActive', () => {
     it('should add animal to active home pets', async () => {
-      localStorage.setItem(ACTIVE_PETS_KEY, JSON.stringify([]));
+      // Store is already reset to empty in beforeEach
 
       const { result } = renderHook(() => useCollection());
 
@@ -240,7 +252,8 @@ describe('useCollection', () => {
     });
 
     it('should remove animal from active home pets', async () => {
-      localStorage.setItem(ACTIVE_PETS_KEY, JSON.stringify(['dewdrop-frog']));
+      // Set up store state
+      useCollectionStore.setState({ activeHomePets: ['dewdrop-frog'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -257,10 +270,7 @@ describe('useCollection', () => {
       });
     });
 
-    it('should dispatch event when home pets change', async () => {
-      const eventHandler = vi.fn();
-      window.addEventListener('activeHomePetsChange', eventHandler);
-
+    it('should update store when home pets change', async () => {
       const { result } = renderHook(() => useCollection());
 
       act(() => {
@@ -268,10 +278,10 @@ describe('useCollection', () => {
       });
 
       await waitFor(() => {
-        expect(eventHandler).toHaveBeenCalled();
+        // Verify store was updated
+        const storeState = useCollectionStore.getState();
+        expect(storeState.activeHomePets).toContain('moss-turtle');
       });
-
-      window.removeEventListener('activeHomePetsChange', eventHandler);
     });
   });
 
@@ -291,9 +301,8 @@ describe('useCollection', () => {
     });
 
     it('should return true for purchased shop animals', async () => {
-      localStorage.setItem(SHOP_INVENTORY_KEY, JSON.stringify({
-        ownedCharacters: ['golden-phoenix'],
-      }));
+      // Set up shop store with owned character
+      useShopStore.setState({ ownedCharacters: ['golden-phoenix'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -311,7 +320,8 @@ describe('useCollection', () => {
 
   describe('isAnimalFavorite', () => {
     it('should return true for favorited animals', async () => {
-      localStorage.setItem(FAVORITES_KEY, JSON.stringify(['dewdrop-frog']));
+      // Set up store with favorite
+      useCollectionStore.setState({ favorites: ['dewdrop-frog'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -321,6 +331,7 @@ describe('useCollection', () => {
     });
 
     it('should return false for non-favorited animals', () => {
+      // Store is reset to empty in beforeEach
       const { result } = renderHook(() => useCollection());
 
       expect(result.current.isAnimalFavorite('moss-turtle')).toBe(false);
@@ -329,7 +340,8 @@ describe('useCollection', () => {
 
   describe('isAnimalHomeActive', () => {
     it('should return true for active home pets', async () => {
-      localStorage.setItem(ACTIVE_PETS_KEY, JSON.stringify(['moss-turtle']));
+      // Set up store with active pet
+      useCollectionStore.setState({ activeHomePets: ['moss-turtle'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -339,7 +351,8 @@ describe('useCollection', () => {
     });
 
     it('should return false for non-active pets', async () => {
-      localStorage.setItem(ACTIVE_PETS_KEY, JSON.stringify(['dewdrop-frog']));
+      // Set up store with a different pet
+      useCollectionStore.setState({ activeHomePets: ['dewdrop-frog'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -382,7 +395,8 @@ describe('useCollection', () => {
 
   describe('getActiveHomePetsData', () => {
     it('should return only unlocked active pets', async () => {
-      localStorage.setItem(ACTIVE_PETS_KEY, JSON.stringify(['dewdrop-frog', 'crystal-dragon']));
+      // Set up store with mixed pets (one unlocked, one locked by level)
+      useCollectionStore.setState({ activeHomePets: ['dewdrop-frog', 'crystal-dragon'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -395,10 +409,9 @@ describe('useCollection', () => {
     });
 
     it('should include purchased shop animals', async () => {
-      localStorage.setItem(ACTIVE_PETS_KEY, JSON.stringify(['golden-phoenix']));
-      localStorage.setItem(SHOP_INVENTORY_KEY, JSON.stringify({
-        ownedCharacters: ['golden-phoenix'],
-      }));
+      // Set up both stores
+      useCollectionStore.setState({ activeHomePets: ['golden-phoenix'] });
+      useShopStore.setState({ ownedCharacters: ['golden-phoenix'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -466,7 +479,8 @@ describe('useCollection', () => {
     });
 
     it('should track favorites count', async () => {
-      localStorage.setItem(FAVORITES_KEY, JSON.stringify(['dewdrop-frog', 'moss-turtle']));
+      // Set up store with favorites
+      useCollectionStore.setState({ favorites: ['dewdrop-frog', 'moss-turtle'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -476,7 +490,8 @@ describe('useCollection', () => {
     });
 
     it('should track active home pets count', async () => {
-      localStorage.setItem(ACTIVE_PETS_KEY, JSON.stringify(['dewdrop-frog']));
+      // Set up store with active pet
+      useCollectionStore.setState({ activeHomePets: ['dewdrop-frog'] });
 
       const { result } = renderHook(() => useCollection());
 
@@ -496,14 +511,16 @@ describe('useCollection', () => {
     });
   });
 
-  describe('shop update events', () => {
-    it('should update when shop inventory changes', async () => {
+  describe('shop store updates', () => {
+    it('should reflect shop store changes', async () => {
       const { result } = renderHook(() => useCollection());
 
+      // Initially not unlocked
+      expect(result.current.isAnimalUnlocked('golden-phoenix')).toBe(false);
+
+      // Update shop store
       act(() => {
-        window.dispatchEvent(new CustomEvent('petIsland_shopUpdate', {
-          detail: { ownedCharacters: ['golden-phoenix'] },
-        }));
+        useShopStore.setState({ ownedCharacters: ['golden-phoenix'] });
       });
 
       await waitFor(() => {
