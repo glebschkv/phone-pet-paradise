@@ -1,10 +1,113 @@
 /**
  * API Utilities
  *
- * Provides retry logic, error handling, and other utilities for API calls.
+ * Provides retry logic, error handling, request cancellation, and other utilities for API calls.
  */
 
 import { logger } from './logger';
+
+// ============================================================================
+// ABORT CONTROLLER UTILITIES
+// ============================================================================
+
+/**
+ * Creates an AbortController that automatically cleans up when aborted.
+ * Use this for request cancellation to prevent memory leaks.
+ */
+export function createAbortController(): AbortController {
+  return new AbortController();
+}
+
+/**
+ * Creates an abortable request wrapper that can be cancelled.
+ * Returns both the promise and an abort function.
+ *
+ * @example
+ * const { promise, abort } = createAbortableRequest(async (signal) => {
+ *   const response = await fetch(url, { signal });
+ *   return response.json();
+ * });
+ *
+ * // Later, to cancel:
+ * abort();
+ */
+export function createAbortableRequest<T>(
+  requestFn: (signal: AbortSignal) => Promise<T>
+): { promise: Promise<T>; abort: () => void } {
+  const controller = new AbortController();
+
+  const promise = requestFn(controller.signal).catch((error) => {
+    if (error.name === 'AbortError') {
+      logger.debug('Request aborted');
+      throw error;
+    }
+    throw error;
+  });
+
+  return {
+    promise,
+    abort: () => controller.abort(),
+  };
+}
+
+/**
+ * Hook-friendly abort controller that tracks active requests.
+ * Useful for cleaning up all pending requests on component unmount.
+ */
+export class RequestManager {
+  private controllers: Set<AbortController> = new Set();
+
+  /**
+   * Create a new AbortController and track it
+   */
+  create(): AbortController {
+    const controller = new AbortController();
+    this.controllers.add(controller);
+
+    // Auto-remove when aborted
+    controller.signal.addEventListener('abort', () => {
+      this.controllers.delete(controller);
+    });
+
+    return controller;
+  }
+
+  /**
+   * Abort a specific controller and remove it from tracking
+   */
+  abort(controller: AbortController): void {
+    controller.abort();
+    this.controllers.delete(controller);
+  }
+
+  /**
+   * Abort all tracked controllers (call on component unmount)
+   */
+  abortAll(): void {
+    this.controllers.forEach((controller) => {
+      controller.abort();
+    });
+    this.controllers.clear();
+  }
+
+  /**
+   * Get the number of active requests
+   */
+  get activeCount(): number {
+    return this.controllers.size;
+  }
+}
+
+/**
+ * Check if an error is an abort error
+ */
+export function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError';
+}
+
+// ============================================================================
+// RETRY UTILITIES
+// ============================================================================
 
 interface RetryOptions {
   maxRetries?: number;
@@ -12,14 +115,19 @@ interface RetryOptions {
   maxDelayMs?: number;
   backoffMultiplier?: number;
   shouldRetry?: (error: unknown) => boolean;
+  signal?: AbortSignal;
 }
 
-const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
+const DEFAULT_RETRY_OPTIONS: Required<Omit<RetryOptions, 'signal'>> & { signal?: AbortSignal } = {
   maxRetries: 3,
   initialDelayMs: 1000,
   maxDelayMs: 10000,
   backoffMultiplier: 2,
   shouldRetry: (error: unknown) => {
+    // Don't retry abort errors
+    if (isAbortError(error)) {
+      return false;
+    }
     // Retry on network errors and 5xx server errors
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
@@ -38,9 +146,10 @@ const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
 
 /**
  * Execute an async function with exponential backoff retry
+ * Supports AbortSignal for request cancellation
  */
 export async function withRetry<T>(
-  fn: () => Promise<T>,
+  fn: (signal?: AbortSignal) => Promise<T>,
   options: RetryOptions = {}
 ): Promise<T> {
   const config = { ...DEFAULT_RETRY_OPTIONS, ...options };
@@ -48,17 +157,29 @@ export async function withRetry<T>(
   let delay = config.initialDelayMs;
 
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
+    // Check if aborted before each attempt
+    if (config.signal?.aborted) {
+      throw new DOMException('Request aborted', 'AbortError');
+    }
+
     try {
-      return await fn();
+      return await fn(config.signal);
     } catch (error) {
       lastError = error;
+
+      // Don't retry if aborted
+      if (isAbortError(error)) {
+        throw error;
+      }
 
       if (attempt === config.maxRetries || !config.shouldRetry(error)) {
         throw error;
       }
 
       logger.warn(`Retry attempt ${attempt + 1}/${config.maxRetries} after ${delay}ms`, error);
-      await sleep(delay);
+
+      // Use abortable sleep if signal provided
+      await sleepWithSignal(delay, config.signal);
       delay = Math.min(delay * config.backoffMultiplier, config.maxDelayMs);
     }
   }
@@ -71,6 +192,34 @@ export async function withRetry<T>(
  */
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Sleep with AbortSignal support - cancellable delay
+ */
+export function sleepWithSignal(ms: number, signal?: AbortSignal): Promise<void> {
+  if (!signal) {
+    return sleep(ms);
+  }
+
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException('Sleep aborted', 'AbortError'));
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+
+    const onAbort = () => {
+      clearTimeout(timeoutId);
+      reject(new DOMException('Sleep aborted', 'AbortError'));
+    };
+
+    signal.addEventListener('abort', onAbort);
+  });
 }
 
 /**

@@ -1,4 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+/**
+ * useBackendAppState Hook
+ *
+ * Central state management hook that coordinates all backend systems.
+ * Refactored to use refs for stable callbacks and reduce unnecessary recreations.
+ *
+ * Performance optimizations:
+ * - Uses refs to hold latest subsystem values (avoids callback dependency bloat)
+ * - Memoized getAppState with proper dependencies
+ * - Request cancellation support via RequestManager
+ */
+
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useBackendXPSystem } from './useBackendXPSystem';
 import { useXPSystem } from './useXPSystem';
 import { useBackendAchievements } from './useBackendAchievements';
@@ -14,21 +26,32 @@ import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { syncLogger as logger } from '@/lib/logger';
-import { withRetry } from '@/lib/apiUtils';
+import { withRetry, RequestManager, isAbortError } from '@/lib/apiUtils';
 
 // Event name for cross-component XP sync
 const XP_UPDATE_EVENT = 'petIsland_xpUpdate';
+
+// Type definitions for better type safety
+interface XPRewardResult {
+  xpGained: number;
+  oldLevel: number;
+  newLevel: number;
+  leveledUp: boolean;
+  unlockedRewards: Array<{ name: string; description: string }>;
+  streakReward: unknown;
+  coinReward: number;
+}
+
+interface PetInteractionResult {
+  bondLevelUp: boolean;
+  newBondLevel: number;
+  interaction: unknown;
+}
 
 export const useBackendAppState = () => {
   const { isAuthenticated } = useAuth();
   const backendXPSystem = useBackendXPSystem();
   const localXPSystem = useXPSystem();
-
-  // Use the HIGHER level between local and backend to prevent progress regression
-  const effectiveLevel = Math.max(backendXPSystem.currentLevel, localXPSystem.currentLevel);
-
-  // Use backend XP system when authenticated, local otherwise
-  const xpSystem = isAuthenticated ? backendXPSystem : localXPSystem;
   const achievements = useBackendAchievements();
   const quests = useBackendQuests();
   const streaks = useBackendStreaks();
@@ -39,6 +62,57 @@ export const useBackendAppState = () => {
   const coinBooster = useCoinBooster();
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Request manager for cancellation support
+  const requestManagerRef = useRef<RequestManager>(new RequestManager());
+
+  // Use refs to hold latest subsystem values - this prevents callback dependency bloat
+  // The callbacks will always have access to the latest values without recreating
+  const subsystemsRef = useRef({
+    isAuthenticated,
+    localXPSystem,
+    backendXPSystem,
+    streaks,
+    quests,
+    achievements,
+    bondSystem,
+    supabaseData,
+    coinSystem,
+    coinBooster,
+  });
+
+  // Update refs whenever subsystems change
+  useEffect(() => {
+    subsystemsRef.current = {
+      isAuthenticated,
+      localXPSystem,
+      backendXPSystem,
+      streaks,
+      quests,
+      achievements,
+      bondSystem,
+      supabaseData,
+      coinSystem,
+      coinBooster,
+    };
+  });
+
+  // Cleanup pending requests on unmount
+  useEffect(() => {
+    const manager = requestManagerRef.current;
+    return () => {
+      manager.abortAll();
+    };
+  }, []);
+
+  // Use the HIGHER level between local and backend to prevent progress regression
+  const effectiveLevel = useMemo(
+    () => Math.max(backendXPSystem.currentLevel, localXPSystem.currentLevel),
+    [backendXPSystem.currentLevel, localXPSystem.currentLevel]
+  );
+
+  // Use backend XP system when authenticated, local otherwise
+  const xpSystem = isAuthenticated ? backendXPSystem : localXPSystem;
 
   // Real-time subscriptions for progress updates
   useEffect(() => {
@@ -55,7 +129,6 @@ export const useBackendAppState = () => {
         },
         (payload) => {
           logger.debug('Real-time progress update:', payload);
-          // Actually refresh data from Supabase
           supabaseData.loadUserData();
         }
       )
@@ -71,7 +144,6 @@ export const useBackendAppState = () => {
           toast.success('🏆 Achievement Unlocked!', {
             description: payload.new.title
           });
-          // Refresh achievements data
           achievements.loadAchievements?.();
         }
       )
@@ -80,20 +152,24 @@ export const useBackendAppState = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isAuthenticated, supabaseData, achievements]);
+  }, [isAuthenticated]); // Reduced dependencies - functions accessed via ref
 
   // Award XP and coins, trigger all related systems
-  const awardXP = useCallback(async (sessionMinutes: number) => {
+  // Uses ref pattern to avoid dependency array bloat
+  const awardXP = useCallback(async (sessionMinutes: number): Promise<XPRewardResult | null> => {
+    const systems = subsystemsRef.current;
+    const requestManager = requestManagerRef.current;
+
     // Award coins with booster multiplier
-    const boosterMultiplier = coinBooster.getCurrentMultiplier();
-    const coinReward = coinSystem.awardCoins(sessionMinutes, boosterMultiplier);
+    const boosterMultiplier = systems.coinBooster.getCurrentMultiplier();
+    const coinReward = systems.coinSystem.awardCoins(sessionMinutes, boosterMultiplier);
     logger.debug('Coin reward:', coinReward);
 
     // Use local XP system when not authenticated
-    if (!isAuthenticated) {
+    if (!systems.isAuthenticated) {
       logger.debug('Using local XP system (not authenticated)');
       try {
-        const reward = localXPSystem.awardXP(sessionMinutes);
+        const reward = systems.localXPSystem.awardXP(sessionMinutes);
         logger.debug('Local XP reward:', reward);
 
         // Show notifications for level up
@@ -121,33 +197,39 @@ export const useBackendAppState = () => {
       }
     }
 
+    // Create abort controller for this request
+    const controller = requestManager.create();
+
     setIsLoading(true);
     try {
-      // Call Edge Function for server-side XP calculation with retry
+      // Call Edge Function for server-side XP calculation with retry and cancellation
       const { data: xpResult, error: xpError } = await withRetry(
-        () => supabase.functions.invoke('calculate-xp', { body: { sessionMinutes } }),
-        { maxRetries: 2 }
+        (signal) => supabase.functions.invoke('calculate-xp', {
+          body: { sessionMinutes }
+        }),
+        { maxRetries: 2, signal: controller.signal }
       );
 
       if (xpError) throw xpError;
 
       logger.debug('XP calculation result:', xpResult);
 
-      // Record streak progress
-      const streakReward = await streaks.recordSession();
+      // Record streak progress (use latest systems from ref)
+      const latestSystems = subsystemsRef.current;
+      const streakReward = await latestSystems.streaks.recordSession();
 
       // Update quest progress
-      await quests.updateQuestProgress('focus_time', sessionMinutes);
+      await latestSystems.quests.updateQuestProgress('focus_time', sessionMinutes);
 
       // Check for achievements with retry
       const { data: achievementResult, error: achievementError } = await withRetry(
-        () => supabase.functions.invoke('process-achievements', {
+        (signal) => supabase.functions.invoke('process-achievements', {
           body: {
             triggerType: 'session_complete',
             sessionMinutes
           }
         }),
-        { maxRetries: 2 }
+        { maxRetries: 2, signal: controller.signal }
       );
 
       if (achievementError) {
@@ -157,15 +239,14 @@ export const useBackendAppState = () => {
       }
 
       // Update bond system for active pets (parallel execution to avoid N+1)
-      const activePets = supabaseData.pets.filter(pet => pet.is_favorite);
+      const activePets = latestSystems.supabaseData.pets.filter(pet => pet.is_favorite);
       await Promise.all(
-        activePets.map(pet => bondSystem.interactWithPet(pet.pet_type, 'focus_session'))
+        activePets.map(pet => latestSystems.bondSystem.interactWithPet(pet.pet_type, 'focus_session'))
       );
 
       // Dispatch custom event to sync other hook instances with new XP state
-      // This ensures TopStatusBar and other components using useXPSystem get updated
       const newLevel = xpResult.newLevel;
-      const newTotalXP = xpResult.totalXP; // Edge function returns totalXP
+      const newTotalXP = xpResult.totalXP;
       const unlockedAnimals = getUnlockedAnimals(newLevel).map(a => a.name);
 
       const xpStateUpdate = {
@@ -174,8 +255,8 @@ export const useBackendAppState = () => {
         xpToNextLevel: xpResult.xpToNextLevel,
         totalXPForCurrentLevel: xpResult.currentLevelXP,
         unlockedAnimals,
-        currentBiome: backendXPSystem.currentBiome,
-        availableBiomes: backendXPSystem.availableBiomes,
+        currentBiome: latestSystems.backendXPSystem.currentBiome,
+        availableBiomes: latestSystems.backendXPSystem.availableBiomes,
       };
 
       // Dispatch event to notify other hook instances
@@ -193,26 +274,36 @@ export const useBackendAppState = () => {
       };
 
     } catch (error) {
+      // Don't show error for aborted requests
+      if (isAbortError(error)) {
+        logger.debug('XP award request was cancelled');
+        return null;
+      }
       logger.error('Error awarding XP:', error);
       toast.error('Failed to save session progress');
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, localXPSystem, streaks, quests, bondSystem, supabaseData.pets, backendXPSystem, coinSystem, coinBooster]);
+  }, []); // Empty dependency array - uses refs for all subsystem access
 
   // Get pet interaction handler
-  const interactWithPet = useCallback(async (petType: string, interactionType: string = 'play') => {
-    // Get bond level before interaction to detect level ups
-    const previousBondLevel = bondSystem.getBondLevel(petType);
+  const interactWithPet = useCallback(async (
+    petType: string,
+    interactionType: string = 'play'
+  ): Promise<PetInteractionResult> => {
+    const systems = subsystemsRef.current;
 
-    const interaction = await bondSystem.interactWithPet(petType, interactionType);
+    // Get bond level before interaction to detect level ups
+    const previousBondLevel = systems.bondSystem.getBondLevel(petType);
+
+    const interaction = await systems.bondSystem.interactWithPet(petType, interactionType);
 
     // Update quest progress for pet interactions
-    await quests.updateQuestProgress('pet_interaction', 1);
+    await systems.quests.updateQuestProgress('pet_interaction', 1);
 
     // Get new bond level after interaction to detect level up
-    const newBondLevel = bondSystem.getBondLevel(petType);
+    const newBondLevel = systems.bondSystem.getBondLevel(petType);
     const bondLevelUp = newBondLevel > previousBondLevel;
 
     if (bondLevelUp) {
@@ -221,28 +312,27 @@ export const useBackendAppState = () => {
       });
 
       // Check for bond-related achievements
-      await achievements.checkAndUnlockAchievements('bond_level', newBondLevel);
+      await systems.achievements.checkAndUnlockAchievements('bond_level', newBondLevel);
     }
 
     return { bondLevelUp, newBondLevel, interaction };
-  }, [bondSystem, quests, achievements]);
+  }, []); // Empty dependency array - uses refs
 
   // Get level progress percentage
   const getLevelProgress = useCallback(() => {
     return xpSystem.getLevelProgress();
   }, [xpSystem]);
 
-  // Get comprehensive app state
-  const getAppState = useCallback(() => {
-    // Use effective level (max of local and backend) for unlocked animals
+  // Memoized app state to prevent unnecessary recalculations
+  const appState = useMemo(() => {
     const unlockedAnimals = getUnlockedAnimals(effectiveLevel).map(a => a.name);
 
     return {
-      // XP System - use effectiveLevel to prevent progress regression
+      // XP System
       currentXP: xpSystem.currentXP,
       currentLevel: effectiveLevel,
       xpToNextLevel: xpSystem.xpToNextLevel,
-      levelProgress: getLevelProgress(),
+      levelProgress: xpSystem.getLevelProgress(),
 
       // Coin System
       coinBalance: coinSystem.balance,
@@ -255,7 +345,7 @@ export const useBackendAppState = () => {
       boosterMultiplier: coinBooster.getCurrentMultiplier(),
       boosterTimeRemaining: coinBooster.getTimeRemainingFormatted(),
 
-      // Collection - use effectiveLevel for unlocked animals
+      // Collection
       unlockedAnimals,
       currentBiome: xpSystem.currentBiome,
       availableBiomes: xpSystem.availableBiomes,
@@ -279,13 +369,27 @@ export const useBackendAppState = () => {
       progress: supabaseData.progress,
       pets: supabaseData.pets,
 
-      // Loading states - check if isLoading exists (backend systems have it, local don't)
-      isLoading: isLoading || ('isLoading' in xpSystem && xpSystem.isLoading) || achievements.isLoading || quests.isLoading || streaks.isLoading,
+      // Loading states
+      isLoading: isLoading ||
+        ('isLoading' in xpSystem && xpSystem.isLoading) ||
+        achievements.isLoading ||
+        quests.isLoading ||
+        streaks.isLoading,
     };
   }, [
-    xpSystem, achievements, quests, streaks, supabaseData,
-    getLevelProgress, isLoading, effectiveLevel, coinSystem, coinBooster
+    xpSystem,
+    effectiveLevel,
+    coinSystem,
+    coinBooster,
+    achievements,
+    quests,
+    streaks,
+    supabaseData,
+    isLoading,
   ]);
+
+  // Stable getAppState function that returns memoized state
+  const getAppState = useCallback(() => appState, [appState]);
 
   return {
     // Main functions
@@ -305,7 +409,7 @@ export const useBackendAppState = () => {
     coinSystem,
     coinBooster,
 
-    // Quick access to key data
-    ...getAppState(),
+    // Quick access to key data (spread memoized state)
+    ...appState,
   };
 };
