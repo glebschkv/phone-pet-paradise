@@ -1,49 +1,26 @@
 import Foundation
 import Capacitor
-import DeviceActivity
-import FamilyControls
-import ManagedSettings
-import BackgroundTasks
+import UIKit
 
-// MARK: - Shared Data Manager
-class FocusDataManager {
-    static let shared = FocusDataManager()
-
-    private let userDefaults: UserDefaults?
-
-    private init() {
-        userDefaults = AppConfig.sharedUserDefaults
-    }
-
-    var isFocusSessionActive: Bool {
-        get { userDefaults?.bool(forKey: AppConfig.StorageKeys.focusSessionActive) ?? false }
-        set { userDefaults?.set(newValue, forKey: AppConfig.StorageKeys.focusSessionActive) }
-    }
-
-    var shieldAttempts: Int {
-        get { userDefaults?.integer(forKey: AppConfig.StorageKeys.shieldAttempts) ?? 0 }
-        set { userDefaults?.set(newValue, forKey: AppConfig.StorageKeys.shieldAttempts) }
-    }
-
-    var lastShieldAttemptTimestamp: Double {
-        get { userDefaults?.double(forKey: AppConfig.StorageKeys.lastShieldAttempt) ?? 0 }
-        set { userDefaults?.set(newValue, forKey: AppConfig.StorageKeys.lastShieldAttempt) }
-    }
-
-    func resetShieldAttempts() {
-        shieldAttempts = 0
-        lastShieldAttemptTimestamp = 0
-    }
-
-    func recordShieldAttempt() {
-        shieldAttempts += 1
-        lastShieldAttemptTimestamp = Date().timeIntervalSince1970
-    }
-}
-
-// MARK: - Device Activity Plugin
+/**
+ * DeviceActivityPlugin
+ *
+ * Capacitor plugin coordinating device activity, app blocking, and monitoring.
+ * Delegates to specialized managers for each concern.
+ *
+ * Architecture:
+ * - PermissionsManager: Handles Family Controls authorization
+ * - AppBlockingManager: Manages shield application and removal
+ * - ActivityMonitorManager: Handles device activity monitoring
+ * - BackgroundTaskManager: Manages background task scheduling
+ * - HapticFeedbackManager: Provides haptic feedback
+ * - FocusDataManager: Manages focus session state
+ */
 @objc(DeviceActivityPlugin)
 public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
+
+    // MARK: - Plugin Configuration
+
     public let identifier = "DeviceActivityPlugin"
     public let jsName = "DeviceActivity"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -65,20 +42,55 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "triggerHapticFeedback", returnType: CAPPluginReturnPromise)
     ]
 
-    private var deviceActivityCenter = DeviceActivityCenter()
-    private var authorizationCenter = AuthorizationCenter.shared
-    private var isMonitoring = false
-    private var lastActiveTime: Date?
-    private var sessionStartTime: Date?
+    // MARK: - Managers
 
-    // ManagedSettings store for app blocking
-    private let store = ManagedSettingsStore()
+    private let permissionsManager: PermissionsManager
+    private let blockingManager: AppBlockingManager
+    private let monitorManager: ActivityMonitorManager
+    private let backgroundManager: BackgroundTaskManager
+    private let hapticManager: HapticFeedbackManager
+    private let focusDataManager: FocusDataManager
 
-    // Current app selection (stored in app group for extension access)
-    private var currentSelection: FamilyActivitySelection? {
-        didSet {
-            saveSelectionToAppGroup()
-        }
+    // MARK: - Initialization
+
+    public override init() {
+        self.permissionsManager = .shared
+        self.blockingManager = .shared
+        self.monitorManager = .shared
+        self.backgroundManager = .shared
+        self.hapticManager = .shared
+        self.focusDataManager = .shared
+        super.init()
+    }
+
+    /// Designated initializer for testing with injected dependencies
+    init(
+        permissionsManager: PermissionsManager,
+        blockingManager: AppBlockingManager,
+        monitorManager: ActivityMonitorManager,
+        backgroundManager: BackgroundTaskManager,
+        hapticManager: HapticFeedbackManager,
+        focusDataManager: FocusDataManager
+    ) {
+        self.permissionsManager = permissionsManager
+        self.blockingManager = blockingManager
+        self.monitorManager = monitorManager
+        self.backgroundManager = backgroundManager
+        self.hapticManager = hapticManager
+        self.focusDataManager = focusDataManager
+        super.init()
+    }
+
+    // MARK: - Lifecycle
+
+    public override func load() {
+        Log.app.info("DeviceActivityPlugin loaded")
+        setupLifecycleObservers()
+        setupBackgroundEventHandler()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Permission Methods
@@ -86,64 +98,46 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func requestPermissions(_ call: CAPPluginCall) {
         Task {
             do {
-                try await authorizationCenter.requestAuthorization(for: .individual)
+                try await permissionsManager.requestAuthorization()
                 await MainActor.run {
-                    call.resolve([
-                        "status": "granted",
-                        "familyControlsEnabled": true
-                    ])
+                    call.resolve(permissionsManager.statusResponse)
                 }
             } catch {
                 await MainActor.run {
-                    call.reject("Failed to request permissions: \(error.localizedDescription)")
+                    call.reject(with: error as? PluginError ?? .permissionDenied(feature: "Family Controls"))
                 }
             }
         }
     }
 
     @objc func checkPermissions(_ call: CAPPluginCall) {
-        let status = authorizationCenter.authorizationStatus
-        call.resolve([
-            "status": status == .approved ? "granted" : "denied",
-            "familyControlsEnabled": status == .approved
-        ])
+        call.resolve(permissionsManager.statusResponse)
     }
 
     // MARK: - App Selection Methods
 
     @objc func openAppPicker(_ call: CAPPluginCall) {
-        // This method triggers the native FamilyActivityPicker
-        // The actual picker UI is handled via SwiftUI - we need to notify the app to show it
         Task { @MainActor in
-            self.notifyJS("showAppPicker", data: [:])
-            call.resolve(["success": true])
+            notifyJS("showAppPicker", data: [:])
+            call.resolveSuccess()
         }
     }
 
     @objc func setSelectedApps(_ call: CAPPluginCall) {
-        // This receives the serialized selection from the app picker
-        guard let selectionData = call.getString("selection") else {
-            call.reject("No selection data provided")
-            return
+        do {
+            let selection = try PluginValidation.requiredString(call, key: "selection")
+            try blockingManager.saveSelection(selection)
+            call.resolveSuccess(["message": Strings.Blocking.selectionSaved])
+        } catch {
+            call.reject(with: error as? PluginError ?? .invalidParameter(name: "selection", reason: "invalid"))
         }
-
-        // Store selection data in app group for extension access
-        if let userDefaults = AppConfig.sharedUserDefaults {
-            userDefaults.set(selectionData, forKey: AppConfig.StorageKeys.blockedAppsSelection)
-        }
-
-        call.resolve([
-            "success": true,
-            "message": "App selection saved"
-        ])
     }
 
     @objc func getSelectedApps(_ call: CAPPluginCall) {
-        if let userDefaults = AppConfig.sharedUserDefaults,
-           let selectionData = userDefaults.string(forKey: AppConfig.StorageKeys.blockedAppsSelection) {
+        if let selection = blockingManager.loadSelection() {
             call.resolve([
                 "hasSelection": true,
-                "selection": selectionData
+                "selection": selection
             ])
         } else {
             call.resolve([
@@ -154,290 +148,108 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func clearSelectedApps(_ call: CAPPluginCall) {
-        if let userDefaults = AppConfig.sharedUserDefaults {
-            userDefaults.removeObject(forKey: AppConfig.StorageKeys.blockedAppsSelection)
-        }
-
-        // Clear any active shields
-        store.shield.applications = nil
-        store.shield.applicationCategories = nil
-        store.shield.webDomains = nil
-
-        call.resolve(["success": true])
+        blockingManager.clearSelection()
+        call.resolveSuccess()
     }
 
     // MARK: - App Blocking Methods
 
     @objc func startAppBlocking(_ call: CAPPluginCall) {
-        guard authorizationCenter.authorizationStatus == .approved else {
-            call.reject("Family Controls permissions not granted")
-            return
-        }
-
-        // Mark focus session as active
-        FocusDataManager.shared.isFocusSessionActive = true
-        FocusDataManager.shared.resetShieldAttempts()
-
-        // Load selection from app group and apply shields
-        if let userDefaults = AppConfig.sharedUserDefaults,
-           let selectionData = userDefaults.data(forKey: AppConfig.StorageKeys.blockedAppsSelection) {
-            do {
-                let selection = try JSONDecoder().decode(FamilyActivitySelection.self, from: selectionData)
-
-                // Apply shields to selected apps
-                store.shield.applications = selection.applicationTokens
-                store.shield.applicationCategories = .specific(selection.categoryTokens)
-                store.shield.webDomains = selection.webDomainTokens
-
-                call.resolve([
-                    "success": true,
-                    "appsBlocked": selection.applicationTokens.count,
-                    "categoriesBlocked": selection.categoryTokens.count,
-                    "domainsBlocked": selection.webDomainTokens.count
-                ])
-            } catch {
-                // If we can't decode stored selection, just enable basic blocking
-                call.resolve([
-                    "success": true,
-                    "appsBlocked": 0,
-                    "categoriesBlocked": 0,
-                    "domainsBlocked": 0,
-                    "note": "No apps configured for blocking"
-                ])
-            }
-        } else {
-            call.resolve([
-                "success": true,
-                "appsBlocked": 0,
-                "categoriesBlocked": 0,
-                "domainsBlocked": 0,
-                "note": "No apps configured for blocking"
-            ])
+        do {
+            try permissionsManager.requireAuthorization()
+            let result = try blockingManager.startBlocking()
+            call.resolve(result.asDictionary)
+        } catch {
+            call.reject(with: error as? PluginError ?? .blockingNotConfigured)
         }
     }
 
     @objc func stopAppBlocking(_ call: CAPPluginCall) {
-        // Mark focus session as inactive
-        FocusDataManager.shared.isFocusSessionActive = false
-
-        // Get shield attempts before clearing
-        let attempts = FocusDataManager.shared.shieldAttempts
-
-        // Clear all shields
-        store.shield.applications = nil
-        store.shield.applicationCategories = nil
-        store.shield.webDomains = nil
-
-        call.resolve([
-            "success": true,
-            "shieldAttempts": attempts
-        ])
+        let result = blockingManager.stopBlocking()
+        call.resolve(result.asDictionary)
     }
 
     @objc func getBlockingStatus(_ call: CAPPluginCall) {
-        let isActive = FocusDataManager.shared.isFocusSessionActive
-        let attempts = FocusDataManager.shared.shieldAttempts
-        let lastAttempt = FocusDataManager.shared.lastShieldAttemptTimestamp
-
-        let hasAppsBlocked = store.shield.applications != nil &&
-                            !(store.shield.applications?.isEmpty ?? true)
-
-        call.resolve([
-            "isBlocking": isActive && hasAppsBlocked,
-            "focusSessionActive": isActive,
-            "shieldAttempts": attempts,
-            "lastShieldAttemptTimestamp": lastAttempt,
-            "hasAppsConfigured": hasAppsBlocked
-        ])
+        let status = blockingManager.getBlockingStatus()
+        call.resolve(status.asDictionary)
     }
 
     @objc func getShieldAttempts(_ call: CAPPluginCall) {
         call.resolve([
-            "attempts": FocusDataManager.shared.shieldAttempts,
-            "lastAttemptTimestamp": FocusDataManager.shared.lastShieldAttemptTimestamp
+            "attempts": focusDataManager.shieldAttempts,
+            "lastAttemptTimestamp": focusDataManager.lastShieldAttemptTimestamp
         ])
     }
 
     @objc func resetShieldAttempts(_ call: CAPPluginCall) {
-        FocusDataManager.shared.resetShieldAttempts()
-        call.resolve(["success": true])
+        focusDataManager.resetShieldAttempts()
+        call.resolveSuccess()
     }
 
     // MARK: - Monitoring Methods
 
     @objc func startMonitoring(_ call: CAPPluginCall) {
-        guard authorizationCenter.authorizationStatus == .approved else {
-            call.reject("Device Activity permissions not granted")
-            return
-        }
-
-        let activityName = DeviceActivityName(AppConfig.ActivityMonitoring.activityName)
-        let schedule = DeviceActivitySchedule(
-            intervalStart: DateComponents(hour: 0, minute: 0),
-            intervalEnd: DateComponents(hour: 23, minute: 59),
-            repeats: true
-        )
-
         do {
-            try deviceActivityCenter.startMonitoring(activityName, during: schedule)
-            isMonitoring = true
-            sessionStartTime = Date()
-
-            // Register background task for app lifecycle tracking
-            registerBackgroundTasks()
-
-            call.resolve([
-                "success": true,
-                "monitoring": true,
-                "startTime": sessionStartTime?.timeIntervalSince1970 ?? 0
-            ])
+            try permissionsManager.requireAuthorization()
+            let result = try monitorManager.startMonitoring()
+            backgroundManager.registerBackgroundTasks()
+            call.resolve(result.asDictionary)
         } catch {
-            call.reject("Failed to start monitoring: \(error.localizedDescription)")
+            call.reject(with: error as? PluginError ?? .monitoringFailed(reason: "Unknown error"))
         }
     }
 
     @objc func stopMonitoring(_ call: CAPPluginCall) {
-        let activityName = DeviceActivityName(AppConfig.ActivityMonitoring.activityName)
-        deviceActivityCenter.stopMonitoring([activityName])
-        isMonitoring = false
-
-        call.resolve([
-            "success": true,
-            "monitoring": false
-        ])
+        let result = monitorManager.stopMonitoring()
+        call.resolve(result.asDictionary)
     }
 
     @objc func getUsageData(_ call: CAPPluginCall) {
-        // Calculate time away from app
-        let now = Date()
-        var timeAwayMinutes = 0.0
-
-        if let lastActive = lastActiveTime {
-            timeAwayMinutes = now.timeIntervalSince(lastActive) / 60.0
-        }
-
-        call.resolve([
-            "timeAwayMinutes": timeAwayMinutes,
-            "isMonitoring": isMonitoring,
-            "lastActiveTime": lastActiveTime?.timeIntervalSince1970 ?? 0,
-            "currentTime": now.timeIntervalSince1970,
-            "shieldAttempts": FocusDataManager.shared.shieldAttempts
-        ])
+        let data = monitorManager.getUsageData()
+        call.resolve(data.asDictionary)
     }
 
     @objc func recordActiveTime(_ call: CAPPluginCall) {
-        lastActiveTime = Date()
-
-        call.resolve([
-            "success": true,
-            "timestamp": lastActiveTime?.timeIntervalSince1970 ?? 0
+        monitorManager.recordActiveTime()
+        call.resolveSuccess([
+            "timestamp": Date().timeIntervalSince1970
         ])
     }
 
     // MARK: - Haptic Feedback
 
     @objc func triggerHapticFeedback(_ call: CAPPluginCall) {
-        let style = call.getString("style") ?? "medium"
+        let styleString = call.getString("style")
+        let style = HapticFeedbackManager.parseStyle(styleString)
 
-        Task { @MainActor in
-            switch style {
-            case "light":
-                let feedback = UIImpactFeedbackGenerator(style: .light)
-                feedback.impactOccurred()
-            case "heavy":
-                let feedback = UIImpactFeedbackGenerator(style: .heavy)
-                feedback.impactOccurred()
-            case "success":
-                let feedback = UINotificationFeedbackGenerator()
-                feedback.notificationOccurred(.success)
-            case "warning":
-                let feedback = UINotificationFeedbackGenerator()
-                feedback.notificationOccurred(.warning)
-            case "error":
-                let feedback = UINotificationFeedbackGenerator()
-                feedback.notificationOccurred(.error)
-            default:
-                let feedback = UIImpactFeedbackGenerator(style: .medium)
-                feedback.impactOccurred()
+        Task {
+            await hapticManager.triggerFeedbackAsync(style: style)
+            await MainActor.run {
+                call.resolveSuccess()
             }
-
-            call.resolve(["success": true])
         }
     }
 
-    // MARK: - Background Tasks
+    // MARK: - Lifecycle Observers
 
-    private func registerBackgroundTasks() {
-        // Register background task for app lifecycle monitoring
-        BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: AppConfig.backgroundTaskIdentifier,
-            using: nil
-        ) { [weak self] task in
-            guard let refreshTask = task as? BGAppRefreshTask else {
-                task.setTaskCompleted(success: false)
-                return
-            }
-            self?.handleBackgroundTracking(task: refreshTask)
-        }
-    }
+    private func setupLifecycleObservers() {
+        let center = NotificationCenter.default
 
-    private func handleBackgroundTracking(task: BGAppRefreshTask) {
-        // Record that app went to background
-        self.notifyJS("appLifecycleChange", data: [
-            "state": "background",
-            "timestamp": Date().timeIntervalSince1970
-        ])
-
-        // Schedule next background refresh
-        self.scheduleBackgroundAppRefresh()
-
-        task.setTaskCompleted(success: true)
-    }
-
-    private func scheduleBackgroundAppRefresh() {
-        let request = BGAppRefreshTaskRequest(identifier: AppConfig.backgroundTaskIdentifier)
-        request.earliestBeginDate = Date(timeIntervalSinceNow: AppConfig.backgroundRefreshIntervalMinutes * 60)
-
-        do {
-            try BGTaskScheduler.shared.submit(request)
-        } catch {
-            print("[DeviceActivityPlugin] Failed to schedule background refresh: \(error)")
-        }
-    }
-
-    // MARK: - App Group Helpers
-
-    private func saveSelectionToAppGroup() {
-        guard let selection = currentSelection,
-              let userDefaults = AppConfig.sharedUserDefaults else { return }
-
-        do {
-            let data = try JSONEncoder().encode(selection)
-            userDefaults.set(data, forKey: AppConfig.StorageKeys.blockedAppsSelection)
-        } catch {
-            print("[DeviceActivityPlugin] Failed to save selection: \(error)")
-        }
-    }
-
-    // MARK: - Lifecycle
-
-    override public func load() {
-        // Add app lifecycle observers
-        NotificationCenter.default.addObserver(
+        center.addObserver(
             self,
             selector: #selector(appDidEnterBackground),
             name: UIApplication.didEnterBackgroundNotification,
             object: nil
         )
 
-        NotificationCenter.default.addObserver(
+        center.addObserver(
             self,
             selector: #selector(appWillEnterForeground),
             name: UIApplication.willEnterForegroundNotification,
             object: nil
         )
 
-        NotificationCenter.default.addObserver(
+        center.addObserver(
             self,
             selector: #selector(appDidBecomeActive),
             name: UIApplication.didBecomeActiveNotification,
@@ -445,49 +257,48 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         )
     }
 
+    private func setupBackgroundEventHandler() {
+        backgroundManager.setBackgroundEventHandler { [weak self] data in
+            self?.notifyJS("appLifecycleChange", data: data)
+        }
+    }
+
     @objc private func appDidEnterBackground() {
-        lastActiveTime = Date()
-        scheduleBackgroundAppRefresh()
+        monitorManager.recordActiveTime()
+        backgroundManager.appDidEnterBackground()
 
         notifyJS("appLifecycleChange", data: [
             "state": "background",
             "timestamp": Date().timeIntervalSince1970,
-            "lastActiveTime": lastActiveTime?.timeIntervalSince1970 ?? 0
+            "lastActiveTime": monitorManager.getUsageData().lastActiveTime
         ])
     }
 
     @objc private func appWillEnterForeground() {
+        backgroundManager.appWillEnterForeground()
+
         notifyJS("appLifecycleChange", data: [
             "state": "foreground",
             "timestamp": Date().timeIntervalSince1970,
-            "lastActiveTime": lastActiveTime?.timeIntervalSince1970 ?? 0
+            "lastActiveTime": monitorManager.getUsageData().lastActiveTime
         ])
     }
 
     @objc private func appDidBecomeActive() {
-        let now = Date()
-        var timeAwayMinutes = 0.0
-
-        if let lastActive = lastActiveTime {
-            timeAwayMinutes = now.timeIntervalSince(lastActive) / 60.0
-        }
+        let timeAway = monitorManager.updateActiveTime()
 
         notifyJS("appLifecycleChange", data: [
             "state": "active",
-            "timestamp": now.timeIntervalSince1970,
-            "timeAwayMinutes": timeAwayMinutes,
-            "lastActiveTime": lastActiveTime?.timeIntervalSince1970 ?? 0,
-            "shieldAttempts": FocusDataManager.shared.shieldAttempts
+            "timestamp": Date().timeIntervalSince1970,
+            "timeAwayMinutes": timeAway / 60.0,
+            "lastActiveTime": monitorManager.getUsageData().lastActiveTime,
+            "shieldAttempts": focusDataManager.shieldAttempts
         ])
-
-        lastActiveTime = now
     }
+
+    // MARK: - JS Communication
 
     private func notifyJS(_ eventName: String, data: [String: Any]) {
         bridge?.triggerJSEvent(eventName: eventName, target: "window", data: data)
-    }
-
-    deinit {
-        NotificationCenter.default.removeObserver(self)
     }
 }

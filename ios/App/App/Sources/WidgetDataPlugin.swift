@@ -5,12 +5,19 @@ import WidgetKit
 /**
  * WidgetDataPlugin
  *
- * This Capacitor plugin provides a bridge between the React app and iOS widgets.
- * It stores data in a shared App Group container that both the main app and
- * widgets can access.
+ * Capacitor plugin providing a bridge between the app and iOS widgets.
+ * Stores data in a shared App Group container accessible by widgets.
+ *
+ * Architecture:
+ * - Delegates to WidgetDataManager for data operations
+ * - Uses PluginValidation for input validation
+ * - Uses PluginError for error handling
  */
 @objc(WidgetDataPlugin)
 public class WidgetDataPlugin: CAPPlugin, CAPBridgedPlugin {
+
+    // MARK: - Plugin Configuration
+
     public let identifier = "WidgetDataPlugin"
     public let jsName = "WidgetData"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -23,167 +30,99 @@ public class WidgetDataPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "updateStats", returnType: CAPPluginReturnPromise)
     ]
 
-    private let dataKey = AppConfig.StorageKeys.widgetData
+    // MARK: - Dependencies
 
-    private var sharedDefaults: UserDefaults? {
-        AppConfig.sharedUserDefaults
+    private let widgetManager: WidgetDataManager
+
+    // MARK: - Initialization
+
+    public override init() {
+        self.widgetManager = .shared
+        super.init()
+    }
+
+    /// Designated initializer for testing
+    init(widgetManager: WidgetDataManager) {
+        self.widgetManager = widgetManager
+        super.init()
+    }
+
+    public override func load() {
+        Log.widget.info("WidgetDataPlugin loaded")
     }
 
     // MARK: - Save Data
 
     @objc func saveData(_ call: CAPPluginCall) {
-        guard let data = call.getObject("data") else {
-            call.reject("Missing data parameter")
-            return
-        }
-
-        guard let sharedDefaults = sharedDefaults else {
-            call.reject("Failed to access shared container")
-            return
-        }
-
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: data, options: [])
-            sharedDefaults.set(jsonData, forKey: dataKey)
-
-            // Trigger widget refresh
-            reloadWidgets()
-
-            call.resolve(["success": true])
+            let data = try PluginValidation.requiredObject(call, key: "data")
+            try widgetManager.saveData(data)
+            call.resolveSuccess()
         } catch {
-            call.reject("Failed to save data: \(error.localizedDescription)")
+            call.reject(with: error as? PluginError ?? .dataEncodingFailed)
         }
     }
 
     // MARK: - Load Data
 
     @objc func loadData(_ call: CAPPluginCall) {
-        guard let sharedDefaults = sharedDefaults else {
-            call.reject("Failed to access shared container")
-            return
-        }
-
-        guard let jsonData = sharedDefaults.data(forKey: dataKey) else {
-            call.resolve(["data": NSNull()])
-            return
-        }
-
         do {
-            if let data = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
+            if let data = try widgetManager.loadData() {
                 call.resolve(["data": data])
             } else {
                 call.resolve(["data": NSNull()])
             }
         } catch {
-            call.reject("Failed to load data: \(error.localizedDescription)")
+            call.reject(with: error as? PluginError ?? .dataDecodingFailed)
         }
     }
 
     // MARK: - Refresh Widgets
 
     @objc func refreshWidgets(_ call: CAPPluginCall) {
-        reloadWidgets()
-        call.resolve(["success": true])
+        widgetManager.refreshWidgets()
+        call.resolveSuccess()
     }
 
     // MARK: - Partial Updates
 
     @objc func updateTimer(_ call: CAPPluginCall) {
-        guard let timerData = call.getObject("timer") else {
-            call.reject("Missing timer data")
-            return
-        }
-
-        updatePartialData(key: "timer", value: timerData) { success, error in
-            if success {
-                call.resolve(["success": true])
-            } else {
-                call.reject(error ?? "Failed to update timer")
-            }
+        do {
+            let timerData = try PluginValidation.requiredObject(call, key: "timer")
+            try widgetManager.updatePartialData(key: "timer", value: timerData)
+            call.resolveSuccess()
+        } catch {
+            call.reject(with: error as? PluginError ?? .dataEncodingFailed)
         }
     }
 
     @objc func updateStreak(_ call: CAPPluginCall) {
-        guard let streakData = call.getObject("streak") else {
-            call.reject("Missing streak data")
-            return
-        }
-
-        updatePartialData(key: "streak", value: streakData) { success, error in
-            if success {
-                call.resolve(["success": true])
-            } else {
-                call.reject(error ?? "Failed to update streak")
-            }
+        do {
+            let streakData = try PluginValidation.requiredObject(call, key: "streak")
+            try widgetManager.updatePartialData(key: "streak", value: streakData)
+            call.resolveSuccess()
+        } catch {
+            call.reject(with: error as? PluginError ?? .dataEncodingFailed)
         }
     }
 
     @objc func updateDailyProgress(_ call: CAPPluginCall) {
-        guard let progressData = call.getObject("dailyProgress") else {
-            call.reject("Missing daily progress data")
-            return
-        }
-
-        updatePartialData(key: "dailyProgress", value: progressData) { success, error in
-            if success {
-                call.resolve(["success": true])
-            } else {
-                call.reject(error ?? "Failed to update daily progress")
-            }
+        do {
+            let progressData = try PluginValidation.requiredObject(call, key: "dailyProgress")
+            try widgetManager.updatePartialData(key: "dailyProgress", value: progressData)
+            call.resolveSuccess()
+        } catch {
+            call.reject(with: error as? PluginError ?? .dataEncodingFailed)
         }
     }
 
     @objc func updateStats(_ call: CAPPluginCall) {
-        guard let statsData = call.getObject("stats") else {
-            call.reject("Missing stats data")
-            return
-        }
-
-        updatePartialData(key: "stats", value: statsData) { success, error in
-            if success {
-                call.resolve(["success": true])
-            } else {
-                call.reject(error ?? "Failed to update stats")
-            }
-        }
-    }
-
-    // MARK: - Private Helpers
-
-    private func updatePartialData(key: String, value: [String: Any], completion: @escaping (Bool, String?) -> Void) {
-        guard let sharedDefaults = sharedDefaults else {
-            completion(false, "Failed to access shared container")
-            return
-        }
-
-        // Load existing data
-        var existingData: [String: Any] = [:]
-        if let jsonData = sharedDefaults.data(forKey: dataKey) {
-            existingData = (try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any]) ?? [:]
-        }
-
-        // Merge with existing section data
-        var sectionData = existingData[key] as? [String: Any] ?? [:]
-        for (k, v) in value {
-            sectionData[k] = v
-        }
-        existingData[key] = sectionData
-        existingData["lastUpdated"] = Date().timeIntervalSince1970 * 1000
-
-        // Save back
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: existingData, options: [])
-            sharedDefaults.set(jsonData, forKey: dataKey)
-            reloadWidgets()
-            completion(true, nil)
+            let statsData = try PluginValidation.requiredObject(call, key: "stats")
+            try widgetManager.updatePartialData(key: "stats", value: statsData)
+            call.resolveSuccess()
         } catch {
-            completion(false, error.localizedDescription)
-        }
-    }
-
-    private func reloadWidgets() {
-        if #available(iOS 14.0, *) {
-            WidgetCenter.shared.reloadAllTimelines()
+            call.reject(with: error as? PluginError ?? .dataEncodingFailed)
         }
     }
 }
@@ -202,8 +141,8 @@ struct WidgetSharedData: Codable {
 
         init() {
             isRunning = false
-            timeRemaining = 25 * 60
-            sessionDuration = 25 * 60
+            timeRemaining = AppConfig.Widget.defaultSessionDuration
+            sessionDuration = AppConfig.Widget.defaultSessionDuration
             sessionType = nil
             category = nil
             taskLabel = nil
@@ -237,7 +176,7 @@ struct WidgetSharedData: Codable {
             formatter.dateFormat = "yyyy-MM-dd"
             date = formatter.string(from: Date())
             focusMinutes = 0
-            goalMinutes = 120
+            goalMinutes = AppConfig.Widget.defaultGoalMinutes
             sessionsCompleted = 0
             percentComplete = 0
         }
@@ -274,7 +213,7 @@ struct WidgetSharedData: Codable {
 
 // MARK: - Widget Data Reader
 
-class WidgetDataReader {
+final class WidgetDataReader {
     static func load() -> WidgetSharedData {
         guard let sharedDefaults = AppConfig.sharedUserDefaults,
               let jsonData = sharedDefaults.data(forKey: AppConfig.StorageKeys.widgetData) else {
@@ -284,7 +223,7 @@ class WidgetDataReader {
         do {
             return try JSONDecoder().decode(WidgetSharedData.self, from: jsonData)
         } catch {
-            print("[WidgetDataReader] Failed to decode widget data: \(error)")
+            Log.widget.failure("Failed to decode widget data", error: error)
             return WidgetSharedData()
         }
     }

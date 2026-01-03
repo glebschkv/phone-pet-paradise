@@ -1,39 +1,78 @@
 import Foundation
+import UIKit
 
 /**
  * Centralized App Configuration
  *
  * All app-wide constants and configuration values should be defined here
  * to maintain a single source of truth across the iOS codebase.
+ *
+ * Categories:
+ * - App Identifiers: Bundle IDs, app names, versions
+ * - Background Tasks: Task identifiers and intervals
+ * - Storage Keys: UserDefaults keys for persistence
+ * - StoreKit: Product IDs for in-app purchases
+ * - Network: Retry logic and timeout configuration
+ * - Activity Monitoring: DeviceActivity framework config
+ * - Widget: Widget-specific constants
+ * - UI: Colors, dimensions, and visual constants
+ * - Timing: Timer and duration constants
  */
 enum AppConfig {
+
     // MARK: - App Identifiers
+
     /// App Group identifier - references SharedConstants for consistency with extensions
     static let appGroupIdentifier = SharedConstants.appGroupIdentifier
     static let bundleIdentifier = "co.nomoinc.nomo"
     static let appName = "NoMo Phone"
-    static let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-    static let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    static let merchantIdentifier = "merchant.co.nomoinc.nomo"
+
+    static var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+
+    static var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    }
+
+    static var fullVersion: String {
+        "\(appVersion) (\(buildNumber))"
+    }
 
     // MARK: - Background Tasks
-    static let backgroundTaskIdentifier = "app.lovable.354c50c576064f429b59577c9adb3ef7.background-tracking"
-    static let backgroundRefreshIntervalMinutes: TimeInterval = 15
+
+    enum BackgroundTask {
+        static let identifier = "app.lovable.354c50c576064f429b59577c9adb3ef7.background-tracking"
+        static let refreshIntervalMinutes: TimeInterval = 15
+        static let refreshIntervalSeconds: TimeInterval = 15 * 60
+    }
+
+    /// Legacy accessors for backwards compatibility
+    static let backgroundTaskIdentifier = BackgroundTask.identifier
+    static let backgroundRefreshIntervalMinutes = BackgroundTask.refreshIntervalMinutes
 
     // MARK: - Storage Keys
+
     enum StorageKeys {
         // Shared keys (also used by extensions) - reference SharedConstants
         static let blockedAppsSelection = SharedConstants.StorageKeys.blockedAppsSelection
         static let focusSessionActive = SharedConstants.StorageKeys.focusSessionActive
         static let shieldAttempts = SharedConstants.StorageKeys.shieldAttempts
         static let lastShieldAttempt = SharedConstants.StorageKeys.lastShieldAttempt
+        static let activityLogs = SharedConstants.StorageKeys.activityLogs
+
         // App-only keys (not used by extensions)
         static let widgetData = "widgetData"
         static let timerState = "timerState"
         static let streakData = "streakData"
         static let dailyProgress = "dailyProgress"
+        static let userPreferences = "userPreferences"
+        static let lastSyncTimestamp = "lastSyncTimestamp"
     }
 
     // MARK: - StoreKit Product IDs
+
     enum ProductIDs {
         static let premiumMonthly = "nomo_premium_monthly"
         static let premiumYearly = "nomo_premium_yearly"
@@ -44,9 +83,15 @@ enum AppConfig {
             premiumYearly,
             premiumLifetime
         ]
+
+        static let subscriptionProducts: [String] = [
+            premiumMonthly,
+            premiumYearly
+        ]
     }
 
     // MARK: - Network Configuration
+
     enum Network {
         static let maxRetries = 3
         static let initialRetryDelay: TimeInterval = 1.0
@@ -56,13 +101,112 @@ enum AppConfig {
     }
 
     // MARK: - Activity Monitoring
+
     enum ActivityMonitoring {
         static let activityName = SharedConstants.ActivityNames.phoneUsageTracking
+        static let focusSessionName = SharedConstants.ActivityNames.focusSession
         static let scheduleEventName = "focusScheduleEvent"
         static let maxStoredLogs = SharedConstants.maxStoredLogs
+
+        /// Default monitoring schedule - all day
+        static let scheduleStartHour = 0
+        static let scheduleStartMinute = 0
+        static let scheduleEndHour = 23
+        static let scheduleEndMinute = 59
+    }
+
+    // MARK: - Widget Configuration
+
+    enum Widget {
+        /// Default session duration in seconds (25 minutes)
+        static let defaultSessionDuration = 25 * 60
+
+        /// Default daily goal in minutes (120 minutes = 2 hours)
+        static let defaultGoalMinutes = 120
+
+        /// Widget kinds for WidgetKit
+        static let timerWidgetKind = "NoMoTimerWidget"
+        static let streakWidgetKind = "NoMoStreakWidget"
+        static let progressWidgetKind = "NoMoProgressWidget"
+        static let statsWidgetKind = "NoMoStatsWidget"
+
+        /// Widget display names
+        static let timerDisplayName = "Focus Timer"
+        static let streakDisplayName = "Streak"
+        static let progressDisplayName = "Daily Progress"
+        static let statsDisplayName = "Stats"
+
+        /// Widget refresh intervals in minutes
+        static let timerRefreshInterval: TimeInterval = 1
+        static let defaultRefreshInterval: TimeInterval = 15
+    }
+
+    // MARK: - Timer Configuration
+
+    enum Timer {
+        /// Pomodoro session duration in seconds
+        static let pomodoroSessionSeconds = 25 * 60
+
+        /// Short break duration in seconds
+        static let shortBreakSeconds = 5 * 60
+
+        /// Long break duration in seconds
+        static let longBreakSeconds = 15 * 60
+
+        /// Sessions before long break
+        static let sessionsBeforeLongBreak = 4
+    }
+
+    // MARK: - Shield UI Configuration
+
+    enum ShieldUI {
+        /// Icon size for shield configuration
+        static let iconSize: CGFloat = 60
+
+        /// Background color (dark purple)
+        static let backgroundColor = UIColor(red: 0.1, green: 0.05, blue: 0.15, alpha: 0.95)
+
+        /// Subtitle text color (light purple)
+        static let subtitleColor = UIColor(red: 0.7, green: 0.6, blue: 0.9, alpha: 1.0)
+
+        /// Primary button color (medium purple)
+        static let buttonColor = UIColor(red: 0.5, green: 0.3, blue: 0.8, alpha: 1.0)
+
+        /// Icon tint color (light purple)
+        static let iconTintColor = UIColor(red: 0.8, green: 0.6, blue: 1.0, alpha: 1.0)
+
+        /// System icon name for shield
+        static let iconSystemName = "moon.stars.fill"
+    }
+
+    // MARK: - Animation
+
+    enum Animation {
+        /// Standard animation duration
+        static let standardDuration: TimeInterval = 0.3
+
+        /// Quick animation duration
+        static let quickDuration: TimeInterval = 0.15
+
+        /// Slow animation duration
+        static let slowDuration: TimeInterval = 0.5
+    }
+
+    // MARK: - Limits
+
+    enum Limits {
+        /// Maximum number of blocked apps
+        static let maxBlockedApps = 100
+
+        /// Maximum session duration in seconds (4 hours)
+        static let maxSessionDuration = 4 * 60 * 60
+
+        /// Minimum session duration in seconds (1 minute)
+        static let minSessionDuration = 60
     }
 
     // MARK: - Shared UserDefaults
+
     static var sharedUserDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroupIdentifier)
     }
@@ -72,6 +216,15 @@ enum AppConfig {
 
 /**
  * Executes an async operation with exponential backoff retry logic
+ *
+ * - Parameters:
+ *   - maxRetries: Maximum number of retry attempts
+ *   - initialDelay: Initial delay between retries
+ *   - maxDelay: Maximum delay between retries
+ *   - backoffMultiplier: Multiplier for exponential backoff
+ *   - operation: The async operation to perform
+ * - Returns: The result of the operation
+ * - Throws: The last error if all retries fail
  */
 func withRetry<T>(
     maxRetries: Int = AppConfig.Network.maxRetries,
@@ -88,6 +241,7 @@ func withRetry<T>(
             return try await operation()
         } catch {
             lastError = error
+            Log.app.warning("Retry attempt \(attempt + 1)/\(maxRetries) failed: \(error.localizedDescription)")
 
             // Don't delay after the last attempt
             if attempt < maxRetries - 1 {
@@ -97,9 +251,6 @@ func withRetry<T>(
         }
     }
 
-    throw lastError ?? NSError(
-        domain: "RetryError",
-        code: -1,
-        userInfo: [NSLocalizedDescriptionKey: "Operation failed after \(maxRetries) retries"]
-    )
+    Log.app.error("All \(maxRetries) retry attempts failed")
+    throw lastError ?? PluginError.networkError(underlying: nil)
 }

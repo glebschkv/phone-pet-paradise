@@ -11,26 +11,15 @@ import UIKit
  * Usage:
  * - The ShieldConfigurationExtension should use this helper for its operations
  * - Tests can inject a mock UserDefaults to verify behavior
+ *
+ * Note: This class uses SharedConstants instead of AppConfig because it must work
+ * in the extension context where AppConfig may not be available.
  */
 class ShieldConfigurationHelper {
 
     // MARK: - Properties
 
     private let userDefaults: UserDefaults
-
-    /// The list of motivational messages shown on shield screens
-    static let motivationalMessages = [
-        "Your focus pet is counting on you!",
-        "Stay strong - your future self will thank you!",
-        "Every minute of focus earns you rewards!",
-        "You're doing great! Keep focusing!",
-        "Distractions can wait - your goals can't!",
-        "Focus now, scroll later!",
-        "Your streak depends on you!",
-        "Almost there! Don't give up now!",
-        "Focus = XP = Level Up!",
-        "Your pet believes in you!"
-    ]
 
     // MARK: - Initialization
 
@@ -66,6 +55,21 @@ class ShieldConfigurationHelper {
 
     // MARK: - Motivational Messages
 
+    /// The list of motivational messages shown on shield screens
+    /// Note: Uses static strings here since extensions may not have access to Strings.swift
+    static let motivationalMessages = [
+        "Your focus pet is counting on you!",
+        "Stay strong - your future self will thank you!",
+        "Every minute of focus earns you rewards!",
+        "You're doing great! Keep focusing!",
+        "Distractions can wait - your goals can't!",
+        "Focus now, scroll later!",
+        "Your streak depends on you!",
+        "Almost there! Don't give up now!",
+        "Focus = XP = Level Up!",
+        "Your pet believes in you!"
+    ]
+
     /// Returns a random motivational message
     func getMotivationalMessage() -> String {
         return Self.motivationalMessages.randomElement() ?? Self.motivationalMessages[0]
@@ -80,25 +84,52 @@ class ShieldConfigurationHelper {
 
     /// Creates the NoMo icon using SF Symbols
     func createNoMoIcon() -> UIImage? {
-        let config = UIImage.SymbolConfiguration(pointSize: 60, weight: .bold)
-        return UIImage(systemName: "moon.stars.fill", withConfiguration: config)?
-            .withTintColor(UIColor(red: 0.8, green: 0.6, blue: 1.0, alpha: 1.0), renderingMode: .alwaysOriginal)
+        let config = UIImage.SymbolConfiguration(
+            pointSize: ShieldUIConstants.iconSize,
+            weight: .bold
+        )
+        return UIImage(systemName: ShieldUIConstants.iconSystemName, withConfiguration: config)?
+            .withTintColor(ShieldUIConstants.iconTintColor, renderingMode: .alwaysOriginal)
     }
 
     // MARK: - Shield Configuration Colors
 
     /// Returns the background color used for shield configuration
     static var shieldBackgroundColor: UIColor {
-        UIColor(red: 0.1, green: 0.05, blue: 0.15, alpha: 0.95)
+        ShieldUIConstants.backgroundColor
     }
 
     /// Returns the subtitle color used for shield configuration
     static var shieldSubtitleColor: UIColor {
-        UIColor(red: 0.7, green: 0.6, blue: 0.9, alpha: 1.0)
+        ShieldUIConstants.subtitleColor
     }
 
     /// Returns the primary button background color used for shield configuration
     static var shieldButtonColor: UIColor {
-        UIColor(red: 0.5, green: 0.3, blue: 0.8, alpha: 1.0)
+        ShieldUIConstants.buttonColor
     }
+}
+
+// MARK: - Shield UI Constants
+
+/// Constants for shield UI configuration
+/// Duplicated from AppConfig for extension access (extensions can't access AppConfig)
+private enum ShieldUIConstants {
+    /// Icon size for shield configuration
+    static let iconSize: CGFloat = 60
+
+    /// Background color (dark purple)
+    static let backgroundColor = UIColor(red: 0.1, green: 0.05, blue: 0.15, alpha: 0.95)
+
+    /// Subtitle text color (light purple)
+    static let subtitleColor = UIColor(red: 0.7, green: 0.6, blue: 0.9, alpha: 1.0)
+
+    /// Primary button color (medium purple)
+    static let buttonColor = UIColor(red: 0.5, green: 0.3, blue: 0.8, alpha: 1.0)
+
+    /// Icon tint color (light purple)
+    static let iconTintColor = UIColor(red: 0.8, green: 0.6, blue: 1.0, alpha: 1.0)
+
+    /// System icon name for shield
+    static let iconSystemName = "moon.stars.fill"
 }
