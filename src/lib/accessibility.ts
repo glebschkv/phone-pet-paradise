@@ -17,12 +17,20 @@ export const ARIA_LABELS = {
   GO_BACK: 'Go back',
   HOME: 'Go to home screen',
 
+  // Tab Navigation
+  HOME_TAB: 'Go to home screen',
+  TIMER_TAB: 'Go to focus timer',
+  COLLECTION_TAB: 'View pet collection',
+  SHOP_TAB: 'Open shop',
+  SETTINGS_TAB: 'Open settings',
+
   // Timer Actions
   START_TIMER: 'Start focus session',
   PAUSE_TIMER: 'Pause focus session',
   RESUME_TIMER: 'Resume focus session',
   STOP_TIMER: 'Stop focus session',
   RESET_TIMER: 'Reset timer',
+  ADD_TIME: 'Add 5 minutes to timer',
 
   // Focus Session
   SELECT_DURATION: 'Select session duration',
@@ -37,25 +45,104 @@ export const ARIA_LABELS = {
   SELECT_PET: 'Select this pet',
   FAVORITE_PET: 'Add to favorites',
   UNFAVORITE_PET: 'Remove from favorites',
+  VIEW_PET_DETAILS: 'View pet details',
 
   // Shop & Currency
   PURCHASE_ITEM: 'Purchase this item',
   VIEW_ITEM_DETAILS: 'View item details',
   SPIN_WHEEL: 'Spin the lucky wheel',
   CLAIM_REWARD: 'Claim reward',
+  EQUIP_ITEM: 'Equip this item',
+  UNEQUIP_ITEM: 'Unequip this item',
+  VIEW_COIN_BALANCE: 'View coin balance',
+
+  // Premium
+  SUBSCRIBE: 'Subscribe to premium',
+  RESTORE_PURCHASES: 'Restore previous purchases',
+  MANAGE_SUBSCRIPTION: 'Manage subscription',
 
   // Settings
   TOGGLE_SOUND: 'Toggle sound effects',
   TOGGLE_NOTIFICATIONS: 'Toggle notifications',
   TOGGLE_HAPTIC: 'Toggle haptic feedback',
   CHANGE_THEME: 'Change app theme',
+  SIGN_OUT: 'Sign out',
+  DELETE_ACCOUNT: 'Delete account',
 
   // Progress & Stats
   VIEW_ACHIEVEMENTS: 'View achievements',
   VIEW_STATS: 'View statistics',
   VIEW_STREAK: 'View streak details',
   VIEW_QUESTS: 'View active quests',
+  VIEW_LEVEL_PROGRESS: 'View level progress',
+
+  // Daily Login
+  CLAIM_DAILY_REWARD: 'Claim daily login reward',
+  VIEW_REWARD_CALENDAR: 'View reward calendar',
+
+  // App Review
+  RATE_APP: 'Rate the app',
+  DISMISS_REVIEW: 'Not now',
 } as const;
+
+// ============================================================================
+// Dynamic ARIA Label Generators
+// ============================================================================
+
+export const ariaLabel = {
+  // Pet labels
+  petCard: (name: string, isLocked: boolean, level?: number) =>
+    isLocked
+      ? `${name} - Locked. Unlock at level ${level}`
+      : `${name} - Tap to view details`,
+
+  favoritePet: (name: string, isFavorite: boolean) =>
+    isFavorite ? `Remove ${name} from favorites` : `Add ${name} to favorites`,
+
+  homeActivePet: (name: string, isActive: boolean) =>
+    isActive ? `Remove ${name} from home screen` : `Add ${name} to home screen`,
+
+  // Shop labels
+  buyItem: (name: string, price: number) =>
+    `Buy ${name} for ${price.toLocaleString()} coins`,
+
+  equipBackground: (name: string, isEquipped: boolean) =>
+    isEquipped ? `Unequip ${name}` : `Equip ${name}`,
+
+  shopItem: (name: string, owned: boolean, price?: number) =>
+    owned
+      ? `${name} - Owned`
+      : `${name} - ${price?.toLocaleString()} coins`,
+
+  // Achievement labels
+  achievement: (name: string, unlocked: boolean, progress?: string) =>
+    unlocked
+      ? `${name} - Unlocked`
+      : `${name} - Locked${progress ? `. Progress: ${progress}` : ''}`,
+
+  // Quest labels
+  quest: (name: string, current: number, target: number) =>
+    `${name}: ${current} of ${target} completed`,
+
+  // Timer labels
+  timerDuration: (minutes: number) =>
+    `Select ${minutes} minute focus session`,
+
+  // Tab labels
+  tab: (name: string, isActive: boolean) =>
+    `${name} tab${isActive ? ', selected' : ''}`,
+
+  // Toggle labels
+  toggle: (name: string, enabled: boolean) =>
+    `${name}: ${enabled ? 'On' : 'Off'}. Tap to toggle.`,
+
+  // World/Biome labels
+  biome: (name: string, isActive: boolean, isLocked: boolean, level?: number) => {
+    if (isLocked) return `${name} - Locked. Unlock at level ${level}`;
+    if (isActive) return `${name} - Current location`;
+    return `${name} - Tap to visit`;
+  },
+};
 
 // ============================================================================
 // Role Descriptions
