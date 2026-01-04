@@ -1,9 +1,37 @@
+/**
+ * Coin Store
+ *
+ * Manages the user's in-game currency (coins). Tracks balance, total earned,
+ * and total spent. Uses Zustand with persistence to localStorage.
+ *
+ * @module stores/coinStore
+ *
+ * @example
+ * ```typescript
+ * import { useCoinStore, useCoinBalance } from '@/stores/coinStore';
+ *
+ * // In a component
+ * const { addCoins, spendCoins, canAfford } = useCoinStore();
+ *
+ * // Check if user can afford an item
+ * if (canAfford(100)) {
+ *   spendCoins(100);
+ * }
+ *
+ * // Or use selector hooks
+ * const balance = useCoinBalance();
+ * ```
+ */
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { coinLogger } from '@/lib/logger';
 import { coinSystemSchema } from '@/lib/storage-validation';
 import { createValidatedStorage } from '@/lib/validated-zustand-storage';
 
+/**
+ * Represents the user's coin balance state
+ */
 export interface CoinState {
   balance: number;
   totalEarned: number;

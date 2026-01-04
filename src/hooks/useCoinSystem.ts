@@ -1,8 +1,42 @@
+/**
+ * Coin System Hook
+ *
+ * Manages the in-game currency system including earning coins from focus sessions,
+ * spending coins on purchases, and tracking coin statistics. Supports bonus
+ * multipliers from premium subscriptions and boosters.
+ *
+ * @module hooks/useCoinSystem
+ *
+ * @example
+ * ```typescript
+ * import { useCoinSystem } from '@/hooks/useCoinSystem';
+ *
+ * function ShopItem({ price }: { price: number }) {
+ *   const { balance, canAfford, spendCoins } = useCoinSystem();
+ *
+ *   const handlePurchase = () => {
+ *     if (spendCoins(price)) {
+ *       // Purchase successful
+ *     }
+ *   };
+ *
+ *   return (
+ *     <button disabled={!canAfford(price)} onClick={handlePurchase}>
+ *       Buy for {price} coins
+ *     </button>
+ *   );
+ * }
+ * ```
+ */
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
 
+/**
+ * Result of awarding coins from a focus session
+ */
 export interface CoinReward {
   coinsGained: number;
   baseCoins: number;

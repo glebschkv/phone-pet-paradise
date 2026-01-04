@@ -1,9 +1,33 @@
+/**
+ * XP Store
+ *
+ * Manages the user's experience points, levels, and progression. Includes
+ * unlocked animals and available biomes. Uses Zustand with persistence.
+ *
+ * @module stores/xpStore
+ *
+ * @example
+ * ```typescript
+ * import { useXPStore, useCurrentLevel } from '@/stores/xpStore';
+ *
+ * // In a component
+ * const { addXP, currentLevel, unlockedAnimals } = useXPStore();
+ *
+ * // Award XP for completing a session
+ * addXP(100);
+ *
+ * // Or use selector hooks
+ * const level = useCurrentLevel();
+ * ```
+ */
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { xpLogger } from '@/lib/logger';
 import { xpSystemSchema } from '@/lib/storage-validation';
 import { createValidatedStorage } from '@/lib/validated-zustand-storage';
 
+/** Maximum achievable level in the game */
 export const MAX_LEVEL = 50;
 
 export const calculateLevelRequirement = (level: number): number => {

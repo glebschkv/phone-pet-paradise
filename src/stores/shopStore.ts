@@ -1,7 +1,31 @@
+/**
+ * Shop Store
+ *
+ * Manages the user's shop inventory including owned characters, backgrounds,
+ * badges, and currently equipped items. Uses Zustand with persistence to
+ * localStorage for offline-first functionality.
+ *
+ * @module stores/shopStore
+ *
+ * @example
+ * ```typescript
+ * import { useShopStore, useOwnedCharacters } from '@/stores/shopStore';
+ *
+ * // In a component
+ * const { addOwnedCharacter, isCharacterOwned } = useShopStore();
+ *
+ * // Or use selector hooks for optimized re-renders
+ * const ownedCharacters = useOwnedCharacters();
+ * ```
+ */
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { shopLogger } from '@/lib/logger';
 
+/**
+ * Represents the user's shop inventory
+ */
 export interface ShopInventory {
   ownedCharacters: string[];
   ownedBackgrounds: string[];

@@ -1,9 +1,36 @@
+/**
+ * Streak Store
+ *
+ * Manages the user's daily streak tracking, including current streak,
+ * longest streak, streak freezes, and milestone rewards. Uses Zustand
+ * with persistence to localStorage.
+ *
+ * @module stores/streakStore
+ *
+ * @example
+ * ```typescript
+ * import { useStreakStore, useCurrentStreak } from '@/stores/streakStore';
+ *
+ * // In a component
+ * const { incrementStreak, useStreakFreeze, getNextMilestone } = useStreakStore();
+ *
+ * // Check next milestone
+ * const nextMilestone = getNextMilestone();
+ *
+ * // Or use selector hooks
+ * const streak = useCurrentStreak();
+ * ```
+ */
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { streakLogger } from '@/lib/logger';
 import { streakDataSchema } from '@/lib/storage-validation';
 import { createValidatedStorage } from '@/lib/validated-zustand-storage';
 
+/**
+ * Defines a streak milestone reward
+ */
 export interface StreakReward {
   milestone: number;
   reward: string;
