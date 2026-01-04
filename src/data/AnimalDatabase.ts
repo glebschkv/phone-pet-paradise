@@ -319,8 +319,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 9,
-      facesLeft: true
+      animationSpeed: 9
     }
   },
   {
@@ -338,8 +337,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 7,
-      facesLeft: true
+      animationSpeed: 7
     }
   },
   // Sunset Shop Exclusive
@@ -420,8 +418,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8,
-      facesLeft: true
+      animationSpeed: 8
     }
   },
   // Night Shop Exclusives
@@ -442,8 +439,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 7,
-      facesLeft: true
+      animationSpeed: 7
     }
   },
   {
@@ -526,8 +522,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 10,
-      facesLeft: true
+      animationSpeed: 10
     }
   },
 
@@ -549,8 +544,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8,
-      facesLeft: true
+      animationSpeed: 8
     }
   },
   {
@@ -604,8 +598,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8,
-      facesLeft: true
+      animationSpeed: 8
     }
   },
   {
@@ -661,8 +654,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8,
-      facesLeft: true
+      animationSpeed: 8
     }
   },
   // Humanoid Shop Exclusives
