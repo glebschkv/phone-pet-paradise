@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useCoinSystem } from '@/hooks/useCoinSystem';
+import { useCoinSystem, _resetRateLimiter } from '@/hooks/useCoinSystem';
 import { useCoinStore } from '@/stores/coinStore';
 
 // Mock achievement tracking
@@ -59,6 +59,8 @@ describe('useCoinSystem', () => {
     localStorage.clear();
     // Reset the Zustand store to initial state
     useCoinStore.getState().resetCoins();
+    // Reset rate limiter for tests
+    _resetRateLimiter();
   });
 
   afterEach(() => {
@@ -270,7 +272,7 @@ describe('useCoinSystem', () => {
     });
   });
 
-  describe('spendCoins', () => {
+  describe('spendCoins (async)', () => {
     it('should return true when balance is sufficient', async () => {
       act(() => {
         useCoinStore.getState().addCoins(100);
@@ -283,8 +285,8 @@ describe('useCoinSystem', () => {
       });
 
       let success = false;
-      act(() => {
-        success = result.current.spendCoins(50);
+      await act(async () => {
+        success = await result.current.spendCoins(50);
       });
 
       expect(success).toBe(true);
@@ -306,8 +308,8 @@ describe('useCoinSystem', () => {
       });
 
       let success = true;
-      act(() => {
-        success = result.current.spendCoins(50);
+      await act(async () => {
+        success = await result.current.spendCoins(50);
       });
 
       expect(success).toBe(false);
@@ -327,8 +329,8 @@ describe('useCoinSystem', () => {
         expect(result.current.totalSpent).toBe(50);
       });
 
-      act(() => {
-        result.current.spendCoins(75);
+      await act(async () => {
+        await result.current.spendCoins(75);
       });
 
       await waitFor(() => {
@@ -348,14 +350,58 @@ describe('useCoinSystem', () => {
       });
 
       let success = false;
-      act(() => {
-        success = result.current.spendCoins(100);
+      await act(async () => {
+        success = await result.current.spendCoins(100);
       });
 
       expect(success).toBe(true);
       await waitFor(() => {
         expect(result.current.balance).toBe(0);
       });
+    });
+  });
+
+  describe('spendCoinsSync (deprecated)', () => {
+    it('should return true synchronously when balance is sufficient', async () => {
+      act(() => {
+        useCoinStore.getState().addCoins(100);
+      });
+
+      const { result } = renderHook(() => useCoinSystem());
+
+      await waitFor(() => {
+        expect(result.current.balance).toBe(100);
+      });
+
+      let success = false;
+      act(() => {
+        success = result.current.spendCoinsSync(50);
+      });
+
+      expect(success).toBe(true);
+      await waitFor(() => {
+        expect(result.current.balance).toBe(50);
+      });
+    });
+
+    it('should return false synchronously when balance is insufficient', async () => {
+      act(() => {
+        useCoinStore.getState().addCoins(30);
+      });
+
+      const { result } = renderHook(() => useCoinSystem());
+
+      await waitFor(() => {
+        expect(result.current.balance).toBe(30);
+      });
+
+      let success = true;
+      act(() => {
+        success = result.current.spendCoinsSync(50);
+      });
+
+      expect(success).toBe(false);
+      expect(result.current.balance).toBe(30);
     });
   });
 
