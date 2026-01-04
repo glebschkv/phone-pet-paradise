@@ -3,51 +3,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { supabaseLogger } from '@/lib/logger';
+import type {
+  UserProfile,
+  UserProgress,
+  Pet,
+  DBFocusSession,
+} from '@/types/supabase-models';
+import {
+  createDefaultProfile,
+  createDefaultProgress,
+  createDefaultPet,
+} from '@/types/supabase-models';
 
-export interface UserProfile {
-  id: string;
-  user_id: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserProgress {
-  id: string;
-  user_id: string;
-  total_xp: number;
-  current_level: number;
-  current_streak: number;
-  longest_streak: number;
-  total_sessions: number;
-  last_session_date: string | null;
-  streak_freeze_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Pet {
-  id: string;
-  user_id: string;
-  pet_type: string;
-  name: string;
-  bond_level: number;
-  experience: number;
-  mood: number;
-  unlocked_at: string;
-  is_favorite: boolean;
-  created_at: string;
-}
-
-export interface FocusSession {
-  id: string;
-  user_id: string;
-  duration_minutes: number;
-  xp_earned: number;
-  session_type: string;
-  completed_at: string;
-}
+// Re-export types for consumers (keep FocusSession name for backwards compatibility)
+export type { UserProfile, UserProgress, Pet };
+export type FocusSession = DBFocusSession;
 
 // localStorage keys for guest mode
 const STORAGE_KEYS = {
@@ -56,43 +26,6 @@ const STORAGE_KEYS = {
   pets: 'pet_paradise_pets',
   focusSessions: 'pet_paradise_focus_sessions'
 };
-
-// Default data for new users/guests
-const createDefaultProfile = (userId: string): UserProfile => ({
-  id: `profile-${userId}`,
-  user_id: userId,
-  display_name: 'Pet Paradise Player',
-  avatar_url: null,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-});
-
-const createDefaultProgress = (userId: string): UserProgress => ({
-  id: `progress-${userId}`,
-  user_id: userId,
-  total_xp: 0,
-  current_level: 1,
-  current_streak: 0,
-  longest_streak: 0,
-  total_sessions: 0,
-  last_session_date: null,
-  streak_freeze_count: 0,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-});
-
-const createDefaultPet = (userId: string): Pet => ({
-  id: `pet-${Date.now()}`,
-  user_id: userId,
-  pet_type: 'panda',
-  name: 'Bamboo',
-  bond_level: 1,
-  experience: 0,
-  mood: 100,
-  unlocked_at: new Date().toISOString(),
-  is_favorite: true,
-  created_at: new Date().toISOString()
-});
 
 export const useSupabaseData = () => {
   const { user, isAuthenticated, isGuestMode } = useAuth();

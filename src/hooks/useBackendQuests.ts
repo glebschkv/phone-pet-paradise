@@ -3,66 +3,19 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { questLogger } from '@/lib/logger';
+import type {
+  Quest,
+  QuestObjective,
+  QuestReward,
+  QuestSystemReturn,
+  QuestObjectiveTemplate,
+  QuestTemplate,
+} from '@/types/quest-system';
+
+// Re-export types for consumers
+export type { Quest, QuestObjective, QuestReward, QuestSystemReturn };
 
 const QUESTS_STORAGE_KEY = 'pet_paradise_quests';
-
-export interface Quest {
-  id: string;
-  type: 'daily' | 'weekly' | 'story';
-  title: string;
-  description: string;
-  objectives: QuestObjective[];
-  rewards: QuestReward[];
-  isCompleted: boolean;
-  progress: Record<string, number>;
-  unlockLevel: number;
-  expiresAt?: number;
-  storylineChapter?: number;
-}
-
-export interface QuestObjective {
-  id: string;
-  description: string;
-  target: number;
-  current: number;
-  type: 'focus_time' | 'pet_interaction' | 'bond_level' | 'biome_unlock' | 'streak' | 'collection';
-}
-
-export interface QuestReward {
-  type: 'xp' | 'pet_unlock' | 'ability' | 'cosmetic';
-  amount?: number;
-  itemId?: string;
-  description: string;
-}
-
-export interface QuestSystemReturn {
-  dailyQuests: Quest[];
-  weeklyQuests: Quest[];
-  storyQuests: Quest[];
-  activeQuests: Quest[];
-  completedQuests: Quest[];
-  updateQuestProgress: (type: string, amount: number, metadata?: Record<string, unknown>) => Promise<void>;
-  completeQuest: (questId: string) => Promise<void>;
-  getQuestById: (questId: string) => Quest | undefined;
-  generateDailyQuests: () => Promise<void>;
-  generateWeeklyQuests: () => Promise<void>;
-  getNextStoryQuest: (currentLevel: number) => Quest | undefined;
-  isLoading: boolean;
-}
-
-// Template types for quest generation
-interface QuestObjectiveTemplate {
-  type: string;
-  target: number;
-  description: string;
-}
-
-interface QuestTemplate {
-  title: string;
-  description: string;
-  objectives: QuestObjectiveTemplate[];
-  rewards: QuestReward[];
-}
 
 // Quest templates for generation
 const DAILY_QUEST_TEMPLATES = [
