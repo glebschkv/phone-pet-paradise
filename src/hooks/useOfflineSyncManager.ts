@@ -182,6 +182,7 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
   const { user, isAuthenticated, isGuestMode } = useAuth();
   const syncInProgress = useRef(false);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingOperationsRef = useRef<PendingSyncOperation[]>([]);
 
   const {
     pendingOperations,
@@ -260,25 +261,28 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
       let successCount = 0;
       let failCount = 0;
 
-      // Process in batches
+      // Process in batches with atomic removal per operation
       for (let i = 0; i < retryableOps.length; i += BATCH_SIZE) {
         const batch = retryableOps.slice(i, i + BATCH_SIZE);
         const results = await processBatch(batch);
 
-        const successIds: string[] = [];
+        // Process each result immediately to ensure atomic removal
+        // This prevents data duplication if removal fails for some operations
         for (const result of results) {
           if (result.success) {
-            successIds.push(result.operationId);
-            successCount++;
+            // Remove immediately after successful sync to prevent duplicates on retry
+            try {
+              removeOperation(result.operationId);
+              successCount++;
+            } catch (removeError) {
+              // Log but continue - operation was synced successfully
+              syncLogger.error(`[SyncManager] Failed to remove synced operation ${result.operationId}:`, removeError);
+              successCount++;
+            }
           } else {
             incrementRetry(result.operationId);
             failCount++;
           }
-        }
-
-        // Remove successful operations
-        if (successIds.length > 0) {
-          removeOperations(successIds);
         }
       }
 
@@ -315,10 +319,21 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
     processBatch,
     setSyncStatus,
     incrementRetry,
-    removeOperations,
+    removeOperation,
     markSyncComplete,
     markSyncError,
   ]);
+
+  /**
+   * Clear pending operations when user logs out to prevent stuck operations
+   */
+  useEffect(() => {
+    if (!isAuthenticated && !isGuestMode && pendingOperations.length > 0) {
+      syncLogger.info('[SyncManager] User logged out, clearing pending operations to prevent stuck state');
+      // Clear all pending operations since they can't be synced without a user
+      useOfflineSyncStore.getState().clearOperations();
+    }
+  }, [isAuthenticated, isGuestMode, pendingOperations.length]);
 
   /**
    * Handle online/offline events
@@ -366,6 +381,11 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
     };
   }, [setOnline, syncNow, pendingOperations.length, isAuthenticated, isGuestMode]);
 
+  // Keep ref in sync with state to avoid stale closures
+  useEffect(() => {
+    pendingOperationsRef.current = pendingOperations;
+  }, [pendingOperations]);
+
   /**
    * Periodic sync for reliability
    */
@@ -375,14 +395,15 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
     }
 
     // Sync every 5 minutes if there are pending operations
+    // Use ref to check length to avoid recreating interval on every queue change
     const intervalId = setInterval(() => {
-      if (pendingOperations.length > 0 && !syncInProgress.current) {
+      if (pendingOperationsRef.current.length > 0 && !syncInProgress.current) {
         syncNow();
       }
     }, 5 * 60 * 1000);
 
     return () => clearInterval(intervalId);
-  }, [isOnline, isGuestMode, isAuthenticated, pendingOperations.length, syncNow]);
+  }, [isOnline, isGuestMode, isAuthenticated, syncNow]);
 
   return {
     syncNow,

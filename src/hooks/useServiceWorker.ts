@@ -67,6 +67,8 @@ export function useServiceWorker(): UseServiceWorkerReturn {
     }
 
     let registration: ServiceWorkerRegistration | null = null;
+    let updateInterval: ReturnType<typeof setInterval> | undefined;
+    let messageHandler: ((event: MessageEvent) => void) | undefined;
 
     const registerServiceWorker = async () => {
       try {
@@ -110,24 +112,20 @@ export function useServiceWorker(): UseServiceWorkerReturn {
         });
 
         // Check for updates periodically (every 30 minutes)
-        const updateInterval = setInterval(() => {
+        updateInterval = setInterval(() => {
           registration?.update().catch((error) => {
             syncLogger.warn('[ServiceWorker] Periodic update check failed:', error);
           });
         }, 30 * 60 * 1000);
 
         // Listen for messages from the service worker
-        navigator.serviceWorker.addEventListener('message', (event) => {
+        messageHandler = (event: MessageEvent) => {
           if (event.data?.type === 'SYNC_REQUESTED') {
             // Dispatch custom event for the sync manager to handle
             window.dispatchEvent(new CustomEvent('sw-sync-requested'));
           }
-        });
-
-        // Cleanup interval on unmount
-        return () => {
-          clearInterval(updateInterval);
         };
+        navigator.serviceWorker.addEventListener('message', messageHandler);
       } catch (error) {
         syncLogger.error('[ServiceWorker] Registration failed:', error);
       }
@@ -140,6 +138,16 @@ export function useServiceWorker(): UseServiceWorkerReturn {
     } else {
       syncLogger.info('[ServiceWorker] Skipping registration in development mode');
     }
+
+    // Cleanup on unmount
+    return () => {
+      if (updateInterval) {
+        clearInterval(updateInterval);
+      }
+      if (messageHandler) {
+        navigator.serviceWorker.removeEventListener('message', messageHandler);
+      }
+    };
   }, [state.isSupported]);
 
   return {

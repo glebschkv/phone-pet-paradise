@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { coinLogger } from '@/lib/logger';
+import { coinSystemSchema } from '@/lib/storage-validation';
+import { createValidatedStorage } from '@/lib/validated-zustand-storage';
 
 export interface CoinState {
   balance: number;
@@ -37,14 +39,23 @@ export const useCoinStore = create<CoinStore>()(
     }),
     {
       name: 'nomo_coin_system',
+      storage: createValidatedStorage({
+        schema: coinSystemSchema,
+        defaultState: initialState,
+        name: 'coin-store',
+      }),
       onRehydrateStorage: () => (state) => {
         if (!state) {
           try {
             const legacy = localStorage.getItem('petIsland_coinSystem');
-            if (legacy) return JSON.parse(legacy);
+            if (legacy) {
+              const parsed = JSON.parse(legacy);
+              const validated = coinSystemSchema.safeParse(parsed);
+              if (validated.success) return validated.data;
+            }
           } catch { /* ignore */ }
         }
-        if (state) coinLogger.debug('Coin store rehydrated');
+        if (state) coinLogger.debug('Coin store rehydrated and validated');
       },
     }
   )
