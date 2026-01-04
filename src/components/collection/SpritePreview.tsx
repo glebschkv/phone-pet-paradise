@@ -35,7 +35,9 @@ export const SpritePreview = memo(({ animal, scale = 4 }: SpritePreviewProps) =>
   const spriteStyle = useMemo(() => {
     if (!spriteConfig) return null;
 
-    const { spritePath, frameCount, frameWidth, frameHeight, frameRow = 0 } = spriteConfig;
+    const { spritePath, frameCount, frameWidth, frameHeight, walkRows = 1 } = spriteConfig;
+    // Calculate frameRow the same way as SpriteAnimal for consistent display
+    const frameRow = spriteConfig.frameRow ?? (walkRows === 2 ? 1 : walkRows === 4 ? 2 : 0);
     const scaledWidth = frameWidth * scale;
     const scaledHeight = frameHeight * scale;
     const backgroundPositionX = -(currentFrame * frameWidth * scale);
