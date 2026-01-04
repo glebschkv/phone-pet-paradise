@@ -696,7 +696,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A peaceful meadow where your journey begins. Home to friendly creatures.',
     animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood', 'bear-hood'],
     backgroundImage: '/assets/worlds/MEADOW.png',
-    groundLevel: 12
+    groundLevel: 5
   },
   {
     name: 'Sunset',
@@ -704,7 +704,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'Golden fields bathed in warm sunset light.',
     animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood'],
     backgroundImage: '/assets/worlds/SUNSET_WINDMILL.png',
-    groundLevel: 12
+    groundLevel: 6
   },
   {
     name: 'Night',
@@ -712,7 +712,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A mystical realm under the stars where nocturnal creatures thrive.',
     animals: ['luna-moth', 'star-jelly', 'shadow-cat', 'cute-ghost', 'kitsune-spirit'],
     backgroundImage: '/assets/worlds/NIGHT_LAVENDER.png',
-    groundLevel: 16
+    groundLevel: 8
   },
   {
     name: 'Forest',
@@ -720,7 +720,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'An enchanted forest where elemental spirits dwell.',
     animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid'],
     backgroundImage: '/assets/worlds/FOREST_ENCHANTED.png',
-    groundLevel: 6
+    groundLevel: 3
   },
   {
     name: 'Snow',
@@ -728,7 +728,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A winter wonderland of magical costume characters.',
     animals: ['star-wizard', 'mushroom-kid', 'bunny-hood', 'cat-hood'],
     backgroundImage: '/assets/worlds/SNOW_SKY.png',
-    groundLevel: 26
+    groundLevel: 18
   },
   {
     name: 'City',
@@ -736,7 +736,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A bustling city where unique characters gather.',
     animals: ['flower-fairy', 'penguin-kid', 'pirate-kid', 'robot-buddy'],
     backgroundImage: '/assets/worlds/CITY_NIGHT.png',
-    groundLevel: 12
+    groundLevel: 6
   },
   {
     name: 'Ruins',
@@ -744,7 +744,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'Ancient ruins holding powerful warriors.',
     animals: ['dragon-knight'],
     backgroundImage: '/assets/worlds/RUINS_OVERGROWN.png',
-    groundLevel: 8
+    groundLevel: 4
   }
 ];
 
