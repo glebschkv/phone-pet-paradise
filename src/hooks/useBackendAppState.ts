@@ -87,7 +87,7 @@ export const useBackendAppState = () => {
       coinSystem,
       coinBooster,
     };
-  });
+  }, [isAuthenticated, xpSystem, streaks, quests, achievements, bondSystem, supabaseData, coinSystem, coinBooster]);
 
   // The unified XP system now handles local/backend sync internally
   // No need to compare levels - the hook returns the effective (max) level
@@ -108,7 +108,8 @@ export const useBackendAppState = () => {
         },
         (payload) => {
           logger.debug('Real-time progress update:', payload);
-          supabaseData.loadUserData();
+          // Access via ref to avoid stale closures and dependency bloat
+          subsystemsRef.current.supabaseData.loadUserData();
         }
       )
       .on(
@@ -123,7 +124,8 @@ export const useBackendAppState = () => {
           toast.success('🏆 Achievement Unlocked!', {
             description: payload.new.title
           });
-          achievements.loadAchievements?.();
+          // Access via ref to avoid stale closures and dependency bloat
+          subsystemsRef.current.achievements.loadAchievements?.();
         }
       )
       .subscribe();
@@ -131,7 +133,7 @@ export const useBackendAppState = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isAuthenticated]); // Reduced dependencies - functions accessed via ref
+  }, [isAuthenticated]);
 
   // Award XP and coins, trigger all related systems
   // The unified XP system handles local storage + backend sync internally

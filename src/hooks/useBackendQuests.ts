@@ -3,66 +3,19 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { questLogger } from '@/lib/logger';
+import type {
+  Quest,
+  QuestObjective,
+  QuestReward,
+  QuestSystemReturn,
+  QuestObjectiveTemplate,
+  QuestTemplate,
+} from '@/types/quest-system';
+
+// Re-export types for consumers
+export type { Quest, QuestObjective, QuestReward, QuestSystemReturn };
 
 const QUESTS_STORAGE_KEY = 'pet_paradise_quests';
-
-export interface Quest {
-  id: string;
-  type: 'daily' | 'weekly' | 'story';
-  title: string;
-  description: string;
-  objectives: QuestObjective[];
-  rewards: QuestReward[];
-  isCompleted: boolean;
-  progress: Record<string, number>;
-  unlockLevel: number;
-  expiresAt?: number;
-  storylineChapter?: number;
-}
-
-export interface QuestObjective {
-  id: string;
-  description: string;
-  target: number;
-  current: number;
-  type: 'focus_time' | 'pet_interaction' | 'bond_level' | 'biome_unlock' | 'streak' | 'collection';
-}
-
-export interface QuestReward {
-  type: 'xp' | 'pet_unlock' | 'ability' | 'cosmetic';
-  amount?: number;
-  itemId?: string;
-  description: string;
-}
-
-export interface QuestSystemReturn {
-  dailyQuests: Quest[];
-  weeklyQuests: Quest[];
-  storyQuests: Quest[];
-  activeQuests: Quest[];
-  completedQuests: Quest[];
-  updateQuestProgress: (type: string, amount: number, metadata?: Record<string, unknown>) => Promise<void>;
-  completeQuest: (questId: string) => Promise<void>;
-  getQuestById: (questId: string) => Quest | undefined;
-  generateDailyQuests: () => Promise<void>;
-  generateWeeklyQuests: () => Promise<void>;
-  getNextStoryQuest: (currentLevel: number) => Quest | undefined;
-  isLoading: boolean;
-}
-
-// Template types for quest generation
-interface QuestObjectiveTemplate {
-  type: string;
-  target: number;
-  description: string;
-}
-
-interface QuestTemplate {
-  title: string;
-  description: string;
-  objectives: QuestObjectiveTemplate[];
-  rewards: QuestReward[];
-}
 
 // Quest templates for generation
 const DAILY_QUEST_TEMPLATES = [
@@ -329,11 +282,18 @@ export const useBackendQuests = (): QuestSystemReturn => {
     }
   }, [quests, createQuestFromTemplate, isGuestMode, saveQuestsToStorage]);
 
-  // Update quest progress
+  // Update quest progress - batched to avoid N+1 queries
   const updateQuestProgress = useCallback(async (type: string, amount: number, _metadata?: Record<string, unknown>) => {
     if (!user) return;
 
     const activeQuests = quests.filter(q => !q.isCompleted);
+
+    // Collect all quest updates to batch them
+    const questUpdates: Array<{
+      quest: Quest;
+      newProgress: number;
+      isCompleted: boolean;
+    }> = [];
 
     for (const quest of activeQuests) {
       const relevantObjective = quest.objectives.find(obj => obj.type === type);
@@ -341,57 +301,74 @@ export const useBackendQuests = (): QuestSystemReturn => {
 
       const newProgress = Math.min(relevantObjective.target, relevantObjective.current + amount);
       const isCompleted = newProgress >= relevantObjective.target;
+      questUpdates.push({ quest, newProgress, isCompleted });
+    }
 
-      // Update local state first
-      const updateLocalState = () => {
-        setQuests(prev => {
-          const updated = prev.map(q =>
-            q.id === quest.id
-              ? {
-                  ...q,
-                  objectives: q.objectives.map(obj =>
-                    obj.type === type ? { ...obj, current: newProgress } : obj
-                  ),
-                  isCompleted
-                }
-              : q
-          );
-          if (isGuestMode) {
-            saveQuestsToStorage(updated);
-          }
-          return updated;
+    // No matching quests to update
+    if (questUpdates.length === 0) return;
+
+    // Update local state for all quests at once
+    const updateLocalState = () => {
+      setQuests(prev => {
+        const updated = prev.map(q => {
+          const update = questUpdates.find(u => u.quest.id === q.id);
+          if (!update) return q;
+
+          return {
+            ...q,
+            objectives: q.objectives.map(obj =>
+              obj.type === type ? { ...obj, current: update.newProgress } : obj
+            ),
+            isCompleted: update.isCompleted
+          };
         });
+        if (isGuestMode) {
+          saveQuestsToStorage(updated);
+        }
+        return updated;
+      });
 
+      // Show completion notifications
+      for (const { quest, isCompleted } of questUpdates) {
         if (isCompleted) {
           toast.success("Quest Complete!", {
             description: `${quest.title} completed! ${quest.rewards[0]?.description}`
           });
         }
-      };
-
-      // For guest mode, just update locally
-      if (isGuestMode) {
-        updateLocalState();
-        continue;
       }
+    };
 
-      try {
-        const { error } = await supabase
+    // For guest mode, just update locally
+    if (isGuestMode) {
+      updateLocalState();
+      return;
+    }
+
+    // Batch all backend updates using Promise.all to avoid N+1 queries
+    try {
+      const updatePromises = questUpdates.map(({ quest, newProgress, isCompleted }) =>
+        supabase
           .from('quests')
           .update({
             current_progress: newProgress,
             completed_at: isCompleted ? new Date().toISOString() : null
           })
-          .eq('id', quest.id);
+          .eq('id', quest.id)
+      );
 
-        if (error) throw error;
+      const results = await Promise.all(updatePromises);
 
-        updateLocalState();
-      } catch (error) {
-        questLogger.error('Error updating quest progress:', error);
-        // Fall back to local update on error
-        updateLocalState();
+      // Check for any errors
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        questLogger.error('Some quest updates failed:', errors.map(e => e.error));
       }
+
+      updateLocalState();
+    } catch (error) {
+      questLogger.error('Error updating quest progress:', error);
+      // Fall back to local update on error
+      updateLocalState();
     }
   }, [user, quests, isGuestMode, saveQuestsToStorage]);
 

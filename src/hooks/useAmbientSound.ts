@@ -1,12 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { getAmbientSoundById } from '@/data/AmbientSoundsData';
 import { soundLogger } from '@/lib/logger';
+import type { WebkitWindow } from '@/types/browser-utils';
 
 const AMBIENT_STORAGE_KEY = 'petIsland_ambientSound';
-
-interface WebkitWindow extends Window {
-  webkitAudioContext?: typeof AudioContext;
-}
 
 interface AmbientSoundState {
   currentSoundId: string | null;

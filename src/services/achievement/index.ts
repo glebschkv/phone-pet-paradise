@@ -1,11 +1,9 @@
 /**
- * Achievement Service - Re-export from modular structure
- *
- * This file maintains backwards compatibility while the implementation
- * has been split into smaller, more maintainable modules in ./achievement/
+ * Achievement System Module
+ * Re-exports all achievement system components for easy importing
  */
 
-// Re-export everything from the achievement module
+// Types
 export type {
   Achievement,
   AchievementReward,
@@ -13,17 +11,21 @@ export type {
   AchievementCategory,
   AchievementTier,
   AchievementDefinition,
-} from './achievement';
+} from './achievementTypes';
 
+// Constants
 export {
-  // Constants
   ACHIEVEMENT_STORAGE_KEY,
   ACHIEVEMENT_UNLOCK_EVENT,
   ACHIEVEMENT_CLAIMED_EVENT,
   TIER_POINTS,
-  // Definitions
-  ACHIEVEMENT_DEFINITIONS,
-  // Utilities
+} from './achievementConstants';
+
+// Definitions
+export { ACHIEVEMENT_DEFINITIONS } from './achievementDefinitions';
+
+// Utilities
+export {
   initializeAchievements,
   mergeWithDefinitions,
   calculateRewards,
@@ -31,11 +33,15 @@ export {
   getTotalAchievementPoints,
   getCompletionPercentage,
   generateShareText,
-  // Progress
-  checkAchievementProgress,
-  // Storage
+} from './achievementUtils';
+
+// Progress tracking
+export { checkAchievementProgress } from './achievementProgress';
+
+// Storage
+export {
   loadFromStorage,
   saveToStorage,
   getClaimedAchievementIds,
   isAchievementClaimed,
-} from './achievement';
+} from './achievementStorage';

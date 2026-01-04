@@ -2,12 +2,9 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { getAmbientSoundById, AmbientSound } from '@/data/AmbientSoundsData';
 import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
 import { soundLogger } from '@/lib/logger';
+import type { WebkitWindow, AudioNodes } from '@/types/browser-utils';
 
 const SOUND_MIXER_STORAGE_KEY = 'petIsland_soundMixer';
-
-interface WebkitWindow extends Window {
-  webkitAudioContext?: typeof AudioContext;
-}
 
 interface SoundLayer {
   soundId: string;
@@ -19,13 +16,6 @@ interface SoundMixerState {
   layers: SoundLayer[];
   masterVolume: number;
   isPlaying: boolean;
-}
-
-interface AudioNodes {
-  source?: AudioBufferSourceNode | OscillatorNode;
-  gain?: GainNode;
-  filter?: BiquadFilterNode;
-  oscillator2?: OscillatorNode;
 }
 
 const defaultState: SoundMixerState = {

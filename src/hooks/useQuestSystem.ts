@@ -1,65 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { questLogger } from '@/lib/logger';
+import type {
+  Quest,
+  QuestObjective,
+  QuestReward,
+  QuestSystemReturn,
+  QuestObjectiveTemplate,
+  QuestTemplate,
+} from '@/types/quest-system';
 
-export interface Quest {
-  id: string;
-  type: 'daily' | 'weekly' | 'story';
-  title: string;
-  description: string;
-  objectives: QuestObjective[];
-  rewards: QuestReward[];
-  isCompleted: boolean;
-  progress: Record<string, number>;
-  unlockLevel: number;
-  expiresAt?: number; // For daily/weekly quests
-  storylineChapter?: number;
-}
-
-export interface QuestObjective {
-  id: string;
-  description: string;
-  target: number;
-  current: number;
-  type: 'focus_time' | 'pet_interaction' | 'bond_level' | 'biome_unlock' | 'streak' | 'collection';
-}
-
-export interface QuestReward {
-  type: 'xp' | 'pet_unlock' | 'ability' | 'cosmetic';
-  amount?: number;
-  itemId?: string;
-  description: string;
-}
-
-export interface QuestSystemReturn {
-  dailyQuests: Quest[];
-  weeklyQuests: Quest[];
-  storyQuests: Quest[];
-  activeQuests: Quest[];
-  completedQuests: Quest[];
-  updateQuestProgress: (type: string, amount: number, metadata?: Record<string, unknown>) => void;
-  completeQuest: (questId: string) => void;
-  getQuestById: (questId: string) => Quest | undefined;
-  generateDailyQuests: () => void;
-  generateWeeklyQuests: () => void;
-  getNextStoryQuest: (currentLevel: number) => Quest | undefined;
-}
+// Re-export types for consumers
+export type { Quest, QuestObjective, QuestReward, QuestSystemReturn };
 
 const QUEST_STORAGE_KEY = 'quest-system-data';
-
-// Template types for quest generation
-interface QuestObjectiveTemplate {
-  type: string;
-  target: number;
-  description: string;
-}
-
-interface QuestTemplate {
-  title: string;
-  description: string;
-  objectives: QuestObjectiveTemplate[];
-  rewards: QuestReward[];
-}
 
 // Quest templates for generation - BOOSTED REWARDS!
 const DAILY_QUEST_TEMPLATES = [

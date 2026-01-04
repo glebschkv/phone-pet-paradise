@@ -9,6 +9,7 @@
  * - Combo system configuration
  */
 
+// Import types from consolidated type definitions
 import type {
   SeasonTheme,
   BattlePassTier,
@@ -22,9 +23,9 @@ import type {
   Guild,
   GuildMember,
   GuildChallenge,
-} from '@/types';
+} from '@/types/gamification';
 
-// Re-export types for backwards compatibility
+// Re-export types for consumers
 export type {
   SeasonTheme,
   BattlePassTier,
@@ -38,7 +39,7 @@ export type {
   Guild,
   GuildMember,
   GuildChallenge,
-} from '@/types';
+};
 
 // Generate battle pass tiers (30 tiers per season)
 const generateBattlePassTiers = (seasonTheme: SeasonTheme): BattlePassTier[] => {
@@ -417,16 +418,6 @@ export const getNextComboTier = (comboCount: number): ComboTier | null => {
 // MILESTONE CELEBRATIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Note: Milestone interface imported from @/types
-// Local extension for milestone rewards:
-interface MilestoneWithRewards extends Milestone {
-  rewards?: {
-    xp?: number;
-    coins?: number;
-    badge?: string;
-  };
-}
-
 export const MILESTONES: Milestone[] = [
   // Level milestones - BOOSTED!
   { id: 'level-5', type: 'level', threshold: 5, title: 'Rising Star', description: 'Reached Level 5!', emoji: '⭐', celebrationType: 'confetti', rewards: { xp: 200, coins: 400 } },
@@ -477,8 +468,6 @@ export const getNextMilestone = (type: Milestone['type'], currentValue: number):
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILD / TEAM SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════
-
-// Note: Guild, GuildMember, GuildChallenge interfaces imported from @/types
 
 // Sample guilds for demo purposes
 export const SAMPLE_GUILDS: Guild[] = [
