@@ -218,12 +218,128 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          animation_speed: string | null
+          auto_save_enabled: boolean | null
+          background_music: string | null
+          created_at: string | null
+          id: string
+          language: string | null
+          notifications_enabled: boolean | null
+          sound_enabled: boolean | null
+          theme: string | null
+          timer_sound: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          animation_speed?: string | null
+          auto_save_enabled?: boolean | null
+          background_music?: string | null
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          notifications_enabled?: boolean | null
+          sound_enabled?: boolean | null
+          theme?: string | null
+          timer_sound?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          animation_speed?: string | null
+          auto_save_enabled?: boolean | null
+          background_music?: string | null
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          notifications_enabled?: boolean | null
+          sound_enabled?: boolean | null
+          theme?: string | null
+          timer_sound?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string | null
+          environment: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          original_transaction_id: string | null
+          period: string
+          platform: string
+          product_id: string
+          purchase_date: string
+          receipt_data: string | null
+          revoked_at: string | null
+          signed_transaction: string | null
+          tier: string
+          transaction_id: string
+          updated_at: string | null
+          user_id: string | null
+          validated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          environment?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          original_transaction_id?: string | null
+          period: string
+          platform: string
+          product_id: string
+          purchase_date: string
+          receipt_data?: string | null
+          revoked_at?: string | null
+          signed_transaction?: string | null
+          tier: string
+          transaction_id: string
+          updated_at?: string | null
+          user_id?: string | null
+          validated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          environment?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          original_transaction_id?: string | null
+          period?: string
+          platform?: string
+          product_id?: string
+          purchase_date?: string
+          receipt_data?: string | null
+          revoked_at?: string | null
+          signed_transaction?: string | null
+          tier?: string
+          transaction_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          validated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      deactivate_expired_subscriptions: { Args: never; Returns: number }
+      get_user_subscription_tier: {
+        Args: { p_user_id: string }
+        Returns: {
+          expires_at: string
+          is_lifetime: boolean
+          tier: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

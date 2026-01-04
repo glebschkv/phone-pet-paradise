@@ -696,7 +696,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A peaceful meadow where your journey begins. Home to friendly creatures.',
     animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood', 'bear-hood'],
     backgroundImage: '/assets/worlds/MEADOW.png',
-    groundLevel: 14
+    groundLevel: 18
   },
   {
     name: 'Sunset',
