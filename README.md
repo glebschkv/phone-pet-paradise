@@ -1,73 +1,219 @@
-# Welcome to your Lovable project
+# Phone Pet Paradise 🐾
 
-## Project info
+A gamified mobile app that helps users develop healthier phone habits by rewarding phone-free time with adorable virtual pets, achievements, and daily quests.
 
-**URL**: https://lovable.dev/projects/354c50c5-7606-4f42-9b59-577c9adb3ef7
+## Overview
 
-## How can I edit this code?
+Phone Pet Paradise is a full-stack React + Capacitor mobile application that turns digital wellness into a fun, engaging experience. Users earn rewards, collect pets, complete quests, and build streaks by spending time away from their phones.
 
-There are several ways of editing your application.
+### Key Features
 
-**Use Lovable**
+- **Virtual Pet Collection** - Collect and bond with 50+ unique animated pets
+- **Focus Timer** - Set phone-free sessions with app blocking
+- **Achievement System** - Unlock achievements as you build better habits
+- **Daily Quests** - Complete daily challenges for rewards
+- **Streak Tracking** - Maintain streaks for consistent phone-free time
+- **Shop & Inventory** - Spend coins on items, themes, and upgrades
+- **Battle Pass** - Season-based progression with exclusive rewards
+- **Premium Features** - Subscription tiers with enhanced benefits
+- **Offline Support** - Full functionality even without internet connection
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/354c50c5-7606-4f42-9b59-577c9adb3ef7) and start prompting.
+## Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+| Category | Technology |
+|----------|------------|
+| **Frontend** | React 18.3 + TypeScript |
+| **Build Tool** | Vite 6.0 |
+| **Mobile Framework** | Capacitor 7.4 (iOS/Android) |
+| **State Management** | Zustand 5.0 |
+| **Server State** | TanStack React Query 5.5 |
+| **Backend** | Supabase (PostgreSQL + Auth) |
+| **UI Components** | shadcn/ui + Radix UI |
+| **Styling** | Tailwind CSS 3.4 |
+| **3D Graphics** | Three.js + React Three Fiber |
+| **Forms** | React Hook Form + Zod |
+| **Testing** | Vitest + Playwright |
+| **Error Tracking** | Sentry |
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js 18+ (recommend using [nvm](https://github.com/nvm-sh/nvm))
+- npm 9+
+- For mobile development:
+  - Xcode 15+ (iOS)
+  - Android Studio (Android)
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# Clone the repository
+git clone <repository-url>
+cd phone-pet-paradise
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Copy environment variables
+cp .env.example .env
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Create a `.env` file with your Supabase credentials:
 
-**Use GitHub Codespaces**
+```env
+VITE_SUPABASE_PROJECT_ID="your-project-id"
+VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
+VITE_SUPABASE_URL="https://your-project-id.supabase.co"
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Development
 
-## What technologies are used for this project?
+### Available Scripts
 
-This project is built with:
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run build:dev` | Development build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | TypeScript type checking |
+| `npm test` | Run unit tests in watch mode |
+| `npm run test:run` | Run unit tests once |
+| `npm run test:coverage` | Run tests with coverage report |
+| `npm run test:ui` | Open Vitest UI |
+| `npm run test:e2e` | Run Playwright E2E tests |
+| `npm run test:e2e:ui` | Open Playwright UI |
+| `npm run test:e2e:headed` | Run E2E tests with browser visible |
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Project Structure
 
-## How can I deploy this project?
+```
+src/
+├── components/          # React components (137 files)
+│   ├── ui/             # Base UI components (shadcn/ui)
+│   ├── collection/     # Pet collection components
+│   ├── shop/           # Shop/marketplace
+│   ├── focus-timer/    # Focus mode UI
+│   ├── gamification/   # Achievements, XP, rewards
+│   └── settings/       # App settings
+├── hooks/              # Custom React hooks (54 hooks)
+├── stores/             # Zustand state stores (15 stores)
+├── services/           # Business logic services
+├── lib/                # Utilities and helpers
+├── types/              # TypeScript type definitions
+├── data/               # Static game data (pets, items, etc.)
+├── contexts/           # React context providers
+├── pages/              # Route page components
+├── plugins/            # Native Capacitor plugins
+├── integrations/       # External service integrations
+└── test/               # Test setup and utilities
+```
 
-Simply open [Lovable](https://lovable.dev/projects/354c50c5-7606-4f42-9b59-577c9adb3ef7) and click on Share -> Publish.
+### Key Architectural Patterns
 
-## Can I connect a custom domain to my Lovable project?
+- **State Management**: Zustand stores for client-side state, React Query for server state
+- **Offline-First**: Actions queue in `offlineSyncStore` when offline, sync when online
+- **Lazy Loading**: Pages and heavy components are code-split for performance
+- **Error Boundaries**: Graceful error handling with fallback UI
+- **Type Safety**: Full TypeScript coverage with strict mode
 
-Yes, you can!
+## Testing
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Unit Tests (Vitest)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Unit tests cover stores, hooks, and utility functions:
+
+```bash
+# Run all unit tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Open interactive UI
+npm run test:ui
+```
+
+Coverage thresholds:
+- Lines: 20%
+- Statements: 20%
+- Functions: 30%
+- Branches: 70%
+
+### E2E Tests (Playwright)
+
+End-to-end tests cover critical user flows:
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run with UI
+npm run test:e2e:ui
+
+# Run in headed mode
+npm run test:e2e:headed
+```
+
+Test targets:
+- Desktop Chrome
+- Mobile Chrome (Pixel 5)
+- Mobile Safari (iPhone 12)
+
+## Mobile Development
+
+### iOS Setup
+
+1. Install Xcode 15+ from the Mac App Store
+2. Install CocoaPods: `sudo gem install cocoapods`
+3. Build the web app: `npm run build`
+4. Sync Capacitor: `npx cap sync ios`
+5. Open in Xcode: `npx cap open ios`
+
+See [ios_setup_instructions.md](./ios_setup_instructions.md) for detailed setup.
+
+### Android Setup
+
+1. Install Android Studio
+2. Build the web app: `npm run build`
+3. Sync Capacitor: `npx cap sync android`
+4. Open in Android Studio: `npx cap open android`
+
+### Native Plugins
+
+The app uses custom Capacitor plugins for:
+- **Device Activity** - Monitor phone-free time
+- **App Blocking** - Block distracting apps during focus sessions
+- **StoreKit** - In-app purchases (iOS)
+- **Widget Data** - Sync data to home screen widgets
+
+## Documentation
+
+- [Widget Integration Guide](./docs/WIDGETS.md)
+- [Privacy Policy](./docs/PRIVACY_POLICY.md)
+- [Terms of Service](./docs/TERMS_OF_SERVICE.md)
+- [App Store Metadata](./docs/APP_STORE_METADATA.md)
+- [iOS Setup Instructions](./ios_setup_instructions.md)
+- [Performance Analysis](./PERFORMANCE_ANALYSIS.md)
+- [iOS Improvement Plan](./IOS_APP_IMPROVEMENT_PLAN.md)
+- [Testing Guide](./docs/TESTING.md)
+- [API Documentation](./docs/API.md)
+
+## Contributing
+
+1. Create a feature branch from `main`
+2. Make your changes with clear commit messages
+3. Ensure tests pass: `npm run test:run && npm run test:e2e`
+4. Run linting: `npm run lint`
+5. Submit a pull request
+
+## License
+
+Private - All rights reserved.

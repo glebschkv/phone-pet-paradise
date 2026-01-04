@@ -1,7 +1,34 @@
+/**
+ * Focus Store
+ *
+ * Manages the focus mode settings including app blocking, website blocking,
+ * strict mode, and notification blocking. Used in conjunction with native
+ * Capacitor plugins for actual device-level blocking.
+ *
+ * @module stores/focusStore
+ *
+ * @example
+ * ```typescript
+ * import { useFocusStore, useIsFocusModeActive } from '@/stores/focusStore';
+ *
+ * // In a component
+ * const { activateFocusMode, deactivateFocusMode, getBlockedApps } = useFocusStore();
+ *
+ * // Start focus mode
+ * activateFocusMode();
+ *
+ * // Or use selector hooks
+ * const isActive = useIsFocusModeActive();
+ * ```
+ */
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { focusModeLogger } from '@/lib/logger';
 
+/**
+ * Represents an app that can be blocked during focus mode
+ */
 export interface BlockedApp {
   id: string;
   name: string;
