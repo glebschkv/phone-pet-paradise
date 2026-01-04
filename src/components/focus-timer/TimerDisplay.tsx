@@ -1,6 +1,6 @@
 import { Volume2, VolumeX } from "lucide-react";
 import { TimerPreset, formatTime } from "./constants";
-import { ariaLabel, formatTimeForScreenReader, ARIA_LABELS } from "@/lib/accessibility";
+import { ariaLabel, formatTimeForScreenReader } from "@/lib/accessibility";
 
 interface TimerDisplayProps {
   preset: TimerPreset;

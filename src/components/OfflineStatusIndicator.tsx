@@ -6,7 +6,7 @@
  */
 
 import { useOffline } from '@/contexts/OfflineContext';
-import { Wifi, WifiOff, CloudOff, RefreshCw, Check } from 'lucide-react';
+import { WifiOff, CloudOff, RefreshCw, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface OfflineStatusIndicatorProps {

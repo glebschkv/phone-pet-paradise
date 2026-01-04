@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, ReactNode, useMemo, useCallback, useState, useEffect } from 'react';
-import { useNativePluginStatus, PluginHealthStatus, PluginStatus, safeCallPlugin } from '@/hooks/useNativePluginStatus';
+import { useNativePluginStatus, PluginHealthStatus, safeCallPlugin } from '@/hooks/useNativePluginStatus';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger({ prefix: 'NativePluginContext' });
