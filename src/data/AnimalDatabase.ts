@@ -149,7 +149,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 64,
       frameHeight: 64,
       animationSpeed: 7,
-      walkRows: 4
+      walkRows: 1
     }
   },
   {
@@ -168,7 +168,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 64,
       frameHeight: 64,
       animationSpeed: 7,
-      walkRows: 4
+      walkRows: 1
     }
   },
   // Meadow Shop Exclusives
@@ -230,7 +230,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 64,
       frameHeight: 64,
       animationSpeed: 8,
-      walkRows: 4
+      walkRows: 4,
+      frameRow: 3
     }
   },
   {
@@ -268,7 +269,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 64,
       frameHeight: 64,
       animationSpeed: 8,
-      walkRows: 4
+      walkRows: 4,
+      frameRow: 3
     }
   },
   {
@@ -471,7 +473,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 64,
       frameHeight: 64,
       animationSpeed: 10,
-      walkRows: 4
+      walkRows: 1
     }
   },
   {
@@ -663,7 +665,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 64,
       frameHeight: 64,
       animationSpeed: 8,
-      walkRows: 4
+      walkRows: 1
     }
   },
   {
