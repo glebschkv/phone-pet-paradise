@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { LUCKY_WHEEL_PRIZES, LuckyWheelPrize, spinWheel } from '@/data/GamificationData';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
+import { toast } from 'sonner';
+import { storageLogger } from '@/lib/logger';
 
 export interface LuckyWheelState {
   lastSpinDate: string | null;
@@ -40,9 +42,20 @@ export const useLuckyWheel = () => {
     }
   }, []);
 
-  const saveState = useCallback((newState: LuckyWheelState) => {
+  const saveState = useCallback((newState: LuckyWheelState): boolean => {
     setState(newState);
-    storage.set(STORAGE_KEYS.LUCKY_WHEEL, newState);
+    try {
+      storage.set(STORAGE_KEYS.LUCKY_WHEEL, newState);
+      return true;
+    } catch (error) {
+      storageLogger.error('[LuckyWheel] Failed to save state:', error);
+      // Notify user of data loss risk
+      toast.error('Could not save your spin result', {
+        description: 'Your progress may be lost. Try clearing some browser storage.',
+        duration: 5000,
+      });
+      return false;
+    }
   }, []);
 
   // Check if spin is available today
