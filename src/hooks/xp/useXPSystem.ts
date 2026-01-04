@@ -85,8 +85,8 @@ import {
   calculateLevel,
 } from './xpUtils';
 
-// Legacy storage key for backwards compatibility
-const LEGACY_KEY = 'nomo_xp_system';
+// Legacy storage key for migration (petIsland_xpSystem -> nomo_xp_system)
+const LEGACY_KEY = 'petIsland_xpSystem';
 
 /**
  * Attempts to extract XP data from a storage object (handles both direct and Zustand formats)

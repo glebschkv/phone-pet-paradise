@@ -6,7 +6,8 @@
 import { ANIMAL_DATABASE, BIOME_DATABASE } from '@/data/AnimalDatabase';
 import { UnlockedReward } from './xpTypes';
 
-export const STORAGE_KEY = 'petIsland_xpSystem';
+// Use standardized storage key - legacy 'petIsland_xpSystem' is migrated automatically
+export const STORAGE_KEY = 'nomo_xp_system';
 export const XP_UPDATE_EVENT = 'petIsland_xpUpdate';
 export const ANIMAL_PURCHASED_EVENT = 'petIsland_animalPurchased';
 
