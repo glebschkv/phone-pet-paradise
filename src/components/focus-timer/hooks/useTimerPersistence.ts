@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { timerLogger } from "@/lib/logger";
 import {
+  validateTimerDuration,
+  isNonNegativeInteger,
+  TIMER_VALIDATION
+} from "@/lib/validation";
+import {
   TimerState,
   TimerPreset,
   STORAGE_KEY,
@@ -55,23 +60,53 @@ export const useTimerPersistence = (): UseTimerPersistenceReturn => {
 
     if (savedState) {
       try {
-        const parsed: TimerState = JSON.parse(savedState);
-        let finalState = { ...parsed };
+        const parsed = JSON.parse(savedState);
+
+        // Validate all numeric fields from storage
+        const sessionDuration = validateTimerDuration(parsed.sessionDuration) || DEFAULT_TIMER_STATE.sessionDuration;
+        const timeLeft = validateTimerDuration(parsed.timeLeft);
+        const startTime = isNonNegativeInteger(parsed.startTime) ? parsed.startTime : null;
+        const completedSessions = isNonNegativeInteger(parsed.completedSessions) ? parsed.completedSessions : 0;
+
+        // Validate session type
+        const sessionType = parsed.sessionType === 'break' ? 'break' : 'work';
+
+        let finalState: TimerState = {
+          timeLeft: Math.min(timeLeft, sessionDuration),
+          sessionDuration,
+          sessionType,
+          isRunning: typeof parsed.isRunning === 'boolean' ? parsed.isRunning : false,
+          startTime,
+          soundEnabled: typeof parsed.soundEnabled === 'boolean' ? parsed.soundEnabled : true,
+          completedSessions,
+          category: typeof parsed.category === 'string' ? parsed.category : undefined,
+          taskLabel: typeof parsed.taskLabel === 'string' ? parsed.taskLabel : undefined,
+        };
 
         // If timer was running when app closed, calculate remaining time
-        if (parsed.isRunning && parsed.startTime) {
+        if (finalState.isRunning && finalState.startTime) {
           const now = Date.now();
-          const elapsedMs = now - parsed.startTime;
+          const elapsedMs = now - finalState.startTime;
           const elapsedSeconds = Math.floor(elapsedMs / 1000);
-          const newTimeLeft = Math.max(0, parsed.sessionDuration - elapsedSeconds);
 
-          finalState = {
-            ...finalState,
-            timeLeft: newTimeLeft,
-            isRunning: newTimeLeft > 0,
-            // Keep the original startTime so the countdown continues correctly
-            startTime: newTimeLeft > 0 ? parsed.startTime : null
-          };
+          // Validate elapsed time is reasonable (not negative, not too large)
+          if (elapsedSeconds >= 0 && elapsedSeconds <= TIMER_VALIDATION.MAX_DURATION_SECONDS) {
+            const newTimeLeft = Math.max(0, finalState.sessionDuration - elapsedSeconds);
+
+            finalState = {
+              ...finalState,
+              timeLeft: newTimeLeft,
+              isRunning: newTimeLeft > 0,
+              startTime: newTimeLeft > 0 ? finalState.startTime : null
+            };
+          } else {
+            // Invalid elapsed time, reset running state
+            finalState = {
+              ...finalState,
+              isRunning: false,
+              startTime: null
+            };
+          }
         }
 
         setTimerState(finalState);

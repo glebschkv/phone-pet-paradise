@@ -24,6 +24,7 @@ import { safeJsonParse } from '@/lib/apiUtils';
 import { TIER_BENEFITS, isValidSubscriptionTier } from '../usePremiumStatus';
 import { useAuth } from '../useAuth';
 import { useSupabaseData } from '../useSupabaseData';
+import { validateXPAmount, validateLevel, validateSessionMinutes } from '@/lib/validation';
 
 import { XPReward, XPSystemState } from './xpTypes';
 import {
@@ -40,6 +41,115 @@ import {
   normalizeAnimalList,
   calculateLevel,
 } from './xpUtils';
+
+// Legacy storage key for backwards compatibility
+const LEGACY_KEY = 'nomo_xp_system';
+
+/**
+ * Attempts to extract XP data from a storage object (handles both direct and Zustand formats)
+ */
+const extractXPData = (data: unknown): { xp: number; level: number; animals?: string[]; biome?: string } | null => {
+  if (!data || typeof data !== 'object') return null;
+
+  // Handle Zustand's wrapped format { state: {...}, version: ... }
+  const stateData = ('state' in (data as Record<string, unknown>))
+    ? (data as Record<string, unknown>).state as Record<string, unknown>
+    : data as Record<string, unknown>;
+
+  if (!stateData || typeof stateData !== 'object') return null;
+
+  // Extract XP (try multiple field names for compatibility)
+  const xp = validateXPAmount(stateData.currentXP ?? stateData.totalXP ?? 0);
+  if (xp === 0) return null;
+
+  return {
+    xp,
+    level: validateLevel(stateData.currentLevel),
+    animals: Array.isArray(stateData.unlockedAnimals) ? stateData.unlockedAnimals as string[] : undefined,
+    biome: typeof stateData.currentBiome === 'string' ? stateData.currentBiome : undefined,
+  };
+};
+
+/**
+ * Loads and recovers XP state from localStorage with fallback logic
+ */
+const loadXPState = (defaultAnimals: string[]): XPSystemState => {
+  const defaultState: XPSystemState = {
+    currentXP: 0,
+    currentLevel: 0,
+    xpToNextLevel: 15,
+    totalXPForCurrentLevel: 0,
+    unlockedAnimals: defaultAnimals,
+    currentBiome: 'Meadow',
+    availableBiomes: ['Meadow'],
+  };
+
+  // Try primary key first, then legacy key
+  const storageKeys = [STORAGE_KEY, LEGACY_KEY];
+  let bestData: ReturnType<typeof extractXPData> = null;
+
+  for (const key of storageKeys) {
+    try {
+      const savedData = localStorage.getItem(key);
+      if (!savedData) continue;
+
+      const parsed = JSON.parse(savedData);
+      const extracted = extractXPData(parsed);
+
+      // Keep the data with the highest XP (most progress)
+      if (extracted && (!bestData || extracted.xp > bestData.xp)) {
+        bestData = extracted;
+        logger.debug(`Found valid XP data in ${key}: ${extracted.xp} XP`);
+      }
+    } catch {
+      logger.warn(`Failed to parse data from ${key}`);
+    }
+  }
+
+  if (!bestData || bestData.xp === 0) {
+    logger.debug('No saved XP state, starting fresh');
+    return defaultState;
+  }
+
+  // Recalculate level from XP to ensure consistency
+  const calculatedLevel = calculateLevel(bestData.xp);
+
+  // Use saved level if it's higher and XP supports it (within 10% tolerance)
+  const level = (bestData.level > calculatedLevel &&
+    bestData.xp >= calculateLevelRequirement(bestData.level) * 0.9)
+    ? bestData.level
+    : calculatedLevel;
+
+  const currentLevelXP = calculateLevelRequirement(level);
+  const nextLevelXP = level >= MAX_LEVEL ? currentLevelXP : calculateLevelRequirement(level + 1);
+
+  const savedAnimals = normalizeAnimalList(bestData.animals);
+  const allAnimals = Array.from(new Set([...defaultAnimals, ...savedAnimals]));
+
+  const availableBiomes = BIOME_DATABASE
+    .filter(biome => biome.unlockLevel <= level)
+    .map(biome => biome.name);
+
+  const currentBiome = availableBiomes.includes(bestData.biome || '')
+    ? bestData.biome!
+    : availableBiomes[availableBiomes.length - 1] || 'Meadow';
+
+  const recoveredState: XPSystemState = {
+    currentXP: bestData.xp,
+    currentLevel: level,
+    xpToNextLevel: level >= MAX_LEVEL ? 0 : Math.max(0, nextLevelXP - bestData.xp),
+    totalXPForCurrentLevel: currentLevelXP,
+    unlockedAnimals: allAnimals,
+    currentBiome,
+    availableBiomes,
+  };
+
+  // Save to primary key for consistency
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(recoveredState));
+  logger.debug(`Restored XP state: Level ${level}, ${bestData.xp} XP, ${allAnimals.length} animals`);
+
+  return recoveredState;
+};
 
 export const useXPSystem = () => {
   // Auth and backend sync
@@ -109,139 +219,12 @@ export const useXPSystem = () => {
     }
   }, [isAuthenticated, progress]);
 
-  // Load saved state from localStorage
+  // Load saved state from localStorage using simplified recovery logic
   useEffect(() => {
-    const defaultStartingAnimals = getUnlockedAnimals(0).map(a => a.name);
-
-    // Try multiple storage keys for backwards compatibility and data recovery
-    // This fixes the dual storage key issue where data might be in either location
-    const LEGACY_KEY = 'nomo_xp_system'; // Zustand store key
-    const storageKeys = [STORAGE_KEY, LEGACY_KEY];
-
-    let bestData: { currentXP: number; currentLevel: number; unlockedAnimals?: string[]; currentBiome?: string } | null = null;
-    let bestDataSource = '';
-
-    for (const key of storageKeys) {
-      try {
-        const savedData = localStorage.getItem(key);
-        if (!savedData) continue;
-
-        let parsed: Record<string, unknown> | null = null;
-        try {
-          parsed = JSON.parse(savedData);
-        } catch {
-          logger.warn(`Failed to parse JSON from ${key}, skipping`);
-          continue;
-        }
-
-        // Handle Zustand's wrapped format { state: {...}, version: ... }
-        const stateData = (parsed && typeof parsed === 'object' && 'state' in parsed)
-          ? parsed.state as Record<string, unknown>
-          : parsed;
-
-        if (!stateData || typeof stateData !== 'object') continue;
-
-        // Extract XP value - try multiple possible field names
-        let xpValue = 0;
-        if (typeof stateData.currentXP === 'number' && stateData.currentXP >= 0) {
-          xpValue = stateData.currentXP;
-        } else if (typeof stateData.totalXP === 'number' && stateData.totalXP >= 0) {
-          xpValue = stateData.totalXP;
-        }
-
-        // Extract level - but we'll recalculate to ensure consistency
-        const levelValue = typeof stateData.currentLevel === 'number' ? stateData.currentLevel : 0;
-
-        // Keep the data with the highest XP (most progress)
-        if (xpValue > 0 && (!bestData || xpValue > bestData.currentXP)) {
-          bestData = {
-            currentXP: xpValue,
-            currentLevel: levelValue,
-            unlockedAnimals: Array.isArray(stateData.unlockedAnimals) ? stateData.unlockedAnimals as string[] : undefined,
-            currentBiome: typeof stateData.currentBiome === 'string' ? stateData.currentBiome : undefined,
-          };
-          bestDataSource = key;
-          logger.debug(`Found valid XP data in ${key}: ${xpValue} XP, level ${levelValue}`);
-        }
-      } catch (error) {
-        logger.warn(`Error reading from ${key}:`, error);
-      }
-    }
-
-    if (bestData && bestData.currentXP > 0) {
-      const savedAnimals = normalizeAnimalList(bestData.unlockedAnimals || []);
-      const allAnimals = Array.from(new Set([...defaultStartingAnimals, ...savedAnimals]));
-
-      // Recalculate level from saved XP to ensure consistency
-      // This prevents level from being reset if only the level field got corrupted
-      let level = 0;
-      while (level < MAX_LEVEL && bestData.currentXP >= calculateLevelRequirement(level + 1)) {
-        level++;
-      }
-
-      // Sanity check: if saved level is higher and XP supports it, use the higher level
-      // This prevents regression from data inconsistency
-      if (bestData.currentLevel > level) {
-        const minXPForSavedLevel = calculateLevelRequirement(bestData.currentLevel);
-        if (bestData.currentXP >= minXPForSavedLevel * 0.9) {
-          // Close enough - likely just rounding, use the saved level
-          level = bestData.currentLevel;
-        }
-      }
-
-      const currentLevelXP = calculateLevelRequirement(level);
-      const nextLevelXP = level >= MAX_LEVEL
-        ? calculateLevelRequirement(level)
-        : calculateLevelRequirement(level + 1);
-      const xpToNextLevel = level >= MAX_LEVEL ? 0 : nextLevelXP - bestData.currentXP;
-
-      const availableBiomes = BIOME_DATABASE
-        .filter(biome => biome.unlockLevel <= level)
-        .map(biome => biome.name);
-
-      const currentBiome = availableBiomes.includes(bestData.currentBiome || '')
-        ? bestData.currentBiome!
-        : availableBiomes[availableBiomes.length - 1] || 'Meadow';
-
-      const newState = {
-        currentXP: bestData.currentXP,
-        currentLevel: level,
-        xpToNextLevel: Math.max(0, xpToNextLevel),
-        totalXPForCurrentLevel: currentLevelXP,
-        unlockedAnimals: allAnimals,
-        currentBiome,
-        availableBiomes,
-      };
-      setXPState(newState);
-      xpStateRef.current = newState;
-
-      // Ensure data is saved to primary key for consistency
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-
-      logger.debug(`Restored XP state from ${bestDataSource}: Level ${level}, ${bestData.currentXP} XP, ${allAnimals.length} animals`);
-    } else {
-      // No valid data found - check if there's any corrupted data we should warn about
-      const primaryData = localStorage.getItem(STORAGE_KEY);
-      const legacyData = localStorage.getItem(LEGACY_KEY);
-      if (primaryData || legacyData) {
-        logger.warn('Found storage data but could not extract valid XP. Data may be corrupted. Starting fresh.');
-        // Don't clear the corrupted data - leave it for potential manual recovery
-      } else {
-        logger.debug('No saved XP state, starting fresh with animals:', defaultStartingAnimals);
-      }
-
-      const newState = {
-        currentXP: 0,
-        currentLevel: 0,
-        xpToNextLevel: 15,
-        totalXPForCurrentLevel: 0,
-        unlockedAnimals: defaultStartingAnimals,
-        currentBiome: 'Meadow',
-        availableBiomes: ['Meadow'],
-      };
-      setXPState(newState);
-      xpStateRef.current = newState;
-    }
+    const defaultAnimals = getUnlockedAnimals(0).map(a => a.name);
+    const recoveredState = loadXPState(defaultAnimals);
+    setXPState(recoveredState);
+    xpStateRef.current = recoveredState;
   }, []);
 
   // Listen for XP updates from other hook instances (cross-component sync)
@@ -372,7 +355,8 @@ export const useXPSystem = () => {
 
   // Award XP and handle level ups with random bonus chance
   const awardXP = useCallback((sessionMinutes: number): XPReward => {
-    const baseXP = calculateXPFromDuration(sessionMinutes);
+    const validMinutes = validateSessionMinutes(sessionMinutes);
+    const baseXP = calculateXPFromDuration(validMinutes);
     const subscriptionMultiplier = getSubscriptionMultiplier();
     const bonus = calculateRandomBonus();
 
@@ -428,7 +412,7 @@ export const useXPSystem = () => {
     });
 
     // Sync to backend asynchronously (doesn't block)
-    syncToBackend(newTotalXP, newLevel, sessionMinutes, xpGained);
+    syncToBackend(newTotalXP, newLevel, validMinutes, xpGained);
 
     return {
       xpGained,
@@ -447,8 +431,26 @@ export const useXPSystem = () => {
 
   // Add direct XP (for achievements, daily login, bonuses, etc.)
   const addDirectXP = useCallback((xpAmount: number): XPReward => {
+    const validAmount = validateXPAmount(xpAmount);
+    if (validAmount <= 0) {
+      logger.warn('Invalid XP amount:', xpAmount);
+      return {
+        xpGained: 0,
+        baseXP: 0,
+        bonusXP: 0,
+        bonusMultiplier: 1,
+        hasBonusXP: false,
+        bonusType: 'none',
+        oldLevel: xpState.currentLevel,
+        newLevel: xpState.currentLevel,
+        leveledUp: false,
+        unlockedRewards: [],
+        subscriptionMultiplier: 1,
+      };
+    }
+
     const oldLevel = xpState.currentLevel;
-    const newTotalXP = xpState.currentXP + xpAmount;
+    const newTotalXP = xpState.currentXP + validAmount;
     const newLevel = calculateLevel(newTotalXP);
     const leveledUp = newLevel > oldLevel;
 
@@ -498,8 +500,8 @@ export const useXPSystem = () => {
     syncToBackend(newTotalXP, newLevel);
 
     return {
-      xpGained: xpAmount,
-      baseXP: xpAmount,
+      xpGained: validAmount,
+      baseXP: validAmount,
       bonusXP: 0,
       bonusMultiplier: 1,
       hasBonusXP: false,

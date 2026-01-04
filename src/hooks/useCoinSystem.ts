@@ -33,6 +33,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, isValidSubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
+import {
+  validateCoinAmount,
+  validateCoinTransaction,
+  validateMultiplier,
+  validateSessionMinutes,
+  isNonNegativeInteger
+} from '@/lib/validation';
 
 /**
  * Result of awarding coins from a focus session
@@ -121,10 +128,11 @@ export const useCoinSystem = () => {
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
+        // Validate all numeric fields from storage
         setCoinState({
-          balance: parsed.balance || 0,
-          totalEarned: parsed.totalEarned || 0,
-          totalSpent: parsed.totalSpent || 0,
+          balance: validateCoinAmount(parsed.balance),
+          totalEarned: validateCoinAmount(parsed.totalEarned),
+          totalSpent: validateCoinAmount(parsed.totalSpent),
         });
       } catch (error) {
         coinLogger.error('Failed to load coin state:', error);
@@ -234,14 +242,17 @@ export const useCoinSystem = () => {
     sessionMinutes: number,
     boosterMultiplier: number = 1
   ): CoinReward => {
-    const baseCoins = calculateCoinsFromDuration(sessionMinutes);
+    // Validate inputs
+    const validMinutes = validateSessionMinutes(sessionMinutes);
+    const validMultiplier = validateMultiplier(boosterMultiplier);
+    const baseCoins = calculateCoinsFromDuration(validMinutes);
     const bonus = calculateRandomBonus();
     const subscriptionMultiplier = getSubscriptionMultiplier();
 
     // Apply subscription multiplier first, then random bonus, then booster
     const coinsAfterSubscription = Math.round(baseCoins * subscriptionMultiplier);
     const coinsAfterBonus = Math.round(coinsAfterSubscription * bonus.bonusMultiplier);
-    const finalCoins = Math.round(coinsAfterBonus * boosterMultiplier);
+    const finalCoins = Math.round(coinsAfterBonus * validMultiplier);
     const bonusCoins = finalCoins - baseCoins;
 
     const newState: CoinSystemState = {
@@ -265,40 +276,52 @@ export const useCoinSystem = () => {
       bonusMultiplier: bonus.bonusMultiplier,
       hasBonusCoins: bonus.hasBonusCoins,
       bonusType: bonus.bonusType,
-      boosterActive: boosterMultiplier > 1,
-      boosterMultiplier,
+      boosterActive: validMultiplier > 1,
+      boosterMultiplier: validMultiplier,
       subscriptionMultiplier,
     };
   }, [coinState, calculateCoinsFromDuration, saveState, getSubscriptionMultiplier]);
 
   // Add coins directly (for purchases, rewards, etc.)
   const addCoins = useCallback((amount: number): void => {
+    // Validate input - must be a positive integer
+    const validAmount = validateCoinTransaction(amount);
+    if (validAmount <= 0) {
+      coinLogger.warn('Invalid coin amount:', amount);
+      return;
+    }
+
     const newState: CoinSystemState = {
-      balance: coinState.balance + amount,
-      totalEarned: coinState.totalEarned + amount,
+      balance: coinState.balance + validAmount,
+      totalEarned: coinState.totalEarned + validAmount,
       totalSpent: coinState.totalSpent,
     };
     saveState(newState);
 
     // Track coins earned for achievements
-    if (amount > 0) {
-      dispatchAchievementEvent(ACHIEVEMENT_EVENTS.COINS_EARNED, {
-        amount,
-        total: newState.totalEarned,
-      });
-    }
+    dispatchAchievementEvent(ACHIEVEMENT_EVENTS.COINS_EARNED, {
+      amount: validAmount,
+      total: newState.totalEarned,
+    });
   }, [coinState, saveState]);
 
   // Spend coins (returns true if successful, false if insufficient balance)
   const spendCoins = useCallback((amount: number): boolean => {
-    if (coinState.balance < amount) {
+    // Validate input - must be a positive integer
+    const validAmount = validateCoinTransaction(amount);
+    if (validAmount <= 0) {
+      coinLogger.warn('Invalid spend amount:', amount);
+      return false;
+    }
+
+    if (coinState.balance < validAmount) {
       return false;
     }
 
     const newState: CoinSystemState = {
-      balance: coinState.balance - amount,
+      balance: coinState.balance - validAmount,
       totalEarned: coinState.totalEarned,
-      totalSpent: coinState.totalSpent + amount,
+      totalSpent: coinState.totalSpent + validAmount,
     };
     saveState(newState);
     return true;
@@ -306,6 +329,7 @@ export const useCoinSystem = () => {
 
   // Check if user can afford something
   const canAfford = useCallback((amount: number): boolean => {
+    if (!isNonNegativeInteger(amount)) return false;
     return coinState.balance >= amount;
   }, [coinState.balance]);
 
