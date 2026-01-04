@@ -309,8 +309,9 @@ describe('useDailyLoginRewards', () => {
 
       const upcoming = result.current.getUpcomingRewards();
 
-      // After day 2, upcoming should start from day 3
-      expect(upcoming[0].day).toBe(3);
+      // After claiming at streak position 2, upcoming starts from next position in cycle
+      // currentDay = 2 % 7 = 2, dayIndex for i=1 = (2+1) % 7 = 3, which is day 4
+      expect(upcoming[0].day).toBe(4);
     });
   });
 

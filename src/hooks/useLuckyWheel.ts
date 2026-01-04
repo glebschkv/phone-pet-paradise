@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { LUCKY_WHEEL_PRIZES, LuckyWheelPrize, spinWheel } from '@/data/GamificationData';
-import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
+import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 
 export interface LuckyWheelState {
   lastSpinDate: string | null;

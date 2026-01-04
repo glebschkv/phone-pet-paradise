@@ -360,7 +360,8 @@ describe('useStoreKit', () => {
     });
 
     it('should clear error on successful reload', async () => {
-      mockGetProducts.mockRejectedValueOnce(new Error('Network error'));
+      // First set up to always reject
+      mockGetProducts.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useStoreKit());
 
@@ -370,7 +371,7 @@ describe('useStoreKit', () => {
         expect(result.current.error).toBe('Failed to load products. Please try again.');
       });
 
-      // Reset mock to succeed
+      // Reset mock to succeed for retry
       mockGetProducts.mockResolvedValue({ products: mockProducts });
 
       await act(async () => {
@@ -1143,8 +1144,8 @@ describe('useStoreKit', () => {
     });
 
     it('should allow retry after network failure', async () => {
-      // First call fails
-      mockGetProducts.mockRejectedValueOnce(new Error('Network error'));
+      // First set up to always reject
+      mockGetProducts.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useStoreKit());
 
@@ -1154,7 +1155,7 @@ describe('useStoreKit', () => {
         expect(result.current.error).toBe('Failed to load products. Please try again.');
       });
 
-      // Second call succeeds
+      // Reset mock to succeed for retry
       mockGetProducts.mockResolvedValue({ products: mockProducts });
 
       await act(async () => {

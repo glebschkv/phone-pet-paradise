@@ -14,7 +14,7 @@ vi.mock('@/lib/storage-keys', () => ({
 }));
 
 // Mock achievement tracking
-vi.mock('./useAchievementTracking', () => ({
+vi.mock('@/hooks/useAchievementTracking', () => ({
   dispatchAchievementEvent: vi.fn(),
   ACHIEVEMENT_EVENTS: {
     WHEEL_SPIN: 'wheel_spin',
@@ -43,7 +43,7 @@ vi.mock('@/data/GamificationData', () => ({
 
 import { storage } from '@/lib/storage-keys';
 import { spinWheel } from '@/data/GamificationData';
-import { dispatchAchievementEvent } from './useAchievementTracking';
+import { dispatchAchievementEvent } from '@/hooks/useAchievementTracking';
 
 const mockStorage = storage as unknown as {
   get: ReturnType<typeof vi.fn>;
