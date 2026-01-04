@@ -720,7 +720,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'An enchanted forest where elemental spirits dwell.',
     animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid'],
     backgroundImage: '/assets/worlds/FOREST_ENCHANTED.png',
-    groundLevel: 17
+    groundLevel: 17.5
   },
   {
     name: 'Snow',
