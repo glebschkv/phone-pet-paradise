@@ -22,7 +22,7 @@
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, subscribeWithSelector } from 'zustand/middleware';
 import { xpLogger } from '@/lib/logger';
 import { xpSystemSchema } from '@/lib/storage-validation';
 import { createValidatedStorage } from '@/lib/validated-zustand-storage';
@@ -78,91 +78,93 @@ const initialState: XPState = {
 };
 
 export const useXPStore = create<XPStore>()(
-  persist(
-    (set, get) => ({
-      ...initialState,
-      setXP: (xp) => set({ currentXP: xp }),
-      addXP: (amount) => set((s) => ({ currentXP: s.currentXP + amount })),
-      setLevel: (level) => {
-        const xpRequired = calculateLevelRequirement(level);
-        const nextLevelXP = level >= MAX_LEVEL ? xpRequired : calculateLevelRequirement(level + 1);
-        set({ currentLevel: level, totalXPForCurrentLevel: xpRequired, xpToNextLevel: nextLevelXP - get().currentXP });
-      },
-      addAnimal: (name) => {
-        const { unlockedAnimals } = get();
-        if (!unlockedAnimals.includes(name)) set({ unlockedAnimals: [...unlockedAnimals, name] });
-      },
-      addAnimals: (names) => {
-        const { unlockedAnimals } = get();
-        const newAnimals = names.filter(n => !unlockedAnimals.includes(n));
-        if (newAnimals.length > 0) set({ unlockedAnimals: [...unlockedAnimals, ...newAnimals] });
-      },
-      switchBiome: (name) => { if (get().availableBiomes.includes(name)) set({ currentBiome: name }); },
-      addBiome: (name) => {
-        const { availableBiomes } = get();
-        if (!availableBiomes.includes(name)) set({ availableBiomes: [...availableBiomes, name] });
-      },
-      updateState: (partial) => set((s) => ({ ...s, ...partial })),
-      resetXP: () => set(initialState),
-    }),
-    {
-      name: 'nomo_xp_system',
-      storage: createValidatedStorage({
-        schema: xpSystemSchema,
-        defaultState: initialState,
-        name: 'xp-store',
+  subscribeWithSelector(
+    persist(
+      (set, get) => ({
+        ...initialState,
+        setXP: (xp) => set({ currentXP: xp }),
+        addXP: (amount) => set((s) => ({ currentXP: s.currentXP + amount })),
+        setLevel: (level) => {
+          const xpRequired = calculateLevelRequirement(level);
+          const nextLevelXP = level >= MAX_LEVEL ? xpRequired : calculateLevelRequirement(level + 1);
+          set({ currentLevel: level, totalXPForCurrentLevel: xpRequired, xpToNextLevel: nextLevelXP - get().currentXP });
+        },
+        addAnimal: (name) => {
+          const { unlockedAnimals } = get();
+          if (!unlockedAnimals.includes(name)) set({ unlockedAnimals: [...unlockedAnimals, name] });
+        },
+        addAnimals: (names) => {
+          const { unlockedAnimals } = get();
+          const newAnimals = names.filter(n => !unlockedAnimals.includes(n));
+          if (newAnimals.length > 0) set({ unlockedAnimals: [...unlockedAnimals, ...newAnimals] });
+        },
+        switchBiome: (name) => { if (get().availableBiomes.includes(name)) set({ currentBiome: name }); },
+        addBiome: (name) => {
+          const { availableBiomes } = get();
+          if (!availableBiomes.includes(name)) set({ availableBiomes: [...availableBiomes, name] });
+        },
+        updateState: (partial) => set((s) => ({ ...s, ...partial })),
+        resetXP: () => set(initialState),
       }),
-      onRehydrateStorage: () => (state) => {
-        if (!state) {
-          // Try to recover from legacy storage keys
-          const legacyKeys = ['petIsland_xpSystem', 'nomo_xp_system'];
-          let bestData: typeof initialState | null = null;
-
-          for (const key of legacyKeys) {
+      {
+        name: 'nomo_xp_system',
+        storage: createValidatedStorage({
+          schema: xpSystemSchema,
+          defaultState: initialState,
+          name: 'xp-store',
+        }),
+        onRehydrateStorage: () => (state) => {
+          if (!state) {
+            // Try to recover from legacy storage key
             try {
-              const legacy = localStorage.getItem(key);
-              if (!legacy) continue;
+              const legacy = localStorage.getItem('petIsland_xpSystem');
+              if (legacy) {
+                let parsed = JSON.parse(legacy);
+                // Handle Zustand's wrapped format
+                if (parsed && typeof parsed === 'object' && 'state' in parsed) {
+                  parsed = parsed.state;
+                }
 
-              let parsed = JSON.parse(legacy);
-              // Handle Zustand's wrapped format
-              if (parsed && typeof parsed === 'object' && 'state' in parsed) {
-                parsed = parsed.state;
-              }
-
-              const validated = xpSystemSchema.safeParse(parsed);
-              if (validated.success) {
-                // Keep the data with highest XP (most progress)
-                if (!bestData || validated.data.currentXP > bestData.currentXP) {
-                  bestData = validated.data;
-                  xpLogger.debug(`Found valid XP data in ${key}: ${validated.data.currentXP} XP`);
+                const validated = xpSystemSchema.safeParse(parsed);
+                if (validated.success) {
+                  xpLogger.debug('Migrated XP data from legacy storage');
+                  // Clean up legacy key after migration
+                  localStorage.removeItem('petIsland_xpSystem');
+                  return validated.data;
                 }
               }
             } catch {
-              xpLogger.warn(`Failed to parse legacy XP data from ${key}`);
+              xpLogger.warn('Failed to parse legacy XP data');
             }
           }
-
-          if (bestData) {
-            xpLogger.debug('Recovered XP data from legacy storage');
-            return bestData;
+          if (state) {
+            // Validate the rehydrated level makes sense for the XP
+            const expectedLevel = calculateLevelFromXP(state.currentXP);
+            if (state.currentLevel < expectedLevel) {
+              xpLogger.warn(`Level mismatch: stored ${state.currentLevel}, expected ${expectedLevel}. Fixing.`);
+              state.currentLevel = expectedLevel;
+            }
+            xpLogger.debug('XP store rehydrated and validated');
           }
-        }
-        if (state) {
-          // Validate the rehydrated level makes sense for the XP
-          const expectedLevel = calculateLevelFromXP(state.currentXP);
-          if (state.currentLevel < expectedLevel) {
-            xpLogger.warn(`Level mismatch: stored ${state.currentLevel}, expected ${expectedLevel}. Fixing.`);
-            state.currentLevel = expectedLevel;
-          }
-          xpLogger.debug('XP store rehydrated and validated');
-        }
-      },
-    }
+        },
+      }
+    )
   )
 );
 
+// Selector hooks for efficient subscriptions
 export const useCurrentXP = () => useXPStore((s) => s.currentXP);
 export const useCurrentLevel = () => useXPStore((s) => s.currentLevel);
 export const useUnlockedAnimals = () => useXPStore((s) => s.unlockedAnimals);
 export const useCurrentBiome = () => useXPStore((s) => s.currentBiome);
 export const useAvailableBiomes = () => useXPStore((s) => s.availableBiomes);
+
+// Subscribe to XP changes for cross-component communication
+// This replaces the window.dispatchEvent pattern
+export const subscribeToXPChanges = (callback: (state: XPState) => void) => {
+  return useXPStore.subscribe(
+    (state) => ({ currentXP: state.currentXP, currentLevel: state.currentLevel }),
+    () => callback(useXPStore.getState()),
+    { equalityFn: (a, b) => a.currentXP === b.currentXP && a.currentLevel === b.currentLevel }
+  );
+};

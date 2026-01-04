@@ -1,9 +1,14 @@
 /**
  * Coin System Hook
  *
- * Manages the in-game currency system including earning coins from focus sessions,
- * spending coins on purchases, and tracking coin statistics. Supports bonus
- * multipliers from premium subscriptions and boosters.
+ * Provides game-specific coin functionality built on top of the Zustand coin store.
+ * Includes earning coins from focus sessions, bonus multipliers, and achievement tracking.
+ *
+ * ARCHITECTURE: This hook is a thin wrapper around useCoinStore (the single source of truth).
+ * All state is managed by the Zustand store - no local useState for coin data.
+ *
+ * SECURITY: All coin operations are validated server-side through the validate-coins
+ * edge function. The local state (Zustand store) serves as a cache for responsive UI.
  *
  * @module hooks/useCoinSystem
  *
@@ -14,8 +19,8 @@
  * function ShopItem({ price }: { price: number }) {
  *   const { balance, canAfford, spendCoins } = useCoinSystem();
  *
- *   const handlePurchase = () => {
- *     if (spendCoins(price)) {
+ *   const handlePurchase = async () => {
+ *     if (await spendCoins(price)) {
  *       // Purchase successful
  *     }
  *   };
@@ -29,17 +34,16 @@
  * ```
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useMemo, useEffect } from 'react';
+import { useCoinStore } from '@/stores/coinStore';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, isValidSubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  validateCoinAmount,
   validateCoinTransaction,
   validateMultiplier,
   validateSessionMinutes,
-  isNonNegativeInteger
 } from '@/lib/validation';
 
 /**
@@ -73,6 +77,12 @@ function canPerformOperation(operation: 'earn' | 'spend'): boolean {
   }
   lastOperationTime[operation] = now;
   return true;
+}
+
+/** Reset rate limiter - for testing purposes only */
+export function _resetRateLimiter(): void {
+  lastOperationTime.earn = 0;
+  lastOperationTime.spend = 0;
 }
 
 /**
@@ -200,9 +210,6 @@ export interface CoinSystemState {
   totalSpent: number;
 }
 
-const STORAGE_KEY = 'petIsland_coinSystem';
-const COIN_UPDATE_EVENT = 'petIsland_coinUpdate';
-
 // Coin rewards based on session duration (in minutes)
 // Boosted rewards - players should be able to buy things regularly!
 const COIN_REWARDS: Record<number, number> = {
@@ -249,32 +256,32 @@ const sortedDurations = Object.keys(COIN_REWARDS)
   .sort((a, b) => b - a);
 
 export const useCoinSystem = () => {
-  const [coinState, setCoinState] = useState<CoinSystemState>({
-    balance: 0,
-    totalEarned: 0,
-    totalSpent: 0,
-  });
+  // Use Zustand store as the single source of truth for local state
+  const balance = useCoinStore((s) => s.balance);
+  const totalEarned = useCoinStore((s) => s.totalEarned);
+  const totalSpent = useCoinStore((s) => s.totalSpent);
+  const storeAddCoins = useCoinStore((s) => s.addCoins);
+  const storeSpendCoins = useCoinStore((s) => s.spendCoins);
+  const storeCanAfford = useCoinStore((s) => s.canAfford);
+  const storeResetCoins = useCoinStore((s) => s.resetCoins);
+  const storeSyncFromServer = useCoinStore((s) => s.syncFromServer);
 
-  // Ref to track self-dispatched events to prevent feedback loops
-  const isSelfDispatch = useRef(false);
-
-  // Load saved state from localStorage
+  // Listen for bonus coin grants from subscription purchase
   useEffect(() => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        // Validate all numeric fields from storage
-        setCoinState({
-          balance: validateCoinAmount(parsed.balance),
-          totalEarned: validateCoinAmount(parsed.totalEarned),
-          totalSpent: validateCoinAmount(parsed.totalSpent),
-        });
-      } catch (error) {
-        coinLogger.error('Failed to load coin state:', error);
+    const handleBonusCoins = (event: Event) => {
+      const customEvent = event as CustomEvent<{ amount: number; planId: string }>;
+      const { amount } = customEvent.detail;
+      if (amount > 0) {
+        storeAddCoins(amount);
+        coinLogger.debug('Bonus coins granted from subscription', { amount });
       }
-    }
-  }, []);
+    };
+
+    window.addEventListener('petIsland_grantBonusCoins', handleBonusCoins);
+    return () => {
+      window.removeEventListener('petIsland_grantBonusCoins', handleBonusCoins);
+    };
+  }, [storeAddCoins]);
 
   // Helper to get subscription multiplier
   const getSubscriptionMultiplier = useCallback((): number => {
@@ -292,77 +299,6 @@ export const useCoinSystem = () => {
     return 1;
   }, []);
 
-  // Listen for coin updates from other components
-  // Uses AbortController for cleaner event listener cleanup
-  useEffect(() => {
-    const abortController = new AbortController();
-    const { signal } = abortController;
-
-    const handleCoinUpdate = (event: Event) => {
-      // Skip self-dispatched events to prevent feedback loops
-      if (isSelfDispatch.current) {
-        isSelfDispatch.current = false;
-        return;
-      }
-      const customEvent = event as CustomEvent<CoinSystemState>;
-      setCoinState(customEvent.detail);
-    };
-
-    const handleStorageChange = (event: StorageEvent) => {
-      // Only handle our namespaced storage key to avoid processing unrelated storage events
-      if (event.key !== STORAGE_KEY || !event.newValue) return;
-
-      try {
-        const parsed = JSON.parse(event.newValue);
-        setCoinState(parsed);
-      } catch (error) {
-        coinLogger.error('Failed to parse coin state from storage:', error);
-      }
-    };
-
-    // Listen for bonus coin grants from subscription purchase
-    // Uses functional setState to avoid stale closure issues
-    const handleBonusCoins = (event: Event) => {
-      const customEvent = event as CustomEvent<{ amount: number; planId: string }>;
-      const { amount } = customEvent.detail;
-      if (amount > 0) {
-        // Use functional update to always have the latest state
-        setCoinState(prevState => {
-          const newState = {
-            ...prevState,
-            balance: prevState.balance + amount,
-            totalEarned: prevState.totalEarned + amount,
-          };
-          // Side effects in a microtask to not block the state update
-          queueMicrotask(() => {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-            isSelfDispatch.current = true;
-            window.dispatchEvent(new CustomEvent(COIN_UPDATE_EVENT, { detail: newState }));
-          });
-          return newState;
-        });
-      }
-    };
-
-    // Register all listeners with abort signal for automatic cleanup
-    window.addEventListener(COIN_UPDATE_EVENT, handleCoinUpdate, { signal });
-    window.addEventListener('storage', handleStorageChange, { signal });
-    window.addEventListener('petIsland_grantBonusCoins', handleBonusCoins, { signal });
-
-    return () => {
-      abortController.abort();
-    };
-  }, []);
-
-  // Save state and notify other components
-  const saveState = useCallback((newState: CoinSystemState) => {
-    setCoinState(newState);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-    // Mark as self-dispatch to prevent feedback loop
-    isSelfDispatch.current = true;
-    window.dispatchEvent(new CustomEvent(COIN_UPDATE_EVENT, { detail: newState }));
-  }, []);
-
   // Calculate coins from session duration
   const calculateCoinsFromDuration = useCallback((minutes: number): number => {
     for (const duration of sortedDurations) {
@@ -376,7 +312,7 @@ export const useCoinSystem = () => {
   /**
    * SECURITY: Award coins from a focus session with server validation
    *
-   * This function now validates with the server to prevent manipulation.
+   * This function validates with the server to prevent manipulation.
    * The sessionId is used to prevent duplicate rewards for the same session.
    */
   const awardCoins = useCallback((
@@ -416,13 +352,8 @@ export const useCoinSystem = () => {
     // Generate session ID if not provided (for deduplication)
     const effectiveSessionId = sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Optimistically update local state for responsive UI
-    const newState: CoinSystemState = {
-      balance: coinState.balance + finalCoins,
-      totalEarned: coinState.totalEarned + finalCoins,
-      totalSpent: coinState.totalSpent,
-    };
-    saveState(newState);
+    // Optimistically update Zustand store for responsive UI
+    storeAddCoins(finalCoins);
 
     // SECURITY: Validate with server asynchronously
     // Server is source of truth - if validation fails, we should handle accordingly
@@ -434,17 +365,24 @@ export const useCoinSystem = () => {
     }).then((response) => {
       if (response.success && response.newBalance !== undefined) {
         // SECURITY: Use server balance as source of truth
-        const serverState: CoinSystemState = {
-          balance: response.newBalance,
-          totalEarned: response.totalEarned || newState.totalEarned,
-          totalSpent: response.totalSpent || coinState.totalSpent,
-        };
-        saveState(serverState);
+        storeSyncFromServer(
+          response.newBalance,
+          response.totalEarned || totalEarned + finalCoins,
+          response.totalSpent || totalSpent
+        );
         coinLogger.debug('Server validated coin earn:', response.newBalance);
       } else if (response.duplicate) {
-        // Session already rewarded - revert optimistic update
-        coinLogger.warn('Duplicate session reward detected, reverting');
-        saveState(coinState); // Revert to previous state
+        // Session already rewarded - sync from server to get correct state
+        coinLogger.warn('Duplicate session reward detected, syncing from server');
+        serverGetBalance().then((balanceResponse) => {
+          if (balanceResponse.success && balanceResponse.newBalance !== undefined) {
+            storeSyncFromServer(
+              balanceResponse.newBalance,
+              balanceResponse.totalEarned || totalEarned,
+              balanceResponse.totalSpent || totalSpent
+            );
+          }
+        });
       } else if (!response.success) {
         coinLogger.warn('Server validation failed, local state may be inconsistent');
         // For non-authenticated users, keep local state
@@ -457,7 +395,7 @@ export const useCoinSystem = () => {
     // Track coins earned for achievements
     dispatchAchievementEvent(ACHIEVEMENT_EVENTS.COINS_EARNED, {
       amount: finalCoins,
-      total: newState.totalEarned,
+      total: totalEarned + finalCoins,
     });
 
     return {
@@ -471,7 +409,7 @@ export const useCoinSystem = () => {
       boosterMultiplier: validMultiplier,
       subscriptionMultiplier,
     };
-  }, [coinState, calculateCoinsFromDuration, saveState, getSubscriptionMultiplier]);
+  }, [calculateCoinsFromDuration, getSubscriptionMultiplier, storeAddCoins, storeSyncFromServer, totalEarned, totalSpent]);
 
   /**
    * SECURITY: Add coins directly with server validation
@@ -496,24 +434,18 @@ export const useCoinSystem = () => {
       return;
     }
 
-    // Optimistically update local state
-    const newState: CoinSystemState = {
-      balance: coinState.balance + validAmount,
-      totalEarned: coinState.totalEarned + validAmount,
-      totalSpent: coinState.totalSpent,
-    };
-    saveState(newState);
+    // Optimistically update Zustand store
+    storeAddCoins(validAmount);
 
     // SECURITY: Validate with server asynchronously
     serverEarnCoins(validAmount, source).then((response) => {
       if (response.success && response.newBalance !== undefined) {
         // SECURITY: Use server balance as source of truth
-        const serverState: CoinSystemState = {
-          balance: response.newBalance,
-          totalEarned: response.totalEarned || newState.totalEarned,
-          totalSpent: response.totalSpent || coinState.totalSpent,
-        };
-        saveState(serverState);
+        storeSyncFromServer(
+          response.newBalance,
+          response.totalEarned || totalEarned + validAmount,
+          response.totalSpent || totalSpent
+        );
         coinLogger.debug('Server validated coin add:', response.newBalance);
       }
     }).catch((err) => {
@@ -521,11 +453,13 @@ export const useCoinSystem = () => {
     });
 
     // Track coins earned for achievements
-    dispatchAchievementEvent(ACHIEVEMENT_EVENTS.COINS_EARNED, {
-      amount: validAmount,
-      total: newState.totalEarned,
-    });
-  }, [coinState, saveState]);
+    if (amount > 0) {
+      dispatchAchievementEvent(ACHIEVEMENT_EVENTS.COINS_EARNED, {
+        amount,
+        total: totalEarned + amount,
+      });
+    }
+  }, [storeAddCoins, storeSyncFromServer, totalEarned, totalSpent]);
 
   /**
    * SECURITY: Spend coins with server validation
@@ -557,7 +491,7 @@ export const useCoinSystem = () => {
     }
 
     // Local balance check (quick fail for obviously invalid requests)
-    if (coinState.balance < validAmount) {
+    if (!storeCanAfford(validAmount)) {
       return false;
     }
 
@@ -567,13 +501,17 @@ export const useCoinSystem = () => {
 
     if (response.success) {
       // SECURITY: Use server-provided balance as source of truth
-      const newState: CoinSystemState = {
-        balance: response.newBalance ?? (coinState.balance - validAmount),
-        totalEarned: response.totalEarned ?? coinState.totalEarned,
-        totalSpent: response.totalSpent ?? (coinState.totalSpent + validAmount),
-      };
-      saveState(newState);
-      coinLogger.debug('Server validated coin spend:', newState.balance);
+      if (response.newBalance !== undefined) {
+        storeSyncFromServer(
+          response.newBalance,
+          response.totalEarned || totalEarned,
+          response.totalSpent || totalSpent + validAmount
+        );
+      } else {
+        // For unauthenticated users, update local store
+        storeSpendCoins(validAmount);
+      }
+      coinLogger.debug('Server validated coin spend:', response.newBalance ?? balance - validAmount);
       return true;
     } else {
       coinLogger.warn('Server rejected coin spend:', response.error);
@@ -582,17 +520,17 @@ export const useCoinSystem = () => {
         // Sync balance from server
         serverGetBalance().then((balanceResponse) => {
           if (balanceResponse.success && balanceResponse.newBalance !== undefined) {
-            saveState({
-              balance: balanceResponse.newBalance,
-              totalEarned: balanceResponse.totalEarned || coinState.totalEarned,
-              totalSpent: balanceResponse.totalSpent || coinState.totalSpent,
-            });
+            storeSyncFromServer(
+              balanceResponse.newBalance,
+              balanceResponse.totalEarned || totalEarned,
+              balanceResponse.totalSpent || totalSpent
+            );
           }
         });
       }
       return false;
     }
-  }, [coinState, saveState]);
+  }, [balance, storeCanAfford, storeSpendCoins, storeSyncFromServer, totalEarned, totalSpent]);
 
   /**
    * SECURITY: Synchronous spend for backwards compatibility
@@ -610,58 +548,48 @@ export const useCoinSystem = () => {
       return false;
     }
 
-    if (coinState.balance < validAmount) {
+    if (!storeCanAfford(validAmount)) {
       return false;
     }
 
-    const newState: CoinSystemState = {
-      balance: coinState.balance - validAmount,
-      totalEarned: coinState.totalEarned,
-      totalSpent: coinState.totalSpent + validAmount,
-    };
-    saveState(newState);
+    // Optimistically update Zustand store
+    storeSpendCoins(validAmount);
 
     // SECURITY: Validate with server asynchronously and sync state
     serverSpendCoins(validAmount, 'shop_purchase').then((response) => {
       if (response.success && response.newBalance !== undefined) {
-        saveState({
-          balance: response.newBalance,
-          totalEarned: response.totalEarned || newState.totalEarned,
-          totalSpent: response.totalSpent || newState.totalSpent,
-        });
+        storeSyncFromServer(
+          response.newBalance,
+          response.totalEarned || totalEarned,
+          response.totalSpent || totalSpent + validAmount
+        );
       } else if (!response.success) {
-        // Server rejected - revert and sync
-        coinLogger.warn('Server rejected spend, reverting local state');
+        // Server rejected - sync from server to get correct state
+        coinLogger.warn('Server rejected spend, syncing from server');
         serverGetBalance().then((balanceResponse) => {
           if (balanceResponse.success && balanceResponse.newBalance !== undefined) {
-            saveState({
-              balance: balanceResponse.newBalance,
-              totalEarned: balanceResponse.totalEarned || coinState.totalEarned,
-              totalSpent: balanceResponse.totalSpent || coinState.totalSpent,
-            });
+            storeSyncFromServer(
+              balanceResponse.newBalance,
+              balanceResponse.totalEarned || totalEarned,
+              balanceResponse.totalSpent || totalSpent
+            );
           }
         });
       }
     });
 
     return true;
-  }, [coinState, saveState]);
+  }, [storeCanAfford, storeSpendCoins, storeSyncFromServer, totalEarned, totalSpent]);
 
   // Check if user can afford something
   const canAfford = useCallback((amount: number): boolean => {
-    if (!isNonNegativeInteger(amount)) return false;
-    return coinState.balance >= amount;
-  }, [coinState.balance]);
+    return storeCanAfford(amount);
+  }, [storeCanAfford]);
 
   // Reset progress
   const resetProgress = useCallback(() => {
-    const resetState: CoinSystemState = {
-      balance: 0,
-      totalEarned: 0,
-      totalSpent: 0,
-    };
-    saveState(resetState);
-  }, [saveState]);
+    storeResetCoins();
+  }, [storeResetCoins]);
 
   /**
    * SECURITY: Sync balance from server
@@ -672,18 +600,20 @@ export const useCoinSystem = () => {
   const syncFromServer = useCallback(async (): Promise<void> => {
     const response = await serverGetBalance();
     if (response.success && response.newBalance !== undefined) {
-      const serverState: CoinSystemState = {
-        balance: response.newBalance,
-        totalEarned: response.totalEarned || coinState.totalEarned,
-        totalSpent: response.totalSpent || coinState.totalSpent,
-      };
-      saveState(serverState);
-      coinLogger.debug('Synced balance from server:', serverState.balance);
+      storeSyncFromServer(
+        response.newBalance,
+        response.totalEarned || totalEarned,
+        response.totalSpent || totalSpent
+      );
+      coinLogger.debug('Synced balance from server:', response.newBalance);
     }
-  }, [coinState, saveState]);
+  }, [storeSyncFromServer, totalEarned, totalSpent]);
 
-  return {
-    ...coinState,
+  // Memoize the return object to prevent unnecessary re-renders
+  return useMemo(() => ({
+    balance,
+    totalEarned,
+    totalSpent,
     awardCoins,
     addCoins,
     spendCoins,
@@ -693,5 +623,18 @@ export const useCoinSystem = () => {
     calculateCoinsFromDuration,
     getSubscriptionMultiplier,
     syncFromServer, // New: sync balance from server
-  };
+  }), [
+    balance,
+    totalEarned,
+    totalSpent,
+    awardCoins,
+    addCoins,
+    spendCoins,
+    spendCoinsSync,
+    canAfford,
+    resetProgress,
+    calculateCoinsFromDuration,
+    getSubscriptionMultiplier,
+    syncFromServer,
+  ]);
 };
