@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { DeviceActivity } from '@/plugins/device-activity';
 import { Capacitor } from '@capacitor/core';
 import { focusModeLogger } from '@/lib/logger';
+import { handleError } from '@/lib/errorHandling';
 
 const FOCUS_MODE_STORAGE_KEY = 'petIsland_focusMode';
 
@@ -80,8 +81,11 @@ export const useFocusMode = () => {
         const parsed = JSON.parse(saved);
         setSettings({ ...defaultSettings, ...parsed });
       }
-    } catch {
-      // Invalid data, use defaults
+    } catch (error) {
+      handleError(error, 'Failed to load focus mode settings', {
+        loggerPrefix: 'FocusMode',
+        severity: 'warn',
+      });
     }
     setIsLoading(false);
   }, []);
