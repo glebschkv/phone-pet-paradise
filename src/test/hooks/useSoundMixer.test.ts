@@ -53,6 +53,9 @@ vi.mock('@/hooks/usePremiumStatus', () => ({
     premium_plus: { soundMixingSlots: 3 },
     lifetime: { soundMixingSlots: 3 },
   },
+  isValidSubscriptionTier: (value: unknown): value is 'free' | 'premium' | 'premium_plus' | 'lifetime' => {
+    return typeof value === 'string' && ['free', 'premium', 'premium_plus', 'lifetime'].includes(value);
+  },
 }));
 
 // Mock logger

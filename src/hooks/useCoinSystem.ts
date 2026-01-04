@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
-import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
+import { TIER_BENEFITS, isValidSubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
 
 export interface CoinReward {
@@ -99,9 +99,8 @@ export const useCoinSystem = () => {
     if (premiumData) {
       try {
         const parsed = JSON.parse(premiumData);
-        const tier = parsed.tier as SubscriptionTier;
-        if (tier && TIER_BENEFITS[tier]) {
-          return TIER_BENEFITS[tier].coinMultiplier;
+        if (isValidSubscriptionTier(parsed.tier)) {
+          return TIER_BENEFITS[parsed.tier].coinMultiplier;
         }
       } catch {
         // Invalid data
@@ -111,29 +110,32 @@ export const useCoinSystem = () => {
   }, []);
 
   // Listen for coin updates from other components
+  // Uses AbortController for cleaner event listener cleanup
   useEffect(() => {
-    const handleCoinUpdate = (event: CustomEvent<CoinSystemState>) => {
-      setCoinState(event.detail);
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
+    const handleCoinUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<CoinSystemState>;
+      setCoinState(customEvent.detail);
     };
 
-    window.addEventListener(COIN_UPDATE_EVENT, handleCoinUpdate as EventListener);
-
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === STORAGE_KEY && event.newValue) {
-        try {
-          const parsed = JSON.parse(event.newValue);
-          setCoinState(parsed);
-        } catch (error) {
-          coinLogger.error('Failed to parse coin state from storage:', error);
-        }
+      // Only handle our namespaced storage key to avoid processing unrelated storage events
+      if (event.key !== STORAGE_KEY || !event.newValue) return;
+
+      try {
+        const parsed = JSON.parse(event.newValue);
+        setCoinState(parsed);
+      } catch (error) {
+        coinLogger.error('Failed to parse coin state from storage:', error);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-
     // Listen for bonus coin grants from subscription purchase
-    const handleBonusCoins = (event: CustomEvent<{ amount: number; planId: string }>) => {
-      const { amount } = event.detail;
+    const handleBonusCoins = (event: Event) => {
+      const customEvent = event as CustomEvent<{ amount: number; planId: string }>;
+      const { amount } = customEvent.detail;
       if (amount > 0) {
         setCoinState(prev => {
           const newState = {
@@ -148,12 +150,13 @@ export const useCoinSystem = () => {
       }
     };
 
-    window.addEventListener('petIsland_grantBonusCoins', handleBonusCoins as EventListener);
+    // Register all listeners with abort signal for automatic cleanup
+    window.addEventListener(COIN_UPDATE_EVENT, handleCoinUpdate, { signal });
+    window.addEventListener('storage', handleStorageChange, { signal });
+    window.addEventListener('petIsland_grantBonusCoins', handleBonusCoins, { signal });
 
     return () => {
-      window.removeEventListener(COIN_UPDATE_EVENT, handleCoinUpdate as EventListener);
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('petIsland_grantBonusCoins', handleBonusCoins as EventListener);
+      abortController.abort();
     };
   }, []);
 
