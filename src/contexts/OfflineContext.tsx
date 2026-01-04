@@ -12,7 +12,7 @@
  */
 
 import React, { createContext, useContext, useEffect, useMemo, ReactNode } from 'react';
-import { useOfflineSyncManager, UseOfflineSyncManagerReturn } from '@/hooks/useOfflineSyncManager';
+import { useOfflineSyncManager } from '@/hooks/useOfflineSyncManager';
 import { useServiceWorker, useServiceWorkerSync } from '@/hooks/useServiceWorker';
 import { useOfflineSyncStore, SyncOperationType } from '@/stores/offlineSyncStore';
 import { toast } from 'sonner';

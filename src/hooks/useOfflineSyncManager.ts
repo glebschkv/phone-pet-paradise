@@ -21,8 +21,6 @@ import { toast } from 'sonner';
 import { syncLogger } from '@/lib/logger';
 
 // Retry configuration
-const INITIAL_RETRY_DELAY = 1000; // 1 second
-const MAX_RETRY_DELAY = 30000; // 30 seconds
 const BATCH_SIZE = 10; // Process 10 operations at a time
 
 interface SyncResult {

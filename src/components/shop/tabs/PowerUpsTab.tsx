@@ -1,6 +1,7 @@
 import { Coins, Check, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ShopInventory, ShopItem, getShopItemsByCategory, COIN_PACKS, PROFILE_BADGES } from "@/data/ShopData";
+import { ShopItem, getShopItemsByCategory, COIN_PACKS, PROFILE_BADGES } from "@/data/ShopData";
+import type { ShopInventory } from "@/hooks/useShop";
 import { AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
 import { RARITY_BG, RARITY_BORDER } from "../styles";

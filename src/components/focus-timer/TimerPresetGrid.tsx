@@ -1,7 +1,6 @@
 import { useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { TimerPreset, TIMER_PRESETS } from "./constants";
-import { ARIA_LABELS } from "@/lib/accessibility";
 
 interface TimerPresetGridProps {
   selectedPreset: TimerPreset;

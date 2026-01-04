@@ -5,7 +5,7 @@
  * This reduces prop drilling and improves component organization.
  */
 
-import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect, useMemo, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useOfflineSyncStore } from '@/stores/offlineSyncStore';
@@ -17,7 +17,6 @@ import type {
   AppState,
   AppAction,
   AppContextValue,
-  SubscriptionTier,
 } from '@/types';
 
 // Re-export types for backwards compatibility

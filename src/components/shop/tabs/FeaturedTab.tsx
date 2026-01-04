@@ -1,7 +1,8 @@
 import { Crown, ChevronRight, Check, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ShopInventory, BackgroundBundle, ShopItem } from "@/data/ShopData";
+import { BackgroundBundle, ShopItem } from "@/data/ShopData";
 import { BACKGROUND_BUNDLES, STARTER_BUNDLES } from "@/data/ShopData";
+import type { ShopInventory } from "@/hooks/useShop";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
 import { SpritePreview, BundlePreviewCarousel } from "../ShopPreviewComponents";

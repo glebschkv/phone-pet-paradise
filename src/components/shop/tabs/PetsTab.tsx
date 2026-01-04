@@ -1,6 +1,7 @@
 import { Check, Coins, Palette, Clock, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ShopInventory, ShopItem, PREMIUM_BACKGROUNDS } from "@/data/ShopData";
+import { ShopItem, PREMIUM_BACKGROUNDS, ShopCategory } from "@/data/ShopData";
+import type { ShopInventory } from "@/hooks/useShop";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
 import { SpritePreview, BackgroundPreview } from "../ShopPreviewComponents";
@@ -10,7 +11,7 @@ import { useCallback } from "react";
 
 interface PetsTabProps {
   inventory: ShopInventory;
-  isOwned: (itemId: string, category: string) => boolean;
+  isOwned: (itemId: string, category: ShopCategory) => boolean;
   equipBackground: (backgroundId: string | null) => void;
   setSelectedItem: (item: ShopItem | AnimalData | null) => void;
   setShowPurchaseConfirm: (show: boolean) => void;

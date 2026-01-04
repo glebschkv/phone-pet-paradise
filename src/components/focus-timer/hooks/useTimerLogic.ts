@@ -6,13 +6,12 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { timerLogger } from "@/lib/logger";
 import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useDeviceActivity } from "@/hooks/useDeviceActivity";
 import { FocusCategory } from "@/types/analytics";
-import { TimerPreset, TIMER_PRESETS } from "../constants";
+import { TimerPreset } from "../constants";
 import { useTimerPersistence } from "./useTimerPersistence";
 import { useTimerAudio } from "./useTimerAudio";
 import { useAmbientSound } from "@/hooks/useAmbientSound";
@@ -22,7 +21,7 @@ import { useBreakTransition } from "./useBreakTransition";
 
 export const useTimerLogic = () => {
   const { toast } = useToast();
-  const { awardXP, coinSystem, xpSystem } = useBackendAppState();
+  const { awardXP } = useBackendAppState();
   const { playCompletionSound } = useTimerAudio();
   const { recordSession } = useAnalytics();
   const { stop: stopAmbientSound, isPlaying: isAmbientPlaying } = useAmbientSound();

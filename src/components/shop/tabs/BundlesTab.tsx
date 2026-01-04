@@ -5,17 +5,17 @@
  * Extracted from Shop.tsx for better maintainability.
  */
 
-import { Check, Coins, Star } from "lucide-react";
+import { Check, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   ShopItem,
-  ShopInventory,
   BackgroundBundle,
   PetBundle,
   PET_BUNDLES,
   BACKGROUND_BUNDLES,
 } from "@/data/ShopData";
+import type { ShopInventory } from "@/hooks/useShop";
 import { AnimalData, getAnimalById } from "@/data/AnimalDatabase";
 import { SpritePreview, BundlePreviewCarousel } from "../ShopPreviewComponents";
 import { RARITY_BG, RARITY_BORDER } from "../styles";
