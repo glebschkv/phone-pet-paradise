@@ -66,7 +66,11 @@ export const useTimerLogic = () => {
 
   // Refs for stable timer management
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isCompletingRef = useRef(false);
+
+  // SECURITY: Async lock to prevent race conditions in timer completion
+  // Using a promise-based lock instead of a simple boolean ref
+  const completionLockRef = useRef<Promise<void> | null>(null);
+  const completionIdRef = useRef<string | null>(null);
 
   // Store latest values in refs to avoid callback dependency bloat
   const stateRef = useRef({
@@ -111,98 +115,120 @@ export const useTimerLogic = () => {
   const handleComplete = useCallback(async () => {
     const state = stateRef.current;
 
-    // Prevent double completion
-    if (isCompletingRef.current) return;
-    isCompletingRef.current = true;
+    // SECURITY: Prevent race conditions with async lock pattern
+    // Generate unique completion ID for this attempt
+    const completionId = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
-    const completedMinutes = state.timerState.sessionDuration / 60;
-
-    // Clear interval first
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    clearPersistence();
-
-    // Stop app blocking and get shield attempts
-    let shieldAttempts = 0;
-    if (state.timerState.sessionType !== 'break' && state.hasAppsConfigured) {
-      const blockingResult = await stopAppBlocking();
-      shieldAttempts = blockingResult.shieldAttempts;
-    }
-
-    // Stop ambient sound when session ends
-    if (state.isAmbientPlaying) {
-      stopAmbientSound();
-    }
-
-    if (state.timerState.soundEnabled) {
-      playCompletionSound();
-    }
-
-    // Award rewards for work sessions
-    let xpEarned = 0;
-    if (state.timerState.sessionType !== 'break') {
-      const rewardResult = await awardSessionRewards(
-        completedMinutes,
-        shieldAttempts,
-        state.hasAppsConfigured,
-        state.blockedAppsCount,
-        {
-          sessionType: state.timerState.sessionType,
-          sessionDuration: state.timerState.sessionDuration,
-          category: state.timerState.category,
-          taskLabel: state.timerState.taskLabel,
-        }
-      );
-
-      xpEarned = rewardResult.xpEarned;
-
-      // Trigger haptic for perfect focus
-      if (rewardResult.focusBonusType === 'PERFECT FOCUS') {
-        triggerHaptic('success');
+    // If there's an existing completion in progress, wait for it and return
+    if (completionLockRef.current) {
+      await completionLockRef.current;
+      // After waiting, check if this completion was already handled
+      if (completionIdRef.current && completionIdRef.current !== completionId) {
+        return; // Another completion already ran
       }
-
-      // Show focus bonus toast
-      showFocusBonusToast(rewardResult.focusBonusType);
     }
 
-    // Record session to analytics
-    recordSession(
-      state.timerState.sessionType,
-      state.timerState.sessionDuration,
-      state.timerState.sessionDuration,
-      'completed',
-      xpEarned,
-      state.timerState.category,
-      state.timerState.taskLabel
-    );
+    // Set our completion ID as the active one
+    completionIdRef.current = completionId;
 
-    // Reset display time and timer state
-    setDisplayTime(state.timerState.sessionDuration);
-    saveTimerState({
-      isRunning: false,
-      timeLeft: state.timerState.sessionDuration,
-      startTime: null,
-      completedSessions: state.timerState.completedSessions + 1,
-      category: undefined,
-      taskLabel: undefined,
+    // Create the lock promise with a resolver we can call later
+    let releaseLock: (() => void) | undefined;
+    completionLockRef.current = new Promise<void>((resolve) => {
+      releaseLock = resolve;
     });
 
-    // For work sessions, show session notes modal then break transition
-    if (state.timerState.sessionType !== 'break') {
-      setLastSessionXP(xpEarned);
-      setShowSessionNotesModal(true);
-    } else {
-      toast({
-        title: 'Break Complete!',
-        description: 'Time to get back to work!',
-        duration: 3000,
-      });
-    }
+    try {
+      const completedMinutes = state.timerState.sessionDuration / 60;
 
-    isCompletingRef.current = false;
+      // Clear interval first
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      clearPersistence();
+
+      // Stop app blocking and get shield attempts
+      let shieldAttempts = 0;
+      if (state.timerState.sessionType !== 'break' && state.hasAppsConfigured) {
+        const blockingResult = await stopAppBlocking();
+        shieldAttempts = blockingResult.shieldAttempts;
+      }
+
+      // Stop ambient sound when session ends
+      if (state.isAmbientPlaying) {
+        stopAmbientSound();
+      }
+
+      if (state.timerState.soundEnabled) {
+        playCompletionSound();
+      }
+
+      // Award rewards for work sessions
+      let xpEarned = 0;
+      if (state.timerState.sessionType !== 'break') {
+        const rewardResult = await awardSessionRewards(
+          completedMinutes,
+          shieldAttempts,
+          state.hasAppsConfigured,
+          state.blockedAppsCount,
+          {
+            sessionType: state.timerState.sessionType,
+            sessionDuration: state.timerState.sessionDuration,
+            category: state.timerState.category,
+            taskLabel: state.timerState.taskLabel,
+          }
+        );
+
+        xpEarned = rewardResult.xpEarned;
+
+        // Trigger haptic for perfect focus
+        if (rewardResult.focusBonusType === 'PERFECT FOCUS') {
+          triggerHaptic('success');
+        }
+
+        // Show focus bonus toast
+        showFocusBonusToast(rewardResult.focusBonusType);
+      }
+
+      // Record session to analytics
+      recordSession(
+        state.timerState.sessionType,
+        state.timerState.sessionDuration,
+        state.timerState.sessionDuration,
+        'completed',
+        xpEarned,
+        state.timerState.category,
+        state.timerState.taskLabel
+      );
+
+      // Reset display time and timer state
+      setDisplayTime(state.timerState.sessionDuration);
+      saveTimerState({
+        isRunning: false,
+        timeLeft: state.timerState.sessionDuration,
+        startTime: null,
+        completedSessions: state.timerState.completedSessions + 1,
+        category: undefined,
+        taskLabel: undefined,
+      });
+
+      // For work sessions, show session notes modal then break transition
+      if (state.timerState.sessionType !== 'break') {
+        setLastSessionXP(xpEarned);
+        setShowSessionNotesModal(true);
+      } else {
+        toast({
+          title: 'Break Complete!',
+          description: 'Time to get back to work!',
+          duration: 3000,
+        });
+      }
+    } finally {
+      // SECURITY: Always release the lock, even on error
+      completionLockRef.current = null;
+      if (releaseLock) releaseLock();
+    }
   }, [
     clearPersistence,
     stopAppBlocking,

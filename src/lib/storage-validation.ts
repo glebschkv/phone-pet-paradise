@@ -78,6 +78,8 @@ export const coinSystemSchema = z.object({
   balance: safeNonNegativeInt.default(0),
   totalEarned: safeNonNegativeInt.default(0),
   totalSpent: safeNonNegativeInt.default(0),
+  lastServerSync: z.number().nullable().default(null),
+  pendingServerValidation: z.boolean().default(false),
 });
 
 export type ValidatedCoinSystem = z.infer<typeof coinSystemSchema>;

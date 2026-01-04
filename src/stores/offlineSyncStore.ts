@@ -85,7 +85,21 @@ export const SYNC_PRIORITIES = {
   LOW: PRIORITY_LOW,
 } as const;
 
-const generateId = (): string => `sync_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+/**
+ * SECURITY: Generate a unique ID for sync operations
+ * Uses crypto.randomUUID when available (more unique) or falls back to timestamp + random
+ * The monotonic counter ensures uniqueness even when called in the same millisecond
+ */
+let idCounter = 0;
+const generateId = (): string => {
+  // Use crypto.randomUUID if available (more secure/unique)
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `sync_${crypto.randomUUID()}`;
+  }
+  // Fallback: timestamp + counter + random for uniqueness
+  const counter = (++idCounter) % 10000;
+  return `sync_${Date.now()}_${counter.toString().padStart(4, '0')}_${Math.random().toString(36).slice(2, 11)}`;
+};
 
 const initialState: OfflineSyncState = {
   pendingOperations: [],
