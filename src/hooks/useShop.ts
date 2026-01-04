@@ -1,4 +1,5 @@
 import { useCallback, useRef, useEffect } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { useCoinSystem } from './useCoinSystem';
 import { useCoinBooster } from './useCoinBooster';
 import { useStreakSystem } from './useStreakSystem';
@@ -35,20 +36,46 @@ export const useShop = () => {
   const boosterSystem = useCoinBooster();
   const streakSystem = useStreakSystem();
 
-  // Use Zustand store for inventory - no more useState or localStorage manually
-  const ownedCharacters = useShopStore((state) => state.ownedCharacters);
-  const ownedBackgrounds = useShopStore((state) => state.ownedBackgrounds);
-  const ownedBadges = useShopStore((state) => state.ownedBadges);
-  const equippedBadge = useShopStore((state) => state.equippedBadge);
-  const equippedBackground = useShopStore((state) => state.equippedBackground);
-  const addOwnedCharacter = useShopStore((state) => state.addOwnedCharacter);
-  const addOwnedBackground = useShopStore((state) => state.addOwnedBackground);
-  const addOwnedBadge = useShopStore((state) => state.addOwnedBadge);
-  const addOwnedCharacters = useShopStore((state) => state.addOwnedCharacters);
-  const addOwnedBackgrounds = useShopStore((state) => state.addOwnedBackgrounds);
-  const storeSetEquippedBadge = useShopStore((state) => state.setEquippedBadge);
-  const storeSetEquippedBackground = useShopStore((state) => state.setEquippedBackground);
-  const storeResetShop = useShopStore((state) => state.resetShop);
+  // Use Zustand store for inventory with shallow comparison to prevent unnecessary re-renders
+  // State values are selected with useShallow to batch updates
+  const {
+    ownedCharacters,
+    ownedBackgrounds,
+    ownedBadges,
+    equippedBadge,
+    equippedBackground,
+  } = useShopStore(
+    useShallow((state) => ({
+      ownedCharacters: state.ownedCharacters,
+      ownedBackgrounds: state.ownedBackgrounds,
+      ownedBadges: state.ownedBadges,
+      equippedBadge: state.equippedBadge,
+      equippedBackground: state.equippedBackground,
+    }))
+  );
+
+  // Actions are stable references in Zustand, select them in a single shallow selector
+  const {
+    addOwnedCharacter,
+    addOwnedBackground,
+    addOwnedBadge,
+    addOwnedCharacters,
+    addOwnedBackgrounds,
+    storeSetEquippedBadge,
+    storeSetEquippedBackground,
+    storeResetShop,
+  } = useShopStore(
+    useShallow((state) => ({
+      addOwnedCharacter: state.addOwnedCharacter,
+      addOwnedBackground: state.addOwnedBackground,
+      addOwnedBadge: state.addOwnedBadge,
+      addOwnedCharacters: state.addOwnedCharacters,
+      addOwnedBackgrounds: state.addOwnedBackgrounds,
+      storeSetEquippedBadge: state.setEquippedBadge,
+      storeSetEquippedBackground: state.setEquippedBackground,
+      storeResetShop: state.resetShop,
+    }))
+  );
 
   // For backwards compatibility, provide inventory object
   const inventory: ShopInventory = {

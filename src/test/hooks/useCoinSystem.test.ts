@@ -242,7 +242,7 @@ describe('useCoinSystem', () => {
       });
     });
 
-    it('should handle negative amounts correctly', async () => {
+    it('should reject negative amounts', async () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         balance: 100,
         totalEarned: 100,
@@ -255,13 +255,14 @@ describe('useCoinSystem', () => {
         expect(result.current.balance).toBe(100);
       });
 
-      // Adding negative coins (not recommended but technically possible)
+      // Adding negative coins should be rejected by validation
       act(() => {
         result.current.addCoins(-50);
       });
 
+      // Balance should remain unchanged as negative amounts are rejected
       await waitFor(() => {
-        expect(result.current.balance).toBe(50);
+        expect(result.current.balance).toBe(100);
       });
     });
   });

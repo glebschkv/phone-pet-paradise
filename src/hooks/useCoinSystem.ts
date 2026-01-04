@@ -156,9 +156,13 @@ export const useCoinSystem = () => {
     return 1;
   }, []);
 
-  // Keep ref in sync with state for event handlers
+  // Keep ref in sync with state for event handlers and persist changes to localStorage
+  // This effect ensures any state updates (including from functional setState) are persisted
   useEffect(() => {
     coinStateRef.current = coinState;
+    // Persist to localStorage - this handles state changes from functional setState
+    // that don't go through saveState (e.g., event handlers with stale closures fixed)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(coinState));
   }, [coinState]);
 
   // Listen for coin updates from other components
@@ -190,21 +194,17 @@ export const useCoinSystem = () => {
     };
 
     // Listen for bonus coin grants from subscription purchase
+    // Uses functional setState to avoid stale closure issues - prevState is always current
     const handleBonusCoins = (event: Event) => {
       const customEvent = event as CustomEvent<{ amount: number; planId: string }>;
       const { amount } = customEvent.detail;
       if (amount > 0) {
-        // Use ref to get current state and avoid stale closures
-        const currentState = coinStateRef.current;
-        const newState = {
-          ...currentState,
-          balance: currentState.balance + amount,
-          totalEarned: currentState.totalEarned + amount,
-        };
-        setCoinState(newState);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-        isSelfDispatch.current = true;
-        window.dispatchEvent(new CustomEvent(COIN_UPDATE_EVENT, { detail: newState }));
+        // Use functional setState - the updater receives the latest state
+        setCoinState((prevState) => ({
+          ...prevState,
+          balance: prevState.balance + amount,
+          totalEarned: prevState.totalEarned + amount,
+        }));
       }
     };
 
