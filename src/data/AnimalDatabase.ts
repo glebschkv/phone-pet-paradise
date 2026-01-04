@@ -712,7 +712,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A mystical realm under the stars where nocturnal creatures thrive.',
     animals: ['luna-moth', 'star-jelly', 'shadow-cat', 'cute-ghost', 'kitsune-spirit'],
     backgroundImage: '/assets/worlds/NIGHT_LAVENDER.png',
-    groundLevel: 19.8
+    groundLevel: 19.4
   },
   {
     name: 'Forest',
