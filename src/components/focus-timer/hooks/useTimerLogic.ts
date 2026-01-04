@@ -249,18 +249,32 @@ export const useTimerLogic = () => {
       const newTimeLeft = duration * 60;
       setDisplayTime(newTimeLeft);
 
-      const now = Date.now();
-      saveTimerState({
-        timeLeft: newTimeLeft,
-        sessionDuration: newTimeLeft,
-        sessionType: 'break',
-        isRunning: true,
-        startTime: now,
-        category: undefined,
-        taskLabel: undefined,
-      });
+      // Only auto-start the break timer if autoBreakEnabled is true
+      // Otherwise, set up the break but require user to press start
+      if (autoBreakEnabled) {
+        const now = Date.now();
+        saveTimerState({
+          timeLeft: newTimeLeft,
+          sessionDuration: newTimeLeft,
+          sessionType: 'break',
+          isRunning: true,
+          startTime: now,
+          category: undefined,
+          taskLabel: undefined,
+        });
+      } else {
+        saveTimerState({
+          timeLeft: newTimeLeft,
+          sessionDuration: newTimeLeft,
+          sessionType: 'break',
+          isRunning: false,
+          startTime: null,
+          category: undefined,
+          taskLabel: undefined,
+        });
+      }
     }
-  }, [closeBreakModal, getBreakPreset, setSelectedPreset, saveTimerState]);
+  }, [closeBreakModal, getBreakPreset, setSelectedPreset, saveTimerState, autoBreakEnabled]);
 
   const handleSkipBreak = useCallback(() => {
     breakSkipHandler();

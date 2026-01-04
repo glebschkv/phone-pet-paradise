@@ -2,8 +2,7 @@ import { memo, useMemo } from 'react';
 import { RetroBackground } from './RetroBackground';
 import { PixelPlatform } from './PixelPlatform';
 import { AnimalParade } from './AnimalParade';
-import { FlyingAnimalParade } from './FlyingAnimalParade';
-import { AnimalData, getAnimalById, getFlyingAnimals, getGroundAnimals, getGroundLevelForBackground } from '@/data/AnimalDatabase';
+import { AnimalData, getAnimalById, getGroundLevelForBackground } from '@/data/AnimalDatabase';
 import { useActiveHomePets, useOwnedCharacters } from '@/stores';
 
 interface RetroPixelPlatformProps {
@@ -32,10 +31,6 @@ export const RetroPixelPlatform = memo(({ unlockedAnimals: _unlockedAnimals, cur
       );
   }, [activeHomePets, currentLevel, shopOwnedSet]);
 
-  // Separate ground and flying animals
-  const groundAnimals = useMemo(() => getGroundAnimals(activeAnimalData), [activeAnimalData]);
-  const flyingAnimals = useMemo(() => getFlyingAnimals(activeAnimalData), [activeAnimalData]);
-
   // Get the ground level for the current background
   const groundLevel = useMemo(() => getGroundLevelForBackground(backgroundTheme), [backgroundTheme]);
 
@@ -44,14 +39,11 @@ export const RetroPixelPlatform = memo(({ unlockedAnimals: _unlockedAnimals, cur
       {/* Layered Background */}
       <RetroBackground theme={backgroundTheme} />
 
-      {/* Flying Animals in the sky */}
-      <FlyingAnimalParade flyingAnimals={flyingAnimals} />
-
       {/* Platform Structure */}
       <PixelPlatform theme={backgroundTheme} />
 
       {/* Walking Animals on ground */}
-      <AnimalParade unlockedAnimals={groundAnimals} groundLevel={groundLevel} />
+      <AnimalParade unlockedAnimals={activeAnimalData} groundLevel={groundLevel} />
     </div>
   );
 });
