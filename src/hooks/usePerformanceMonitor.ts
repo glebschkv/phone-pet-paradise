@@ -131,17 +131,23 @@ export const usePerformanceMonitor = () => {
 
   // Start monitoring
   useEffect(() => {
+    let memoryInterval: ReturnType<typeof setInterval> | undefined;
+
     if (settings.enableMonitoring) {
       measureFPS();
-      const memoryInterval = setInterval(measureMemory, 5000);
-      
-      return () => {
-        if (animationFrame.current) {
-          cancelAnimationFrame(animationFrame.current);
-        }
-        clearInterval(memoryInterval);
-      };
+      memoryInterval = setInterval(measureMemory, 5000);
     }
+
+    // Always return cleanup to handle all cases (enableMonitoring true->false)
+    return () => {
+      if (animationFrame.current) {
+        cancelAnimationFrame(animationFrame.current);
+        animationFrame.current = undefined;
+      }
+      if (memoryInterval) {
+        clearInterval(memoryInterval);
+      }
+    };
   }, [settings.enableMonitoring, measureFPS, measureMemory]);
 
   // Auto-optimize when performance is low
