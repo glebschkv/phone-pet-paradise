@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { getCurrentSeason, Season, BattlePassReward } from '@/data/GamificationData';
 import { TIER_BENEFITS, isValidSubscriptionTier, BATTLE_PASS_PLANS } from './usePremiumStatus';
@@ -250,8 +250,8 @@ export const useBattlePass = () => {
     });
   }, [state, saveState]);
 
-  // Get progress info
-  const getProgress = useCallback((): BattlePassProgress => {
+  // Get progress info - memoized to avoid recalculating on every render
+  const progress = useMemo((): BattlePassProgress => {
     if (!currentSeason) {
       return {
         currentTier: 0,
@@ -293,7 +293,10 @@ export const useBattlePass = () => {
       season: currentSeason,
       daysRemaining,
     };
-  }, [state, currentSeason]);
+  }, [state.currentTier, state.currentXP, currentSeason]);
+
+  // Backwards-compatible getter function
+  const getProgress = useCallback((): BattlePassProgress => progress, [progress]);
 
   // Get unclaimed rewards
   const getUnclaimedRewards = useCallback((): { tier: number; isFree: boolean }[] => {
@@ -370,7 +373,8 @@ export const useBattlePass = () => {
     claimTierReward,
     upgradeToPremium,
     purchaseBattlePass,
-    getProgress,
+    progress,      // Memoized progress value (preferred)
+    getProgress,   // Legacy getter for backwards compatibility
     getUnclaimedRewards,
     isTierClaimed,
     isFromSubscription,

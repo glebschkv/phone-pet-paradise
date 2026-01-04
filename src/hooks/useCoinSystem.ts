@@ -257,8 +257,6 @@ export const useCoinSystem = () => {
 
   // Ref to track self-dispatched events to prevent feedback loops
   const isSelfDispatch = useRef(false);
-  // Ref to track current state for event handlers to avoid stale closures
-  const coinStateRef = useRef(coinState);
 
   // Load saved state from localStorage
   useEffect(() => {
@@ -294,11 +292,6 @@ export const useCoinSystem = () => {
     return 1;
   }, []);
 
-  // Keep ref in sync with state for event handlers
-  useEffect(() => {
-    coinStateRef.current = coinState;
-  }, [coinState]);
-
   // Listen for coin updates from other components
   // Uses AbortController for cleaner event listener cleanup
   useEffect(() => {
@@ -328,21 +321,26 @@ export const useCoinSystem = () => {
     };
 
     // Listen for bonus coin grants from subscription purchase
+    // Uses functional setState to avoid stale closure issues
     const handleBonusCoins = (event: Event) => {
       const customEvent = event as CustomEvent<{ amount: number; planId: string }>;
       const { amount } = customEvent.detail;
       if (amount > 0) {
-        // Use ref to get current state and avoid stale closures
-        const currentState = coinStateRef.current;
-        const newState = {
-          ...currentState,
-          balance: currentState.balance + amount,
-          totalEarned: currentState.totalEarned + amount,
-        };
-        setCoinState(newState);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-        isSelfDispatch.current = true;
-        window.dispatchEvent(new CustomEvent(COIN_UPDATE_EVENT, { detail: newState }));
+        // Use functional update to always have the latest state
+        setCoinState(prevState => {
+          const newState = {
+            ...prevState,
+            balance: prevState.balance + amount,
+            totalEarned: prevState.totalEarned + amount,
+          };
+          // Side effects in a microtask to not block the state update
+          queueMicrotask(() => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            isSelfDispatch.current = true;
+            window.dispatchEvent(new CustomEvent(COIN_UPDATE_EVENT, { detail: newState }));
+          });
+          return newState;
+        });
       }
     };
 
