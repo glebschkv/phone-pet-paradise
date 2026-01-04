@@ -182,6 +182,7 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
   const { user, isAuthenticated, isGuestMode } = useAuth();
   const syncInProgress = useRef(false);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingOperationsRef = useRef<PendingSyncOperation[]>([]);
 
   const {
     pendingOperations,
@@ -366,6 +367,11 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
     };
   }, [setOnline, syncNow, pendingOperations.length, isAuthenticated, isGuestMode]);
 
+  // Keep ref in sync with state to avoid stale closures
+  useEffect(() => {
+    pendingOperationsRef.current = pendingOperations;
+  }, [pendingOperations]);
+
   /**
    * Periodic sync for reliability
    */
@@ -375,14 +381,15 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
     }
 
     // Sync every 5 minutes if there are pending operations
+    // Use ref to check length to avoid recreating interval on every queue change
     const intervalId = setInterval(() => {
-      if (pendingOperations.length > 0 && !syncInProgress.current) {
+      if (pendingOperationsRef.current.length > 0 && !syncInProgress.current) {
         syncNow();
       }
     }, 5 * 60 * 1000);
 
     return () => clearInterval(intervalId);
-  }, [isOnline, isGuestMode, isAuthenticated, pendingOperations.length, syncNow]);
+  }, [isOnline, isGuestMode, isAuthenticated, syncNow]);
 
   return {
     syncNow,

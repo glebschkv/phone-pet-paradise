@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
@@ -76,6 +76,11 @@ export const useCoinSystem = () => {
     totalSpent: 0,
   });
 
+  // Ref to track self-dispatched events to prevent feedback loops
+  const isSelfDispatch = useRef(false);
+  // Ref to track current state for event handlers to avoid stale closures
+  const coinStateRef = useRef(coinState);
+
   // Load saved state from localStorage
   useEffect(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
@@ -110,9 +115,19 @@ export const useCoinSystem = () => {
     return 1;
   }, []);
 
+  // Keep ref in sync with state for event handlers
+  useEffect(() => {
+    coinStateRef.current = coinState;
+  }, [coinState]);
+
   // Listen for coin updates from other components
   useEffect(() => {
     const handleCoinUpdate = (event: CustomEvent<CoinSystemState>) => {
+      // Skip self-dispatched events to prevent feedback loops
+      if (isSelfDispatch.current) {
+        isSelfDispatch.current = false;
+        return;
+      }
       setCoinState(event.detail);
     };
 
@@ -135,16 +150,17 @@ export const useCoinSystem = () => {
     const handleBonusCoins = (event: CustomEvent<{ amount: number; planId: string }>) => {
       const { amount } = event.detail;
       if (amount > 0) {
-        setCoinState(prev => {
-          const newState = {
-            ...prev,
-            balance: prev.balance + amount,
-            totalEarned: prev.totalEarned + amount,
-          };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-          window.dispatchEvent(new CustomEvent(COIN_UPDATE_EVENT, { detail: newState }));
-          return newState;
-        });
+        // Use ref to get current state and avoid stale closures
+        const currentState = coinStateRef.current;
+        const newState = {
+          ...currentState,
+          balance: currentState.balance + amount,
+          totalEarned: currentState.totalEarned + amount,
+        };
+        setCoinState(newState);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+        isSelfDispatch.current = true;
+        window.dispatchEvent(new CustomEvent(COIN_UPDATE_EVENT, { detail: newState }));
       }
     };
 
@@ -161,6 +177,8 @@ export const useCoinSystem = () => {
   const saveState = useCallback((newState: CoinSystemState) => {
     setCoinState(newState);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+    // Mark as self-dispatch to prevent feedback loop
+    isSelfDispatch.current = true;
     window.dispatchEvent(new CustomEvent(COIN_UPDATE_EVENT, { detail: newState }));
   }, []);
 
