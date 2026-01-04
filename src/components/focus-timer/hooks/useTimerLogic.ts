@@ -2,15 +2,23 @@
  * useTimerLogic Hook
  *
  * Main timer orchestration hook that composes smaller focused hooks.
- * Refactored from 663 lines to use extracted hooks for better maintainability.
+ * Coordinates timer state, controls, countdown, rewards, and breaks.
+ *
+ * Extracted hooks:
+ * - useTimerPersistence: State persistence to localStorage
+ * - useTimerAudio: Completion sound effects
+ * - useTimerRewards: XP/coin rewards for sessions
+ * - useSessionNotes: Post-session reflection notes
+ * - useBreakTransition: Break modal and auto-break logic
+ * - useTimerControls: Timer start/pause/stop/skip actions
+ * - useTimerCountdown: Countdown interval and visibility handling
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useDeviceActivity } from "@/hooks/useDeviceActivity";
-import { FocusCategory } from "@/types/analytics";
 import { TimerPreset } from "../constants";
 import { useTimerPersistence } from "./useTimerPersistence";
 import { useTimerAudio } from "./useTimerAudio";
@@ -18,6 +26,8 @@ import { useAmbientSound } from "@/hooks/useAmbientSound";
 import { useTimerRewards } from "./useTimerRewards";
 import { useSessionNotes } from "./useSessionNotes";
 import { useBreakTransition } from "./useBreakTransition";
+import { useTimerControls } from "./useTimerControls";
+import { useTimerCountdown } from "./useTimerCountdown";
 
 export const useTimerLogic = () => {
   const { toast } = useToast();
@@ -68,7 +78,6 @@ export const useTimerLogic = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // SECURITY: Async lock to prevent race conditions in timer completion
-  // Using a promise-based lock instead of a simple boolean ref
   const completionLockRef = useRef<Promise<void> | null>(null);
   const completionIdRef = useRef<string | null>(null);
 
@@ -116,22 +125,17 @@ export const useTimerLogic = () => {
     const state = stateRef.current;
 
     // SECURITY: Prevent race conditions with async lock pattern
-    // Generate unique completion ID for this attempt
     const completionId = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
-    // If there's an existing completion in progress, wait for it and return
     if (completionLockRef.current) {
       await completionLockRef.current;
-      // After waiting, check if this completion was already handled
       if (completionIdRef.current && completionIdRef.current !== completionId) {
-        return; // Another completion already ran
+        return;
       }
     }
 
-    // Set our completion ID as the active one
     completionIdRef.current = completionId;
 
-    // Create the lock promise with a resolver we can call later
     let releaseLock: (() => void) | undefined;
     completionLockRef.current = new Promise<void>((resolve) => {
       releaseLock = resolve;
@@ -140,7 +144,6 @@ export const useTimerLogic = () => {
     try {
       const completedMinutes = state.timerState.sessionDuration / 60;
 
-      // Clear interval first
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -148,14 +151,12 @@ export const useTimerLogic = () => {
 
       clearPersistence();
 
-      // Stop app blocking and get shield attempts
       let shieldAttempts = 0;
       if (state.timerState.sessionType !== 'break' && state.hasAppsConfigured) {
         const blockingResult = await stopAppBlocking();
         shieldAttempts = blockingResult.shieldAttempts;
       }
 
-      // Stop ambient sound when session ends
       if (state.isAmbientPlaying) {
         stopAmbientSound();
       }
@@ -164,7 +165,6 @@ export const useTimerLogic = () => {
         playCompletionSound();
       }
 
-      // Award rewards for work sessions
       let xpEarned = 0;
       if (state.timerState.sessionType !== 'break') {
         const rewardResult = await awardSessionRewards(
@@ -182,16 +182,13 @@ export const useTimerLogic = () => {
 
         xpEarned = rewardResult.xpEarned;
 
-        // Trigger haptic for perfect focus
         if (rewardResult.focusBonusType === 'PERFECT FOCUS') {
           triggerHaptic('success');
         }
 
-        // Show focus bonus toast
         showFocusBonusToast(rewardResult.focusBonusType);
       }
 
-      // Record session to analytics
       recordSession(
         state.timerState.sessionType,
         state.timerState.sessionDuration,
@@ -202,7 +199,6 @@ export const useTimerLogic = () => {
         state.timerState.taskLabel
       );
 
-      // Reset display time and timer state
       setDisplayTime(state.timerState.sessionDuration);
       saveTimerState({
         isRunning: false,
@@ -213,7 +209,6 @@ export const useTimerLogic = () => {
         taskLabel: undefined,
       });
 
-      // For work sessions, show session notes modal then break transition
       if (state.timerState.sessionType !== 'break') {
         setLastSessionXP(xpEarned);
         setShowSessionNotesModal(true);
@@ -225,7 +220,6 @@ export const useTimerLogic = () => {
         });
       }
     } finally {
-      // SECURITY: Always release the lock, even on error
       completionLockRef.current = null;
       if (releaseLock) releaseLock();
     }
@@ -241,6 +235,47 @@ export const useTimerLogic = () => {
     triggerHaptic,
     toast,
   ]);
+
+  // ============================================================================
+  // TIMER CONTROLS (Composed)
+  // ============================================================================
+
+  const {
+    requestStartTimer,
+    startTimerWithIntent,
+    pauseTimer,
+    stopTimer,
+    skipTimer,
+    toggleSound,
+  } = useTimerControls({
+    timerState,
+    selectedPreset,
+    saveTimerState,
+    clearPersistence,
+    setDisplayTime,
+    setShowIntentionModal,
+    intervalRef,
+    appBlockingEnabled,
+    hasAppsConfigured,
+    blockedAppsCount,
+    startAppBlocking,
+    stopAppBlocking,
+    triggerHaptic,
+    awardXP,
+  });
+
+  // ============================================================================
+  // TIMER COUNTDOWN (Composed)
+  // ============================================================================
+
+  useTimerCountdown({
+    timerState,
+    saveTimerState,
+    setDisplayTime,
+    setShowLockScreen,
+    handleComplete,
+    intervalRef,
+  });
 
   // ============================================================================
   // SESSION NOTES
@@ -275,8 +310,6 @@ export const useTimerLogic = () => {
       const newTimeLeft = duration * 60;
       setDisplayTime(newTimeLeft);
 
-      // Only auto-start the break timer if autoBreakEnabled is true
-      // Otherwise, set up the break but require user to press start
       if (autoBreakEnabled) {
         const now = Date.now();
         saveTimerState({
@@ -305,261 +338,6 @@ export const useTimerLogic = () => {
   const handleSkipBreak = useCallback(() => {
     breakSkipHandler();
   }, [breakSkipHandler]);
-
-  // ============================================================================
-  // TIMER SYNC & COUNTDOWN
-  // ============================================================================
-
-  // Sync displayTime with timerState when not running
-  useEffect(() => {
-    if (!timerState.isRunning) {
-      setDisplayTime(timerState.timeLeft);
-    }
-  }, [timerState.timeLeft, timerState.isRunning]);
-
-  // Timer countdown effect
-  useEffect(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    if (timerState.isRunning && timerState.startTime) {
-      const tick = () => {
-        const now = Date.now();
-        const elapsedMs = now - timerState.startTime!;
-        const elapsedSeconds = Math.floor(elapsedMs / 1000);
-        const newTimeLeft = Math.max(0, timerState.sessionDuration - elapsedSeconds);
-
-        setDisplayTime(newTimeLeft);
-
-        if (elapsedSeconds % 5 === 0) {
-          saveTimerState({ timeLeft: newTimeLeft });
-        }
-
-        if (newTimeLeft === 0) {
-          handleComplete();
-        }
-      };
-
-      tick();
-      intervalRef.current = setInterval(tick, 1000);
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, saveTimerState, handleComplete]);
-
-  // Page visibility handling
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      const state = stateRef.current;
-
-      if (document.hidden && state.timerState.isRunning && state.timerState.sessionType !== 'break') {
-        setShowLockScreen(true);
-      } else if (!document.hidden && state.timerState.isRunning && state.timerState.startTime) {
-        const now = Date.now();
-        const elapsedMs = now - state.timerState.startTime;
-        const elapsedSeconds = Math.floor(elapsedMs / 1000);
-        const newTimeLeft = Math.max(0, state.timerState.sessionDuration - elapsedSeconds);
-
-        setDisplayTime(newTimeLeft);
-        saveTimerState({ timeLeft: newTimeLeft });
-        setShowLockScreen(false);
-
-        if (newTimeLeft === 0) {
-          handleComplete();
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [saveTimerState, handleComplete]);
-
-  // ============================================================================
-  // TIMER CONTROLS
-  // ============================================================================
-
-  const requestStartTimer = useCallback(() => {
-    if (selectedPreset.type === 'break') {
-      const now = Date.now();
-      setDisplayTime(timerState.timeLeft);
-      saveTimerState({
-        isRunning: true,
-        startTime: now,
-        sessionDuration: timerState.timeLeft,
-        category: undefined,
-        taskLabel: undefined,
-      });
-    } else {
-      setShowIntentionModal(true);
-    }
-  }, [saveTimerState, timerState.timeLeft, selectedPreset.type]);
-
-  const startTimerWithIntent = useCallback(async (category: FocusCategory, taskLabel?: string) => {
-    setShowIntentionModal(false);
-
-    if (appBlockingEnabled && hasAppsConfigured && blockedAppsCount > 0) {
-      const result = await startAppBlocking();
-      if (result.appsBlocked > 0) {
-        triggerHaptic('light');
-      }
-    }
-
-    const now = Date.now();
-    setDisplayTime(timerState.timeLeft);
-    saveTimerState({
-      isRunning: true,
-      startTime: now,
-      sessionDuration: timerState.timeLeft,
-      category,
-      taskLabel,
-    });
-  }, [saveTimerState, timerState.timeLeft, appBlockingEnabled, hasAppsConfigured, blockedAppsCount, startAppBlocking, triggerHaptic]);
-
-  const pauseTimer = useCallback(() => {
-    const now = Date.now();
-    let currentTimeLeft = timerState.timeLeft;
-
-    if (timerState.startTime) {
-      const elapsedMs = now - timerState.startTime;
-      const elapsedSeconds = Math.floor(elapsedMs / 1000);
-      currentTimeLeft = Math.max(0, timerState.sessionDuration - elapsedSeconds);
-    }
-
-    setDisplayTime(currentTimeLeft);
-    saveTimerState({
-      isRunning: false,
-      startTime: null,
-      timeLeft: currentTimeLeft,
-      sessionDuration: selectedPreset.duration * 60,
-    });
-  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, selectedPreset.duration]);
-
-  const stopTimer = useCallback(async () => {
-    let elapsedSeconds = 0;
-    if (timerState.startTime) {
-      const now = Date.now();
-      const elapsedMs = now - timerState.startTime;
-      elapsedSeconds = Math.floor(elapsedMs / 1000);
-    } else {
-      elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
-    }
-
-    if (timerState.sessionType !== 'break' && hasAppsConfigured) {
-      await stopAppBlocking();
-    }
-
-    if (timerState.isRunning && elapsedSeconds > 60) {
-      recordSession(
-        timerState.sessionType,
-        timerState.sessionDuration,
-        elapsedSeconds,
-        'abandoned',
-        0,
-        timerState.category,
-        timerState.taskLabel
-      );
-    }
-
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    const fullDuration = selectedPreset.duration * 60;
-    setDisplayTime(fullDuration);
-    clearPersistence();
-    saveTimerState({
-      isRunning: false,
-      timeLeft: fullDuration,
-      sessionDuration: fullDuration,
-      startTime: null,
-      category: undefined,
-      taskLabel: undefined,
-    });
-  }, [clearPersistence, saveTimerState, selectedPreset.duration, timerState, recordSession, hasAppsConfigured, stopAppBlocking]);
-
-  const skipTimer = useCallback(async () => {
-    let elapsedSeconds = 0;
-    if (timerState.startTime) {
-      const now = Date.now();
-      const elapsedMs = now - timerState.startTime;
-      elapsedSeconds = Math.floor(elapsedMs / 1000);
-    } else {
-      elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
-    }
-
-    const completedMinutes = Math.ceil(elapsedSeconds / 60);
-
-    if (timerState.sessionType !== 'break' && hasAppsConfigured) {
-      await stopAppBlocking();
-    }
-
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    clearPersistence();
-
-    let xpEarned = 0;
-    if (timerState.sessionType !== 'break' && completedMinutes >= 25) {
-      try {
-        const reward = await awardXP(completedMinutes);
-        xpEarned = reward?.xpGained || 0;
-        toast({
-          title: "Session Skipped",
-          description: `+${xpEarned} XP for ${completedMinutes} minutes of focus!`,
-          duration: 3000,
-        });
-      } catch {
-        toast({
-          title: "Timer Skipped",
-          description: "Session saved locally, will sync when online",
-          duration: 2000,
-        });
-      }
-    } else {
-      toast({
-        title: "Timer Skipped",
-        description: completedMinutes < 25 ? "Need 25+ minutes for XP rewards" : "Break completed",
-        duration: 2000,
-      });
-    }
-
-    if (elapsedSeconds > 60) {
-      recordSession(
-        timerState.sessionType,
-        timerState.sessionDuration,
-        elapsedSeconds,
-        'skipped',
-        xpEarned,
-        timerState.category,
-        timerState.taskLabel
-      );
-    }
-
-    const fullDuration = selectedPreset.duration * 60;
-    setDisplayTime(fullDuration);
-    saveTimerState({
-      isRunning: false,
-      timeLeft: fullDuration,
-      sessionDuration: fullDuration,
-      startTime: null,
-      category: undefined,
-      taskLabel: undefined,
-    });
-  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, recordSession, hasAppsConfigured, stopAppBlocking]);
-
-  const toggleSound = useCallback(() => {
-    saveTimerState({ soundEnabled: !timerState.soundEnabled });
-  }, [saveTimerState, timerState.soundEnabled]);
 
   // ============================================================================
   // RETURN PUBLIC API
