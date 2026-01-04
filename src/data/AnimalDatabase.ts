@@ -30,6 +30,7 @@ export interface BiomeData {
   description: string;
   animals: string[];
   backgroundImage?: string;
+  groundLevel?: number; // Percentage from bottom where pets walk (default: 8)
 }
 
 // Complete animal database with new chibi pixel art characters
@@ -687,56 +688,63 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   },
 ];
 
-// Biome definitions
+// Biome definitions with ground levels for pet positioning
 export const BIOME_DATABASE: BiomeData[] = [
   {
     name: 'Meadow',
     unlockLevel: 0,
     description: 'A peaceful meadow where your journey begins. Home to friendly creatures.',
     animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood', 'bear-hood'],
-    backgroundImage: '/assets/worlds/GRASSYPATH.png'
+    backgroundImage: '/assets/worlds/MEADOW.png',
+    groundLevel: 12
   },
   {
     name: 'Sunset',
     unlockLevel: 5,
     description: 'Golden fields bathed in warm sunset light.',
     animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood'],
-    backgroundImage: '/assets/worlds/WINDMILL.png'
+    backgroundImage: '/assets/worlds/SUNSET_WINDMILL.png',
+    groundLevel: 12
   },
   {
     name: 'Night',
     unlockLevel: 9,
     description: 'A mystical realm under the stars where nocturnal creatures thrive.',
     animals: ['luna-moth', 'star-jelly', 'shadow-cat', 'cute-ghost', 'kitsune-spirit'],
-    backgroundImage: '/assets/worlds/PURPLE_NIGHTSKY.png'
+    backgroundImage: '/assets/worlds/NIGHT_LAVENDER.png',
+    groundLevel: 16
   },
   {
     name: 'Forest',
     unlockLevel: 13,
     description: 'An enchanted forest where elemental spirits dwell.',
     animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid'],
-    backgroundImage: '/assets/worlds/JUNGLE_ISLAND.png'
+    backgroundImage: '/assets/worlds/FOREST_ENCHANTED.png',
+    groundLevel: 6
   },
   {
     name: 'Snow',
     unlockLevel: 19,
     description: 'A winter wonderland of magical costume characters.',
     animals: ['star-wizard', 'mushroom-kid', 'bunny-hood', 'cat-hood'],
-    backgroundImage: '/assets/worlds/SKYPLATFORM_WORLD.png'
+    backgroundImage: '/assets/worlds/SNOW_SKY.png',
+    groundLevel: 26
   },
   {
     name: 'City',
     unlockLevel: 24,
     description: 'A bustling city where unique characters gather.',
     animals: ['flower-fairy', 'penguin-kid', 'pirate-kid', 'robot-buddy'],
-    backgroundImage: '/assets/worlds/CITYFORPEOPLE.png'
+    backgroundImage: '/assets/worlds/CITY_NIGHT.png',
+    groundLevel: 12
   },
   {
     name: 'Ruins',
     unlockLevel: 29,
     description: 'Ancient ruins holding powerful warriors.',
     animals: ['dragon-knight'],
-    backgroundImage: '/assets/worlds/RUINS.png'
+    backgroundImage: '/assets/worlds/RUINS_OVERGROWN.png',
+    groundLevel: 8
   }
 ];
 
@@ -790,4 +798,37 @@ export const getFlyingAnimals = (animals: AnimalData[]): AnimalData[] => {
 export const getGroundAnimals = (animals: AnimalData[]): AnimalData[] => {
   // All current animals are ground-based
   return animals;
+};
+
+// Map theme names to biome names for ground level lookup
+const THEME_TO_BIOME: Record<string, string> = {
+  'day': 'Meadow',
+  'sunset': 'Sunset',
+  'night': 'Night',
+  'forest': 'Forest',
+  'snow': 'Snow',
+  'city': 'City',
+  'ruins': 'Ruins',
+  'deepocean': 'Meadow', // Fallback
+};
+
+// Get ground level for a given background theme or image path
+export const getGroundLevelForBackground = (background: string): number => {
+  const DEFAULT_GROUND_LEVEL = 8;
+
+  // Check if it's a theme name
+  if (THEME_TO_BIOME[background]) {
+    const biome = getBiomeByName(THEME_TO_BIOME[background]);
+    return biome?.groundLevel ?? DEFAULT_GROUND_LEVEL;
+  }
+
+  // Check if it's a direct image path - try to match by filename
+  if (background.startsWith('/assets/worlds/')) {
+    const biome = BIOME_DATABASE.find(b => b.backgroundImage === background);
+    if (biome?.groundLevel !== undefined) {
+      return biome.groundLevel;
+    }
+  }
+
+  return DEFAULT_GROUND_LEVEL;
 };
