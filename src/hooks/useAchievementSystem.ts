@@ -72,6 +72,8 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
   const claimedIdsRef = useRef<Set<string>>(new Set());
   // Track queued unlock IDs to prevent duplicates from event listeners
   const queuedUnlockIdsRef = useRef<Set<string>>(new Set());
+  // Track achievements that need to be queued for unlock notification
+  const pendingToQueue = useRef<Achievement[]>([]);
 
   // Load achievement data from localStorage
   const loadAchievementData = useCallback(() => {
@@ -127,18 +129,22 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
     const rewards = calculateRewards(achievement);
     const event: AchievementUnlockEvent = { achievement, rewards };
 
-    if (pendingUnlock === null) {
-      setPendingUnlock(event);
-    } else {
-      pendingUnlockQueue.current.push(event);
-    }
+    // Use functional update to get current state value (avoids stale closure)
+    setPendingUnlock(current => {
+      if (current === null) {
+        return event;
+      } else {
+        pendingUnlockQueue.current.push(event);
+        return current;
+      }
+    });
 
     // Dispatch event for other components to listen
     window.dispatchEvent(new CustomEvent(ACHIEVEMENT_UNLOCK_EVENT, { detail: event }));
 
     // Sync to backend asynchronously
     syncUnlockToBackend(achievement);
-  }, [pendingUnlock, syncUnlockToBackend]);
+  }, [syncUnlockToBackend]);
 
   // Dismiss the current pending unlock and show next if any
   const dismissPendingUnlock = useCallback(() => {
@@ -191,9 +197,6 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
   // Update progress for specific achievement
   const updateProgress = useCallback((achievementId: string, progress: number) => {
-    // Collect achievements that need to be queued for unlock notification
-    const toQueue: Achievement[] = [];
-
     setAchievements(prev => {
       const updated = prev.map(achievement => {
         if (achievement.id === achievementId && !achievement.isUnlocked) {
@@ -208,8 +211,8 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
               unlockedAt: Date.now(),
               rewardsClaimed: false
             };
-            // Collect for queuing AFTER state update (avoid nested state updates)
-            toQueue.push(unlockedAchievement);
+            // Add to pending queue ref for processing in useEffect
+            pendingToQueue.current.push(unlockedAchievement);
             return unlockedAchievement;
           }
 
@@ -224,13 +227,7 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       saveToStorage(updated);
       return updated;
     });
-
-    // Queue achievement unlocks AFTER the state update completes
-    // This avoids nested state updates which can cause React batching issues
-    toQueue.forEach(achievement => {
-      queueAchievementUnlock(achievement);
-    });
-  }, [queueAchievementUnlock]);
+  }, []);
 
   // Check and unlock achievements based on activity
   const checkAndUnlockAchievements = useCallback((type: string, value: number): Achievement[] => {
@@ -251,7 +248,8 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
               unlockedAt: Date.now(),
               rewardsClaimed: false
             };
-            // Collect for queuing AFTER state update (avoid nested state updates)
+            // Add to pending queue ref for processing in useEffect
+            pendingToQueue.current.push(unlockedAchievement);
             newlyUnlocked.push(unlockedAchievement);
             return unlockedAchievement;
           }
@@ -269,14 +267,8 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       return updated;
     });
 
-    // Queue achievement unlocks AFTER the state update completes
-    // This avoids nested state updates which can cause React batching issues
-    newlyUnlocked.forEach(achievement => {
-      queueAchievementUnlock(achievement);
-    });
-
     return newlyUnlocked;
-  }, [queueAchievementUnlock]);
+  }, []);
 
   // Get achievements by category
   const getAchievementsByCategoryCallback = useCallback((category: string): Achievement[] => {
@@ -302,6 +294,17 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
   // Computed values
   const unlockedAchievements = achievements.filter(a => a.isUnlocked);
+
+  // Process pending unlock queue when achievements change
+  useEffect(() => {
+    if (pendingToQueue.current.length > 0) {
+      const toQueue = [...pendingToQueue.current];
+      pendingToQueue.current = [];
+      toQueue.forEach(achievement => {
+        queueAchievementUnlock(achievement);
+      });
+    }
+  }, [achievements, queueAchievementUnlock]);
 
   // Initialize on mount and listen for storage changes (cross-component sync)
   useEffect(() => {
@@ -344,12 +347,15 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       }
       queuedUnlockIdsRef.current.add(unlockEvent.achievement.id);
 
-      // Queue this unlock in this hook instance too
-      if (pendingUnlock === null) {
-        setPendingUnlock(unlockEvent);
-      } else {
-        pendingUnlockQueue.current.push(unlockEvent);
-      }
+      // Queue this unlock in this hook instance too (use functional update to avoid stale closure)
+      setPendingUnlock(current => {
+        if (current === null) {
+          return unlockEvent;
+        } else {
+          pendingUnlockQueue.current.push(unlockEvent);
+          return current;
+        }
+      });
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -360,7 +366,7 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       window.removeEventListener(ACHIEVEMENT_CLAIMED_EVENT, handleClaimEvent as EventListener);
       window.removeEventListener(ACHIEVEMENT_UNLOCK_EVENT, handleUnlockEvent as EventListener);
     };
-  }, [loadAchievementData, pendingUnlock]);
+  }, [loadAchievementData]);
 
   // Check achievement-based achievements when unlocks change
   useEffect(() => {
