@@ -56,10 +56,6 @@ export type { SoundLayer, SoundMixerState, AmbientSoundState } from './soundStor
 export { useQuestStore, useQuests, useActiveQuests, useDailyQuests, useWeeklyQuests } from './questStore';
 export type { Quest, QuestObjective, QuestReward } from './questStore';
 
-// Bond Store
-export { useBondStore, useBonds, useActivePetId, usePetBond } from './bondStore';
-export type { PetBond } from './bondStore';
-
 // Onboarding Store
 export { useOnboardingStore, useHasCompletedOnboarding, useOnboardingSteps, useCurrentStepIndex } from './onboardingStore';
 export type { OnboardingStep } from './onboardingStore';
