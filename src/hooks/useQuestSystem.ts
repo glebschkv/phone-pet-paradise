@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { questLogger } from '@/lib/logger';
 import { useXPStore } from '@/stores/xpStore';
+import { QUEST_CONFIG } from '@/lib/constants';
 import type {
   Quest,
   QuestObjective,
@@ -149,8 +150,8 @@ export const useQuestSystem = (): QuestSystemReturn => {
   const createQuestFromTemplate = useCallback((template: QuestTemplate, type: 'daily' | 'weekly'): Quest => {
     const now = Date.now();
     const expiresAt = type === 'daily'
-      ? now + (24 * 60 * 60 * 1000) // 24 hours
-      : now + (7 * 24 * 60 * 60 * 1000); // 7 days
+      ? now + QUEST_CONFIG.DURATIONS.DAILY_MS
+      : now + QUEST_CONFIG.DURATIONS.WEEKLY_MS;
 
     return {
       id: generateQuestId(type),
@@ -183,7 +184,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
     if (existingDaily.length === 0) {
       const selectedTemplates = DAILY_QUEST_TEMPLATES
         .sort(() => Math.random() - 0.5)
-        .slice(0, 3);
+        .slice(0, QUEST_CONFIG.DAILY_QUEST_COUNT);
 
       const newDailyQuests = selectedTemplates.map(template => 
         createQuestFromTemplate(template, 'daily')
@@ -223,7 +224,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
   }, [quests, createQuestFromTemplate, saveQuestData]);
 
   // Update quest progress
-  const updateQuestProgress = useCallback((type: string, amount: number, _metadata?: Record<string, unknown>) => {
+  const updateQuestProgress = useCallback((type: string, amount: number) => {
     setQuests(prev => {
       const updated = prev.map(quest => {
         if (quest.isCompleted) return quest;

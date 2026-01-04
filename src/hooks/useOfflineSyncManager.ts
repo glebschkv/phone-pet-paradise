@@ -19,6 +19,7 @@ import { useAuth } from './useAuth';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { syncLogger } from '@/lib/logger';
+import { isNonNegativeInteger, isNonEmptyString, isValidNumber } from '@/lib/validation';
 
 // Retry configuration
 const BATCH_SIZE = 10; // Process 10 operations at a time
@@ -27,6 +28,33 @@ interface SyncResult {
   success: boolean;
   operationId: string;
   error?: string;
+}
+
+// ============================================================================
+// TYPE GUARDS FOR SYNC PAYLOADS
+// ============================================================================
+
+/**
+ * Type guard utilities for safe payload access
+ */
+function getNumber(payload: Record<string, unknown>, key: string, defaultValue: number): number {
+  const value = payload[key];
+  return isValidNumber(value) ? value : defaultValue;
+}
+
+function getPositiveInt(payload: Record<string, unknown>, key: string, defaultValue: number): number {
+  const value = payload[key];
+  return isNonNegativeInteger(value) ? value : defaultValue;
+}
+
+function getString(payload: Record<string, unknown>, key: string, defaultValue: string): string {
+  const value = payload[key];
+  return isNonEmptyString(value) ? value : defaultValue;
+}
+
+function getBoolean(payload: Record<string, unknown>, key: string, defaultValue: boolean): boolean {
+  const value = payload[key];
+  return typeof value === 'boolean' ? value : defaultValue;
 }
 
 /**
@@ -43,21 +71,28 @@ async function processSyncOperation(
       case 'focus_session': {
         const { error } = await supabase.from('focus_sessions').insert({
           user_id: userId,
-          duration_minutes: payload.durationMinutes as number,
-          xp_earned: payload.xpEarned as number,
-          session_type: payload.sessionType as string || 'focus',
-          completed_at: payload.completedAt as string || new Date().toISOString(),
+          duration_minutes: getPositiveInt(payload, 'durationMinutes', 0),
+          xp_earned: getPositiveInt(payload, 'xpEarned', 0),
+          session_type: getString(payload, 'sessionType', 'focus'),
+          completed_at: getString(payload, 'completedAt', new Date().toISOString()),
         });
         if (error) throw error;
         break;
       }
 
       case 'progress_update': {
+        // Filter payload to only include known safe fields
+        const safePayload: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(payload)) {
+          if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            safePayload[key] = value;
+          }
+        }
         const { error } = await supabase
           .from('user_progress')
           .upsert({
             user_id: userId,
-            ...payload,
+            ...safePayload,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id' });
         if (error) throw error;
@@ -68,8 +103,8 @@ async function processSyncOperation(
         const { error } = await supabase
           .from('user_progress')
           .update({
-            total_xp: payload.totalXp as number,
-            current_level: payload.currentLevel as number,
+            total_xp: getPositiveInt(payload, 'totalXp', 0),
+            current_level: getPositiveInt(payload, 'currentLevel', 1),
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);
@@ -81,7 +116,7 @@ async function processSyncOperation(
         const { error } = await supabase
           .from('user_progress')
           .update({
-            coins: payload.coins as number,
+            coins: getPositiveInt(payload, 'coins', 0),
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);
@@ -93,9 +128,9 @@ async function processSyncOperation(
         const { error } = await supabase
           .from('user_progress')
           .update({
-            current_streak: payload.currentStreak as number,
-            longest_streak: payload.longestStreak as number,
-            last_session_date: payload.lastSessionDate as string,
+            current_streak: getPositiveInt(payload, 'currentStreak', 0),
+            longest_streak: getPositiveInt(payload, 'longestStreak', 0),
+            last_session_date: getString(payload, 'lastSessionDate', ''),
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);
@@ -108,9 +143,9 @@ async function processSyncOperation(
           .from('quest_progress')
           .upsert({
             user_id: userId,
-            quest_id: payload.questId as string,
-            progress: payload.progress as number,
-            completed: payload.completed as boolean,
+            quest_id: getString(payload, 'questId', ''),
+            progress: getNumber(payload, 'progress', 0),
+            completed: getBoolean(payload, 'completed', false),
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id,quest_id' });
         if (error) throw error;
@@ -120,8 +155,8 @@ async function processSyncOperation(
       case 'achievement_unlock': {
         const { error } = await supabase.from('achievements').insert({
           user_id: userId,
-          achievement_id: payload.achievementId as string,
-          unlocked_at: payload.unlockedAt as string || new Date().toISOString(),
+          achievement_id: getString(payload, 'achievementId', ''),
+          unlocked_at: getString(payload, 'unlockedAt', new Date().toISOString()),
         });
         // Ignore duplicate key errors for achievements
         if (error && !error.message.includes('duplicate')) throw error;
@@ -132,21 +167,28 @@ async function processSyncOperation(
         const { error } = await supabase
           .from('pets')
           .update({
-            bond_level: payload.bondLevel as number,
-            experience: payload.experience as number,
-            mood: payload.mood as number,
+            bond_level: getPositiveInt(payload, 'bondLevel', 0),
+            experience: getPositiveInt(payload, 'experience', 0),
+            mood: getNumber(payload, 'mood', 100),
           })
           .eq('user_id', userId)
-          .eq('pet_type', payload.petType as string);
+          .eq('pet_type', getString(payload, 'petType', ''));
         if (error) throw error;
         break;
       }
 
       case 'profile_update': {
+        // Filter payload to only include known safe fields
+        const safePayload: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(payload)) {
+          if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            safePayload[key] = value;
+          }
+        }
         const { error } = await supabase
           .from('profiles')
           .update({
-            ...payload,
+            ...safePayload,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);

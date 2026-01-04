@@ -33,6 +33,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, isValidSubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
+import { COIN_CONFIG } from '@/lib/constants';
 import {
   validateCoinAmount,
   validateCoinTransaction,
@@ -88,21 +89,22 @@ interface BonusResult {
 
 const calculateRandomBonus = (): BonusResult => {
   const roll = Math.random() * 100;
+  const { BONUS_THRESHOLDS, BONUS_MULTIPLIERS } = COIN_CONFIG;
 
-  // 5% chance: Jackpot (2.5x coins) - increased from 2%
-  if (roll < 5) {
-    return { hasBonusCoins: true, bonusMultiplier: 2.5, bonusType: 'jackpot' };
+  // 5% chance: Jackpot (2.5x coins)
+  if (roll < BONUS_THRESHOLDS.JACKPOT) {
+    return { hasBonusCoins: true, bonusMultiplier: BONUS_MULTIPLIERS.JACKPOT, bonusType: 'jackpot' };
   }
-  // 10% chance: Super Lucky (1.75x coins) - increased from 5%
-  if (roll < 15) {
-    return { hasBonusCoins: true, bonusMultiplier: 1.75, bonusType: 'super_lucky' };
+  // 10% chance: Super Lucky (1.75x coins)
+  if (roll < BONUS_THRESHOLDS.SUPER_LUCKY) {
+    return { hasBonusCoins: true, bonusMultiplier: BONUS_MULTIPLIERS.SUPER_LUCKY, bonusType: 'super_lucky' };
   }
-  // 20% chance: Lucky (1.5x coins) - increased from 13%
-  if (roll < 35) {
-    return { hasBonusCoins: true, bonusMultiplier: 1.5, bonusType: 'lucky' };
+  // 20% chance: Lucky (1.5x coins)
+  if (roll < BONUS_THRESHOLDS.LUCKY) {
+    return { hasBonusCoins: true, bonusMultiplier: BONUS_MULTIPLIERS.LUCKY, bonusType: 'lucky' };
   }
-  // 65% chance: No bonus - reduced from 80%
-  return { hasBonusCoins: false, bonusMultiplier: 1.0, bonusType: 'none' };
+  // 65% chance: No bonus
+  return { hasBonusCoins: false, bonusMultiplier: BONUS_MULTIPLIERS.NONE, bonusType: 'none' };
 };
 
 // Pre-sorted durations for efficient lookup

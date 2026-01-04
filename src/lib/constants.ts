@@ -130,12 +130,51 @@ export const FOCUS_BONUS = {
 } as const;
 
 // ============================================================================
+// QUEST SYSTEM
+// ============================================================================
+
+export const QUEST_CONFIG = {
+  /** Quest expiration durations in milliseconds */
+  DURATIONS: {
+    /** 24 hours in milliseconds */
+    DAILY_MS: 24 * 60 * 60 * 1000,
+    /** 7 days in milliseconds */
+    WEEKLY_MS: 7 * 24 * 60 * 60 * 1000,
+  },
+
+  /** Number of daily quests to generate */
+  DAILY_QUEST_COUNT: 3,
+} as const;
+
+// ============================================================================
 // COIN SYSTEM
 // ============================================================================
 
 export const COIN_CONFIG = {
   /** Base coins per minute of focus */
   BASE_COINS_PER_MINUTE: 2,
+
+  /**
+   * Random bonus coin probabilities (percentages)
+   * The thresholds define cumulative probability ranges:
+   * - 0-5: Jackpot (5% chance)
+   * - 5-15: Super Lucky (10% chance)
+   * - 15-35: Lucky (20% chance)
+   * - 35-100: No bonus (65% chance)
+   */
+  BONUS_THRESHOLDS: {
+    JACKPOT: 5,
+    SUPER_LUCKY: 15,
+    LUCKY: 35,
+  },
+
+  /** Bonus multipliers for each tier */
+  BONUS_MULTIPLIERS: {
+    JACKPOT: 2.5,
+    SUPER_LUCKY: 1.75,
+    LUCKY: 1.5,
+    NONE: 1.0,
+  },
 
   /** Coin rewards for various actions */
   REWARDS: {
