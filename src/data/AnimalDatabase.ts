@@ -75,8 +75,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 64,
       animationSpeed: 8,
       walkRows: 2,
-      frameRow: 1,
-      facesLeft: true
+      frameRow: 1
     }
   },
   {
@@ -96,8 +95,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 64,
       animationSpeed: 8,
       walkRows: 2,
-      frameRow: 1,
-      facesLeft: true
+      frameRow: 1
     }
   },
   {
@@ -117,8 +115,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 64,
       animationSpeed: 10,
       walkRows: 2,
-      frameRow: 1,
-      facesLeft: true
+      frameRow: 1
     }
   },
   {
@@ -200,8 +197,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 64,
       animationSpeed: 8,
       walkRows: 2,
-      frameRow: 1,
-      facesLeft: true
+      frameRow: 1
     }
   },
   {
@@ -223,8 +219,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 64,
       animationSpeed: 8,
       walkRows: 2,
-      frameRow: 1,
-      facesLeft: true
+      frameRow: 1
     }
   },
   {
@@ -365,8 +360,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 10,
-      facesLeft: true
+      animationSpeed: 10
     }
   },
 
@@ -390,8 +384,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 64,
       animationSpeed: 8,
       walkRows: 2,
-      frameRow: 1,
-      facesLeft: true
+      frameRow: 1
     }
   },
   {
@@ -409,8 +402,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 6,
-      facesLeft: true
+      animationSpeed: 6
     }
   },
   {
@@ -471,8 +463,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8,
-      facesLeft: true
+      animationSpeed: 8
     }
   },
 
@@ -514,8 +505,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8,
-      facesLeft: true
+      animationSpeed: 8
     }
   },
   // Elemental Shop Exclusive
@@ -578,8 +568,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8,
-      facesLeft: true
+      animationSpeed: 8
     }
   },
   {
@@ -597,8 +586,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 9,
-      facesLeft: true
+      animationSpeed: 9
     }
   },
   {
@@ -637,8 +625,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 64,
       animationSpeed: 7,
       walkRows: 2,
-      frameRow: 1,
-      facesLeft: true
+      frameRow: 1
     }
   },
   {
@@ -656,8 +643,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8,
-      facesLeft: true
+      animationSpeed: 8
     }
   },
   {
@@ -719,8 +705,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 7,
-      facesLeft: true
+      animationSpeed: 7
     }
   },
 ];
