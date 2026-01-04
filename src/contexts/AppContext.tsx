@@ -9,79 +9,18 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect, u
 import { useAuth } from '@/hooks/useAuth';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { APP_CONFIG } from '@/lib/constants';
+import type {
+  UserProfile,
+  AppTheme,
+  AppSettings,
+  AppState,
+  AppAction,
+  AppContextValue,
+  SubscriptionTier,
+} from '@/types';
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export interface UserProfile {
-  id: string;
-  email?: string;
-  displayName?: string;
-  avatarUrl?: string;
-  createdAt?: string;
-}
-
-export interface AppTheme {
-  mode: 'light' | 'dark' | 'system';
-  primaryColor?: string;
-}
-
-export interface AppSettings {
-  soundEnabled: boolean;
-  hapticEnabled: boolean;
-  notificationsEnabled: boolean;
-  autoBreakEnabled: boolean;
-  showTips: boolean;
-}
-
-export interface AppState {
-  // User & Auth
-  user: UserProfile | null;
-  isAuthenticated: boolean;
-  isGuest: boolean;
-
-  // Premium Status
-  isPremium: boolean;
-  premiumTier: 'free' | 'premium' | 'lifetime';
-  premiumExpiresAt?: string;
-
-  // Theme & Settings
-  theme: AppTheme;
-  settings: AppSettings;
-
-  // UI State
-  isLoading: boolean;
-  isOnline: boolean;
-  hasUnsyncedData: boolean;
-
-  // App Info
-  appVersion: string;
-  platform: string;
-}
-
-type AppAction =
-  | { type: 'SET_USER'; payload: UserProfile | null }
-  | { type: 'SET_AUTHENTICATED'; payload: boolean }
-  | { type: 'SET_PREMIUM_STATUS'; payload: { isPremium: boolean; tier: 'free' | 'premium' | 'lifetime'; expiresAt?: string } }
-  | { type: 'SET_THEME'; payload: AppTheme }
-  | { type: 'SET_SETTINGS'; payload: Partial<AppSettings> }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ONLINE'; payload: boolean }
-  | { type: 'SET_UNSYNCED_DATA'; payload: boolean }
-  | { type: 'RESET_STATE' };
-
-interface AppContextValue {
-  state: AppState;
-  dispatch: React.Dispatch<AppAction>;
-
-  // Convenience methods
-  setUser: (user: UserProfile | null) => void;
-  setTheme: (theme: AppTheme) => void;
-  updateSettings: (settings: Partial<AppSettings>) => void;
-  setLoading: (loading: boolean) => void;
-  logout: () => void;
-}
+// Re-export types for backwards compatibility
+export type { UserProfile, AppTheme, AppSettings, AppState, AppContextValue } from '@/types';
 
 // ============================================================================
 // Initial State

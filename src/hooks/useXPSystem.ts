@@ -5,28 +5,14 @@ import { safeJsonParse } from '@/lib/apiUtils';
 import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
 import { useAuth } from './useAuth';
 import { useSupabaseData } from './useSupabaseData';
+import type { XPReward, UnlockedReward } from '@/types';
 
-export interface XPReward {
-  xpGained: number;
-  baseXP: number;
-  bonusXP: number;
-  bonusMultiplier: number;
-  hasBonusXP: boolean;
-  bonusType: 'none' | 'lucky' | 'super_lucky' | 'jackpot';
-  oldLevel: number;
-  newLevel: number;
-  leveledUp: boolean;
-  unlockedRewards: UnlockedReward[];
-  subscriptionMultiplier: number;
-}
+// Re-export types for backwards compatibility
+export type { XPReward, UnlockedReward } from '@/types';
 
-export interface UnlockedReward {
-  type: 'animal' | 'biome';
-  name: string;
-  description: string;
-  level: number;
-}
-
+/**
+ * XP system state
+ */
 export interface XPSystemState {
   currentXP: number;
   currentLevel: number;

@@ -5,25 +5,12 @@ import { StoreKit } from '@/plugins/store-kit';
 import { WidgetDataPlugin } from '@/plugins/widget-data';
 import { createLogger } from '@/lib/logger';
 import { reportError, reportWarning } from '@/lib/errorReporting';
+import type { PluginStatus, PluginHealthStatus, NativePluginStatusState } from '@/types';
+
+// Re-export types for backwards compatibility
+export type { PluginStatus, PluginHealthStatus, NativePluginStatusState } from '@/types';
 
 const logger = createLogger({ prefix: 'PluginStatus' });
-
-export type PluginStatus = 'available' | 'unavailable' | 'error';
-
-export interface PluginHealthStatus {
-  deviceActivity: PluginStatus;
-  storeKit: PluginStatus;
-  widgetData: PluginStatus;
-}
-
-export interface NativePluginStatusState {
-  isNative: boolean;
-  isChecking: boolean;
-  plugins: PluginHealthStatus;
-  errors: Error[];
-  hasCriticalErrors: boolean;
-  lastChecked: number | null;
-}
 
 /**
  * Safe wrapper for plugin calls with fallback

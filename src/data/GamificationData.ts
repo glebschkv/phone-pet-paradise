@@ -9,40 +9,36 @@
  * - Combo system configuration
  */
 
-// ═══════════════════════════════════════════════════════════════════════════
-// BATTLE PASS / SEASONS
-// ═══════════════════════════════════════════════════════════════════════════
+import type {
+  SeasonTheme,
+  BattlePassTier,
+  BattlePassReward,
+  Season,
+  BossChallenge,
+  SpecialEvent,
+  LuckyWheelPrize,
+  ComboTier,
+  Milestone,
+  Guild,
+  GuildMember,
+  GuildChallenge,
+} from '@/types';
 
-export type SeasonTheme = 'spring' | 'summer' | 'autumn' | 'winter' | 'cosmic' | 'ocean';
-
-export interface BattlePassTier {
-  tier: number;
-  xpRequired: number;
-  freeReward: BattlePassReward;
-  premiumReward?: BattlePassReward;
-}
-
-export interface BattlePassReward {
-  type: 'xp' | 'coins' | 'pet' | 'background' | 'badge' | 'streak_freeze' | 'booster';
-  amount?: number;
-  itemId?: string;
-  itemName: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  icon: string;
-}
-
-export interface Season {
-  id: string;
-  name: string;
-  theme: SeasonTheme;
-  description: string;
-  startDate: string; // ISO date
-  endDate: string;   // ISO date
-  tiers: BattlePassTier[];
-  exclusivePet?: string; // Pet ID for season-exclusive pet
-  backgroundGradient: string;
-  accentColor: string;
-}
+// Re-export types for backwards compatibility
+export type {
+  SeasonTheme,
+  BattlePassTier,
+  BattlePassReward,
+  Season,
+  BossChallenge,
+  SpecialEvent,
+  LuckyWheelPrize,
+  ComboTier,
+  Milestone,
+  Guild,
+  GuildMember,
+  GuildChallenge,
+} from '@/types';
 
 // Generate battle pass tiers (30 tiers per season)
 const generateBattlePassTiers = (seasonTheme: SeasonTheme): BattlePassTier[] => {
@@ -172,26 +168,6 @@ export const getCurrentSeason = (): Season | null => {
 // BOSS CHALLENGES
 // ═══════════════════════════════════════════════════════════════════════════
 
-export interface BossChallenge {
-  id: string;
-  name: string;
-  description: string;
-  emoji: string;
-  difficulty: 'normal' | 'hard' | 'extreme' | 'legendary';
-  requirement: {
-    type: 'focus_duration' | 'consecutive_sessions' | 'total_focus_week' | 'perfect_day';
-    value: number; // minutes for duration, count for sessions
-    timeLimit?: number; // hours to complete (optional)
-  };
-  rewards: {
-    xp: number;
-    coins: number;
-    badge?: string;
-    specialReward?: string;
-  };
-  cooldownHours: number; // Hours before challenge can be attempted again
-}
-
 export const BOSS_CHALLENGES: BossChallenge[] = [
   // Normal difficulty - BOOSTED REWARDS!
   {
@@ -300,23 +276,6 @@ export const getBossChallengesByDifficulty = (difficulty: BossChallenge['difficu
 // SPECIAL EVENTS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export interface SpecialEvent {
-  id: string;
-  name: string;
-  description: string;
-  emoji: string;
-  type: 'double_xp' | 'double_coins' | 'bonus_rewards' | 'special_quest' | 'community';
-  multiplier?: number; // For XP/coin events
-  startDate: string;
-  endDate: string;
-  backgroundGradient: string;
-  rewards?: {
-    xp?: number;
-    coins?: number;
-    specialItem?: string;
-  };
-}
-
 export const SPECIAL_EVENTS: SpecialEvent[] = [
   {
     id: 'double-xp-weekend',
@@ -393,17 +352,6 @@ export const getUpcomingEvents = (): SpecialEvent[] => {
 // LUCKY WHEEL / GACHA
 // ═══════════════════════════════════════════════════════════════════════════
 
-export interface LuckyWheelPrize {
-  id: string;
-  name: string;
-  emoji: string;
-  type: 'xp' | 'coins' | 'streak_freeze' | 'booster' | 'mystery_box' | 'jackpot';
-  amount?: number;
-  probability: number; // Percentage (all should sum to 100)
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  color: string; // Wheel segment color
-}
-
 export const LUCKY_WHEEL_PRIZES: LuckyWheelPrize[] = [
   // BOOSTED prizes with better odds for jackpot!
   { id: 'coins-100', name: '100 Coins', emoji: '🪙', type: 'coins', amount: 100, probability: 22, rarity: 'common', color: '#64748b' },
@@ -434,14 +382,6 @@ export const spinWheel = (): LuckyWheelPrize => {
 // ═══════════════════════════════════════════════════════════════════════════
 // COMBO SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════
-
-export interface ComboTier {
-  minCombo: number;
-  name: string;
-  multiplier: number;
-  color: string;
-  emoji: string;
-}
 
 export const COMBO_TIERS: ComboTier[] = [
   { minCombo: 1, name: 'Starting', multiplier: 1.0, color: '#64748b', emoji: '▪️' },
@@ -477,14 +417,9 @@ export const getNextComboTier = (comboCount: number): ComboTier | null => {
 // MILESTONE CELEBRATIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export interface Milestone {
-  id: string;
-  type: 'level' | 'streak' | 'sessions' | 'focus_hours' | 'collection' | 'achievement';
-  threshold: number;
-  title: string;
-  description: string;
-  emoji: string;
-  celebrationType: 'confetti' | 'fireworks' | 'stars' | 'rainbow';
+// Note: Milestone interface imported from @/types
+// Local extension for milestone rewards:
+interface MilestoneWithRewards extends Milestone {
   rewards?: {
     xp?: number;
     coins?: number;
@@ -543,45 +478,7 @@ export const getNextMilestone = (type: Milestone['type'], currentValue: number):
 // GUILD / TEAM SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════
 
-export interface Guild {
-  id: string;
-  name: string;
-  description: string;
-  emoji: string;
-  memberCount: number;
-  maxMembers: number;
-  totalFocusMinutes: number;
-  weeklyGoal: number;
-  level: number;
-  createdAt: string;
-  isPublic: boolean;
-}
-
-export interface GuildMember {
-  id: string;
-  name: string;
-  avatar?: string;
-  role: 'leader' | 'officer' | 'member';
-  weeklyFocusMinutes: number;
-  joinedAt: string;
-  isOnline: boolean;
-}
-
-export interface GuildChallenge {
-  id: string;
-  name: string;
-  description: string;
-  emoji: string;
-  targetMinutes: number;
-  currentMinutes: number;
-  deadline: string;
-  rewards: {
-    xp: number;
-    coins: number;
-    guildXp: number;
-  };
-  isCompleted: boolean;
-}
+// Note: Guild, GuildMember, GuildChallenge interfaces imported from @/types
 
 // Sample guilds for demo purposes
 export const SAMPLE_GUILDS: Guild[] = [

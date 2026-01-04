@@ -1,33 +1,8 @@
 import { achievementLogger } from '@/lib/logger';
+import type { Achievement, AchievementReward, AchievementUnlockEvent } from '@/types';
 
-// ===== TYPE DEFINITIONS =====
-export interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  category: 'focus' | 'collection' | 'social' | 'special' | 'bond' | 'economy' | 'progression';
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
-  icon: string;
-  progress: number;
-  target: number;
-  isUnlocked: boolean;
-  unlockedAt?: number;
-  rewardsClaimed?: boolean;
-  secret?: boolean;
-  rewards: AchievementReward[];
-}
-
-export interface AchievementReward {
-  type: 'xp' | 'coins' | 'title' | 'cosmetic' | 'ability';
-  amount?: number;
-  itemId?: string;
-  description: string;
-}
-
-export interface AchievementUnlockEvent {
-  achievement: Achievement;
-  rewards: { xp: number; coins: number };
-}
+// Re-export types for backwards compatibility
+export type { Achievement, AchievementReward, AchievementUnlockEvent } from '@/types';
 
 // ===== CONSTANTS =====
 export const ACHIEVEMENT_STORAGE_KEY = 'achievement-system-data';

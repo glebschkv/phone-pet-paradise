@@ -1,36 +1,29 @@
 import { BOOSTER_TYPES } from '@/hooks/useCoinBooster';
 import { getCoinExclusiveAnimals } from './AnimalDatabase';
+import type {
+  ShopCategory,
+  ShopItem,
+  PremiumBackground,
+  ProfileBadge,
+  UtilityItem,
+  CoinPack,
+  StarterBundle,
+  BackgroundBundle,
+  PetBundle,
+} from '@/types';
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SHOP ITEM TYPES
-// ═══════════════════════════════════════════════════════════════════════════
-
-export type ShopCategory = 'featured' | 'pets' | 'customize' | 'powerups' | 'backgrounds' | 'badges' | 'utilities' | 'coins' | 'bundles';
-
-export interface ShopItem {
-  id: string;
-  name: string;
-  description: string;
-  category: ShopCategory;
-  coinPrice?: number;
-  iapPrice?: string;
-  iapProductId?: string; // For actual IAP integration
-  icon: string;
-  rarity?: 'common' | 'rare' | 'epic' | 'legendary';
-  isLimited?: boolean;
-  limitedUntil?: string;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// PREMIUM BACKGROUNDS
-// ═══════════════════════════════════════════════════════════════════════════
-
-export interface PremiumBackground extends ShopItem {
-  category: 'backgrounds';
-  previewImage?: string;
-  theme: string;
-  bundleId?: string; // If part of a bundle
-}
+// Re-export types for backwards compatibility
+export type {
+  ShopCategory,
+  ShopItem,
+  PremiumBackground,
+  ProfileBadge,
+  UtilityItem,
+  CoinPack,
+  StarterBundle,
+  BackgroundBundle,
+  PetBundle,
+} from '@/types';
 
 // Sky Bundle Backgrounds - Individual backgrounds that come with the Sky Bundle
 export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
@@ -197,11 +190,6 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
 // PROFILE BADGES
 // ═══════════════════════════════════════════════════════════════════════════
 
-export interface ProfileBadge extends ShopItem {
-  category: 'badges';
-  frameStyle: string;
-}
-
 export const PROFILE_BADGES: ProfileBadge[] = [
   {
     id: 'badge-bronze-star',
@@ -269,11 +257,6 @@ export const PROFILE_BADGES: ProfileBadge[] = [
 // UTILITY ITEMS (Streak Freezes, etc.)
 // ═══════════════════════════════════════════════════════════════════════════
 
-export interface UtilityItem extends ShopItem {
-  category: 'utilities';
-  quantity: number;
-}
-
 export const UTILITY_ITEMS: UtilityItem[] = [
   {
     id: 'streak-freeze-1',
@@ -310,13 +293,6 @@ export const UTILITY_ITEMS: UtilityItem[] = [
 // ═══════════════════════════════════════════════════════════════════════════
 // COIN PACKS (In-App Purchases)
 // ═══════════════════════════════════════════════════════════════════════════
-
-export interface CoinPack extends ShopItem {
-  category: 'coins';
-  coinAmount: number;
-  bonusCoins?: number;
-  isBestValue?: boolean;
-}
 
 export const COIN_PACKS: CoinPack[] = [
   {
@@ -373,17 +349,6 @@ export const COIN_PACKS: CoinPack[] = [
 // STARTER BUNDLES (Special offers combining items)
 // ═══════════════════════════════════════════════════════════════════════════
 
-export interface StarterBundle extends ShopItem {
-  category: 'coins';
-  contents: {
-    coins: number;
-    boosterId?: string;
-    characterId?: string;
-    badgeId?: string;
-  };
-  savings: string;
-}
-
 export const STARTER_BUNDLES: StarterBundle[] = [
   {
     id: 'bundle-starter',
@@ -424,14 +389,6 @@ export const STARTER_BUNDLES: StarterBundle[] = [
 // BACKGROUND BUNDLES (Purchasable with coins)
 // ═══════════════════════════════════════════════════════════════════════════
 
-export interface BackgroundBundle extends ShopItem {
-  category: 'bundles';
-  backgroundIds: string[];
-  previewImages: string[];
-  totalValue: number;
-  savings: string;
-}
-
 export const BACKGROUND_BUNDLES: BackgroundBundle[] = [
   {
     id: 'bundle-sky-realms',
@@ -463,13 +420,6 @@ export const BACKGROUND_BUNDLES: BackgroundBundle[] = [
 // ═══════════════════════════════════════════════════════════════════════════
 // PET BUNDLES (Special themed pet collections)
 // ═══════════════════════════════════════════════════════════════════════════
-
-export interface PetBundle extends ShopItem {
-  category: 'bundles';
-  petIds: string[];
-  totalValue: number;
-  savings: string;
-}
 
 export const PET_BUNDLES: PetBundle[] = [
   {
