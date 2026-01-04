@@ -8,6 +8,7 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { useOfflineSyncStore } from '@/stores/offlineSyncStore';
 import { APP_CONFIG } from '@/lib/constants';
 import type {
   UserProfile,
@@ -167,6 +168,7 @@ export function AppProvider({ children }: AppProviderProps) {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const { isAuthenticated, user } = useAuth();
   const { isPremium, tier, expiresAt } = usePremiumStatus();
+  const pendingOperationsCount = useOfflineSyncStore((s) => s.pendingOperations.length);
 
   // Sync auth state
   useEffect(() => {
@@ -210,6 +212,11 @@ export function AppProvider({ children }: AppProviderProps) {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Sync hasUnsyncedData with offline sync store
+  useEffect(() => {
+    dispatch({ type: 'SET_UNSYNCED_DATA', payload: pendingOperationsCount > 0 });
+  }, [pendingOperationsCount]);
 
   // Convenience methods
   const setUser = useCallback((user: UserProfile | null) => {
