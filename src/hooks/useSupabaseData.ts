@@ -171,45 +171,45 @@ export const useSupabaseData = () => {
   }, [user, loadFromLocalStorage, saveToLocalStorage]);
 
   // Load user data from Supabase (for authenticated users)
+  // Uses parallel queries to avoid N+1 performance issues
   const loadSupabaseData = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
     try {
-      // Load profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      // Execute all queries in parallel for better performance
+      const [profileResult, progressResult, petsResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single(),
+        supabase
+          .from('user_progress')
+          .select('*')
+          .eq('user_id', user.id)
+          .single(),
+        supabase
+          .from('pets')
+          .select('*')
+          .eq('user_id', user.id)
+      ]);
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError;
+      // Check for errors (PGRST116 means no rows found, which is acceptable)
+      if (profileResult.error && profileResult.error.code !== 'PGRST116') {
+        throw profileResult.error;
       }
-
-      // Load progress
-      const { data: progressData, error: progressError } = await supabase
-        .from('user_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (progressError && progressError.code !== 'PGRST116') {
-        throw progressError;
+      if (progressResult.error && progressResult.error.code !== 'PGRST116') {
+        throw progressResult.error;
       }
-
-      // Load pets
-      const { data: petsData, error: petsError } = await supabase
-        .from('pets')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (petsError) throw petsError;
+      if (petsResult.error) {
+        throw petsResult.error;
+      }
 
       // Use data from Supabase, or create defaults if not found
-      setProfile(profileData || createDefaultProfile(user.id));
-      setProgress(progressData || createDefaultProgress(user.id));
-      setPets(petsData && petsData.length > 0 ? petsData : [createDefaultPet(user.id)]);
+      setProfile(profileResult.data || createDefaultProfile(user.id));
+      setProgress(progressResult.data || createDefaultProgress(user.id));
+      setPets(petsResult.data && petsResult.data.length > 0 ? petsResult.data : [createDefaultPet(user.id)]);
     } catch (error: unknown) {
       supabaseLogger.error('Error loading user data from Supabase:', error);
       // Fall back to localStorage on error
