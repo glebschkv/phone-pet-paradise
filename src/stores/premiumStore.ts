@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { logger } from '@/lib/logger';
+import { premiumStatusSchema } from '@/lib/storage-validation';
+import { createValidatedStorage } from '@/lib/validated-zustand-storage';
 
 export type SubscriptionTier = 'free' | 'premium' | 'premium_plus' | 'lifetime';
 
@@ -48,14 +50,23 @@ export const usePremiumStore = create<PremiumStore>()(
     }),
     {
       name: 'nomo_premium',
+      storage: createValidatedStorage({
+        schema: premiumStatusSchema,
+        defaultState: initialState,
+        name: 'premium-store',
+      }),
       onRehydrateStorage: () => (state) => {
         if (!state) {
           try {
             const legacy = localStorage.getItem('petIsland_premium');
-            if (legacy) return JSON.parse(legacy);
+            if (legacy) {
+              const parsed = JSON.parse(legacy);
+              const validated = premiumStatusSchema.safeParse(parsed);
+              if (validated.success) return validated.data;
+            }
           } catch { /* ignore */ }
         }
-        if (state) logger.debug('Premium store rehydrated');
+        if (state) logger.debug('Premium store rehydrated and validated');
       },
     }
   )
