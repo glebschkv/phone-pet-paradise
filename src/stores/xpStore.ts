@@ -36,6 +36,15 @@ export const calculateLevelRequirement = (level: number): number => {
   return Math.floor(15 * Math.pow(1.15, level - 1));
 };
 
+/** Calculate level from total XP - ensures level matches XP */
+export const calculateLevelFromXP = (totalXP: number): number => {
+  let level = 0;
+  while (level < MAX_LEVEL && totalXP >= calculateLevelRequirement(level + 1)) {
+    level++;
+  }
+  return level;
+};
+
 export interface XPState {
   currentXP: number;
   currentLevel: number;
@@ -105,16 +114,48 @@ export const useXPStore = create<XPStore>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) {
-          try {
-            const legacy = localStorage.getItem('petIsland_xpSystem');
-            if (legacy) {
-              const parsed = JSON.parse(legacy);
+          // Try to recover from legacy storage keys
+          const legacyKeys = ['petIsland_xpSystem', 'nomo_xp_system'];
+          let bestData: typeof initialState | null = null;
+
+          for (const key of legacyKeys) {
+            try {
+              const legacy = localStorage.getItem(key);
+              if (!legacy) continue;
+
+              let parsed = JSON.parse(legacy);
+              // Handle Zustand's wrapped format
+              if (parsed && typeof parsed === 'object' && 'state' in parsed) {
+                parsed = parsed.state;
+              }
+
               const validated = xpSystemSchema.safeParse(parsed);
-              if (validated.success) return validated.data;
+              if (validated.success) {
+                // Keep the data with highest XP (most progress)
+                if (!bestData || validated.data.currentXP > bestData.currentXP) {
+                  bestData = validated.data;
+                  xpLogger.debug(`Found valid XP data in ${key}: ${validated.data.currentXP} XP`);
+                }
+              }
+            } catch {
+              xpLogger.warn(`Failed to parse legacy XP data from ${key}`);
             }
-          } catch { /* ignore */ }
+          }
+
+          if (bestData) {
+            xpLogger.debug('Recovered XP data from legacy storage');
+            return bestData;
+          }
         }
-        if (state) xpLogger.debug('XP store rehydrated and validated');
+        if (state) {
+          // Validate the rehydrated level makes sense for the XP
+          const expectedLevel = calculateLevelFromXP(state.currentXP);
+          if (state.currentLevel < expectedLevel) {
+            xpLogger.warn(`Level mismatch: stored ${state.currentLevel}, expected ${expectedLevel}. Fixing.`);
+            state.currentLevel = expectedLevel;
+          }
+          xpLogger.debug('XP store rehydrated and validated');
+        }
       },
     }
   )

@@ -83,12 +83,24 @@ export function createValidatedStorage<T extends object>(
             // Try to repair by using schema defaults for invalid fields
             // This uses Zod's default() values defined in the schema
             try {
+              const validFields = filterValidFields(parsed.state, schema) as Record<string, unknown>;
+
+              // CRITICAL: For XP-related stores, preserve progress data aggressively
+              // This prevents accidental reset to level 0 when other fields are corrupted
+              const rawState = parsed.state as Record<string, unknown>;
+              if (typeof rawState.currentXP === 'number' && rawState.currentXP > 0) {
+                validFields.currentXP = rawState.currentXP;
+              }
+              if (typeof rawState.currentLevel === 'number' && rawState.currentLevel > 0) {
+                validFields.currentLevel = rawState.currentLevel;
+              }
+
               // Create a partial parse that uses defaults
               const repaired = schema.parse({
                 ...defaultState,
-                ...filterValidFields(parsed.state, schema),
+                ...validFields,
               });
-              storageLogger.debug(`[ValidatedStorage] Repaired ${name} with defaults`);
+              storageLogger.debug(`[ValidatedStorage] Repaired ${name} with defaults, preserved XP: ${(repaired as Record<string, unknown>).currentXP || 0}`);
               return JSON.stringify({ ...parsed, state: repaired });
             } catch {
               // Repair failed, use full defaults

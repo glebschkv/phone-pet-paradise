@@ -111,66 +111,125 @@ export const useXPSystem = () => {
 
   // Load saved state from localStorage
   useEffect(() => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
     const defaultStartingAnimals = getUnlockedAnimals(0).map(a => a.name);
 
-    if (savedData) {
-      const parsed = safeJsonParse<Partial<XPSystemState> & { currentXP?: number }>(savedData, {});
-      logger.debug('Loading saved XP state:', parsed);
+    // Try multiple storage keys for backwards compatibility and data recovery
+    // This fixes the dual storage key issue where data might be in either location
+    const LEGACY_KEY = 'nomo_xp_system'; // Zustand store key
+    const storageKeys = [STORAGE_KEY, LEGACY_KEY];
 
-      if (parsed && typeof parsed.currentXP === 'number') {
-        const savedAnimals = normalizeAnimalList(parsed.unlockedAnimals || []);
-        const allAnimals = Array.from(new Set([...defaultStartingAnimals, ...savedAnimals]));
+    let bestData: { currentXP: number; currentLevel: number; unlockedAnimals?: string[]; currentBiome?: string } | null = null;
+    let bestDataSource = '';
 
-        // Recalculate level from saved XP to ensure consistency
-        let level = 0;
-        while (level < MAX_LEVEL && parsed.currentXP >= calculateLevelRequirement(level + 1)) {
-          level++;
+    for (const key of storageKeys) {
+      try {
+        const savedData = localStorage.getItem(key);
+        if (!savedData) continue;
+
+        let parsed: Record<string, unknown> | null = null;
+        try {
+          parsed = JSON.parse(savedData);
+        } catch {
+          logger.warn(`Failed to parse JSON from ${key}, skipping`);
+          continue;
         }
 
-        const currentLevelXP = calculateLevelRequirement(level);
-        const nextLevelXP = level >= MAX_LEVEL
-          ? calculateLevelRequirement(level)
-          : calculateLevelRequirement(level + 1);
-        const xpToNextLevel = level >= MAX_LEVEL ? 0 : nextLevelXP - parsed.currentXP;
+        // Handle Zustand's wrapped format { state: {...}, version: ... }
+        const stateData = (parsed && typeof parsed === 'object' && 'state' in parsed)
+          ? parsed.state as Record<string, unknown>
+          : parsed;
 
-        const availableBiomes = BIOME_DATABASE
-          .filter(biome => biome.unlockLevel <= level)
-          .map(biome => biome.name);
+        if (!stateData || typeof stateData !== 'object') continue;
 
-        const currentBiome = availableBiomes.includes(parsed.currentBiome || '')
-          ? parsed.currentBiome!
-          : availableBiomes[availableBiomes.length - 1] || 'Meadow';
+        // Extract XP value - try multiple possible field names
+        let xpValue = 0;
+        if (typeof stateData.currentXP === 'number' && stateData.currentXP >= 0) {
+          xpValue = stateData.currentXP;
+        } else if (typeof stateData.totalXP === 'number' && stateData.totalXP >= 0) {
+          xpValue = stateData.totalXP;
+        }
 
-        const newState = {
-          currentXP: parsed.currentXP || 0,
-          currentLevel: level,
-          xpToNextLevel: Math.max(0, xpToNextLevel),
-          totalXPForCurrentLevel: currentLevelXP,
-          unlockedAnimals: allAnimals,
-          currentBiome,
-          availableBiomes,
-        };
-        setXPState(newState);
-        xpStateRef.current = newState;
+        // Extract level - but we'll recalculate to ensure consistency
+        const levelValue = typeof stateData.currentLevel === 'number' ? stateData.currentLevel : 0;
 
-        logger.debug(`Restored XP state: Level ${level}, ${parsed.currentXP} XP, ${allAnimals.length} animals`);
-      } else {
-        logger.warn('Invalid saved XP data, starting fresh');
-        const newState = {
-          currentXP: 0,
-          currentLevel: 0,
-          xpToNextLevel: 15,
-          totalXPForCurrentLevel: 0,
-          unlockedAnimals: defaultStartingAnimals,
-          currentBiome: 'Meadow',
-          availableBiomes: ['Meadow'],
-        };
-        setXPState(newState);
-        xpStateRef.current = newState;
+        // Keep the data with the highest XP (most progress)
+        if (xpValue > 0 && (!bestData || xpValue > bestData.currentXP)) {
+          bestData = {
+            currentXP: xpValue,
+            currentLevel: levelValue,
+            unlockedAnimals: Array.isArray(stateData.unlockedAnimals) ? stateData.unlockedAnimals as string[] : undefined,
+            currentBiome: typeof stateData.currentBiome === 'string' ? stateData.currentBiome : undefined,
+          };
+          bestDataSource = key;
+          logger.debug(`Found valid XP data in ${key}: ${xpValue} XP, level ${levelValue}`);
+        }
+      } catch (error) {
+        logger.warn(`Error reading from ${key}:`, error);
       }
+    }
+
+    if (bestData && bestData.currentXP > 0) {
+      const savedAnimals = normalizeAnimalList(bestData.unlockedAnimals || []);
+      const allAnimals = Array.from(new Set([...defaultStartingAnimals, ...savedAnimals]));
+
+      // Recalculate level from saved XP to ensure consistency
+      // This prevents level from being reset if only the level field got corrupted
+      let level = 0;
+      while (level < MAX_LEVEL && bestData.currentXP >= calculateLevelRequirement(level + 1)) {
+        level++;
+      }
+
+      // Sanity check: if saved level is higher and XP supports it, use the higher level
+      // This prevents regression from data inconsistency
+      if (bestData.currentLevel > level) {
+        const minXPForSavedLevel = calculateLevelRequirement(bestData.currentLevel);
+        if (bestData.currentXP >= minXPForSavedLevel * 0.9) {
+          // Close enough - likely just rounding, use the saved level
+          level = bestData.currentLevel;
+        }
+      }
+
+      const currentLevelXP = calculateLevelRequirement(level);
+      const nextLevelXP = level >= MAX_LEVEL
+        ? calculateLevelRequirement(level)
+        : calculateLevelRequirement(level + 1);
+      const xpToNextLevel = level >= MAX_LEVEL ? 0 : nextLevelXP - bestData.currentXP;
+
+      const availableBiomes = BIOME_DATABASE
+        .filter(biome => biome.unlockLevel <= level)
+        .map(biome => biome.name);
+
+      const currentBiome = availableBiomes.includes(bestData.currentBiome || '')
+        ? bestData.currentBiome!
+        : availableBiomes[availableBiomes.length - 1] || 'Meadow';
+
+      const newState = {
+        currentXP: bestData.currentXP,
+        currentLevel: level,
+        xpToNextLevel: Math.max(0, xpToNextLevel),
+        totalXPForCurrentLevel: currentLevelXP,
+        unlockedAnimals: allAnimals,
+        currentBiome,
+        availableBiomes,
+      };
+      setXPState(newState);
+      xpStateRef.current = newState;
+
+      // Ensure data is saved to primary key for consistency
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+
+      logger.debug(`Restored XP state from ${bestDataSource}: Level ${level}, ${bestData.currentXP} XP, ${allAnimals.length} animals`);
     } else {
-      logger.debug('No saved XP state, starting fresh with animals:', defaultStartingAnimals);
+      // No valid data found - check if there's any corrupted data we should warn about
+      const primaryData = localStorage.getItem(STORAGE_KEY);
+      const legacyData = localStorage.getItem(LEGACY_KEY);
+      if (primaryData || legacyData) {
+        logger.warn('Found storage data but could not extract valid XP. Data may be corrupted. Starting fresh.');
+        // Don't clear the corrupted data - leave it for potential manual recovery
+      } else {
+        logger.debug('No saved XP state, starting fresh with animals:', defaultStartingAnimals);
+      }
+
       const newState = {
         currentXP: 0,
         currentLevel: 0,
