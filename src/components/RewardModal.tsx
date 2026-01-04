@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Heart, Clock, Trophy, Sparkles } from "lucide-react";
+import { formatMinutes } from "@/lib/utils";
 
 interface RewardModalProps {
   isOpen: boolean;
@@ -9,16 +10,6 @@ interface RewardModalProps {
   newPetsEarned: number;
   timeAwayMinutes: number;
 }
-
-const formatTime = (minutes: number): string => {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  
-  if (hours > 0) {
-    return `${hours}h ${mins}m`;
-  }
-  return `${mins}m`;
-};
 
 export const RewardModal = ({ isOpen, onClose, newPetsEarned, timeAwayMinutes }: RewardModalProps) => {
   return (
@@ -41,7 +32,7 @@ export const RewardModal = ({ isOpen, onClose, newPetsEarned, timeAwayMinutes }:
                 <span className="font-semibold text-foreground">Time Away</span>
               </div>
               <div className="text-3xl font-bold text-primary mb-1">
-                {formatTime(timeAwayMinutes)}
+                {formatMinutes(timeAwayMinutes)}
               </div>
               <div className="text-sm text-muted-foreground">
                 Great job staying off your phone! 📱

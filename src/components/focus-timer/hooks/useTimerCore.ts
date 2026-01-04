@@ -201,19 +201,8 @@ export function useTimerVisibility(options: {
   ]);
 }
 
-/**
- * Format seconds to display string (MM:SS or HH:MM:SS)
- */
-export function formatTime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
+// Re-export formatTimeExtended as formatTime for backwards compatibility
+export { formatTimeExtended as formatTime } from '@/lib/utils';
 
 /**
  * Calculate progress percentage

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, AlertTriangle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FOCUS_CATEGORIES, FocusCategory } from "@/types/analytics";
+import { formatTime } from "@/lib/utils";
 
 interface FocusLockScreenProps {
   isVisible: boolean;
@@ -12,12 +13,6 @@ interface FocusLockScreenProps {
   onReturnToApp: () => void;
   onAbandonSession: () => void;
 }
-
-const formatTime = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
 
 export const FocusLockScreen = ({
   isVisible,
