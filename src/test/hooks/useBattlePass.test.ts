@@ -18,12 +18,17 @@ vi.mock('./usePremiumStatus', () => ({
   TIER_BENEFITS: {
     free: { battlePassIncluded: false },
     premium: { battlePassIncluded: true },
+    premium_plus: { battlePassIncluded: true },
+    lifetime: { battlePassIncluded: true },
     pro: { battlePassIncluded: true },
   },
   BATTLE_PASS_PLANS: [
     { id: 'bp-standard', name: 'Battle Pass', price: 9.99 },
     { id: 'bp-bundle', name: 'Battle Pass + 10 Tiers', price: 19.99 },
   ],
+  isValidSubscriptionTier: (value: unknown): value is 'free' | 'premium' | 'premium_plus' | 'lifetime' => {
+    return typeof value === 'string' && ['free', 'premium', 'premium_plus', 'lifetime'].includes(value);
+  },
 }));
 
 // Mock gamification data

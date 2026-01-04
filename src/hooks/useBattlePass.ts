@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { getCurrentSeason, Season, BattlePassReward } from '@/data/GamificationData';
-import { TIER_BENEFITS, SubscriptionTier, BATTLE_PASS_PLANS } from './usePremiumStatus';
+import { TIER_BENEFITS, isValidSubscriptionTier, BATTLE_PASS_PLANS } from './usePremiumStatus';
 
 export interface BattlePassState {
   seasonId: string;
@@ -33,9 +33,8 @@ const checkSubscriptionBattlePass = (): boolean => {
   if (premiumData) {
     try {
       const parsed = JSON.parse(premiumData);
-      const tier = parsed.tier as SubscriptionTier;
-      if (tier && TIER_BENEFITS[tier]) {
-        return TIER_BENEFITS[tier].battlePassIncluded;
+      if (isValidSubscriptionTier(parsed.tier)) {
+        return TIER_BENEFITS[parsed.tier].battlePassIncluded;
       }
     } catch {
       // Invalid data

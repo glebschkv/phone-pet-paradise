@@ -10,6 +10,9 @@ vi.mock('@/hooks/usePremiumStatus', () => ({
     premium_plus: { focusPresetSlots: 5 },
     lifetime: { focusPresetSlots: 10 },
   },
+  isValidSubscriptionTier: (value: unknown): value is 'free' | 'premium' | 'premium_plus' | 'lifetime' => {
+    return typeof value === 'string' && ['free', 'premium', 'premium_plus', 'lifetime'].includes(value);
+  },
 }));
 
 describe('useFocusPresets', () => {

@@ -7,6 +7,16 @@ const PREMIUM_STORAGE_KEY = 'petIsland_premium';
 
 export type SubscriptionTier = 'free' | 'premium' | 'premium_plus' | 'lifetime';
 
+const VALID_SUBSCRIPTION_TIERS: readonly SubscriptionTier[] = ['free', 'premium', 'premium_plus', 'lifetime'];
+
+/**
+ * Type guard to validate if a value is a valid SubscriptionTier
+ * Prevents implicit type coercion when loading data from storage
+ */
+export function isValidSubscriptionTier(value: unknown): value is SubscriptionTier {
+  return typeof value === 'string' && VALID_SUBSCRIPTION_TIERS.includes(value as SubscriptionTier);
+}
+
 // Multipliers and benefits per tier
 export const TIER_BENEFITS = {
   free: {

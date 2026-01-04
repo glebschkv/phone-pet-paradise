@@ -21,7 +21,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { xpLogger as logger } from '@/lib/logger';
 import { safeJsonParse } from '@/lib/apiUtils';
-import { TIER_BENEFITS, SubscriptionTier } from '../usePremiumStatus';
+import { TIER_BENEFITS, isValidSubscriptionTier } from '../usePremiumStatus';
 import { useAuth } from '../useAuth';
 import { useSupabaseData } from '../useSupabaseData';
 
@@ -291,9 +291,8 @@ export const useXPSystem = () => {
     if (premiumData) {
       try {
         const parsed = JSON.parse(premiumData);
-        const tier = parsed.tier as SubscriptionTier;
-        if (tier && TIER_BENEFITS[tier]) {
-          return TIER_BENEFITS[tier].xpMultiplier;
+        if (isValidSubscriptionTier(parsed.tier)) {
+          return TIER_BENEFITS[parsed.tier].xpMultiplier;
         }
       } catch {
         // Invalid data

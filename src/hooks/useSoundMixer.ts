@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { getAmbientSoundById, AmbientSound } from '@/data/AmbientSoundsData';
-import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
+import { TIER_BENEFITS, isValidSubscriptionTier } from './usePremiumStatus';
 import { soundLogger } from '@/lib/logger';
 import type { WebkitWindow, AudioNodes } from '@/types/browser-utils';
 
@@ -36,9 +36,8 @@ export const useSoundMixer = () => {
     if (premiumData) {
       try {
         const parsed = JSON.parse(premiumData);
-        const tier = parsed.tier as SubscriptionTier;
-        if (tier && TIER_BENEFITS[tier]) {
-          return TIER_BENEFITS[tier].soundMixingSlots;
+        if (isValidSubscriptionTier(parsed.tier)) {
+          return TIER_BENEFITS[parsed.tier].soundMixingSlots;
         }
       } catch {
         // Invalid data

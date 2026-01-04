@@ -15,33 +15,41 @@ export function memoize<T extends (...args: unknown[]) => unknown>(
     maxSize?: number;
     keyGenerator?: (...args: Parameters<T>) => string;
   } = {}
-): T {
+): T & { clear: () => void } {
   const { maxSize = 100, keyGenerator } = options;
+  // Use Map for LRU: Map maintains insertion order, so we can delete and re-add to move to end
   const cache = new Map<string, ReturnType<T>>();
-  const keyOrder: string[] = [];
 
-  return ((...args: Parameters<T>) => {
+  const memoized = ((...args: Parameters<T>) => {
     const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
 
     if (cache.has(key)) {
-      return cache.get(key);
+      // LRU: Move to end by deleting and re-adding
+      const value = cache.get(key)!;
+      cache.delete(key);
+      cache.set(key, value);
+      return value;
     }
 
     const result = fn(...args) as ReturnType<T>;
 
-    // Evict oldest entry if cache is full
-    if (keyOrder.length >= maxSize) {
-      const oldestKey = keyOrder.shift();
-      if (oldestKey) {
+    // Evict oldest entry (first item in Map) if cache is full
+    if (cache.size >= maxSize) {
+      const oldestKey = cache.keys().next().value;
+      if (oldestKey !== undefined) {
         cache.delete(oldestKey);
       }
     }
 
     cache.set(key, result);
-    keyOrder.push(key);
 
     return result;
-  }) as T;
+  }) as T & { clear: () => void };
+
+  // Allow manual cache clearing
+  memoized.clear = () => cache.clear();
+
+  return memoized;
 }
 
 /**
@@ -195,20 +203,28 @@ export function lazy<T>(factory: () => T): () => T {
  * Creates a stable reference for callbacks
  * Useful when you need a callback that doesn't change identity
  * but still has access to latest values
+ *
+ * Returns a tuple: [stableCallback, updateCallback]
+ * - stableCallback: A function with stable identity that always calls the latest callback
+ * - updateCallback: Call this to update the underlying callback reference
  */
 export function createStableCallback<T extends (...args: unknown[]) => unknown>(
-  getCallback: () => T
-): T {
-  // This is a pattern for creating stable callbacks
-  // The returned function never changes, but it calls the latest version
-  const latestCallback = getCallback();
+  initialCallback: T
+): [T, (newCallback: T) => void] {
+  // Store the latest callback in a mutable container
+  let latestCallback: T = initialCallback;
 
+  // The stable callback maintains its identity but delegates to latestCallback
   const stableCallback = ((...args: Parameters<T>) => {
     return latestCallback(...args);
   }) as T;
 
-  // Return a tuple with the stable callback and an updater
-  return stableCallback;
+  // Updater function to change the underlying callback
+  const updateCallback = (newCallback: T) => {
+    latestCallback = newCallback;
+  };
+
+  return [stableCallback, updateCallback];
 }
 
 // ============================================================================
