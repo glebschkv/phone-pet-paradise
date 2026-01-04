@@ -1,4 +1,5 @@
 import { useCallback, useRef, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useCoinSystem } from './useCoinSystem';
 import { useCoinBooster } from './useCoinBooster';
 import { useStreakSystem } from './useStreakSystem';
@@ -35,20 +36,46 @@ export const useShop = () => {
   const boosterSystem = useCoinBooster();
   const streakSystem = useStreakSystem();
 
-  // Use Zustand store for inventory - no more useState or localStorage manually
-  const ownedCharacters = useShopStore((state) => state.ownedCharacters);
-  const ownedBackgrounds = useShopStore((state) => state.ownedBackgrounds);
-  const ownedBadges = useShopStore((state) => state.ownedBadges);
-  const equippedBadge = useShopStore((state) => state.equippedBadge);
-  const equippedBackground = useShopStore((state) => state.equippedBackground);
-  const addOwnedCharacter = useShopStore((state) => state.addOwnedCharacter);
-  const addOwnedBackground = useShopStore((state) => state.addOwnedBackground);
-  const addOwnedBadge = useShopStore((state) => state.addOwnedBadge);
-  const addOwnedCharacters = useShopStore((state) => state.addOwnedCharacters);
-  const addOwnedBackgrounds = useShopStore((state) => state.addOwnedBackgrounds);
-  const storeSetEquippedBadge = useShopStore((state) => state.setEquippedBadge);
-  const storeSetEquippedBackground = useShopStore((state) => state.setEquippedBackground);
-  const storeResetShop = useShopStore((state) => state.resetShop);
+  // Use Zustand store with shallow comparison to prevent unnecessary re-renders
+  // State values - use useShallow for efficient change detection
+  const {
+    ownedCharacters,
+    ownedBackgrounds,
+    ownedBadges,
+    equippedBadge,
+    equippedBackground,
+  } = useShopStore(
+    useShallow((state) => ({
+      ownedCharacters: state.ownedCharacters,
+      ownedBackgrounds: state.ownedBackgrounds,
+      ownedBadges: state.ownedBadges,
+      equippedBadge: state.equippedBadge,
+      equippedBackground: state.equippedBackground,
+    }))
+  );
+
+  // Actions - stable references, extract once with useShallow
+  const {
+    addOwnedCharacter,
+    addOwnedBackground,
+    addOwnedBadge,
+    addOwnedCharacters,
+    addOwnedBackgrounds,
+    storeSetEquippedBadge,
+    storeSetEquippedBackground,
+    storeResetShop,
+  } = useShopStore(
+    useShallow((state) => ({
+      addOwnedCharacter: state.addOwnedCharacter,
+      addOwnedBackground: state.addOwnedBackground,
+      addOwnedBadge: state.addOwnedBadge,
+      addOwnedCharacters: state.addOwnedCharacters,
+      addOwnedBackgrounds: state.addOwnedBackgrounds,
+      storeSetEquippedBadge: state.setEquippedBadge,
+      storeSetEquippedBackground: state.setEquippedBackground,
+      storeResetShop: state.resetShop,
+    }))
+  );
 
   // For backwards compatibility, provide inventory object
   const inventory: ShopInventory = {
@@ -87,8 +114,12 @@ export const useShop = () => {
     }
   }, [ownedCharacters, ownedBackgrounds, ownedBadges]);
 
-  // Purchase a character
-  const purchaseCharacter = useCallback((characterId: string): PurchaseResult => {
+  /**
+   * SECURITY: Purchase a character with server-validated coin spending
+   *
+   * Uses async server validation to prevent manipulation.
+   */
+  const purchaseCharacter = useCallback(async (characterId: string): Promise<PurchaseResult> => {
     const animal = getAnimalById(characterId);
     if (!animal) {
       return { success: false, message: 'Character not found' };
@@ -106,7 +137,8 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    const spendSuccess = coinSystem.spendCoins(animal.coinPrice);
+    // SECURITY: Server-validated spending
+    const spendSuccess = await coinSystem.spendCoins(animal.coinPrice, 'pet_unlock', characterId);
     if (!spendSuccess) {
       return { success: false, message: 'Failed to process payment' };
     }
@@ -116,8 +148,10 @@ export const useShop = () => {
     return { success: true, message: `${animal.name} purchased!`, item: animal };
   }, [ownedCharacters, coinSystem, addOwnedCharacter]);
 
-  // Purchase a background
-  const purchaseBackground = useCallback((backgroundId: string): PurchaseResult => {
+  /**
+   * SECURITY: Purchase a background with server-validated coin spending
+   */
+  const purchaseBackground = useCallback(async (backgroundId: string): Promise<PurchaseResult> => {
     const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === backgroundId);
     if (!background) {
       return { success: false, message: 'Background not found' };
@@ -131,7 +165,8 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    const spendSuccess = coinSystem.spendCoins(background.coinPrice);
+    // SECURITY: Server-validated spending
+    const spendSuccess = await coinSystem.spendCoins(background.coinPrice, 'cosmetic', backgroundId);
     if (!spendSuccess) {
       return { success: false, message: 'Failed to process payment' };
     }
@@ -141,8 +176,10 @@ export const useShop = () => {
     return { success: true, message: `${background.name} purchased!`, item: background };
   }, [ownedBackgrounds, coinSystem, addOwnedBackground]);
 
-  // Purchase a badge
-  const purchaseBadge = useCallback((badgeId: string): PurchaseResult => {
+  /**
+   * SECURITY: Purchase a badge with server-validated coin spending
+   */
+  const purchaseBadge = useCallback(async (badgeId: string): Promise<PurchaseResult> => {
     const badge = PROFILE_BADGES.find(b => b.id === badgeId);
     if (!badge) {
       return { success: false, message: 'Badge not found' };
@@ -156,7 +193,8 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    const spendSuccess = coinSystem.spendCoins(badge.coinPrice);
+    // SECURITY: Server-validated spending
+    const spendSuccess = await coinSystem.spendCoins(badge.coinPrice, 'cosmetic', badgeId);
     if (!spendSuccess) {
       return { success: false, message: 'Failed to process payment' };
     }
@@ -246,8 +284,10 @@ export const useShop = () => {
     };
   }, [coinSystem, boosterSystem, unlockCharacter, unlockBadge]);
 
-  // Purchase a background bundle
-  const purchaseBackgroundBundle = useCallback((bundleId: string): PurchaseResult => {
+  /**
+   * SECURITY: Purchase a background bundle with server-validated coin spending
+   */
+  const purchaseBackgroundBundle = useCallback(async (bundleId: string): Promise<PurchaseResult> => {
     const bundle = BACKGROUND_BUNDLES.find(b => b.id === bundleId);
     if (!bundle) {
       return { success: false, message: 'Bundle not found' };
@@ -263,7 +303,8 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    const spendSuccess = coinSystem.spendCoins(bundle.coinPrice);
+    // SECURITY: Server-validated spending
+    const spendSuccess = await coinSystem.spendCoins(bundle.coinPrice, 'cosmetic', bundleId);
     if (!spendSuccess) {
       return { success: false, message: 'Failed to process payment' };
     }
@@ -275,8 +316,10 @@ export const useShop = () => {
     return { success: true, message: `${bundle.name} purchased! ${newBackgrounds.length} backgrounds added!` };
   }, [ownedBackgrounds, coinSystem, addOwnedBackgrounds]);
 
-  // Purchase a pet bundle
-  const purchasePetBundle = useCallback((bundleId: string): PurchaseResult => {
+  /**
+   * SECURITY: Purchase a pet bundle with server-validated coin spending
+   */
+  const purchasePetBundle = useCallback(async (bundleId: string): Promise<PurchaseResult> => {
     const bundle = PET_BUNDLES.find(b => b.id === bundleId);
     if (!bundle) {
       return { success: false, message: 'Bundle not found' };
@@ -292,7 +335,8 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    const spendSuccess = coinSystem.spendCoins(bundle.coinPrice);
+    // SECURITY: Server-validated spending
+    const spendSuccess = await coinSystem.spendCoins(bundle.coinPrice, 'pet_unlock', bundleId);
     if (!spendSuccess) {
       return { success: false, message: 'Failed to process payment' };
     }
@@ -318,8 +362,10 @@ export const useShop = () => {
     return bundle.petIds.every(id => ownedCharacters.includes(id));
   }, [ownedCharacters]);
 
-  // Purchase a booster
-  const purchaseBooster = useCallback((boosterId: string): PurchaseResult => {
+  /**
+   * SECURITY: Purchase a booster with server-validated coin spending
+   */
+  const purchaseBooster = useCallback(async (boosterId: string): Promise<PurchaseResult> => {
     const booster = boosterSystem.getBoosterType(boosterId);
     if (!booster) {
       return { success: false, message: 'Booster not found' };
@@ -333,7 +379,8 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    const spendSuccess = coinSystem.spendCoins(booster.coinPrice);
+    // SECURITY: Server-validated spending
+    const spendSuccess = await coinSystem.spendCoins(booster.coinPrice, 'booster', boosterId);
     if (!spendSuccess) {
       return { success: false, message: 'Failed to process payment' };
     }
@@ -343,13 +390,16 @@ export const useShop = () => {
     return { success: true, message: `${booster.name} activated!` };
   }, [coinSystem, boosterSystem]);
 
-  // Purchase streak freeze
-  const purchaseStreakFreeze = useCallback((quantity: number, price: number): PurchaseResult => {
+  /**
+   * SECURITY: Purchase streak freeze with server-validated coin spending
+   */
+  const purchaseStreakFreeze = useCallback(async (quantity: number, price: number): Promise<PurchaseResult> => {
     if (!coinSystem.canAfford(price)) {
       return { success: false, message: 'Not enough coins' };
     }
 
-    const spendSuccess = coinSystem.spendCoins(price);
+    // SECURITY: Server-validated spending
+    const spendSuccess = await coinSystem.spendCoins(price, 'streak_freeze', `streak_freeze_x${quantity}`);
     if (!spendSuccess) {
       return { success: false, message: 'Failed to process payment' };
     }
@@ -362,8 +412,12 @@ export const useShop = () => {
     return { success: true, message: `${quantity} Streak Freeze${quantity > 1 ? 's' : ''} added!` };
   }, [coinSystem, streakSystem]);
 
-  // Generic purchase function
-  const purchaseItem = useCallback((itemId: string, category: ShopCategory): PurchaseResult => {
+  /**
+   * SECURITY: Generic purchase function with server validation
+   *
+   * All purchases go through server-validated coin spending.
+   */
+  const purchaseItem = useCallback(async (itemId: string, category: ShopCategory): Promise<PurchaseResult> => {
     switch (category) {
       case 'pets':
         return purchaseCharacter(itemId);

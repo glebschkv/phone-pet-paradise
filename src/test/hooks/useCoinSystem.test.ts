@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useCoinSystem } from '@/hooks/useCoinSystem';
+import { useCoinSystem, _resetRateLimiter } from '@/hooks/useCoinSystem';
+import { useCoinStore } from '@/stores/coinStore';
 
 // Mock achievement tracking
 vi.mock('@/hooks/useAchievementTracking', () => ({
@@ -30,6 +31,12 @@ vi.mock('@/lib/logger', () => ({
     warn: vi.fn(),
     error: vi.fn(),
   },
+  storageLogger: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
 }));
 
 // Mock Supabase
@@ -44,15 +51,21 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 describe('useCoinSystem', () => {
-  const STORAGE_KEY = 'petIsland_coinSystem';
+  // The new storage key used by Zustand
+  const STORAGE_KEY = 'nomo_coin_system';
 
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    // Reset the Zustand store to initial state
+    useCoinStore.getState().resetCoins();
+    // Reset rate limiter for tests
+    _resetRateLimiter();
   });
 
   afterEach(() => {
     localStorage.clear();
+    useCoinStore.getState().resetCoins();
   });
 
   describe('initialization', () => {
@@ -64,30 +77,19 @@ describe('useCoinSystem', () => {
       expect(result.current.totalSpent).toBe(0);
     });
 
-    it('should load saved state from localStorage', async () => {
-      const savedState = {
-        balance: 500,
-        totalEarned: 1000,
-        totalSpent: 500,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
+    it('should use Zustand store state', async () => {
+      // Set initial state in the store
+      act(() => {
+        useCoinStore.getState().addCoins(500);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
       await waitFor(() => {
         expect(result.current.balance).toBe(500);
-        expect(result.current.totalEarned).toBe(1000);
-        expect(result.current.totalSpent).toBe(500);
+        expect(result.current.totalEarned).toBe(500);
+        expect(result.current.totalSpent).toBe(0);
       });
-    });
-
-    it('should handle invalid localStorage data gracefully', () => {
-      localStorage.setItem(STORAGE_KEY, 'invalid json');
-
-      const { result } = renderHook(() => useCoinSystem());
-
-      expect(result.current.balance).toBe(0);
-      expect(result.current.totalEarned).toBe(0);
     });
   });
 
@@ -189,7 +191,7 @@ describe('useCoinSystem', () => {
       });
     });
 
-    it('should save to localStorage after awarding', async () => {
+    it('should update Zustand store after awarding', async () => {
       const { result } = renderHook(() => useCoinSystem());
 
       act(() => {
@@ -197,10 +199,8 @@ describe('useCoinSystem', () => {
       });
 
       await waitFor(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        expect(saved).not.toBeNull();
-        const parsed = JSON.parse(saved!);
-        expect(parsed.balance).toBeGreaterThanOrEqual(40);
+        const storeState = useCoinStore.getState();
+        expect(storeState.balance).toBeGreaterThanOrEqual(40);
       });
     });
   });
@@ -220,11 +220,10 @@ describe('useCoinSystem', () => {
     });
 
     it('should add to existing balance', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 50,
-        totalEarned: 50,
-        totalSpent: 0,
-      }));
+      // Set initial state
+      act(() => {
+        useCoinStore.getState().addCoins(50);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -242,12 +241,10 @@ describe('useCoinSystem', () => {
       });
     });
 
-    it('should handle negative amounts correctly', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 100,
-        totalEarned: 100,
-        totalSpent: 0,
-      }));
+    it('should ignore invalid (negative or zero) amounts', async () => {
+      act(() => {
+        useCoinStore.getState().addCoins(100);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -255,24 +252,31 @@ describe('useCoinSystem', () => {
         expect(result.current.balance).toBe(100);
       });
 
-      // Adding negative coins (not recommended but technically possible)
+      // Adding negative or zero coins should be ignored
       act(() => {
         result.current.addCoins(-50);
       });
 
       await waitFor(() => {
-        expect(result.current.balance).toBe(50);
+        // Balance should remain unchanged
+        expect(result.current.balance).toBe(100);
+      });
+
+      act(() => {
+        result.current.addCoins(0);
+      });
+
+      await waitFor(() => {
+        expect(result.current.balance).toBe(100);
       });
     });
   });
 
-  describe('spendCoins', () => {
+  describe('spendCoins (async)', () => {
     it('should return true when balance is sufficient', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 100,
-        totalEarned: 100,
-        totalSpent: 0,
-      }));
+      act(() => {
+        useCoinStore.getState().addCoins(100);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -281,8 +285,8 @@ describe('useCoinSystem', () => {
       });
 
       let success = false;
-      act(() => {
-        success = result.current.spendCoins(50);
+      await act(async () => {
+        success = await result.current.spendCoins(50);
       });
 
       expect(success).toBe(true);
@@ -293,11 +297,9 @@ describe('useCoinSystem', () => {
     });
 
     it('should return false when balance is insufficient', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 30,
-        totalEarned: 30,
-        totalSpent: 0,
-      }));
+      act(() => {
+        useCoinStore.getState().addCoins(30);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -306,8 +308,8 @@ describe('useCoinSystem', () => {
       });
 
       let success = true;
-      act(() => {
-        success = result.current.spendCoins(50);
+      await act(async () => {
+        success = await result.current.spendCoins(50);
       });
 
       expect(success).toBe(false);
@@ -315,20 +317,20 @@ describe('useCoinSystem', () => {
     });
 
     it('should track total spent', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 200,
-        totalEarned: 200,
-        totalSpent: 50,
-      }));
+      act(() => {
+        useCoinStore.getState().addCoins(200);
+        useCoinStore.getState().spendCoins(50); // Spend initial amount
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
       await waitFor(() => {
-        expect(result.current.balance).toBe(200);
+        expect(result.current.balance).toBe(150);
+        expect(result.current.totalSpent).toBe(50);
       });
 
-      act(() => {
-        result.current.spendCoins(75);
+      await act(async () => {
+        await result.current.spendCoins(75);
       });
 
       await waitFor(() => {
@@ -337,11 +339,9 @@ describe('useCoinSystem', () => {
     });
 
     it('should allow spending entire balance', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 100,
-        totalEarned: 100,
-        totalSpent: 0,
-      }));
+      act(() => {
+        useCoinStore.getState().addCoins(100);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -350,8 +350,8 @@ describe('useCoinSystem', () => {
       });
 
       let success = false;
-      act(() => {
-        success = result.current.spendCoins(100);
+      await act(async () => {
+        success = await result.current.spendCoins(100);
       });
 
       expect(success).toBe(true);
@@ -361,13 +361,55 @@ describe('useCoinSystem', () => {
     });
   });
 
+  describe('spendCoinsSync (deprecated)', () => {
+    it('should return true synchronously when balance is sufficient', async () => {
+      act(() => {
+        useCoinStore.getState().addCoins(100);
+      });
+
+      const { result } = renderHook(() => useCoinSystem());
+
+      await waitFor(() => {
+        expect(result.current.balance).toBe(100);
+      });
+
+      let success = false;
+      act(() => {
+        success = result.current.spendCoinsSync(50);
+      });
+
+      expect(success).toBe(true);
+      await waitFor(() => {
+        expect(result.current.balance).toBe(50);
+      });
+    });
+
+    it('should return false synchronously when balance is insufficient', async () => {
+      act(() => {
+        useCoinStore.getState().addCoins(30);
+      });
+
+      const { result } = renderHook(() => useCoinSystem());
+
+      await waitFor(() => {
+        expect(result.current.balance).toBe(30);
+      });
+
+      let success = true;
+      act(() => {
+        success = result.current.spendCoinsSync(50);
+      });
+
+      expect(success).toBe(false);
+      expect(result.current.balance).toBe(30);
+    });
+  });
+
   describe('canAfford', () => {
     it('should return true when balance is sufficient', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 100,
-        totalEarned: 100,
-        totalSpent: 0,
-      }));
+      act(() => {
+        useCoinStore.getState().addCoins(100);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -380,11 +422,9 @@ describe('useCoinSystem', () => {
     });
 
     it('should return false when balance is insufficient', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 30,
-        totalEarned: 30,
-        totalSpent: 0,
-      }));
+      act(() => {
+        useCoinStore.getState().addCoins(30);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -397,11 +437,9 @@ describe('useCoinSystem', () => {
     });
 
     it('should return true for exact amount', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 100,
-        totalEarned: 100,
-        totalSpent: 0,
-      }));
+      act(() => {
+        useCoinStore.getState().addCoins(100);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -415,11 +453,10 @@ describe('useCoinSystem', () => {
 
   describe('resetProgress', () => {
     it('should reset all values to zero', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 500,
-        totalEarned: 1000,
-        totalSpent: 500,
-      }));
+      act(() => {
+        useCoinStore.getState().addCoins(1000);
+        useCoinStore.getState().spendCoins(500);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -438,12 +475,11 @@ describe('useCoinSystem', () => {
       });
     });
 
-    it('should persist reset to localStorage', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        balance: 500,
-        totalEarned: 1000,
-        totalSpent: 500,
-      }));
+    it('should reset Zustand store state', async () => {
+      act(() => {
+        useCoinStore.getState().addCoins(1000);
+        useCoinStore.getState().spendCoins(500);
+      });
 
       const { result } = renderHook(() => useCoinSystem());
 
@@ -456,12 +492,10 @@ describe('useCoinSystem', () => {
       });
 
       await waitFor(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        expect(saved).not.toBeNull();
-        const parsed = JSON.parse(saved!);
-        expect(parsed.balance).toBe(0);
-        expect(parsed.totalEarned).toBe(0);
-        expect(parsed.totalSpent).toBe(0);
+        const storeState = useCoinStore.getState();
+        expect(storeState.balance).toBe(0);
+        expect(storeState.totalEarned).toBe(0);
+        expect(storeState.totalSpent).toBe(0);
       });
     });
   });
@@ -485,26 +519,6 @@ describe('useCoinSystem', () => {
   });
 
   describe('event handling', () => {
-    it('should update state when coin update event is fired', async () => {
-      const { result } = renderHook(() => useCoinSystem());
-
-      const newState = {
-        balance: 999,
-        totalEarned: 999,
-        totalSpent: 0,
-      };
-
-      act(() => {
-        window.dispatchEvent(new CustomEvent('petIsland_coinUpdate', {
-          detail: newState,
-        }));
-      });
-
-      await waitFor(() => {
-        expect(result.current.balance).toBe(999);
-      });
-    });
-
     it('should handle bonus coin grants from subscription', async () => {
       const { result } = renderHook(() => useCoinSystem());
 
@@ -517,6 +531,35 @@ describe('useCoinSystem', () => {
       await waitFor(() => {
         expect(result.current.balance).toBe(500);
         expect(result.current.totalEarned).toBe(500);
+      });
+    });
+  });
+
+  describe('Zustand store integration', () => {
+    it('should reflect changes made directly to the store', async () => {
+      const { result } = renderHook(() => useCoinSystem());
+
+      // Make changes directly to the store
+      act(() => {
+        useCoinStore.getState().addCoins(250);
+      });
+
+      await waitFor(() => {
+        expect(result.current.balance).toBe(250);
+      });
+    });
+
+    it('should share state across multiple hook instances', async () => {
+      const { result: result1 } = renderHook(() => useCoinSystem());
+      const { result: result2 } = renderHook(() => useCoinSystem());
+
+      act(() => {
+        result1.current.addCoins(100);
+      });
+
+      await waitFor(() => {
+        expect(result1.current.balance).toBe(100);
+        expect(result2.current.balance).toBe(100);
       });
     });
   });
