@@ -11,14 +11,23 @@
  * - Batch processing of pending operations
  * - Conflict resolution using timestamps
  * - Progress tracking and notifications
+ *
+ * NOTE: Network status is managed by networkStore.ts
+ * This hook subscribes to network changes instead of adding its own listeners.
  */
 
 import { useEffect, useCallback, useRef } from 'react';
 import { useOfflineSyncStore, SyncOperationType, PendingSyncOperation } from '@/stores/offlineSyncStore';
+import { useNetworkStore } from '@/stores/networkStore';
 import { useAuth } from './useAuth';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { syncLogger } from '@/lib/logger';
+import {
+  resolveConflict,
+  deduplicateOperations,
+  validateOperation,
+} from '@/lib/conflictResolution';
 
 // Retry configuration
 const INITIAL_RETRY_DELAY = 1000; // 1 second
@@ -32,7 +41,66 @@ interface SyncResult {
 }
 
 /**
- * Process a single sync operation
+ * Fetch current server state for conflict resolution
+ */
+async function fetchServerState(
+  type: SyncOperationType,
+  userId: string,
+  payload: Record<string, unknown>
+): Promise<Record<string, unknown> | null> {
+  try {
+    switch (type) {
+      case 'xp_update':
+      case 'coin_update':
+      case 'progress_update':
+      case 'streak_update': {
+        const { data } = await supabase
+          .from('user_progress')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        return data || null;
+      }
+
+      case 'quest_update': {
+        const { data } = await supabase
+          .from('quest_progress')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('quest_id', payload.questId as string)
+          .single();
+        return data || null;
+      }
+
+      case 'pet_interaction': {
+        const { data } = await supabase
+          .from('pets')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('pet_type', payload.petType as string)
+          .single();
+        return data || null;
+      }
+
+      case 'profile_update': {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        return data || null;
+      }
+
+      default:
+        return null;
+    }
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Process a single sync operation with conflict resolution
  */
 async function processSyncOperation(
   operation: PendingSyncOperation,
@@ -40,15 +108,31 @@ async function processSyncOperation(
 ): Promise<SyncResult> {
   const { id, type, payload } = operation;
 
+  // Validate operation before processing
+  if (!validateOperation(operation)) {
+    syncLogger.warn(`[SyncManager] Invalid operation ${id}, skipping`);
+    return { success: true, operationId: id }; // Mark as success to remove from queue
+  }
+
   try {
+    // Fetch current server state for conflict resolution (except for insert-only operations)
+    let resolvedPayload = payload;
+    if (type !== 'focus_session' && type !== 'achievement_unlock') {
+      const serverState = await fetchServerState(type, userId, payload);
+      if (serverState) {
+        resolvedPayload = resolveConflict(type, payload, serverState);
+        syncLogger.debug(`[SyncManager] Resolved conflict for ${type}`, { original: payload, resolved: resolvedPayload });
+      }
+    }
+
     switch (type) {
       case 'focus_session': {
         const { error } = await supabase.from('focus_sessions').insert({
           user_id: userId,
-          duration_minutes: payload.durationMinutes as number,
-          xp_earned: payload.xpEarned as number,
-          session_type: payload.sessionType as string || 'focus',
-          completed_at: payload.completedAt as string || new Date().toISOString(),
+          duration_minutes: resolvedPayload.durationMinutes as number,
+          xp_earned: resolvedPayload.xpEarned as number,
+          session_type: resolvedPayload.sessionType as string || 'focus',
+          completed_at: resolvedPayload.completedAt as string || new Date().toISOString(),
         });
         if (error) throw error;
         break;
@@ -59,7 +143,7 @@ async function processSyncOperation(
           .from('user_progress')
           .upsert({
             user_id: userId,
-            ...payload,
+            ...resolvedPayload,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id' });
         if (error) throw error;
@@ -70,8 +154,8 @@ async function processSyncOperation(
         const { error } = await supabase
           .from('user_progress')
           .update({
-            total_xp: payload.totalXp as number,
-            current_level: payload.currentLevel as number,
+            total_xp: resolvedPayload.totalXp as number ?? resolvedPayload.total_xp as number,
+            current_level: resolvedPayload.currentLevel as number ?? resolvedPayload.current_level as number,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);
@@ -83,7 +167,7 @@ async function processSyncOperation(
         const { error } = await supabase
           .from('user_progress')
           .update({
-            coins: payload.coins as number,
+            coins: resolvedPayload.coins as number,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);
@@ -95,9 +179,9 @@ async function processSyncOperation(
         const { error } = await supabase
           .from('user_progress')
           .update({
-            current_streak: payload.currentStreak as number,
-            longest_streak: payload.longestStreak as number,
-            last_session_date: payload.lastSessionDate as string,
+            current_streak: resolvedPayload.currentStreak as number ?? resolvedPayload.current_streak as number,
+            longest_streak: resolvedPayload.longestStreak as number ?? resolvedPayload.longest_streak as number,
+            last_session_date: resolvedPayload.lastSessionDate as string ?? resolvedPayload.last_session_date as string,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);
@@ -106,13 +190,15 @@ async function processSyncOperation(
       }
 
       case 'quest_update': {
+        // Use MAX for progress values
+        const currentProgress = resolvedPayload.progress as number;
         const { error } = await supabase
           .from('quest_progress')
           .upsert({
             user_id: userId,
-            quest_id: payload.questId as string,
-            progress: payload.progress as number,
-            completed: payload.completed as boolean,
+            quest_id: resolvedPayload.questId as string ?? resolvedPayload.quest_id as string,
+            progress: currentProgress,
+            completed: resolvedPayload.completed as boolean,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id,quest_id' });
         if (error) throw error;
@@ -122,10 +208,10 @@ async function processSyncOperation(
       case 'achievement_unlock': {
         const { error } = await supabase.from('achievements').insert({
           user_id: userId,
-          achievement_id: payload.achievementId as string,
-          unlocked_at: payload.unlockedAt as string || new Date().toISOString(),
+          achievement_id: resolvedPayload.achievementId as string ?? resolvedPayload.achievement_id as string,
+          unlocked_at: resolvedPayload.unlockedAt as string ?? resolvedPayload.unlocked_at as string ?? new Date().toISOString(),
         });
-        // Ignore duplicate key errors for achievements
+        // Ignore duplicate key errors for achievements (they're idempotent)
         if (error && !error.message.includes('duplicate')) throw error;
         break;
       }
@@ -134,12 +220,12 @@ async function processSyncOperation(
         const { error } = await supabase
           .from('pets')
           .update({
-            bond_level: payload.bondLevel as number,
-            experience: payload.experience as number,
-            mood: payload.mood as number,
+            bond_level: resolvedPayload.bondLevel as number ?? resolvedPayload.bond_level as number,
+            experience: resolvedPayload.experience as number,
+            mood: resolvedPayload.mood as number,
           })
           .eq('user_id', userId)
-          .eq('pet_type', payload.petType as string);
+          .eq('pet_type', resolvedPayload.petType as string ?? resolvedPayload.pet_type as string);
         if (error) throw error;
         break;
       }
@@ -148,7 +234,7 @@ async function processSyncOperation(
         const { error } = await supabase
           .from('profiles')
           .update({
-            ...payload,
+            ...resolvedPayload,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);
@@ -158,7 +244,6 @@ async function processSyncOperation(
 
       default:
         syncLogger.warn(`[SyncManager] Unknown operation type: ${type}`);
-        // Return success for unknown types to remove them from queue
         return { success: true, operationId: id };
     }
 
@@ -183,18 +268,18 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
   const syncInProgress = useRef(false);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Network status from the single source of truth
+  const isOnline = useNetworkStore((s) => s.isOnline);
+
   const {
     pendingOperations,
     syncStatus,
     lastSyncAt,
-    isOnline,
     addOperation,
-    removeOperation,
     removeOperations,
     incrementRetry,
     getRetryableOperations,
     setSyncStatus,
-    setOnline,
     markSyncComplete,
     markSyncError,
   } = useOfflineSyncStore();
@@ -238,7 +323,7 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
   );
 
   /**
-   * Main sync function
+   * Main sync function with deduplication and conflict resolution
    */
   const syncNow = useCallback(async () => {
     // Skip if already syncing, offline, or guest mode
@@ -251,18 +336,24 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
       return;
     }
 
+    // Deduplicate operations before syncing
+    const deduplicatedOps = deduplicateOperations(retryableOps);
+    if (deduplicatedOps.length < retryableOps.length) {
+      syncLogger.info(`[SyncManager] Deduplicated ${retryableOps.length} ops to ${deduplicatedOps.length}`);
+    }
+
     syncInProgress.current = true;
     setSyncStatus('syncing');
 
     try {
-      syncLogger.info(`[SyncManager] Starting sync of ${retryableOps.length} operations`);
+      syncLogger.info(`[SyncManager] Starting sync of ${deduplicatedOps.length} operations`);
 
       let successCount = 0;
       let failCount = 0;
 
       // Process in batches
-      for (let i = 0; i < retryableOps.length; i += BATCH_SIZE) {
-        const batch = retryableOps.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < deduplicatedOps.length; i += BATCH_SIZE) {
+        const batch = deduplicatedOps.slice(i, i + BATCH_SIZE);
         const results = await processBatch(batch);
 
         const successIds: string[] = [];
@@ -321,13 +412,16 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
   ]);
 
   /**
-   * Handle online/offline events
+   * Trigger sync when coming back online
+   * Network status is managed by networkStore - no duplicate listeners
    */
+  const prevIsOnlineRef = useRef(isOnline);
   useEffect(() => {
-    const handleOnline = () => {
-      syncLogger.info('[SyncManager] Network restored');
-      setOnline(true);
+    const wasOffline = !prevIsOnlineRef.current;
+    prevIsOnlineRef.current = isOnline;
 
+    if (isOnline && wasOffline) {
+      syncLogger.info('[SyncManager] Network restored - scheduling sync');
       // Delay sync slightly to ensure connection is stable
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current);
@@ -335,36 +429,38 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
       syncTimeoutRef.current = setTimeout(() => {
         syncNow();
       }, 2000);
-    };
+    }
 
-    const handleOffline = () => {
-      syncLogger.info('[SyncManager] Network lost');
-      setOnline(false);
+    if (!isOnline) {
+      // Cancel pending sync when going offline
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    }
 
+    return () => {
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current);
       }
     };
+  }, [isOnline, syncNow]);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Initial sync on mount if online with pending operations
-    if (navigator.onLine && pendingOperations.length > 0 && isAuthenticated && !isGuestMode) {
+  // Initial sync on mount if online with pending operations
+  useEffect(() => {
+    if (isOnline && pendingOperations.length > 0 && isAuthenticated && !isGuestMode) {
       syncTimeoutRef.current = setTimeout(() => {
         syncNow();
       }, 3000);
     }
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [setOnline, syncNow, pendingOperations.length, isAuthenticated, isGuestMode]);
+    // Only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Periodic sync for reliability

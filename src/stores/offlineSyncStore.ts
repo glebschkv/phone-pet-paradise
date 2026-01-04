@@ -9,6 +9,9 @@
  * - Tracks sync status and retry counts
  * - Supports different operation types (focus_session, progress_update, etc.)
  * - Handles conflict resolution with timestamps
+ *
+ * NOTE: Network status (isOnline) is now managed by networkStore.ts
+ * This store focuses solely on sync queue management.
  */
 
 import { create } from 'zustand';
@@ -43,7 +46,6 @@ export interface OfflineSyncState {
   syncStatus: SyncStatus;
   lastSyncAt: number | null;
   lastSyncError: string | null;
-  isOnline: boolean;
   totalSynced: number;
   totalFailed: number;
 }
@@ -57,7 +59,6 @@ interface OfflineSyncStore extends OfflineSyncState {
 
   // Sync status
   setSyncStatus: (status: SyncStatus) => void;
-  setOnline: (online: boolean) => void;
   markSyncComplete: () => void;
   markSyncError: (error: string) => void;
 
@@ -92,7 +93,6 @@ const initialState: OfflineSyncState = {
   syncStatus: 'idle',
   lastSyncAt: null,
   lastSyncError: null,
-  isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
   totalSynced: 0,
   totalFailed: 0,
 };
@@ -179,14 +179,6 @@ export const useOfflineSyncStore = create<OfflineSyncStore>()(
         set({ syncStatus: status });
       },
 
-      setOnline: (online) => {
-        set({
-          isOnline: online,
-          syncStatus: online ? 'idle' : 'offline',
-        });
-        syncLogger.debug(`[OfflineSync] Online status: ${online}`);
-      },
-
       markSyncComplete: () => {
         set({
           syncStatus: 'idle',
@@ -246,6 +238,8 @@ export const useOfflineSyncStore = create<OfflineSyncStore>()(
 export const usePendingOperationsCount = () =>
   useOfflineSyncStore((s) => s.pendingOperations.length);
 export const useSyncStatus = () => useOfflineSyncStore((s) => s.syncStatus);
-export const useIsOnline = () => useOfflineSyncStore((s) => s.isOnline);
 export const useHasPendingSync = () =>
   useOfflineSyncStore((s) => s.pendingOperations.length > 0);
+
+// Re-export useIsOnline from networkStore for backwards compatibility
+export { useIsOnline } from './networkStore';

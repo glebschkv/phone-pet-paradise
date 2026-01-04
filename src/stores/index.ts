@@ -63,3 +63,28 @@ export type { PetBond } from './bondStore';
 // Onboarding Store
 export { useOnboardingStore, useHasCompletedOnboarding, useOnboardingSteps, useCurrentStepIndex } from './onboardingStore';
 export type { OnboardingStep } from './onboardingStore';
+
+// Network Store (single source of truth for network status)
+export {
+  useNetworkStore,
+  useIsOnline,
+  useWasOffline,
+  onNetworkStatusChange,
+  clearWasOffline,
+} from './networkStore';
+export type { NetworkState } from './networkStore';
+
+// Offline Sync Store
+export {
+  useOfflineSyncStore,
+  usePendingOperationsCount,
+  useSyncStatus,
+  useHasPendingSync,
+  SYNC_PRIORITIES,
+} from './offlineSyncStore';
+export type {
+  SyncOperationType,
+  PendingSyncOperation,
+  SyncStatus,
+  OfflineSyncState,
+} from './offlineSyncStore';

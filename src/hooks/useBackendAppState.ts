@@ -2,35 +2,31 @@
  * useBackendAppState Hook
  *
  * Central state management hook that coordinates all game systems.
- * Uses unified XP and Achievement systems that handle local/backend sync internally.
+ * Uses composed hooks for domain-specific state management.
  *
  * Architecture:
- * - All systems use localStorage as primary storage (offline-first)
- * - When authenticated, changes sync to Supabase asynchronously
+ * - Composed hooks handle individual domains (progress, currency, gamification, pets)
+ * - This hook orchestrates cross-domain operations (e.g., awarding XP updates multiple systems)
  * - Real-time subscriptions for cross-device sync
  *
- * Performance optimizations:
- * - Uses refs to hold latest subsystem values (avoids callback dependency bloat)
- * - Memoized getAppState with proper dependencies
+ * For simpler use cases, consider using the composed hooks directly:
+ * - useProgressState() - XP, levels, biomes
+ * - useCurrencyState() - Coins, boosters
+ * - useGamificationState() - Achievements, quests, streaks
+ * - usePetState() - Pet bonds, interactions
  */
 
 import { useEffect, useCallback, useRef, useMemo } from 'react';
-import { useXPSystem } from './useXPSystem';
-import { useAchievementSystem } from './useAchievementSystem';
-import { useBackendQuests } from './useBackendQuests';
-import { useBackendStreaks } from './useBackendStreaks';
-import { useSupabaseData } from './useSupabaseData';
-import { useBondSystem } from './useBondSystem';
-import { useCollection } from './useCollection';
-import { useCoinSystem } from './useCoinSystem';
-import { useCoinBooster } from './useCoinBooster';
+import { useProgressState } from './composed/useProgressState';
+import { useCurrencyState } from './composed/useCurrencyState';
+import { useGamificationState } from './composed/useGamificationState';
+import { usePetState } from './composed/usePetState';
 import { useAuth } from './useAuth';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { syncLogger as logger } from '@/lib/logger';
 
-// Type definitions for better type safety
+// Type definitions
 interface XPRewardResult {
   xpGained: number;
   oldLevel: number;
@@ -49,49 +45,31 @@ interface PetInteractionResult {
 
 export const useBackendAppState = () => {
   const { isAuthenticated } = useAuth();
-  // Use unified XP and Achievement systems - they handle local/backend sync internally
-  const xpSystem = useXPSystem();
-  const achievements = useAchievementSystem();
-  const quests = useBackendQuests();
-  const streaks = useBackendStreaks();
-  const bondSystem = useBondSystem();
-  const collection = useCollection();
-  const supabaseData = useSupabaseData();
-  const coinSystem = useCoinSystem();
-  const coinBooster = useCoinBooster();
 
-  // Use refs to hold latest subsystem values - this prevents callback dependency bloat
-  // The callbacks will always have access to the latest values without recreating
+  // Use composed hooks for domain-specific state
+  const progress = useProgressState();
+  const currency = useCurrencyState();
+  const gamification = useGamificationState();
+  const pets = usePetState();
+
+  // Refs for callback access without stale closures
   const subsystemsRef = useRef({
     isAuthenticated,
-    xpSystem,
-    streaks,
-    quests,
-    achievements,
-    bondSystem,
-    supabaseData,
-    coinSystem,
-    coinBooster,
+    progress,
+    currency,
+    gamification,
+    pets,
   });
 
-  // Update refs whenever subsystems change
   useEffect(() => {
     subsystemsRef.current = {
       isAuthenticated,
-      xpSystem,
-      streaks,
-      quests,
-      achievements,
-      bondSystem,
-      supabaseData,
-      coinSystem,
-      coinBooster,
+      progress,
+      currency,
+      gamification,
+      pets,
     };
-  }, [isAuthenticated, xpSystem, streaks, quests, achievements, bondSystem, supabaseData, coinSystem, coinBooster]);
-
-  // The unified XP system now handles local/backend sync internally
-  // No need to compare levels - the hook returns the effective (max) level
-  const effectiveLevel = xpSystem.currentLevel;
+  }, [isAuthenticated, progress, currency, gamification, pets]);
 
   // Real-time subscriptions for progress updates
   useEffect(() => {
@@ -108,8 +86,7 @@ export const useBackendAppState = () => {
         },
         (payload) => {
           logger.debug('Real-time progress update:', payload);
-          // Access via ref to avoid stale closures and dependency bloat
-          subsystemsRef.current.supabaseData.loadUserData();
+          subsystemsRef.current.pets.supabaseData.loadUserData();
         }
       )
       .on(
@@ -124,8 +101,7 @@ export const useBackendAppState = () => {
           toast.success('🏆 Achievement Unlocked!', {
             description: payload.new.title
           });
-          // Access via ref to avoid stale closures and dependency bloat
-          subsystemsRef.current.achievements.loadAchievements?.();
+          subsystemsRef.current.gamification.achievements.loadAchievements?.();
         }
       )
       .subscribe();
@@ -135,19 +111,21 @@ export const useBackendAppState = () => {
     };
   }, [isAuthenticated]);
 
-  // Award XP and coins, trigger all related systems
-  // The unified XP system handles local storage + backend sync internally
+  /**
+   * Award XP and coins, trigger all related systems
+   * This is the main cross-domain orchestration function
+   */
   const awardXP = useCallback(async (sessionMinutes: number): Promise<XPRewardResult | null> => {
-    const systems = subsystemsRef.current;
-
-    // Award coins with booster multiplier
-    const boosterMultiplier = systems.coinBooster.getCurrentMultiplier();
-    const coinReward = systems.coinSystem.awardCoins(sessionMinutes, boosterMultiplier);
-    logger.debug('Coin reward:', coinReward);
+    const { progress, currency, gamification, pets } = subsystemsRef.current;
 
     try {
-      // Use the unified XP system - it handles local storage and backend sync internally
-      const reward = systems.xpSystem.awardXP(sessionMinutes);
+      // Award coins with booster multiplier
+      const boosterMultiplier = currency.getCurrentMultiplier();
+      const coinReward = currency.awardCoins(sessionMinutes, boosterMultiplier);
+      logger.debug('Coin reward:', coinReward);
+
+      // Award XP
+      const reward = progress.awardXP(sessionMinutes);
       logger.debug('XP reward:', reward);
 
       // Show notifications for level up
@@ -161,15 +139,15 @@ export const useBackendAppState = () => {
       }
 
       // Record streak progress
-      const streakReward = await systems.streaks.recordSession();
+      const streakReward = await gamification.recordSession();
 
       // Update quest progress
-      await systems.quests.updateQuestProgress('focus_time', sessionMinutes);
+      await gamification.updateQuestProgress('focus_time', sessionMinutes);
 
-      // Update bond system for active pets (parallel execution to avoid N+1)
-      const activePets = systems.supabaseData.pets.filter(pet => pet.is_favorite);
+      // Update bond system for active pets
+      const activePets = pets.pets.filter(pet => pet.is_favorite);
       await Promise.all(
-        activePets.map(pet => systems.bondSystem.interactWithPet(pet.pet_type, 'focus_session'))
+        activePets.map(pet => pets.bondSystem.interactWithPet(pet.pet_type, 'focus_session'))
       );
 
       return {
@@ -186,130 +164,105 @@ export const useBackendAppState = () => {
       toast.error('Failed to save session progress');
       return null;
     }
-  }, []); // Empty dependency array - uses refs for all subsystem access
+  }, []);
 
-  // Get pet interaction handler
+  /**
+   * Pet interaction with cross-domain updates
+   */
   const interactWithPet = useCallback(async (
     petType: string,
     interactionType: string = 'play'
   ): Promise<PetInteractionResult> => {
-    const systems = subsystemsRef.current;
+    const { pets, gamification } = subsystemsRef.current;
 
-    // Get bond level before interaction to detect level ups
-    const previousBondLevel = systems.bondSystem.getBondLevel(petType);
-
-    const interaction = await systems.bondSystem.interactWithPet(petType, interactionType);
+    const result = await pets.interactWithPet(petType, interactionType);
 
     // Update quest progress for pet interactions
-    await systems.quests.updateQuestProgress('pet_interaction', 1);
+    await gamification.updateQuestProgress('pet_interaction', 1);
 
-    // Get new bond level after interaction to detect level up
-    const newBondLevel = systems.bondSystem.getBondLevel(petType);
-    const bondLevelUp = newBondLevel > previousBondLevel;
-
-    if (bondLevelUp) {
-      toast.success(`Bond Level Up!`, {
-        description: `${petType} is now bond level ${newBondLevel}!`
-      });
-
-      // Check for bond-related achievements
-      await systems.achievements.checkAndUnlockAchievements('bond_level', newBondLevel);
+    // Check for bond-related achievements
+    if (result.bondLevelUp) {
+      await gamification.checkAndUnlockAchievements('bond_level', result.newBondLevel);
     }
 
-    return { bondLevelUp, newBondLevel, interaction };
-  }, []); // Empty dependency array - uses refs
+    return result;
+  }, []);
 
-  // Get level progress percentage
-  const getLevelProgress = useCallback(() => {
-    return xpSystem.getLevelProgress();
-  }, [xpSystem]);
+  // Memoized combined app state
+  const appState = useMemo(() => ({
+    // Progress
+    currentXP: progress.currentXP,
+    currentLevel: progress.currentLevel,
+    xpToNextLevel: progress.xpToNextLevel,
+    levelProgress: progress.levelProgress,
+    unlockedAnimals: progress.unlockedAnimals,
+    currentBiome: progress.currentBiome,
+    availableBiomes: progress.availableBiomes,
 
-  // Memoized app state to prevent unnecessary recalculations
-  const appState = useMemo(() => {
-    const unlockedAnimals = getUnlockedAnimals(effectiveLevel).map(a => a.name);
+    // Currency
+    coinBalance: currency.coinBalance,
+    totalCoinsEarned: currency.totalCoinsEarned,
+    totalCoinsSpent: currency.totalCoinsSpent,
+    isBoosterActive: currency.isBoosterActive,
+    activeBooster: currency.activeBooster,
+    boosterMultiplier: currency.boosterMultiplier,
+    boosterTimeRemaining: currency.boosterTimeRemaining,
 
-    return {
-      // XP System
-      currentXP: xpSystem.currentXP,
-      currentLevel: effectiveLevel,
-      xpToNextLevel: xpSystem.xpToNextLevel,
-      levelProgress: xpSystem.getLevelProgress(),
+    // Gamification
+    totalAchievements: gamification.totalAchievements,
+    unlockedAchievements: gamification.unlockedAchievements,
+    achievementPoints: gamification.achievementPoints,
+    activeQuests: gamification.activeQuests,
+    completedQuests: gamification.completedQuests,
+    currentStreak: gamification.currentStreak,
+    longestStreak: gamification.longestStreak,
+    streakFreezes: gamification.streakFreezes,
 
-      // Coin System
-      coinBalance: coinSystem.balance,
-      totalCoinsEarned: coinSystem.totalEarned,
-      totalCoinsSpent: coinSystem.totalSpent,
+    // Pets/Backend
+    profile: pets.profile,
+    progress: pets.progress,
+    pets: pets.pets,
 
-      // Booster System
-      isBoosterActive: coinBooster.isBoosterActive(),
-      activeBooster: coinBooster.activeBooster,
-      boosterMultiplier: coinBooster.getCurrentMultiplier(),
-      boosterTimeRemaining: coinBooster.getTimeRemainingFormatted(),
+    // Loading
+    isLoading: progress.isLoading || gamification.isLoading,
+  }), [progress, currency, gamification, pets]);
 
-      // Collection
-      unlockedAnimals,
-      currentBiome: xpSystem.currentBiome,
-      availableBiomes: xpSystem.availableBiomes,
-
-      // Achievements
-      totalAchievements: achievements.achievements.length,
-      unlockedAchievements: achievements.unlockedAchievements.length,
-      achievementPoints: achievements.getTotalAchievementPoints(),
-
-      // Quests
-      activeQuests: quests.activeQuests.length,
-      completedQuests: quests.completedQuests.length,
-
-      // Streaks
-      currentStreak: streaks.streakData.currentStreak,
-      longestStreak: streaks.streakData.longestStreak,
-      streakFreezes: streaks.streakData.streakFreezeCount,
-
-      // Backend data
-      profile: supabaseData.profile,
-      progress: supabaseData.progress,
-      pets: supabaseData.pets,
-
-      // Loading states (subsystems handle their own loading)
-      isLoading:
-        xpSystem.isLoading ||
-        achievements.isLoading ||
-        quests.isLoading ||
-        streaks.isLoading,
-    };
-  }, [
-    xpSystem,
-    effectiveLevel,
-    coinSystem,
-    coinBooster,
-    achievements,
-    quests,
-    streaks,
-    supabaseData,
-  ]);
-
-  // Stable getAppState function that returns memoized state
   const getAppState = useCallback(() => appState, [appState]);
 
   return {
-    // Main functions
+    // Main orchestration functions
     awardXP,
     interactWithPet,
-    getLevelProgress,
+    getLevelProgress: progress.getLevelProgress,
     getAppState,
 
-    // Direct access to subsystems
-    xpSystem,
-    achievements,
-    quests,
-    streaks,
-    bondSystem,
-    collection,
-    supabaseData,
-    coinSystem,
-    coinBooster,
+    // Composed domain hooks for direct access
+    // Use these when you need more control or only specific functionality
+    progressState: progress,
+    currencyState: currency,
+    gamificationState: gamification,
+    petState: pets,
 
-    // Quick access to key data (spread memoized state)
+    // Legacy: Direct subsystem access (deprecated, use composed hooks instead)
+    xpSystem: progress,
+    achievements: gamification.achievements,
+    quests: gamification.quests,
+    streaks: gamification.streaks,
+    bondSystem: pets.bondSystem,
+    collection: pets.collection,
+    supabaseData: pets.supabaseData,
+    coinSystem: currency,
+    coinBooster: currency,
+
+    // Spread state for backwards compatibility
     ...appState,
   };
 };
+
+// Export composed hooks for direct use
+export {
+  useProgressState,
+  useCurrencyState,
+  useGamificationState,
+  usePetState,
+} from './composed';

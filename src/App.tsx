@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NativePluginProvider } from "@/contexts/NativePluginContext";
+import { NetworkProvider } from "@/providers/NetworkProvider";
 import { OfflineProvider } from "@/contexts/OfflineContext";
 import { PluginUnavailableBanner } from "@/components/PluginUnavailableBanner";
 import { lazy, Suspense } from "react";
@@ -30,8 +31,9 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <NativePluginProvider>
-        <OfflineProvider>
-          <TooltipProvider>
+        <NetworkProvider>
+          <OfflineProvider>
+            <TooltipProvider>
             <Toaster />
             <Sonner />
             <PluginUnavailableBanner className="fixed top-0 left-0 right-0 z-50" />
@@ -47,8 +49,9 @@ const App = () => (
                 </Routes>
               </Suspense>
             </BrowserRouter>
-          </TooltipProvider>
-        </OfflineProvider>
+            </TooltipProvider>
+          </OfflineProvider>
+        </NetworkProvider>
       </NativePluginProvider>
     </QueryClientProvider>
   </ErrorBoundary>

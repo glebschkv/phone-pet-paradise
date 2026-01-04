@@ -3,12 +3,16 @@
  *
  * Provides centralized state management for frequently accessed app-wide data.
  * This reduces prop drilling and improves component organization.
+ *
+ * NOTE: Network status (isOnline) is managed by networkStore.ts
+ * Use useIsOnline() from '@/stores/networkStore' for network status.
  */
 
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useOfflineSyncStore } from '@/stores/offlineSyncStore';
+import { useNetworkStore } from '@/stores/networkStore';
 import { APP_CONFIG } from '@/lib/constants';
 import type {
   UserProfile,
@@ -69,7 +73,7 @@ const initialState: AppState = {
   theme: getInitialTheme(),
   settings: getInitialSettings(),
   isLoading: false,
-  isOnline: navigator.onLine,
+  isOnline: true, // Deprecated: use useIsOnline() from networkStore
   hasUnsyncedData: false,
   appVersion: APP_CONFIG.APP_VERSION,
   platform: 'web',
@@ -126,11 +130,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
         isLoading: action.payload,
       };
 
+    // SET_ONLINE is deprecated - network state is managed by networkStore
     case 'SET_ONLINE':
-      return {
-        ...state,
-        isOnline: action.payload,
-      };
+      return state; // No-op for backwards compatibility
 
     case 'SET_UNSYNCED_DATA':
       return {
@@ -199,19 +201,8 @@ export function AppProvider({ children }: AppProviderProps) {
     });
   }, [isPremium, tier, expiresAt]);
 
-  // Listen for online/offline events
-  useEffect(() => {
-    const handleOnline = () => dispatch({ type: 'SET_ONLINE', payload: true });
-    const handleOffline = () => dispatch({ type: 'SET_ONLINE', payload: false });
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+  // NOTE: Online/offline events are now handled by networkStore.ts
+  // Use useIsOnline() from '@/stores/networkStore' for network status
 
   // Sync hasUnsyncedData with offline sync store
   useEffect(() => {
@@ -310,9 +301,11 @@ export function useAppSettings() {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAppStatus() {
   const { state, setLoading } = useAppContext();
+  // isOnline now comes from networkStore - single source of truth
+  const isOnline = useNetworkStore((s) => s.isOnline);
   return {
     isLoading: state.isLoading,
-    isOnline: state.isOnline,
+    isOnline,
     hasUnsyncedData: state.hasUnsyncedData,
     setLoading,
   };

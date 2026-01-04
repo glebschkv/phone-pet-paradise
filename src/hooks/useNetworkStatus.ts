@@ -1,76 +1,30 @@
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
+/**
+ * Network Status Hook
+ *
+ * Provides network connectivity information from the centralized networkStore.
+ * This is a convenience wrapper around the store for components that prefer hooks.
+ *
+ * NOTE: The actual network status management (window listeners) is handled
+ * by networkStore.ts. This hook just provides a convenient interface.
+ */
 
-interface NetworkStatus {
-  isOnline: boolean;
-  wasOffline: boolean;
-  lastOnlineAt: Date | null;
-}
+import { useCallback } from 'react';
+import { useNetworkStore } from '@/stores/networkStore';
+import { toast } from 'sonner';
 
 /**
  * Hook to monitor network connectivity status
- * Provides offline detection and automatic reconnection notifications
+ * Provides offline detection and connection checking utilities
  */
 export const useNetworkStatus = () => {
-  const [status, setStatus] = useState<NetworkStatus>({
-    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
-    wasOffline: false,
-    lastOnlineAt: null,
-  });
-
-  const handleOnline = useCallback(() => {
-    setStatus(prev => {
-      // Only show reconnection toast if we were actually offline
-      if (prev.wasOffline) {
-        toast.success('Back online!', {
-          description: 'Your connection has been restored.',
-          duration: 3000,
-        });
-      }
-
-      return {
-        isOnline: true,
-        wasOffline: false,
-        lastOnlineAt: new Date(),
-      };
-    });
-  }, []);
-
-  const handleOffline = useCallback(() => {
-    setStatus(prev => ({
-      ...prev,
-      isOnline: false,
-      wasOffline: true,
-    }));
-
-    toast.warning('You are offline', {
-      description: 'Some features may not work until you reconnect.',
-      duration: 5000,
-    });
-  }, []);
-
-  useEffect(() => {
-    // Set initial status
-    setStatus(prev => ({
-      ...prev,
-      isOnline: navigator.onLine,
-    }));
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [handleOnline, handleOffline]);
+  const { isOnline, wasOffline, lastOnlineAt } = useNetworkStore();
 
   /**
    * Check if a network request should be attempted
    * Returns false if offline, showing appropriate feedback
    */
   const checkConnection = useCallback((showToast = true): boolean => {
-    if (!status.isOnline) {
+    if (!isOnline) {
       if (showToast) {
         toast.error('No internet connection', {
           description: 'Please check your connection and try again.',
@@ -79,12 +33,12 @@ export const useNetworkStatus = () => {
       return false;
     }
     return true;
-  }, [status.isOnline]);
+  }, [isOnline]);
 
   return {
-    isOnline: status.isOnline,
-    wasOffline: status.wasOffline,
-    lastOnlineAt: status.lastOnlineAt,
+    isOnline,
+    wasOffline,
+    lastOnlineAt: lastOnlineAt ? new Date(lastOnlineAt) : null,
     checkConnection,
   };
 };

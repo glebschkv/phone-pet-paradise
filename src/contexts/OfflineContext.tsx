@@ -2,19 +2,22 @@
  * Offline Context Provider
  *
  * Provides offline-first functionality across the app.
- * Manages network status, sync queue, and service worker integration.
+ * Manages sync queue and service worker integration.
  *
  * Features:
- * - Tracks online/offline status
  * - Manages pending sync operations
  * - Auto-syncs when coming back online
  * - Provides offline-safe data mutation helpers
+ *
+ * NOTE: Network status (isOnline) is managed by networkStore.ts
+ * This context now reads from the store instead of managing its own state.
  */
 
-import React, { createContext, useContext, useEffect, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, ReactNode } from 'react';
 import { useOfflineSyncManager, UseOfflineSyncManagerReturn } from '@/hooks/useOfflineSyncManager';
 import { useServiceWorker, useServiceWorkerSync } from '@/hooks/useServiceWorker';
 import { useOfflineSyncStore, SyncOperationType } from '@/stores/offlineSyncStore';
+import { useNetworkStore, clearWasOffline } from '@/stores/networkStore';
 import { toast } from 'sonner';
 import { syncLogger } from '@/lib/logger';
 
@@ -48,10 +51,11 @@ interface OfflineProviderProps {
 export function OfflineProvider({ children }: OfflineProviderProps) {
   const syncManager = useOfflineSyncManager();
   const serviceWorker = useServiceWorker();
-  const { isOnline, pendingOperations, setOnline } = useOfflineSyncStore();
+  const { pendingOperations } = useOfflineSyncStore();
 
-  // Track if we were previously offline (for showing "back online" notifications)
-  const [wasOffline, setWasOffline] = React.useState(false);
+  // Network status now comes from networkStore - single source of truth
+  const { isOnline, wasOffline } = useNetworkStore();
+  const prevIsOnlineRef = useRef(isOnline);
 
   // Handle service worker sync requests
   useServiceWorkerSync(() => {
@@ -59,46 +63,31 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
     syncManager.syncNow();
   });
 
-  // Handle online/offline transitions
+  // React to network status changes from networkStore
   useEffect(() => {
-    const handleOnline = () => {
-      syncLogger.info('[OfflineContext] Network restored');
-      setOnline(true);
+    const prevIsOnline = prevIsOnlineRef.current;
+    prevIsOnlineRef.current = isOnline;
 
-      if (wasOffline) {
-        toast.success('Back online!', {
-          description: pendingOperations.length > 0
-            ? `Syncing ${pendingOperations.length} pending updates...`
-            : 'Your connection has been restored.',
-          duration: 3000,
-        });
-      }
+    // Show toast when coming back online
+    if (isOnline && !prevIsOnline && wasOffline) {
+      toast.success('Back online!', {
+        description: pendingOperations.length > 0
+          ? `Syncing ${pendingOperations.length} pending updates...`
+          : 'Your connection has been restored.',
+        duration: 3000,
+      });
+      // Clear the wasOffline flag after showing notification
+      clearWasOffline();
+    }
 
-      setWasOffline(false);
-    };
-
-    const handleOffline = () => {
-      syncLogger.info('[OfflineContext] Network lost');
-      setOnline(false);
-      setWasOffline(true);
-
+    // Show toast when going offline
+    if (!isOnline && prevIsOnline) {
       toast.warning('You\'re offline', {
         description: 'Don\'t worry - your data is saved locally and will sync when you\'re back online.',
         duration: 5000,
       });
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Set initial state
-    setOnline(navigator.onLine);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [setOnline, wasOffline, pendingOperations.length]);
+    }
+  }, [isOnline, wasOffline, pendingOperations.length]);
 
   // Refresh app (for updates)
   const refreshApp = React.useCallback(() => {
