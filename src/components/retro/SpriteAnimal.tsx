@@ -23,9 +23,10 @@ interface SpriteAnimalProps {
   position: number;
   speed: number;
   positionRegistry: PositionRegistry;
+  groundLevel?: number; // Base ground level from background (default: 8)
 }
 
-export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionRegistry }: SpriteAnimalProps) => {
+export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionRegistry, groundLevel = 8 }: SpriteAnimalProps) => {
   // All animation state managed via refs to avoid race conditions
   const positionRef = useRef(position);
   const directionRef = useRef<'left' | 'right'>(Math.random() > 0.5 ? 'right' : 'left');
@@ -243,7 +244,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   const bgWidth = isIdle ? 4 * scaledWidth : frameCount * scaledWidth;
   const bgHeight = isIdle ? scaledHeight : walkRows * scaledHeight;
 
-  // Ground offset
+  // Ground offset (per-animal adjustment on top of biome ground level)
   const groundOffset = animal.groundOffset || 0;
 
   // Flip sprite when walking left
@@ -253,7 +254,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
     <div
       className="absolute"
       style={{
-        bottom: `${8 + groundOffset}%`,
+        bottom: `${groundLevel + groundOffset}%`,
         left: `${renderPosition * 100}%`,
         width: `${scaledWidth}px`,
         height: `${scaledHeight}px`,
