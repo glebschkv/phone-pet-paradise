@@ -418,13 +418,16 @@ serve(async (req) => {
       .from('user_subscriptions')
       .insert(subscriptionRecord);
 
+    // SECURITY: Fail closed - if we can't persist the subscription, the validation fails
+    // The client should retry or restore purchases. Never grant premium without persistence.
     if (insertError) {
       console.error('Error storing subscription record:', insertError);
-      // Don't fail the request - the purchase was valid, we just couldn't store it
-      // The client can retry or the user can restore purchases later
+      // SECURITY: Critical - we must fail if we can't store the subscription
+      // Otherwise, premium status is granted without audit trail
+      throw new Error('Failed to record subscription. Please try again or restore purchases.');
     }
 
-    // Subscription validated successfully
+    // Subscription validated and persisted successfully
 
     return new Response(JSON.stringify({
       success: true,

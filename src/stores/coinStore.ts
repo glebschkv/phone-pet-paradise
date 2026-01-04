@@ -4,6 +4,10 @@
  * Manages the user's in-game currency (coins). Tracks balance, total earned,
  * and total spent. Uses Zustand with persistence to localStorage.
  *
+ * SECURITY: This store handles local state only. All coin operations should
+ * be validated server-side through the validate-coins edge function.
+ * The local state serves as a cache and for offline support.
+ *
  * @module stores/coinStore
  *
  * @example
@@ -36,6 +40,10 @@ export interface CoinState {
   balance: number;
   totalEarned: number;
   totalSpent: number;
+  /** Last server-verified balance timestamp */
+  lastServerSync: number | null;
+  /** Pending operations that need server validation */
+  pendingServerValidation: boolean;
 }
 
 interface CoinStore extends CoinState {
@@ -44,9 +52,19 @@ interface CoinStore extends CoinState {
   setBalance: (balance: number) => void;
   canAfford: (amount: number) => boolean;
   resetCoins: () => void;
+  /** Sync balance from server - called after server validation */
+  syncFromServer: (balance: number, totalEarned: number, totalSpent: number) => void;
+  /** Mark that server validation is pending */
+  setPendingValidation: (pending: boolean) => void;
 }
 
-const initialState: CoinState = { balance: 0, totalEarned: 0, totalSpent: 0 };
+const initialState: CoinState = {
+  balance: 0,
+  totalEarned: 0,
+  totalSpent: 0,
+  lastServerSync: null,
+  pendingServerValidation: false,
+};
 
 export const useCoinStore = create<CoinStore>()(
   persist(
@@ -54,16 +72,46 @@ export const useCoinStore = create<CoinStore>()(
       ...initialState,
       addCoins: (amount) => {
         if (amount <= 0) return;
-        set((s) => ({ balance: s.balance + amount, totalEarned: s.totalEarned + amount }));
+        // SECURITY: Mark as pending server validation
+        // The actual server validation should be done via validate-coins edge function
+        set((s) => ({
+          balance: s.balance + amount,
+          totalEarned: s.totalEarned + amount,
+          pendingServerValidation: true,
+        }));
+        coinLogger.debug('Coins added locally, pending server validation', { amount });
       },
       spendCoins: (amount) => {
-        if (get().balance < amount) return false;
-        set((s) => ({ balance: s.balance - amount, totalSpent: s.totalSpent + amount }));
+        const currentBalance = get().balance;
+        if (currentBalance < amount) {
+          coinLogger.warn('Insufficient balance for spend', { balance: currentBalance, required: amount });
+          return false;
+        }
+        // SECURITY: Mark as pending server validation
+        // The actual server validation should be done via validate-coins edge function
+        set((s) => ({
+          balance: s.balance - amount,
+          totalSpent: s.totalSpent + amount,
+          pendingServerValidation: true,
+        }));
+        coinLogger.debug('Coins spent locally, pending server validation', { amount });
         return true;
       },
       setBalance: (balance) => set({ balance }),
       canAfford: (amount) => get().balance >= amount,
       resetCoins: () => set(initialState),
+      syncFromServer: (balance, totalEarned, totalSpent) => {
+        // SECURITY: Server is authoritative - override local state
+        set({
+          balance,
+          totalEarned,
+          totalSpent,
+          lastServerSync: Date.now(),
+          pendingServerValidation: false,
+        });
+        coinLogger.debug('Coins synced from server', { balance, totalEarned, totalSpent });
+      },
+      setPendingValidation: (pending) => set({ pendingServerValidation: pending }),
     }),
     {
       name: 'nomo_coin_system',

@@ -1,9 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { safeJsonParse } from '@/lib/apiUtils';
 import { logger } from '@/lib/logger';
 
 const PREMIUM_STORAGE_KEY = 'petIsland_premium';
+const LAST_VERIFICATION_KEY = 'petIsland_premium_lastVerified';
+// SECURITY: Verify premium status with server periodically
+const SERVER_VERIFICATION_INTERVAL_MS = 5 * 60 * 1000; // Every 5 minutes
 
 export type SubscriptionTier = 'free' | 'premium' | 'premium_plus' | 'lifetime';
 
@@ -237,8 +240,116 @@ export const dispatchSubscriptionChange = (tier: SubscriptionTier) => {
 export const usePremiumStatus = () => {
   const [state, setState] = useState<PremiumState>(defaultState);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const verificationInProgressRef = useRef(false);
 
-  // Load subscription status
+  /**
+   * SECURITY: Verify premium status with server
+   * Server is authoritative - if server says no subscription, clear local state
+   */
+  const verifyWithServer = useCallback(async (): Promise<boolean> => {
+    // Prevent concurrent verification
+    if (verificationInProgressRef.current) {
+      return false;
+    }
+
+    if (!isSupabaseConfigured) {
+      logger.debug('Supabase not configured, skipping server verification');
+      return false;
+    }
+
+    verificationInProgressRef.current = true;
+    setIsVerifying(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        // Not authenticated, can't verify
+        logger.debug('User not authenticated, skipping server verification');
+        return false;
+      }
+
+      // Call the server function to get the user's actual subscription tier
+      const { data, error } = await supabase.rpc('get_user_subscription_tier', {
+        p_user_id: user.id
+      });
+
+      if (error) {
+        logger.error('Failed to verify subscription with server:', error);
+        // SECURITY: On error, don't change state - fail safe but allow cached state
+        // This prevents network issues from locking out legitimate subscribers
+        return false;
+      }
+
+      // Server returns array with one element or empty array
+      const serverSub = data?.[0];
+
+      if (!serverSub || !serverSub.tier || serverSub.tier === 'free') {
+        // SECURITY: Server says no subscription - clear local state
+        const localState = safeJsonParse<PremiumState>(
+          localStorage.getItem(PREMIUM_STORAGE_KEY) || '',
+          defaultState
+        );
+
+        if (localState.tier !== 'free') {
+          logger.warn('SECURITY: Server says no subscription but local has premium - clearing local state');
+          setState(defaultState);
+          localStorage.removeItem(PREMIUM_STORAGE_KEY);
+          dispatchSubscriptionChange('free');
+        }
+
+        localStorage.setItem(LAST_VERIFICATION_KEY, Date.now().toString());
+        return true;
+      }
+
+      // Server has a valid subscription
+      const serverTier = serverSub.tier as SubscriptionTier;
+
+      // Check if local state matches server
+      const localState = safeJsonParse<PremiumState>(
+        localStorage.getItem(PREMIUM_STORAGE_KEY) || '',
+        defaultState
+      );
+
+      if (localState.tier !== serverTier) {
+        logger.info(`SECURITY: Syncing subscription tier from server: ${serverTier}`);
+
+        const newState: PremiumState = {
+          tier: serverTier,
+          expiresAt: serverSub.expires_at || null,
+          purchasedAt: localState.purchasedAt, // Preserve local purchase date
+          planId: localState.planId,
+          lastStreakFreezeGrant: localState.lastStreakFreezeGrant,
+          bonusCoinsGrantedForPlan: localState.bonusCoinsGrantedForPlan,
+        };
+
+        setState(newState);
+        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+        dispatchSubscriptionChange(serverTier);
+      } else if (serverSub.expires_at && localState.expiresAt !== serverSub.expires_at) {
+        // Update expiration if different
+        const newState = {
+          ...localState,
+          expiresAt: serverSub.expires_at,
+        };
+        setState(newState);
+        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+      }
+
+      localStorage.setItem(LAST_VERIFICATION_KEY, Date.now().toString());
+      logger.debug('Server verification complete, tier:', serverTier);
+      return true;
+
+    } catch (err) {
+      logger.error('Error verifying subscription with server:', err);
+      return false;
+    } finally {
+      verificationInProgressRef.current = false;
+      setIsVerifying(false);
+    }
+  }, []);
+
+  // Load subscription status and trigger initial verification
   useEffect(() => {
     const saved = localStorage.getItem(PREMIUM_STORAGE_KEY);
     if (saved) {
@@ -255,7 +366,33 @@ export const usePremiumStatus = () => {
       }
     }
     setIsLoading(false);
-  }, []);
+
+    // SECURITY: Trigger server verification after loading local state
+    const lastVerified = localStorage.getItem(LAST_VERIFICATION_KEY);
+    const timeSinceVerification = lastVerified
+      ? Date.now() - parseInt(lastVerified, 10)
+      : Infinity;
+
+    // Verify if never verified or verification is stale
+    if (timeSinceVerification > SERVER_VERIFICATION_INTERVAL_MS) {
+      // Delay slightly to allow auth to initialize
+      const timeoutId = setTimeout(() => {
+        verifyWithServer();
+      }, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [verifyWithServer]);
+
+  // SECURITY: Periodic server verification
+  useEffect(() => {
+    if (isLoading) return;
+
+    const intervalId = setInterval(() => {
+      verifyWithServer();
+    }, SERVER_VERIFICATION_INTERVAL_MS);
+
+    return () => clearInterval(intervalId);
+  }, [isLoading, verifyWithServer]);
 
   // Listen for subscription changes from other sources (e.g., StoreKit)
   // This keeps usePremiumStatus in sync when localStorage is updated externally
@@ -551,6 +688,7 @@ export const usePremiumStatus = () => {
     isPremiumPlus,
     isLifetime,
     isLoading,
+    isVerifying,
     expiresAt: state.expiresAt,
     purchasedAt: state.purchasedAt,
     currentPlan,
@@ -559,6 +697,8 @@ export const usePremiumStatus = () => {
     validatePurchase,
     restorePurchases,
     cancelSubscription,
+    // SECURITY: Server verification
+    verifyWithServer,
     // Feature checks
     hasFeature,
     // Tier benefits
