@@ -35,22 +35,18 @@ export const SpritePreview = memo(({ animal, scale = 4 }: SpritePreviewProps) =>
   const spriteStyle = useMemo(() => {
     if (!spriteConfig) return null;
 
-    const { spritePath, frameCount, frameWidth, frameHeight, walkRows = 1 } = spriteConfig;
+    const { spritePath, frameCount, frameWidth, frameHeight } = spriteConfig;
     // Collection preview always shows front-facing (row 0) for idle display
-    const frameRow = 0;
     const scaledWidth = frameWidth * scale;
     const scaledHeight = frameHeight * scale;
     const backgroundPositionX = -(currentFrame * frameWidth * scale);
-    const backgroundPositionY = -(frameRow * frameHeight * scale);
-    // Calculate proper background size for multi-row sprites
-    const totalHeight = frameHeight * walkRows;
 
     return {
       width: `${scaledWidth}px`,
       height: `${scaledHeight}px`,
       backgroundImage: `url(${spritePath})`,
-      backgroundSize: `${frameCount * scaledWidth}px ${totalHeight * scale}px`,
-      backgroundPosition: `${backgroundPositionX}px ${backgroundPositionY}px`,
+      backgroundSize: `${frameCount * scaledWidth}px auto`,
+      backgroundPosition: `${backgroundPositionX}px 0px`,
       backgroundRepeat: 'no-repeat' as const,
       imageRendering: 'pixelated' as const,
       // iOS performance hints
