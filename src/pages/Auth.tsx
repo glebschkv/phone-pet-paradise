@@ -211,7 +211,7 @@ export default function Auth() {
             }}>
               <Sparkles className="w-10 h-10 text-amber-900" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Pet Paradise</h1>
+            <h1 className="text-2xl font-bold text-foreground">NoMo Phone</h1>
             <p className="text-sm text-muted-foreground">Focus, grow, and collect pets!</p>
           </div>
 
@@ -462,7 +462,7 @@ export default function Auth() {
             </div>
             <h2 className="text-xl font-bold">Create Account</h2>
             <p className="text-sm text-muted-foreground">
-              Join Pet Paradise and sync your progress
+              Join NoMo Phone and sync your progress
             </p>
           </div>
 

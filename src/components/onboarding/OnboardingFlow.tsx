@@ -30,8 +30,8 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const steps: OnboardingStep[] = [
     {
       id: 'welcome',
-      title: 'Welcome to Pet Paradise',
-      description: 'Build your magical island and care for adorable pets',
+      title: 'Welcome to NoMo Phone',
+      description: 'Stay focused, earn rewards, and collect adorable pets',
       icon: <Heart className="w-8 h-8 text-primary" />,
       content: (
         <div className="text-center space-y-4">
@@ -39,7 +39,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             <Heart className="w-12 h-12 text-primary" />
           </div>
           <p className="text-muted-foreground">
-            Transform focus time into a thriving pet paradise. The more you focus, the more your island grows!
+            Put down your phone and watch your island grow. The more you focus, the more pets you unlock!
           </p>
         </div>
       ),

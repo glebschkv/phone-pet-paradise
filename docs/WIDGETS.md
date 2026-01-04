@@ -1,6 +1,6 @@
 # Home Screen Widgets Setup Guide
 
-This document explains how to complete the widget integration for Phone Pet Paradise.
+This document explains how to complete the widget integration for NoMo Phone.
 
 ## Overview
 

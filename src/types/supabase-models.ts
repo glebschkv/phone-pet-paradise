@@ -66,7 +66,7 @@ export interface DBFocusSession {
 export const createDefaultProfile = (userId: string): UserProfile => ({
   id: `profile-${userId}`,
   user_id: userId,
-  display_name: 'Pet Paradise Player',
+  display_name: 'NoMo Player',
   avatar_url: null,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),

@@ -176,7 +176,7 @@ describe('useSupabaseData', () => {
 
       await waitFor(() => {
         expect(result.current.profile).not.toBeNull();
-        expect(result.current.profile?.display_name).toBe('Pet Paradise Player');
+        expect(result.current.profile?.display_name).toBe('NoMo Player');
         expect(result.current.progress).not.toBeNull();
         expect(result.current.progress?.total_xp).toBe(0);
         expect(result.current.pets.length).toBe(1);

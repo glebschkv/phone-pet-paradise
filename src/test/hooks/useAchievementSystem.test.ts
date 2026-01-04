@@ -44,7 +44,7 @@ vi.mock('@/services/achievementService', () => ({
     const unlocked = achievements.filter((a: { isUnlocked: boolean }) => a.isUnlocked).length;
     return (unlocked / achievements.length) * 100;
   }),
-  generateShareText: vi.fn((achievement) => `I unlocked "${achievement.name}" in Pet Paradise! 🎮`),
+  generateShareText: vi.fn((achievement) => `I unlocked "${achievement.name}" in NoMo Phone! 🎮`),
   getClaimedAchievementIds: vi.fn(() => new Set<string>()),
   isAchievementClaimed: vi.fn(() => false),
 }));

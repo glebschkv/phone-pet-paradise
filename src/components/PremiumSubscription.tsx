@@ -206,7 +206,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                 </span>
               </div>
               <p className="text-sm text-green-600 dark:text-green-300">
-                Thank you for supporting Pet Paradise!
+                Thank you for supporting NoMo Phone!
               </p>
             </div>
           )}
