@@ -261,25 +261,28 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
       let successCount = 0;
       let failCount = 0;
 
-      // Process in batches
+      // Process in batches with atomic removal per operation
       for (let i = 0; i < retryableOps.length; i += BATCH_SIZE) {
         const batch = retryableOps.slice(i, i + BATCH_SIZE);
         const results = await processBatch(batch);
 
-        const successIds: string[] = [];
+        // Process each result immediately to ensure atomic removal
+        // This prevents data duplication if removal fails for some operations
         for (const result of results) {
           if (result.success) {
-            successIds.push(result.operationId);
-            successCount++;
+            // Remove immediately after successful sync to prevent duplicates on retry
+            try {
+              removeOperation(result.operationId);
+              successCount++;
+            } catch (removeError) {
+              // Log but continue - operation was synced successfully
+              syncLogger.error(`[SyncManager] Failed to remove synced operation ${result.operationId}:`, removeError);
+              successCount++;
+            }
           } else {
             incrementRetry(result.operationId);
             failCount++;
           }
-        }
-
-        // Remove successful operations
-        if (successIds.length > 0) {
-          removeOperations(successIds);
         }
       }
 
@@ -316,10 +319,21 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
     processBatch,
     setSyncStatus,
     incrementRetry,
-    removeOperations,
+    removeOperation,
     markSyncComplete,
     markSyncError,
   ]);
+
+  /**
+   * Clear pending operations when user logs out to prevent stuck operations
+   */
+  useEffect(() => {
+    if (!isAuthenticated && !isGuestMode && pendingOperations.length > 0) {
+      syncLogger.info('[SyncManager] User logged out, clearing pending operations to prevent stuck state');
+      // Clear all pending operations since they can't be synced without a user
+      useOfflineSyncStore.getState().clearOperations();
+    }
+  }, [isAuthenticated, isGuestMode, pendingOperations.length]);
 
   /**
    * Handle online/offline events

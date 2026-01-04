@@ -27,6 +27,39 @@ const STORAGE_KEYS = {
   focusSessions: 'pet_paradise_focus_sessions'
 };
 
+// Schema validators for localStorage data
+const validators = {
+  profile: (data: unknown): data is UserProfile => {
+    if (!data || typeof data !== 'object') return false;
+    const profile = data as Record<string, unknown>;
+    return typeof profile.user_id === 'string' &&
+           typeof profile.id === 'string';
+  },
+  progress: (data: unknown): data is UserProgress => {
+    if (!data || typeof data !== 'object') return false;
+    const progress = data as Record<string, unknown>;
+    return typeof progress.user_id === 'string' &&
+           typeof progress.total_xp === 'number' &&
+           typeof progress.current_level === 'number';
+  },
+  pets: (data: unknown): data is Pet[] => {
+    if (!Array.isArray(data)) return false;
+    return data.every(pet =>
+      pet && typeof pet === 'object' &&
+      typeof pet.user_id === 'string' &&
+      typeof pet.pet_type === 'string'
+    );
+  },
+  focusSessions: (data: unknown): data is FocusSession[] => {
+    if (!Array.isArray(data)) return false;
+    return data.every(session =>
+      session && typeof session === 'object' &&
+      typeof session.user_id === 'string' &&
+      typeof session.duration_minutes === 'number'
+    );
+  }
+};
+
 export const useSupabaseData = () => {
   const { user, isAuthenticated, isGuestMode } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -43,13 +76,32 @@ export const useSupabaseData = () => {
     }
   }, []);
 
-  // Load data from localStorage (for guest mode)
-  const loadFromLocalStorage = useCallback(<T>(key: string): T | null => {
+  // Load data from localStorage (for guest mode) with schema validation
+  const loadFromLocalStorage = useCallback(<T>(key: string, validatorKey?: keyof typeof validators): T | null => {
     try {
       const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : null;
+      if (!data) return null;
+
+      const parsed = JSON.parse(data);
+
+      // Validate against schema if validator is provided
+      if (validatorKey && validators[validatorKey]) {
+        if (!validators[validatorKey](parsed)) {
+          supabaseLogger.warn(`Invalid data schema in localStorage for key: ${key}, clearing corrupted data`);
+          localStorage.removeItem(key);
+          return null;
+        }
+      }
+
+      return parsed;
     } catch (error) {
       supabaseLogger.error('Error loading from localStorage:', error);
+      // Clear corrupted data to prevent repeated parse errors
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // Ignore removal errors
+      }
       return null;
     }
   }, []);
@@ -60,22 +112,22 @@ export const useSupabaseData = () => {
 
     setIsLoading(true);
     try {
-      // Load or create profile
-      let savedProfile = loadFromLocalStorage<UserProfile>(STORAGE_KEYS.profile);
+      // Load or create profile (with schema validation)
+      let savedProfile = loadFromLocalStorage<UserProfile>(STORAGE_KEYS.profile, 'profile');
       if (!savedProfile || savedProfile.user_id !== user.id) {
         savedProfile = createDefaultProfile(user.id);
         saveToLocalStorage(STORAGE_KEYS.profile, savedProfile);
       }
 
-      // Load or create progress
-      let savedProgress = loadFromLocalStorage<UserProgress>(STORAGE_KEYS.progress);
+      // Load or create progress (with schema validation)
+      let savedProgress = loadFromLocalStorage<UserProgress>(STORAGE_KEYS.progress, 'progress');
       if (!savedProgress || savedProgress.user_id !== user.id) {
         savedProgress = createDefaultProgress(user.id);
         saveToLocalStorage(STORAGE_KEYS.progress, savedProgress);
       }
 
-      // Load or create pets
-      let savedPets = loadFromLocalStorage<Pet[]>(STORAGE_KEYS.pets);
+      // Load or create pets (with schema validation)
+      let savedPets = loadFromLocalStorage<Pet[]>(STORAGE_KEYS.pets, 'pets');
       if (!savedPets || savedPets.length === 0) {
         savedPets = [createDefaultPet(user.id)];
         saveToLocalStorage(STORAGE_KEYS.pets, savedPets);
@@ -143,12 +195,11 @@ export const useSupabaseData = () => {
       setProfile(profileResult.data || createDefaultProfile(user.id));
       setProgress(progressResult.data || createDefaultProgress(user.id));
       setPets(petsResult.data && petsResult.data.length > 0 ? petsResult.data : [createDefaultPet(user.id)]);
+      setIsLoading(false);
     } catch (error: unknown) {
       supabaseLogger.error('Error loading user data from Supabase:', error);
-      // Fall back to localStorage on error
+      // Fall back to localStorage on error - loadGuestData manages its own loading state
       loadGuestData();
-    } finally {
-      setIsLoading(false);
     }
   }, [user, loadGuestData]);
 
@@ -253,7 +304,7 @@ export const useSupabaseData = () => {
 
     if (isGuestMode) {
       // Save to localStorage for guest users
-      const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions) || [];
+      const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions, 'focusSessions') || [];
       savedSessions.push(newSession);
       saveToLocalStorage(STORAGE_KEYS.focusSessions, savedSessions);
 
@@ -291,7 +342,7 @@ export const useSupabaseData = () => {
     } catch (error: unknown) {
       supabaseLogger.error('Error adding focus session:', error);
       // Fall back to local storage on error
-      const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions) || [];
+      const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions, 'focusSessions') || [];
       savedSessions.push(newSession);
       saveToLocalStorage(STORAGE_KEYS.focusSessions, savedSessions);
 
