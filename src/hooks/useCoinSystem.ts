@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
+import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, SubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
 

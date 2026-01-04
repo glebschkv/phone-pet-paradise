@@ -13,7 +13,7 @@ import {
   PET_BUNDLES,
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
-import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from './useAchievementTracking';
+import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { useShopStore } from '@/stores';
 
 export interface PurchaseResult {

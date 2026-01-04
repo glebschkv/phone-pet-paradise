@@ -201,7 +201,7 @@ export function createStableCallback<T extends (...args: unknown[]) => unknown>(
 ): T {
   // This is a pattern for creating stable callbacks
   // The returned function never changes, but it calls the latest version
-  let latestCallback = getCallback();
+  const latestCallback = getCallback();
 
   const stableCallback = ((...args: Parameters<T>) => {
     return latestCallback(...args);

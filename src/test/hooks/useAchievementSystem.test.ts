@@ -8,12 +8,12 @@ vi.mock('@/services/achievementService', () => ({
   ACHIEVEMENT_UNLOCK_EVENT: 'achievement_unlock',
   ACHIEVEMENT_CLAIMED_EVENT: 'achievement_claimed',
   initializeAchievements: vi.fn(() => [
-    { id: 'first-session', name: 'First Session', description: 'Complete first focus', category: 'beginner', tier: 'bronze', progress: 0, target: 1, isUnlocked: false, rewardsClaimed: false },
-    { id: 'focus-streak-3', name: '3 Day Streak', description: '3 day streak', category: 'streak', tier: 'bronze', progress: 0, target: 3, isUnlocked: false, rewardsClaimed: false },
-    { id: 'focus-10-hours', name: '10 Hour Focus', description: 'Focus 10 hours', category: 'time', tier: 'silver', progress: 0, target: 600, isUnlocked: false, rewardsClaimed: false },
-    { id: 'collect-5-pets', name: 'Pet Collector', description: 'Collect 5 pets', category: 'collection', tier: 'bronze', progress: 0, target: 5, isUnlocked: false, rewardsClaimed: false },
-    { id: 'achievement-hunter', name: 'Achievement Hunter', description: 'Unlock 10 achievements', category: 'meta', tier: 'gold', progress: 0, target: 10, isUnlocked: false, rewardsClaimed: false },
-    { id: 'completionist', name: 'Completionist', description: 'Unlock all achievements', category: 'meta', tier: 'platinum', progress: 0, target: 50, isUnlocked: false, rewardsClaimed: false, secret: false },
+    { id: 'first-session', title: 'First Session', name: 'First Session', description: 'Complete first focus', category: 'beginner', tier: 'bronze', icon: '🎯', progress: 0, target: 1, isUnlocked: false, rewardsClaimed: false, rewards: [{ type: 'xp', amount: 50, description: '+50 XP' }] },
+    { id: 'focus-streak-3', title: '3 Day Streak', name: '3 Day Streak', description: '3 day streak', category: 'streak', tier: 'bronze', icon: '🔥', progress: 0, target: 3, isUnlocked: false, rewardsClaimed: false, rewards: [{ type: 'xp', amount: 50, description: '+50 XP' }] },
+    { id: 'focus-10-hours', title: '10 Hour Focus', name: '10 Hour Focus', description: 'Focus 10 hours', category: 'time', tier: 'silver', icon: '⏰', progress: 0, target: 600, isUnlocked: false, rewardsClaimed: false, rewards: [{ type: 'xp', amount: 100, description: '+100 XP' }] },
+    { id: 'collect-5-pets', title: 'Pet Collector', name: 'Pet Collector', description: 'Collect 5 pets', category: 'collection', tier: 'bronze', icon: '🐾', progress: 0, target: 5, isUnlocked: false, rewardsClaimed: false, rewards: [{ type: 'xp', amount: 50, description: '+50 XP' }] },
+    { id: 'achievement-hunter', title: 'Achievement Hunter', name: 'Achievement Hunter', description: 'Unlock 10 achievements', category: 'meta', tier: 'gold', icon: '🏆', progress: 0, target: 10, isUnlocked: false, rewardsClaimed: false, rewards: [{ type: 'xp', amount: 200, description: '+200 XP' }] },
+    { id: 'completionist', title: 'Completionist', name: 'Completionist', description: 'Unlock all achievements', category: 'meta', tier: 'platinum', icon: '👑', progress: 0, target: 50, isUnlocked: false, rewardsClaimed: false, secret: false, rewards: [{ type: 'xp', amount: 500, description: '+500 XP' }] },
   ]),
   mergeWithDefinitions: vi.fn((achievements) => achievements),
   calculateRewards: vi.fn((achievement) => ({
