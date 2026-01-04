@@ -1,5 +1,8 @@
 import { Clock, Brain, Coffee, Sun, Sunset, Moon, TreePine, Snowflake, LucideIcon } from "lucide-react";
-import { FocusCategory } from "@/types/analytics";
+import { FocusCategory, SessionType } from "@/types/analytics";
+
+// Re-export SessionType for consumers that import from constants
+export type { SessionType };
 
 export const STORAGE_KEY = 'petIsland_unifiedTimer';
 export const BACKGROUND_THEME_KEY = 'petIsland_focusBackground';
@@ -18,8 +21,6 @@ export const BACKGROUND_THEMES: BackgroundTheme[] = [
   { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 8 },
   { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 12 },
 ];
-
-export type SessionType = 'pomodoro' | 'deep-work' | 'break';
 
 export interface TimerState {
   timeLeft: number;

@@ -1,8 +1,5 @@
 import { useCallback } from 'react';
-
-interface WebkitWindow extends Window {
-  webkitAudioContext?: typeof AudioContext;
-}
+import type { WebkitWindow } from '@/types/browser-utils';
 
 export const useTimerAudio = () => {
   const playCompletionSound = useCallback(() => {

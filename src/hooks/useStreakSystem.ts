@@ -1,30 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { streakLogger } from '@/lib/logger';
+import type { StreakData, StreakReward } from '@/types/streak-system';
+import { STREAK_REWARDS } from '@/types/streak-system';
 
-interface StreakData {
-  currentStreak: number;
-  longestStreak: number;
-  lastSessionDate: string;
-  totalSessions: number;
-  streakFreezeCount: number; // Allows missing one day
-  lastMonthlyFreezeGrant?: string; // ISO date of last monthly grant
-}
-
-interface StreakReward {
-  milestone: number;
-  title: string;
-  description: string;
-  xpBonus: number;
-}
-
-const STREAK_REWARDS: StreakReward[] = [
-  { milestone: 3, title: "Getting Started", description: "3 days in a row!", xpBonus: 50 },
-  { milestone: 7, title: "Week Warrior", description: "1 week streak!", xpBonus: 100 },
-  { milestone: 14, title: "Two Week Champion", description: "2 weeks strong!", xpBonus: 200 },
-  { milestone: 30, title: "Monthly Master", description: "30 days of focus!", xpBonus: 500 },
-  { milestone: 60, title: "Unstoppable", description: "2 months of dedication!", xpBonus: 1000 },
-  { milestone: 100, title: "Legendary", description: "100 days of mastery!", xpBonus: 2000 },
-];
+// Re-export types for consumers
+export type { StreakData, StreakReward };
 
 export const useStreakSystem = () => {
   const [streakData, setStreakData] = useState<StreakData>({
