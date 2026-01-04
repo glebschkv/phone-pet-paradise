@@ -41,20 +41,30 @@ interface SubscriptionValidationResult {
   environment?: string;
 }
 
+/**
+ * SECURITY: Server-side purchase validation
+ *
+ * CRITICAL: This function now follows fail-closed security pattern.
+ * Any validation failure returns { success: false } to prevent unauthorized access.
+ * Users must retry or restore purchases on failure.
+ */
 async function serverValidatePurchase(
   purchase: PurchaseResult | RestoredPurchase
-): Promise<{ success: boolean; subscription?: SubscriptionValidationResult }> {
+): Promise<{ success: boolean; subscription?: SubscriptionValidationResult; requiresRetry?: boolean }> {
   try {
-    // Check if user is authenticated
+    // SECURITY: Require authentication for validation
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      logger.warn('User not authenticated, skipping server validation');
-      return { success: true }; // Allow local-only validation for non-authenticated users
+      logger.warn('User not authenticated - validation requires sign-in');
+      // SECURITY: Fail closed - require authentication for premium features
+      return { success: false, requiresRetry: true };
     }
 
+    // SECURITY: Require all necessary fields for validation
     if (!purchase.signedTransaction || !purchase.transactionId || !purchase.productId) {
-      logger.warn('Missing required fields for server validation');
-      return { success: true }; // Allow purchase but log warning
+      logger.error('Missing required fields for server validation - rejecting');
+      // SECURITY: Fail closed - missing data means invalid purchase
+      return { success: false };
     }
 
     logger.debug('Validating purchase with server:', purchase.productId);
@@ -70,9 +80,12 @@ async function serverValidatePurchase(
       },
     });
 
+    // SECURITY: Server errors should fail closed, not grant access
     if (error) {
       logger.error('Server validation error:', error);
-      return { success: true }; // Don't fail the purchase
+      // SECURITY: Fail closed - server errors mean validation failed
+      // User should retry the validation
+      return { success: false, requiresRetry: true };
     }
 
     if (data?.success) {
@@ -84,7 +97,9 @@ async function serverValidatePurchase(
     }
   } catch (err) {
     logger.error('Error during server validation:', err);
-    return { success: true }; // Don't fail the purchase
+    // SECURITY: Fail closed - exceptions mean validation failed
+    // User should retry the validation
+    return { success: false, requiresRetry: true };
   }
 }
 
@@ -224,28 +239,6 @@ export const useStoreKit = (): UseStoreKitReturn => {
     logger.debug('Subscription status:', status);
   }, [pluginAvailable]);
 
-  // Validate purchase with server (wrapper that also updates local storage)
-  const validatePurchaseWithServer = useCallback(async (
-    purchase: PurchaseResult | RestoredPurchase
-  ): Promise<boolean> => {
-    const result = await serverValidatePurchase(purchase);
-
-    // Update local storage with server-validated subscription
-    if (result.success && result.subscription) {
-      const premiumState = {
-        tier: result.subscription.tier,
-        expiresAt: result.subscription.expiresAt,
-        purchasedAt: result.subscription.purchasedAt,
-        planId: result.subscription.productId,
-        validated: true,
-        environment: result.subscription.environment,
-      };
-      localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
-    }
-
-    return result.success;
-  }, []);
-
   // Purchase a product
   const purchaseProduct = useCallback(async (productId: string): Promise<PurchaseResult> => {
     const failedResult: PurchaseResult = {
@@ -284,23 +277,47 @@ export const useStoreKit = (): UseStoreKitReturn => {
     }
 
     if (result.success) {
-      // Validate with server before showing success
-      const serverValidated = await validatePurchaseWithServer(result);
+      // SECURITY: Validate with server before granting access
+      const validationResult = await serverValidatePurchase(result);
 
-      if (serverValidated) {
+      if (validationResult.success) {
+        // Update local storage with server-validated subscription
+        if (validationResult.subscription) {
+          const premiumState = {
+            tier: validationResult.subscription.tier,
+            expiresAt: validationResult.subscription.expiresAt,
+            purchasedAt: validationResult.subscription.purchasedAt,
+            planId: validationResult.subscription.productId,
+            validated: true,
+            environment: validationResult.subscription.environment,
+          };
+          localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+        }
+
         toast({
           title: 'Purchase Successful!',
           description: 'Thank you for your purchase.',
         });
-      } else {
-        toast({
-          title: 'Purchase Processing',
-          description: 'Your purchase is being verified. It may take a moment to activate.',
-        });
-      }
 
-      // Refresh subscription status
-      await checkSubscriptionStatus();
+        // Refresh subscription status
+        await checkSubscriptionStatus();
+      } else if (validationResult.requiresRetry) {
+        // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
+        toast({
+          title: 'Verification Pending',
+          description: 'Unable to verify purchase. Please try restoring purchases or check your connection.',
+          variant: 'destructive',
+        });
+        // Don't grant access - user needs to restore purchases
+      } else {
+        // SECURITY: Validation failed definitively
+        toast({
+          title: 'Verification Failed',
+          description: 'Purchase could not be verified. Please contact support if this persists.',
+          variant: 'destructive',
+        });
+        // Don't grant access
+      }
     } else if (result.cancelled) {
       // User cancelled - no toast needed
       logger.debug('Purchase cancelled by user');
@@ -313,7 +330,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
 
     setIsPurchasing(false);
     return result;
-  }, [toast, checkSubscriptionStatus, validatePurchaseWithServer, pluginAvailable]);
+  }, [toast, checkSubscriptionStatus, pluginAvailable]);
 
   // Restore purchases
   const restorePurchases = useCallback(async (): Promise<boolean> => {
@@ -348,20 +365,52 @@ export const useStoreKit = (): UseStoreKitReturn => {
     }
 
     if (result.success && result.restoredCount > 0) {
-      // Validate each restored purchase with the server
+      // SECURITY: Validate each restored purchase with the server (fail-closed)
+      let validatedCount = 0;
+      let failedCount = 0;
+
       for (const purchase of result.purchases) {
-        await validatePurchaseWithServer(purchase);
+        const validationResult = await serverValidatePurchase(purchase);
+        if (validationResult.success) {
+          // Update local storage with server-validated subscription
+          if (validationResult.subscription) {
+            const premiumState = {
+              tier: validationResult.subscription.tier,
+              expiresAt: validationResult.subscription.expiresAt,
+              purchasedAt: validationResult.subscription.purchasedAt,
+              planId: validationResult.subscription.productId,
+              validated: true,
+              environment: validationResult.subscription.environment,
+            };
+            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+          }
+          validatedCount++;
+        } else {
+          failedCount++;
+          logger.warn('Failed to validate restored purchase:', purchase.productId);
+        }
       }
 
-      toast({
-        title: 'Purchases Restored!',
-        description: `${result.restoredCount} purchase(s) restored successfully.`,
-      });
+      if (validatedCount > 0) {
+        toast({
+          title: 'Purchases Restored!',
+          description: `${validatedCount} purchase(s) restored successfully.`,
+        });
 
-      // Refresh subscription status
-      await checkSubscriptionStatus();
-      setIsLoading(false);
-      return true;
+        // Refresh subscription status
+        await checkSubscriptionStatus();
+        setIsLoading(false);
+        return true;
+      } else {
+        // SECURITY: No purchases could be validated - don't grant access
+        toast({
+          title: 'Restore Failed',
+          description: 'Unable to verify purchases. Please check your connection and try again.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return false;
+      }
     } else {
       toast({
         title: 'No Purchases Found',
@@ -370,7 +419,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setIsLoading(false);
       return false;
     }
-  }, [toast, checkSubscriptionStatus, validatePurchaseWithServer, pluginAvailable]);
+  }, [toast, checkSubscriptionStatus, pluginAvailable]);
 
   // Open subscription management
   const manageSubscriptions = useCallback(async () => {

@@ -25,8 +25,51 @@ import { TIER_BENEFITS, isValidSubscriptionTier } from '../usePremiumStatus';
 import { useAuth } from '../useAuth';
 import { useSupabaseData } from '../useSupabaseData';
 import { validateXPAmount, validateLevel, validateSessionMinutes } from '@/lib/validation';
+import { supabase } from '@/integrations/supabase/client';
 
 import { XPReward, XPSystemState } from './xpTypes';
+
+/**
+ * SECURITY: Rate limiting for client-side debouncing
+ * Prevents spam requests before they hit the server
+ */
+let lastXPAwardTime = 0;
+const MIN_XP_AWARD_INTERVAL_MS = 2000; // 2 seconds between XP awards (more restrictive than coins)
+
+function canAwardXP(): boolean {
+  const now = Date.now();
+  if (now - lastXPAwardTime < MIN_XP_AWARD_INTERVAL_MS) {
+    return false;
+  }
+  lastXPAwardTime = now;
+  return true;
+}
+
+/**
+ * SECURITY: Session tracking for duplicate prevention
+ * Tracks session IDs that have been rewarded to prevent double-claiming
+ */
+const rewardedSessions = new Set<string>();
+const MAX_TRACKED_SESSIONS = 100;
+
+function markSessionRewarded(sessionId: string): boolean {
+  if (rewardedSessions.has(sessionId)) {
+    return false; // Already rewarded
+  }
+
+  // Cleanup if too many sessions tracked
+  if (rewardedSessions.size >= MAX_TRACKED_SESSIONS) {
+    const iterator = rewardedSessions.values();
+    const firstValue = iterator.next().value;
+    if (firstValue) {
+      rewardedSessions.delete(firstValue);
+    }
+  }
+
+  rewardedSessions.add(sessionId);
+  return true;
+}
+
 import {
   STORAGE_KEY,
   XP_UPDATE_EVENT,
@@ -353,8 +396,57 @@ export const useXPSystem = () => {
     return 0;
   }, [sortedDurations]);
 
-  // Award XP and handle level ups with random bonus chance
-  const awardXP = useCallback((sessionMinutes: number): XPReward => {
+  /**
+   * SECURITY: Award XP with rate limiting and server validation
+   *
+   * This function now includes:
+   * - Client-side rate limiting to prevent spam
+   * - Session ID tracking to prevent duplicate rewards
+   * - Server validation for authenticated users
+   *
+   * @param sessionMinutes - Duration of the focus session
+   * @param sessionId - Optional unique session ID for deduplication
+   */
+  const awardXP = useCallback((sessionMinutes: number, sessionId?: string): XPReward => {
+    // SECURITY: Client-side rate limiting
+    if (!canAwardXP()) {
+      logger.warn('Rate limited: XP award throttled');
+      return {
+        xpGained: 0,
+        baseXP: 0,
+        bonusXP: 0,
+        bonusMultiplier: 1,
+        hasBonusXP: false,
+        bonusType: 'none',
+        oldLevel: xpState.currentLevel,
+        newLevel: xpState.currentLevel,
+        leveledUp: false,
+        unlockedRewards: [],
+        subscriptionMultiplier: 1,
+      };
+    }
+
+    // SECURITY: Generate session ID if not provided
+    const effectiveSessionId = sessionId || `xp_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // SECURITY: Check if session was already rewarded
+    if (!markSessionRewarded(effectiveSessionId)) {
+      logger.warn('Duplicate XP award attempt blocked:', effectiveSessionId);
+      return {
+        xpGained: 0,
+        baseXP: 0,
+        bonusXP: 0,
+        bonusMultiplier: 1,
+        hasBonusXP: false,
+        bonusType: 'none',
+        oldLevel: xpState.currentLevel,
+        newLevel: xpState.currentLevel,
+        leveledUp: false,
+        unlockedRewards: [],
+        subscriptionMultiplier: 1,
+      };
+    }
+
     const validMinutes = validateSessionMinutes(sessionMinutes);
     const baseXP = calculateXPFromDuration(validMinutes);
     const subscriptionMultiplier = getSubscriptionMultiplier();
@@ -411,7 +503,8 @@ export const useXPSystem = () => {
       availableBiomes: newBiomes,
     });
 
-    // Sync to backend asynchronously (doesn't block)
+    // SECURITY: Sync to backend asynchronously with server validation
+    // The server calculate-xp function validates the session and prevents duplicates
     syncToBackend(newTotalXP, newLevel, validMinutes, xpGained);
 
     return {
@@ -429,8 +522,31 @@ export const useXPSystem = () => {
     };
   }, [xpState, calculateXPFromDuration, saveState, getSubscriptionMultiplier, syncToBackend]);
 
-  // Add direct XP (for achievements, daily login, bonuses, etc.)
+  /**
+   * SECURITY: Add direct XP with rate limiting
+   *
+   * Used for achievements, daily login, bonuses, etc.
+   * Includes rate limiting to prevent abuse.
+   */
   const addDirectXP = useCallback((xpAmount: number): XPReward => {
+    // SECURITY: Client-side rate limiting
+    if (!canAwardXP()) {
+      logger.warn('Rate limited: direct XP award throttled');
+      return {
+        xpGained: 0,
+        baseXP: 0,
+        bonusXP: 0,
+        bonusMultiplier: 1,
+        hasBonusXP: false,
+        bonusType: 'none',
+        oldLevel: xpState.currentLevel,
+        newLevel: xpState.currentLevel,
+        leveledUp: false,
+        unlockedRewards: [],
+        subscriptionMultiplier: 1,
+      };
+    }
+
     const validAmount = validateXPAmount(xpAmount);
     if (validAmount <= 0) {
       logger.warn('Invalid XP amount:', xpAmount);
