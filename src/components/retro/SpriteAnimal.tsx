@@ -61,6 +61,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   const animationSpeed = spriteConfig?.animationSpeed || 8;
   const walkRows = spriteConfig?.walkRows || 1;
   const frameRow = spriteConfig?.frameRow ?? (walkRows === 2 ? 1 : walkRows === 4 ? 2 : 0);
+  const facesLeft = spriteConfig?.facesLeft || false;
 
   // Register position on mount and sync when position prop changes
   useEffect(() => {
@@ -247,8 +248,9 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   // Ground offset (per-animal adjustment on top of biome ground level)
   const groundOffset = animal.groundOffset || 0;
 
-  // Flip sprite when walking left
-  const shouldFlip = !isIdle && renderDirection === 'left';
+  // Flip sprite when walking opposite to its natural facing direction
+  // If sprite faces left naturally, flip when walking right; otherwise flip when walking left
+  const shouldFlip = !isIdle && (facesLeft ? renderDirection === 'right' : renderDirection === 'left');
 
   return (
     <div

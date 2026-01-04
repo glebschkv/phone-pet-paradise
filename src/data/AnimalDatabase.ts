@@ -16,6 +16,7 @@ export interface AnimalData {
     animationSpeed?: number;
     frameRow?: number;       // Which row contains east-facing frames (0-indexed)
     walkRows?: number;       // Total rows in walk sprite (1, 2, or 4)
+    facesLeft?: boolean;     // True if sprite naturally faces left (flip logic inverted)
   };
   // Coin-exclusive properties
   coinPrice?: number;
@@ -311,7 +312,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 9
+      animationSpeed: 9,
+      facesLeft: true
     }
   },
   {
@@ -329,7 +331,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 7
+      animationSpeed: 7,
+      facesLeft: true
     }
   },
   // Sunset Shop Exclusive
@@ -409,7 +412,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      facesLeft: true
     }
   },
   // Night Shop Exclusives
@@ -430,7 +434,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 7
+      animationSpeed: 7,
+      facesLeft: true
     }
   },
   {
@@ -512,7 +517,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 10
+      animationSpeed: 10,
+      facesLeft: true
     }
   },
 
@@ -534,7 +540,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      facesLeft: true
     }
   },
   {
@@ -588,7 +595,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      facesLeft: true
     }
   },
   {
@@ -643,7 +651,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      facesLeft: true
     }
   },
   // Humanoid Shop Exclusives
