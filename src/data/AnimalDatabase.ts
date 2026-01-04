@@ -728,7 +728,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A winter wonderland of magical costume characters.',
     animals: ['star-wizard', 'mushroom-kid', 'bunny-hood', 'cat-hood'],
     backgroundImage: '/assets/worlds/SNOW_SKY.png',
-    groundLevel: 30
+    groundLevel: 25
   },
   {
     name: 'City',
