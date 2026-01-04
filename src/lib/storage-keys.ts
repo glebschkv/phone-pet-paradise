@@ -8,6 +8,7 @@
  * Key prefix: 'nomo_' for consistency
  */
 
+import { z } from 'zod';
 import { APP_CONFIG } from './constants';
 import { storageLogger } from '@/lib/logger';
 
@@ -281,6 +282,150 @@ export const storage = {
       totalSize,
       keys,
     };
+  },
+
+  /**
+   * Get and validate data against a Zod schema.
+   * Returns null if validation fails or data doesn't exist.
+   *
+   * @param key - The storage key
+   * @param schema - Zod schema to validate against
+   * @returns Validated data or null
+   */
+  getValidated<T>(key: StorageKey, schema: z.ZodSchema<T>): T | null {
+    migrateKey(key);
+
+    try {
+      const item = localStorage.getItem(key);
+      if (!item) return null;
+
+      const parsed = JSON.parse(item);
+      const result = schema.safeParse(parsed);
+
+      if (result.success) {
+        return result.data;
+      }
+
+      // Log validation failures for debugging
+      const errorDetails = result.error.issues
+        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+        .join('; ');
+      storageLogger.warn(`[Storage] Validation failed for ${key}:`, errorDetails);
+
+      return null;
+    } catch (error) {
+      storageLogger.error(`[Storage] Failed to get/validate ${key}:`, error);
+      return null;
+    }
+  },
+
+  /**
+   * Get and validate data, returning a default value if validation fails.
+   * This is the recommended method for loading localStorage data safely.
+   *
+   * @param key - The storage key
+   * @param schema - Zod schema to validate against
+   * @param defaultValue - Value to return if data is missing or invalid
+   * @returns Validated data or default value
+   */
+  getValidatedOrDefault<T>(key: StorageKey, schema: z.ZodSchema<T>, defaultValue: T): T {
+    const validated = this.getValidated(key, schema);
+    return validated !== null ? validated : defaultValue;
+  },
+
+  /**
+   * Validate and set data. Only stores if validation passes.
+   * Prevents storing invalid data that could cause issues on load.
+   *
+   * @param key - The storage key
+   * @param schema - Zod schema to validate against
+   * @param value - Value to validate and store
+   * @returns true if stored successfully, false if validation failed
+   */
+  setValidated<T>(key: StorageKey, schema: z.ZodSchema<T>, value: T): boolean {
+    const result = schema.safeParse(value);
+
+    if (!result.success) {
+      const errorDetails = result.error.issues
+        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+        .join('; ');
+      storageLogger.warn(`[Storage] Cannot store invalid data for ${key}:`, errorDetails);
+      return false;
+    }
+
+    try {
+      localStorage.setItem(key, JSON.stringify(result.data));
+      return true;
+    } catch (error) {
+      storageLogger.error(`[Storage] Failed to save ${key}:`, error);
+      return false;
+    }
+  },
+
+  /**
+   * Validate existing stored data without modifying it.
+   * Useful for checking data integrity.
+   *
+   * @param key - The storage key
+   * @param schema - Zod schema to validate against
+   * @returns Validation result with success status and any errors
+   */
+  validate<T>(key: StorageKey, schema: z.ZodSchema<T>): { valid: boolean; errors?: string[] } {
+    try {
+      const item = localStorage.getItem(key);
+      if (!item) return { valid: true }; // No data is valid (nothing to validate)
+
+      const parsed = JSON.parse(item);
+      const result = schema.safeParse(parsed);
+
+      if (result.success) {
+        return { valid: true };
+      }
+
+      return {
+        valid: false,
+        errors: result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
+      };
+    } catch (error) {
+      return {
+        valid: false,
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
+      };
+    }
+  },
+
+  /**
+   * Repair invalid stored data by parsing with schema defaults.
+   * Attempts to salvage valid fields while applying defaults to invalid ones.
+   *
+   * @param key - The storage key
+   * @param schema - Zod schema with defaults
+   * @returns true if data was repaired and saved, false otherwise
+   */
+  repair<T>(key: StorageKey, schema: z.ZodSchema<T>): boolean {
+    try {
+      const item = localStorage.getItem(key);
+      if (!item) return false;
+
+      const parsed = JSON.parse(item);
+
+      // Try to parse with defaults - this will apply defaults to missing/invalid fields
+      const result = schema.safeParse(parsed);
+
+      if (result.success) {
+        // Data is already valid or was successfully coerced
+        localStorage.setItem(key, JSON.stringify(result.data));
+        storageLogger.debug(`[Storage] Repaired/validated ${key}`);
+        return true;
+      }
+
+      // If parsing completely failed, we can't repair
+      storageLogger.warn(`[Storage] Cannot repair ${key}, data too corrupted`);
+      return false;
+    } catch (error) {
+      storageLogger.error(`[Storage] Failed to repair ${key}:`, error);
+      return false;
+    }
   },
 };
 

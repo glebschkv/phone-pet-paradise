@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { xpLogger } from '@/lib/logger';
+import { xpSystemSchema } from '@/lib/storage-validation';
+import { createValidatedStorage } from '@/lib/validated-zustand-storage';
 
 export const MAX_LEVEL = 50;
 
@@ -72,14 +74,23 @@ export const useXPStore = create<XPStore>()(
     }),
     {
       name: 'nomo_xp_system',
+      storage: createValidatedStorage({
+        schema: xpSystemSchema,
+        defaultState: initialState,
+        name: 'xp-store',
+      }),
       onRehydrateStorage: () => (state) => {
         if (!state) {
           try {
             const legacy = localStorage.getItem('petIsland_xpSystem');
-            if (legacy) return JSON.parse(legacy);
+            if (legacy) {
+              const parsed = JSON.parse(legacy);
+              const validated = xpSystemSchema.safeParse(parsed);
+              if (validated.success) return validated.data;
+            }
           } catch { /* ignore */ }
         }
-        if (state) xpLogger.debug('XP store rehydrated');
+        if (state) xpLogger.debug('XP store rehydrated and validated');
       },
     }
   )

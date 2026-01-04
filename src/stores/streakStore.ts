@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { streakLogger } from '@/lib/logger';
+import { streakDataSchema } from '@/lib/storage-validation';
+import { createValidatedStorage } from '@/lib/validated-zustand-storage';
 
 export interface StreakReward {
   milestone: number;
@@ -61,14 +63,23 @@ export const useStreakStore = create<StreakStore>()(
     }),
     {
       name: 'nomo_streak_data',
+      storage: createValidatedStorage({
+        schema: streakDataSchema,
+        defaultState: initialState,
+        name: 'streak-store',
+      }),
       onRehydrateStorage: () => (state) => {
         if (!state) {
           try {
             const legacy = localStorage.getItem('pet_paradise_streak_data');
-            if (legacy) return JSON.parse(legacy);
+            if (legacy) {
+              const parsed = JSON.parse(legacy);
+              const validated = streakDataSchema.safeParse(parsed);
+              if (validated.success) return validated.data;
+            }
           } catch { /* ignore */ }
         }
-        if (state) streakLogger.debug('Streak store rehydrated');
+        if (state) streakLogger.debug('Streak store rehydrated and validated');
       },
     }
   )
