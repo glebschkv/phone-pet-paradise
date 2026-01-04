@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { questLogger } from '@/lib/logger';
+import { useXPStore } from '@/stores/xpStore';
 import type {
   Quest,
   QuestObjective,
@@ -115,6 +116,7 @@ const STORY_QUESTS = [
 export const useQuestSystem = (): QuestSystemReturn => {
   const [quests, setQuests] = useState<Quest[]>([]);
   const { toast } = useToast();
+  const { addXP, addAnimal } = useXPStore();
 
   // Load quest data
   const loadQuestData = useCallback(() => {
@@ -253,24 +255,57 @@ export const useQuestSystem = (): QuestSystemReturn => {
     const quest = quests.find(q => q.id === questId);
     if (!quest || quest.isCompleted) return;
 
-    // Process rewards
+    // Track total XP earned for the toast
+    let totalXPEarned = 0;
+    const unlockedPets: string[] = [];
+
+    // Process and apply rewards
     quest.rewards.forEach(reward => {
-      if (reward.type === 'xp' && reward.amount) {
-        toast({
-          title: "Quest Complete!",
-          description: `${quest.title} completed! ${reward.description}`,
-        });
+      switch (reward.type) {
+        case 'xp':
+          if (reward.amount) {
+            addXP(reward.amount);
+            totalXPEarned += reward.amount;
+            questLogger.debug(`Applied ${reward.amount} XP reward from quest ${questId}`);
+          }
+          break;
+        case 'pet_unlock':
+          if (reward.itemId) {
+            addAnimal(reward.itemId);
+            unlockedPets.push(reward.description || reward.itemId);
+            questLogger.debug(`Unlocked pet ${reward.itemId} from quest ${questId}`);
+          }
+          break;
+        case 'ability':
+        case 'cosmetic':
+          // TODO: Implement ability and cosmetic reward application
+          questLogger.debug(`${reward.type} reward not yet implemented: ${reward.description}`);
+          break;
       }
     });
 
+    // Show completion toast with rewards summary
+    const rewardMessages: string[] = [];
+    if (totalXPEarned > 0) {
+      rewardMessages.push(`+${totalXPEarned} XP`);
+    }
+    if (unlockedPets.length > 0) {
+      rewardMessages.push(unlockedPets.join(', '));
+    }
+
+    toast({
+      title: "Quest Complete!",
+      description: `${quest.title} completed! ${rewardMessages.join(' • ')}`,
+    });
+
     setQuests(prev => {
-      const updated = prev.map(q => 
+      const updated = prev.map(q =>
         q.id === questId ? { ...q, isCompleted: true } : q
       );
       saveQuestData(updated);
       return updated;
     });
-  }, [quests, toast, saveQuestData]);
+  }, [quests, toast, saveQuestData, addXP, addAnimal]);
 
   // Get quest by ID
   const getQuestById = useCallback((questId: string): Quest | undefined => {

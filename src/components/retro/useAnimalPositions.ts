@@ -170,8 +170,3 @@ function createPositionRegistryHook(): () => PositionRegistry {
  * Hook to create a shared position registry for ground animals
  */
 export const useAnimalPositionRegistry = createPositionRegistryHook();
-
-/**
- * Hook to create a shared position registry for flying animals
- */
-export const useFlyingPositionRegistry = createPositionRegistryHook();

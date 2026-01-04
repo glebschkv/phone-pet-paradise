@@ -319,7 +319,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 9
+      animationSpeed: 9,
+      walkRows: 1
     }
   },
   {
@@ -337,7 +338,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 7
+      animationSpeed: 7,
+      walkRows: 1
     }
   },
   // Sunset Shop Exclusive
@@ -358,7 +360,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 10
+      animationSpeed: 10,
+      walkRows: 1
     }
   },
 
@@ -400,7 +403,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 6
+      animationSpeed: 6,
+      walkRows: 1
     }
   },
   {
@@ -418,7 +422,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 1
     }
   },
   // Night Shop Exclusives
@@ -439,7 +444,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 7
+      animationSpeed: 7,
+      walkRows: 1
     }
   },
   {
@@ -459,7 +465,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 1
     }
   },
 
@@ -501,7 +508,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 1
     }
   },
   // Elemental Shop Exclusive
@@ -522,7 +530,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 10
+      animationSpeed: 10,
+      walkRows: 1
     }
   },
 
@@ -544,7 +553,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 1
     }
   },
   {
@@ -562,7 +572,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 1
     }
   },
   {
@@ -580,7 +591,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 9
+      animationSpeed: 9,
+      walkRows: 1
     }
   },
   {
@@ -598,7 +610,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 1
     }
   },
   {
@@ -636,7 +649,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 1
     }
   },
   {
@@ -654,7 +668,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 8
+      animationSpeed: 8,
+      walkRows: 1
     }
   },
   // Humanoid Shop Exclusives
@@ -697,7 +712,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameCount: 6,
       frameWidth: 64,
       frameHeight: 64,
-      animationSpeed: 7
+      animationSpeed: 7,
+      walkRows: 1
     }
   },
 ];
@@ -800,18 +816,6 @@ export const getBiomeByName = (name: string): BiomeData | undefined => {
 
 export const getUnlockedBiomes = (level: number): BiomeData[] => {
   return BIOME_DATABASE.filter(biome => biome.unlockLevel <= level);
-};
-
-// Flying/ground animal helpers for display purposes
-// Currently no flying characters - all are ground-based
-export const getFlyingAnimals = (animals: AnimalData[]): AnimalData[] => {
-  // No flying animals in current character set
-  return [];
-};
-
-export const getGroundAnimals = (animals: AnimalData[]): AnimalData[] => {
-  // All current animals are ground-based
-  return animals;
 };
 
 // Map theme names to biome names for ground level lookup

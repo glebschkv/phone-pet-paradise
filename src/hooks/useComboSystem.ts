@@ -41,7 +41,8 @@ export const useComboSystem = () => {
     }
   }, []);
 
-  // Check combo expiry
+  // Check combo expiry - only based on time elapsed, not calendar day
+  // This prevents unfair combo resets at midnight when user was recently active
   const checkComboExpiry = (s: ComboState): ComboState => {
     if (!s.lastSessionTime) return s;
 
@@ -49,15 +50,11 @@ export const useComboSystem = () => {
     const timeSinceLastSession = now - s.lastSessionTime;
     const timeoutMs = COMBO_TIMEOUT_HOURS * 60 * 60 * 1000;
 
-    // Also reset if it's a new day
-    const today = new Date().toDateString();
-    const isNewDay = s.lastSessionDate !== today;
-
-    if (timeSinceLastSession > timeoutMs || isNewDay) {
+    // Only reset if more than COMBO_TIMEOUT_HOURS have passed since last session
+    if (timeSinceLastSession > timeoutMs) {
       return {
         ...s,
         currentCombo: 0,
-        lastSessionDate: isNewDay ? today : s.lastSessionDate,
       };
     }
 
