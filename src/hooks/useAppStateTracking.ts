@@ -181,9 +181,10 @@ export const useAppStateTracking = () => {
     let xpReward: XPReward | null = null;
 
     if (reward) {
-      if (reward.type === 'xp' || reward.type === 'mystery_bonus') {
+      // Award XP if present
+      if (reward.xp > 0) {
         // Use addDirectXP which properly handles level-ups
-        xpReward = xpSystem.addDirectXP(reward.amount);
+        xpReward = xpSystem.addDirectXP(reward.xp);
 
         // If leveled up, show the XP reward modal
         if (xpReward.leveledUp) {
@@ -192,9 +193,16 @@ export const useAppStateTracking = () => {
             currentReward: xpReward,
           });
         }
-      } else if (reward.type === 'streak_freeze') {
-        // Award streak freeze
-        streakSystem.earnStreakFreeze();
+      }
+
+      // Award coins if present (uses useCoinSystem via event dispatch or direct call)
+      // Note: Coins are awarded through the global coin system event listener
+
+      // Award streak freeze if present
+      if (reward.streakFreeze && reward.streakFreeze > 0) {
+        for (let i = 0; i < reward.streakFreeze; i++) {
+          streakSystem.earnStreakFreeze();
+        }
       }
     }
     return { dailyReward: reward, xpReward };

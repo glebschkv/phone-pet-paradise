@@ -211,17 +211,18 @@ export interface CoinSystemState {
 }
 
 // Coin rewards based on session duration (in minutes)
-// Boosted rewards - players should be able to buy things regularly!
+// Formula: BASE_COINS_PER_MINUTE(2) * duration + SESSION_COMPLETION_BONUS
+// This rewards both time spent AND completing full sessions
 const COIN_REWARDS: Record<number, number> = {
-  25: 25,   // 25 minutes = 25 coins - more than doubled
-  30: 40,   // 30 minutes = 40 coins - more than doubled
-  45: 65,   // 45 minutes = 65 coins - more than doubled
-  60: 100,  // 1 hour = 100 coins - 2.5x increase
-  90: 175,  // 90 minutes = 175 coins - more than doubled
-  120: 260, // 2 hours = 260 coins - more than doubled
-  180: 400, // 3 hours = 400 coins - more than doubled
-  240: 550, // 4 hours = 550 coins - more than doubled
-  300: 750, // 5 hours = 750 coins - more than doubled
+  25: 65,   // 50 base + 15 completion bonus
+  30: 80,   // 60 base + 20 completion bonus
+  45: 125,  // 90 base + 35 completion bonus
+  60: 170,  // 120 base + 50 completion bonus
+  90: 260,  // 180 base + 80 completion bonus
+  120: 360, // 240 base + 120 completion bonus
+  180: 540, // 360 base + 180 completion bonus
+  240: 720, // 480 base + 240 completion bonus
+  300: 900, // 600 base + 300 completion bonus
 };
 
 // Random bonus coin system (same odds as XP)

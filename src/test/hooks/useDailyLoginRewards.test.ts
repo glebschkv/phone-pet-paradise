@@ -400,7 +400,7 @@ describe('useDailyLoginRewards', () => {
       const xpRewards = rewards.filter(r => r.type === 'xp');
 
       for (let i = 1; i < xpRewards.length; i++) {
-        expect(xpRewards[i].amount).toBeGreaterThan(xpRewards[i - 1].amount);
+        expect(xpRewards[i].xp).toBeGreaterThan(xpRewards[i - 1].xp);
       }
     });
 
