@@ -175,8 +175,10 @@ describe('useAnalytics', () => {
         result.current.recordSession('pomodoro', 1800, 1800, 'completed', 50, 'study');
       });
 
-      expect(result.current.todayStats.totalFocusTime).toBe(1800);
-      expect(result.current.todayStats.sessionsCompleted).toBe(1);
+      await waitFor(() => {
+        expect(result.current.todayStats.totalFocusTime).toBe(1800);
+        expect(result.current.todayStats.sessionsCompleted).toBe(1);
+      });
     });
 
     it('should track break time separately', async () => {
@@ -237,7 +239,9 @@ describe('useAnalytics', () => {
         result.current.recordSession('pomodoro', 1800, 1800, 'completed', 50, 'creative');
       });
 
-      expect(result.current.todayStats.categoryTime?.creative).toBe(1800);
+      await waitFor(() => {
+        expect(result.current.todayStats.categoryTime?.creative).toBe(1800);
+      });
     });
 
     it('should return the session object', async () => {

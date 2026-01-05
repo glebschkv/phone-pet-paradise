@@ -258,12 +258,12 @@ describe('useShop', () => {
   });
 
   describe('Purchase Functions - Success Cases', () => {
-    it('should successfully purchase a character', () => {
+    it('should successfully purchase a character', async () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseCharacter('dog');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseCharacter('dog');
       });
 
       expect(purchaseResult).toEqual({
@@ -271,16 +271,16 @@ describe('useShop', () => {
         message: 'Dog purchased!',
         item: expect.objectContaining({ id: 'dog', name: 'Dog' }),
       });
-      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(100);
+      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(100, 'pet_unlock', 'dog');
       expect(result.current.inventory.ownedCharacters).toContain('dog');
     });
 
-    it('should successfully purchase a background', () => {
+    it('should successfully purchase a background', async () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseBackground('bg-ocean');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseBackground('bg-ocean');
       });
 
       expect(purchaseResult).toEqual({
@@ -288,16 +288,16 @@ describe('useShop', () => {
         message: 'Ocean View purchased!',
         item: expect.objectContaining({ id: 'bg-ocean', name: 'Ocean View' }),
       });
-      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(200);
+      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(200, 'cosmetic', 'bg-ocean');
       expect(result.current.inventory.ownedBackgrounds).toContain('bg-ocean');
     });
 
-    it('should successfully purchase a badge', () => {
+    it('should successfully purchase a badge', async () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseBadge('badge-gold');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseBadge('badge-gold');
       });
 
       expect(purchaseResult).toEqual({
@@ -305,64 +305,64 @@ describe('useShop', () => {
         message: 'Gold Badge purchased!',
         item: expect.objectContaining({ id: 'badge-gold', name: 'Gold Badge' }),
       });
-      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(300);
+      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(300, 'cosmetic', 'badge-gold');
       expect(result.current.inventory.ownedBadges).toContain('badge-gold');
     });
 
-    it('should successfully purchase streak freeze', () => {
+    it('should successfully purchase streak freeze', async () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseStreakFreeze(3, 150);
+      await act(async () => {
+        purchaseResult = await result.current.purchaseStreakFreeze(3, 150);
       });
 
       expect(purchaseResult).toEqual({
         success: true,
         message: '3 Streak Freezes added!',
       });
-      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(150);
+      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(150, 'streak_freeze', 'streak_freeze_x3');
       expect(mockStreakSystem.earnStreakFreeze).toHaveBeenCalledTimes(3);
     });
 
-    it('should successfully purchase a background bundle', () => {
+    it('should successfully purchase a background bundle', async () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseBackgroundBundle('bundle-nature');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseBackgroundBundle('bundle-nature');
       });
 
       expect(purchaseResult?.success).toBe(true);
       expect(purchaseResult?.message).toContain('Nature Bundle purchased!');
-      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(400);
+      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(400, 'cosmetic', 'bundle-nature');
       expect(result.current.inventory.ownedBackgrounds).toContain('bg-ocean');
       expect(result.current.inventory.ownedBackgrounds).toContain('bg-forest');
     });
 
-    it('should successfully purchase a pet bundle', () => {
+    it('should successfully purchase a pet bundle', async () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchasePetBundle('bundle-pets');
+      await act(async () => {
+        purchaseResult = await result.current.purchasePetBundle('bundle-pets');
       });
 
       expect(purchaseResult?.success).toBe(true);
       expect(purchaseResult?.message).toContain('Pet Bundle purchased!');
-      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(200);
+      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(200, 'pet_unlock', 'bundle-pets');
       expect(result.current.inventory.ownedCharacters).toContain('dog');
       expect(result.current.inventory.ownedCharacters).toContain('cat');
     });
   });
 
   describe('Purchase Functions - Failure Cases', () => {
-    it('should fail to purchase non-existent character', () => {
+    it('should fail to purchase non-existent character', async () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseCharacter('non-existent');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseCharacter('non-existent');
       });
 
       expect(purchaseResult).toEqual({
@@ -372,7 +372,7 @@ describe('useShop', () => {
       expect(mockCoinSystem.spendCoins).not.toHaveBeenCalled();
     });
 
-    it('should fail to purchase already owned character', () => {
+    it('should fail to purchase already owned character', async () => {
       setShopState({
         ownedCharacters: ['dog'],
       });
@@ -380,8 +380,8 @@ describe('useShop', () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseCharacter('dog');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseCharacter('dog');
       });
 
       expect(purchaseResult).toEqual({
@@ -391,14 +391,14 @@ describe('useShop', () => {
       expect(mockCoinSystem.spendCoins).not.toHaveBeenCalled();
     });
 
-    it('should fail to purchase when insufficient coins', () => {
+    it('should fail to purchase when insufficient coins', async () => {
       mockCoinSystem.canAfford.mockReturnValue(false);
 
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseCharacter('dog');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseCharacter('dog');
       });
 
       expect(purchaseResult).toEqual({
@@ -408,14 +408,14 @@ describe('useShop', () => {
       expect(mockCoinSystem.spendCoins).not.toHaveBeenCalled();
     });
 
-    it('should fail when coin spend fails', () => {
+    it('should fail when coin spend fails', async () => {
       mockCoinSystem.spendCoins.mockReturnValue(false);
 
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseCharacter('dog');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseCharacter('dog');
       });
 
       expect(purchaseResult).toEqual({
@@ -424,7 +424,7 @@ describe('useShop', () => {
       });
     });
 
-    it('should fail to purchase already owned background', () => {
+    it('should fail to purchase already owned background', async () => {
       setShopState({
         ownedBackgrounds: ['bg-ocean'],
       });
@@ -432,8 +432,8 @@ describe('useShop', () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseBackground('bg-ocean');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseBackground('bg-ocean');
       });
 
       expect(purchaseResult).toEqual({
@@ -442,7 +442,7 @@ describe('useShop', () => {
       });
     });
 
-    it('should fail to purchase bundle when all items owned', () => {
+    it('should fail to purchase bundle when all items owned', async () => {
       setShopState({
         ownedBackgrounds: ['bg-ocean', 'bg-forest'],
       });
@@ -450,8 +450,8 @@ describe('useShop', () => {
       const { result } = renderHook(() => useShop());
 
       let purchaseResult;
-      act(() => {
-        purchaseResult = result.current.purchaseBackgroundBundle('bundle-nature');
+      await act(async () => {
+        purchaseResult = await result.current.purchaseBackgroundBundle('bundle-nature');
       });
 
       expect(purchaseResult).toEqual({

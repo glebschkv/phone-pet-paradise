@@ -21,7 +21,11 @@ describe('Storage Validation', () => {
       const result = coinSystemSchema.safeParse(validData);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(validData);
+        expect(result.data).toEqual({
+          ...validData,
+          lastServerSync: null,
+          pendingServerValidation: false,
+        });
       }
     });
 
@@ -252,7 +256,11 @@ describe('Storage Validation', () => {
       localStorage.setItem(STORAGE_KEYS.COIN_SYSTEM, JSON.stringify(validData));
 
       const result = storage.getValidated(STORAGE_KEYS.COIN_SYSTEM, coinSystemSchema);
-      expect(result).toEqual(validData);
+      expect(result).toEqual({
+        ...validData,
+        lastServerSync: null,
+        pendingServerValidation: false,
+      });
     });
 
     it('should return null for invalid stored data', () => {
@@ -288,7 +296,11 @@ describe('Storage Validation', () => {
         coinSystemSchema,
         defaultCoinState
       );
-      expect(result).toEqual(validData);
+      expect(result).toEqual({
+        ...validData,
+        lastServerSync: null,
+        pendingServerValidation: false,
+      });
     });
 
     it('should return default for invalid stored data', () => {
@@ -320,7 +332,11 @@ describe('Storage Validation', () => {
 
       expect(success).toBe(true);
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.COIN_SYSTEM)!);
-      expect(stored).toEqual(validData);
+      expect(stored).toEqual({
+        ...validData,
+        lastServerSync: null,
+        pendingServerValidation: false,
+      });
     });
 
     it('should refuse to store invalid data', () => {
@@ -405,7 +421,13 @@ describe('Storage Validation', () => {
       // The malicious isAdmin property should not be accessible on the result
       expect((result as Record<string, unknown>).isAdmin).toBeUndefined();
       // Result should only have the validated schema properties
-      expect(Object.keys(result!)).toEqual(['balance', 'totalEarned', 'totalSpent']);
+      expect(Object.keys(result!)).toEqual([
+        'balance',
+        'totalEarned',
+        'totalSpent',
+        'lastServerSync',
+        'pendingServerValidation',
+      ]);
     });
 
     it('should reject extremely long strings', () => {
