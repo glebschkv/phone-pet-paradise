@@ -51,20 +51,20 @@ export const Shop = () => {
 
   const { isPremium, currentPlan } = usePremiumStatus();
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     if (!selectedItem) return;
 
     let result;
     if ('biome' in selectedItem) {
-      result = purchaseCharacter(selectedItem.id);
+      result = await purchaseCharacter(selectedItem.id);
     } else if ('backgroundIds' in selectedItem) {
       // Handle background bundle purchase
-      result = purchaseBackgroundBundle(selectedItem.id);
+      result = await purchaseBackgroundBundle(selectedItem.id);
     } else if ('petIds' in selectedItem) {
       // Handle pet bundle purchase
-      result = purchasePetBundle(selectedItem.id);
+      result = await purchasePetBundle(selectedItem.id);
     } else {
-      result = purchaseItem(selectedItem.id, activeCategory);
+      result = await purchaseItem(selectedItem.id, activeCategory);
     }
 
     if (result.success) {
