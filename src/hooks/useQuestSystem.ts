@@ -17,52 +17,82 @@ export type { Quest, QuestObjective, QuestReward, QuestSystemReturn };
 
 const QUEST_STORAGE_KEY = 'quest-system-data';
 
-// Quest templates for generation - BOOSTED REWARDS!
+// Quest templates for generation - balanced rewards with XP + coins
 const DAILY_QUEST_TEMPLATES = [
   {
-    title: "Focus Marathon",
-    description: "Complete 30 minutes of focus time",
+    title: "Quick Focus",
+    description: "Complete a 30-minute focus session",
     objectives: [{ type: 'focus_time', target: 30, description: "Focus for 30 minutes" }],
-    rewards: [{ type: 'xp', amount: 200, description: "+200 XP" }]
+    rewards: [{ type: 'xp', amount: 75, description: "+75 XP" }, { type: 'coins', amount: 50, description: "+50 coins" }]
+  },
+  {
+    title: "Deep Work",
+    description: "Complete a 60-minute focus session",
+    objectives: [{ type: 'focus_time', target: 60, description: "Focus for 60 minutes" }],
+    rewards: [{ type: 'xp', amount: 150, description: "+150 XP" }, { type: 'coins', amount: 100, description: "+100 coins" }]
   },
   {
     title: "Pet Companion",
     description: "Interact with 3 different pets",
     objectives: [{ type: 'pet_interaction', target: 3, description: "Interact with 3 pets" }],
-    rewards: [{ type: 'xp', amount: 150, description: "+150 XP" }]
+    rewards: [{ type: 'xp', amount: 50, description: "+50 XP" }, { type: 'coins', amount: 40, description: "+40 coins" }]
+  },
+  {
+    title: "Perfect Focus",
+    description: "Complete a session with perfect focus (0 distractions)",
+    objectives: [{ type: 'perfect_focus', target: 1, description: "Perfect focus session" }],
+    rewards: [{ type: 'xp', amount: 100, description: "+100 XP" }, { type: 'coins', amount: 75, description: "+75 coins" }]
+  },
+  {
+    title: "Double Session",
+    description: "Complete 2 focus sessions today",
+    objectives: [{ type: 'sessions', target: 2, description: "Complete 2 sessions" }],
+    rewards: [{ type: 'xp', amount: 100, description: "+100 XP" }, { type: 'coins', amount: 60, description: "+60 coins" }]
   },
   {
     title: "Bond Builder",
     description: "Increase bond level with any pet",
     objectives: [{ type: 'bond_level', target: 1, description: "Level up a pet bond" }],
-    rewards: [{ type: 'xp', amount: 300, description: "+300 XP" }]
-  },
-  {
-    title: "Streak Keeper",
-    description: "Maintain your focus streak",
-    objectives: [{ type: 'streak', target: 1, description: "Complete a focus session" }],
-    rewards: [{ type: 'xp', amount: 125, description: "+125 XP" }]
+    rewards: [{ type: 'xp', amount: 125, description: "+125 XP" }, { type: 'coins', amount: 80, description: "+80 coins" }]
   }
 ];
 
 const WEEKLY_QUEST_TEMPLATES = [
   {
-    title: "Focus Master",
+    title: "Focus Champion",
     description: "Complete 5 hours of total focus time this week",
     objectives: [{ type: 'focus_time', target: 300, description: "Focus for 5 hours total" }],
-    rewards: [{ type: 'xp', amount: 1000, description: "+1000 XP" }]
+    rewards: [{ type: 'xp', amount: 500, description: "+500 XP" }, { type: 'coins', amount: 400, description: "+400 coins" }]
+  },
+  {
+    title: "Focus Legend",
+    description: "Complete 10 hours of total focus time this week",
+    objectives: [{ type: 'focus_time', target: 600, description: "Focus for 10 hours total" }],
+    rewards: [{ type: 'xp', amount: 1200, description: "+1200 XP" }, { type: 'coins', amount: 1000, description: "+1000 coins" }]
+  },
+  {
+    title: "Week Warrior",
+    description: "Maintain a 7-day focus streak",
+    objectives: [{ type: 'streak', target: 7, description: "7-day focus streak" }],
+    rewards: [{ type: 'xp', amount: 750, description: "+750 XP" }, { type: 'coins', amount: 600, description: "+600 coins" }]
+  },
+  {
+    title: "Session Master",
+    description: "Complete 15 focus sessions this week",
+    objectives: [{ type: 'sessions', target: 15, description: "Complete 15 sessions" }],
+    rewards: [{ type: 'xp', amount: 800, description: "+800 XP" }, { type: 'coins', amount: 650, description: "+650 coins" }]
+  },
+  {
+    title: "Perfectionist",
+    description: "Complete 5 perfect focus sessions (0 distractions)",
+    objectives: [{ type: 'perfect_focus', target: 5, description: "5 perfect focus sessions" }],
+    rewards: [{ type: 'xp', amount: 600, description: "+600 XP" }, { type: 'coins', amount: 500, description: "+500 coins" }]
   },
   {
     title: "Pet Collector",
-    description: "Unlock 2 new pets",
-    objectives: [{ type: 'collection', target: 2, description: "Unlock 2 new pets" }],
-    rewards: [{ type: 'xp', amount: 600, description: "+600 XP" }]
-  },
-  {
-    title: "Perfect Week",
-    description: "Complete focus sessions for 7 consecutive days",
-    objectives: [{ type: 'streak', target: 7, description: "7-day focus streak" }],
-    rewards: [{ type: 'xp', amount: 1500, description: "+1500 XP" }]
+    description: "Unlock a new pet",
+    objectives: [{ type: 'collection', target: 1, description: "Unlock 1 new pet" }],
+    rewards: [{ type: 'xp', amount: 400, description: "+400 XP" }, { type: 'coins', amount: 300, description: "+300 coins" }]
   }
 ];
 

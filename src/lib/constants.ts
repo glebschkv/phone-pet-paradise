@@ -52,50 +52,54 @@ export type FocusDuration = typeof TIMER_DURATIONS.FOCUS_OPTIONS[number];
 // ============================================================================
 
 export const XP_CONFIG = {
-  /** Base XP per minute of focus */
-  BASE_XP_PER_MINUTE: 10,
+  /** Base XP per minute of focus (used for dynamic calculations) */
+  BASE_XP_PER_MINUTE: 1.2,
 
   /** XP multipliers */
   MULTIPLIERS: {
     /** Base multiplier for all XP */
     BASE: 1.0,
-    /** Streak bonus per day (additive) */
-    STREAK_BONUS_PER_DAY: 0.05,
-    /** Maximum streak multiplier */
-    MAX_STREAK_MULTIPLIER: 2.0,
+    /** Streak bonus per day (additive) - 3% per day, capped at 60% */
+    STREAK_BONUS_PER_DAY: 0.03,
+    /** Maximum streak multiplier (reached at 20 days) */
+    MAX_STREAK_MULTIPLIER: 1.6,
     /** Double XP event multiplier */
     DOUBLE_XP: 2.0,
   },
 
-  /** Level thresholds - XP required to reach each level */
+  /**
+   * Level thresholds - XP required to reach each level (cumulative)
+   * Balanced curve: Levels 1-5 quick (1-2 sessions), 6-15 moderate (3-4), 16-30 steady (5-7), 31-50 prestige (8-12)
+   * Growth rate: ~1.12-1.15x per level
+   */
   LEVEL_THRESHOLDS: [
-    0,      // Level 1
-    100,    // Level 2
-    250,    // Level 3
-    500,    // Level 4
-    850,    // Level 5
-    1300,   // Level 6
-    1850,   // Level 7
-    2500,   // Level 8
-    3250,   // Level 9
-    4100,   // Level 10
-    5050,   // Level 11
-    6100,   // Level 12
-    7250,   // Level 13
-    8500,   // Level 14
-    9850,   // Level 15
-    11300,  // Level 16
-    12850,  // Level 17
-    14500,  // Level 18
-    16250,  // Level 19
-    18100,  // Level 20
+    0,      // Level 1 (start)
+    30,     // Level 2 - 1 session
+    70,     // Level 3 - ~1-2 sessions
+    120,    // Level 4 - ~2 sessions
+    180,    // Level 5 - ~2 sessions (first biome unlock)
+    260,    // Level 6
+    350,    // Level 7
+    460,    // Level 8
+    590,    // Level 9
+    740,    // Level 10 (second biome unlock)
+    920,    // Level 11
+    1120,   // Level 12
+    1350,   // Level 13
+    1610,   // Level 14
+    1900,   // Level 15 (third biome unlock)
+    2230,   // Level 16
+    2600,   // Level 17
+    3010,   // Level 18
+    3470,   // Level 19
+    3980,   // Level 20 (fourth biome unlock)
   ] as const,
 
   /** Maximum level */
   MAX_LEVEL: 50,
 
-  /** XP required per level after threshold table */
-  XP_PER_LEVEL_AFTER_20: 2000,
+  /** XP required per level after threshold table (linear growth for levels 21+) */
+  XP_PER_LEVEL_AFTER_20: 700,
 } as const;
 
 // ============================================================================
@@ -155,6 +159,22 @@ export const COIN_CONFIG = {
   BASE_COINS_PER_MINUTE: 2,
 
   /**
+   * Session completion bonuses - extra coins for completing full sessions
+   * Encourages finishing sessions rather than quitting early
+   */
+  SESSION_COMPLETION_BONUS: {
+    25: 15,   // +15 coins for completing 25-min session
+    30: 20,   // +20 for 30 min
+    45: 35,   // +35 for 45 min
+    60: 50,   // +50 for 1 hour
+    90: 80,   // +80 for 90 min
+    120: 120, // +120 for 2 hours
+    180: 180, // +180 for 3 hours
+    240: 240, // +240 for 4 hours
+    300: 300, // +300 for 5 hours
+  } as const,
+
+  /**
    * Random bonus coin probabilities (percentages)
    * The thresholds define cumulative probability ranges:
    * - 0-5: Jackpot (5% chance)
@@ -176,23 +196,24 @@ export const COIN_CONFIG = {
     NONE: 1.0,
   },
 
-  /** Coin rewards for various actions */
+  /** Coin rewards for various actions (balanced for economy) */
   REWARDS: {
-    DAILY_LOGIN: 10,
-    STREAK_BONUS_PER_DAY: 5,
-    ACHIEVEMENT_UNLOCK: 25,
-    QUEST_COMPLETE: 50,
-    BOSS_DEFEAT_BASE: 100,
-    LUCKY_WHEEL_SPIN: 0, // Free
+    DAILY_LOGIN: 20,           // Increased from 10
+    STREAK_BONUS_PER_DAY: 5,   // +5 coins per streak day
+    MAX_STREAK_BONUS: 100,     // Cap at 20-day streak
+    ACHIEVEMENT_UNLOCK: 50,    // Increased from 25
+    QUEST_COMPLETE: 75,        // Increased from 50
+    BOSS_DEFEAT_BASE: 300,     // Increased from 100
+    LUCKY_WHEEL_SPIN: 0,       // Free
   },
 
-  /** Shop item price ranges */
+  /** Shop item price ranges (rebalanced for accessibility) */
   PRICE_RANGES: {
-    COMMON: { min: 50, max: 150 },
-    UNCOMMON: { min: 150, max: 350 },
-    RARE: { min: 350, max: 750 },
-    EPIC: { min: 750, max: 1500 },
-    LEGENDARY: { min: 1500, max: 5000 },
+    COMMON: { min: 100, max: 250 },      // 2-4 sessions
+    UNCOMMON: { min: 250, max: 500 },    // 4-8 sessions
+    RARE: { min: 500, max: 1000 },       // 8-15 sessions
+    EPIC: { min: 1000, max: 2500 },      // 15-40 sessions
+    LEGENDARY: { min: 2500, max: 5000 }, // 40-80 sessions
   },
 } as const;
 
@@ -213,15 +234,26 @@ export const STREAK_CONFIG = {
   /** Streak milestones for bonus rewards */
   MILESTONES: [3, 7, 14, 30, 60, 100, 365] as const,
 
-  /** Bonus XP per streak milestone */
+  /** Bonus XP per streak milestone (balanced) */
   MILESTONE_BONUS_XP: {
-    3: 50,
-    7: 100,
-    14: 250,
-    30: 500,
-    60: 1000,
-    100: 2500,
-    365: 10000,
+    3: 75,      // Getting Started
+    7: 200,     // Week Warrior
+    14: 400,    // Fortnight Fighter
+    30: 1000,   // Monthly Master
+    60: 2500,   // Two-Month Titan
+    100: 5000,  // Century Champion
+    365: 15000, // Year of Focus (legendary achievement)
+  } as const,
+
+  /** Bonus coins per streak milestone */
+  MILESTONE_BONUS_COINS: {
+    3: 100,
+    7: 300,
+    14: 600,
+    30: 1500,
+    60: 3500,
+    100: 7500,
+    365: 20000,
   } as const,
 } as const;
 
@@ -254,17 +286,20 @@ export const ACHIEVEMENT_CONFIG = {
 // ============================================================================
 
 export const BATTLE_PASS_CONFIG = {
-  /** XP required per tier */
-  XP_PER_TIER: 500,
+  /** XP required per tier (balanced for ~2 sessions/day completion) */
+  XP_PER_TIER: 400,
 
   /** Total tiers per season */
   TOTAL_TIERS: 50,
 
-  /** Premium tier unlock levels */
+  /** Premium tier unlock levels (major reward tiers) */
   PREMIUM_EXCLUSIVE_TIERS: [10, 20, 30, 40, 50] as const,
 
   /** Season duration in days */
   SEASON_DURATION_DAYS: 90,
+
+  /** Daily XP target to complete pass: 400 * 50 / 90 = ~222 XP/day */
+  DAILY_XP_TARGET: 222,
 } as const;
 
 // ============================================================================
@@ -332,16 +367,17 @@ export const PET_CONFIG = {
 // ============================================================================
 
 export const BIOME_CONFIG = {
-  /** Biome unlock levels */
+  /** Biome unlock levels (balanced progression - new biome every 5-10 levels) */
   UNLOCK_LEVELS: {
-    meadow: 1,
-    forest: 5,
-    beach: 10,
-    mountain: 15,
-    desert: 20,
-    arctic: 25,
-    volcano: 30,
-    space: 40,
+    meadow: 1,    // Starter biome
+    forest: 5,    // First milestone
+    beach: 10,    // Second milestone
+    mountain: 15, // Mid-game
+    desert: 20,   // Significant progress
+    arctic: 25,   // Mastery begins
+    volcano: 30,  // Advanced player
+    space: 40,    // Near-endgame
+    void: 50,     // Max level exclusive
   } as const,
 
   /** Map biome names to background theme IDs */

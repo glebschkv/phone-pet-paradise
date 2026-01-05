@@ -124,6 +124,8 @@ export interface ComboTier {
   multiplier: number;
   color: string;
   emoji: string;
+  /** Hours until combo expires if no new session - higher combos have shorter expiry */
+  expiryHours?: number;
 }
 
 export interface ComboState {
