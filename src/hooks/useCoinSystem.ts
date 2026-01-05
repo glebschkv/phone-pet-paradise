@@ -39,7 +39,7 @@ import { useCoinStore } from '@/stores/coinStore';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, isValidSubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
-import { COIN_CONFIG } from '@/lib/constants';
+import { COIN_CONFIG, RATE_LIMIT_CONFIG } from '@/lib/constants';
 import { supabase } from '@/integrations/supabase/client';
 import {
   validateCoinTransaction,
@@ -69,11 +69,10 @@ interface ServerCoinResponse {
  * Prevents spam requests before they hit the server
  */
 const lastOperationTime = { earn: 0, spend: 0 };
-const MIN_OPERATION_INTERVAL_MS = 1000; // 1 second between operations
 
 function canPerformOperation(operation: 'earn' | 'spend'): boolean {
   const now = Date.now();
-  if (now - lastOperationTime[operation] < MIN_OPERATION_INTERVAL_MS) {
+  if (now - lastOperationTime[operation] < RATE_LIMIT_CONFIG.MIN_COIN_OPERATION_INTERVAL_MS) {
     return false;
   }
   lastOperationTime[operation] = now;

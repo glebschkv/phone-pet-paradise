@@ -23,7 +23,7 @@
  * ```
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createLogger } from '@/lib/logger';
 
 /**
@@ -82,7 +82,11 @@ export function usePersistedState<T>(
     syncTabs = false,
   } = options;
 
-  const logger = loggerPrefix ? createLogger({ prefix: loggerPrefix }) : createLogger();
+  // Memoize logger to prevent unnecessary re-creations
+  const logger = useMemo(
+    () => loggerPrefix ? createLogger({ prefix: loggerPrefix }) : createLogger(),
+    [loggerPrefix]
+  );
   const [state, setState] = useState<T>(initialValue);
   const [isLoaded, setIsLoaded] = useState(false);
   const isInitialMount = useRef(true);
@@ -108,7 +112,7 @@ export function usePersistedState<T>(
       setIsLoaded(true);
       isInitialMount.current = false;
     }
-  }, [key, deserialize, validate]);
+  }, [key, deserialize, validate, logger]);
 
   // Save to localStorage when state changes (but not on initial mount)
   useEffect(() => {
@@ -119,7 +123,7 @@ export function usePersistedState<T>(
     } catch (error) {
       logger.error(`Failed to save data to localStorage (${key}):`, error);
     }
-  }, [state, key, serialize]);
+  }, [state, key, serialize, logger]);
 
   // Listen for storage changes from other tabs
   useEffect(() => {
@@ -145,7 +149,7 @@ export function usePersistedState<T>(
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [key, deserialize, validate, syncTabs]);
+  }, [key, deserialize, validate, syncTabs, logger]);
 
   // Force reload from localStorage
   const reload = useCallback(() => {
@@ -165,7 +169,7 @@ export function usePersistedState<T>(
     } catch (error) {
       logger.error(`Failed to reload data from localStorage (${key}):`, error);
     }
-  }, [key, deserialize, validate]);
+  }, [key, deserialize, validate, logger]);
 
   // Clear persisted data
   const clear = useCallback(() => {
@@ -175,7 +179,7 @@ export function usePersistedState<T>(
     } catch (error) {
       logger.error(`Failed to clear data from localStorage (${key}):`, error);
     }
-  }, [key, initialValue]);
+  }, [key, initialValue, logger]);
 
   return [state, setState, { reload, isLoaded, clear }];
 }

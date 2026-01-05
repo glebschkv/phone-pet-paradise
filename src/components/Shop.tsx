@@ -26,6 +26,7 @@ export const Shop = () => {
   const [selectedItem, setSelectedItem] = useState<ShopItem | AnimalData | null>(null);
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
   const {
     inventory,
@@ -51,28 +52,33 @@ export const Shop = () => {
 
   const { isPremium, currentPlan } = usePremiumStatus();
 
-  const handlePurchase = () => {
-    if (!selectedItem) return;
+  const handlePurchase = async () => {
+    if (!selectedItem || isPurchasing) return;
 
-    let result;
-    if ('biome' in selectedItem) {
-      result = purchaseCharacter(selectedItem.id);
-    } else if ('backgroundIds' in selectedItem) {
-      // Handle background bundle purchase
-      result = purchaseBackgroundBundle(selectedItem.id);
-    } else if ('petIds' in selectedItem) {
-      // Handle pet bundle purchase
-      result = purchasePetBundle(selectedItem.id);
-    } else {
-      result = purchaseItem(selectedItem.id, activeCategory);
-    }
+    setIsPurchasing(true);
+    try {
+      let result;
+      if ('biome' in selectedItem) {
+        result = await purchaseCharacter(selectedItem.id);
+      } else if ('backgroundIds' in selectedItem) {
+        // Handle background bundle purchase
+        result = await purchaseBackgroundBundle(selectedItem.id);
+      } else if ('petIds' in selectedItem) {
+        // Handle pet bundle purchase
+        result = await purchasePetBundle(selectedItem.id);
+      } else {
+        result = await purchaseItem(selectedItem.id, activeCategory);
+      }
 
-    if (result.success) {
-      toast.success(result.message);
-      setShowPurchaseConfirm(false);
-      setSelectedItem(null);
-    } else {
-      toast.error(result.message);
+      if (result.success) {
+        toast.success(result.message);
+        setShowPurchaseConfirm(false);
+        setSelectedItem(null);
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsPurchasing(false);
     }
   };
 
@@ -218,6 +224,7 @@ export const Shop = () => {
         onPurchase={handlePurchase}
         canAfford={canAfford}
         coinBalance={coinBalance}
+        isPurchasing={isPurchasing}
       />
 
       {/* Premium Subscription Modal */}

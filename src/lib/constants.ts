@@ -417,6 +417,29 @@ export const NETWORK_CONFIG = {
 } as const;
 
 // ============================================================================
+// RATE LIMITING
+// ============================================================================
+
+export const RATE_LIMIT_CONFIG = {
+  /** Minimum interval between coin operations in milliseconds */
+  MIN_COIN_OPERATION_INTERVAL_MS: 1000,
+
+  /** Error boundary retry configuration */
+  ERROR_BOUNDARY: {
+    /** Maximum number of retry attempts before requiring page reload */
+    MAX_RETRY_ATTEMPTS: 3,
+    /** Base delay for exponential backoff in milliseconds */
+    BASE_BACKOFF_DELAY_MS: 1000,
+    /** Maximum delay for exponential backoff in milliseconds */
+    MAX_BACKOFF_DELAY_MS: 30000,
+    /** Multiplier for exponential backoff */
+    BACKOFF_MULTIPLIER: 2,
+    /** Time window in milliseconds to reset retry count if no errors occur */
+    RETRY_RESET_WINDOW_MS: 60000,
+  },
+} as const;
+
+// ============================================================================
 // STORAGE CONFIGURATION
 // ============================================================================
 
