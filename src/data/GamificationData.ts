@@ -384,13 +384,15 @@ export const spinWheel = (): LuckyWheelPrize => {
 // COMBO SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Combo tiers with balanced multipliers and expiry windows
+// Higher combos have shorter expiry to create urgency
 export const COMBO_TIERS: ComboTier[] = [
-  { minCombo: 1, name: 'Starting', multiplier: 1.0, color: '#64748b', emoji: '▪️' },
-  { minCombo: 2, name: 'Warming Up', multiplier: 1.1, color: '#22c55e', emoji: '🔥' },
-  { minCombo: 3, name: 'On Fire', multiplier: 1.25, color: '#f97316', emoji: '🔥🔥' },
-  { minCombo: 5, name: 'Blazing', multiplier: 1.5, color: '#ef4444', emoji: '🔥🔥🔥' },
-  { minCombo: 7, name: 'Unstoppable', multiplier: 1.75, color: '#8b5cf6', emoji: '⚡' },
-  { minCombo: 10, name: 'LEGENDARY', multiplier: 2.0, color: '#fbbf24', emoji: '👑' },
+  { minCombo: 1, name: 'Starting', multiplier: 1.0, color: '#64748b', emoji: '▪️', expiryHours: 6 },
+  { minCombo: 2, name: 'Warming Up', multiplier: 1.1, color: '#22c55e', emoji: '🔥', expiryHours: 4 },
+  { minCombo: 3, name: 'On Fire', multiplier: 1.2, color: '#f97316', emoji: '🔥🔥', expiryHours: 4 },
+  { minCombo: 5, name: 'Blazing', multiplier: 1.35, color: '#ef4444', emoji: '🔥🔥🔥', expiryHours: 3 },
+  { minCombo: 7, name: 'Unstoppable', multiplier: 1.5, color: '#8b5cf6', emoji: '⚡', expiryHours: 3 },
+  { minCombo: 10, name: 'LEGENDARY', multiplier: 1.75, color: '#fbbf24', emoji: '👑', expiryHours: 2 },
 ];
 
 export const getComboTier = (comboCount: number): ComboTier => {

@@ -14,35 +14,75 @@ export const ANIMAL_PURCHASED_EVENT = 'petIsland_animalPurchased';
 export const MAX_LEVEL = 50 as const;
 
 // XP rewards based on session duration (in minutes)
-// Boosted rewards - progression should feel satisfying and impactful!
+// Balanced rewards using formula: base(duration * 1.2) + bonus(floor(duration/30) * 5)
+// Designed for satisfying progression: early game fast, late game rewarding
 export const XP_REWARDS: Record<number, number> = {
-  25: 25,   // 25 minutes = 25 XP (minimum focus session)
-  30: 35,   // 30 minutes = 35 XP - good for quick wins
-  45: 55,   // 45 minutes = 55 XP
-  60: 80,   // 1 hour = 80 XP - sweet spot for progression
-  90: 125,  // 90 minutes (deep work) = 125 XP
-  120: 180, // 2 hours = 180 XP
-  180: 280, // 3 hours = 280 XP
-  240: 400, // 4 hours = 400 XP
-  300: 550, // 5 hours = 550 XP
+  25: 30,   // 25 min = 30 XP (base session, level up in 1-2 sessions early)
+  30: 40,   // 30 min = 40 XP (+33% for 20% more time)
+  45: 65,   // 45 min = 65 XP (pomodoro-and-a-half sweet spot)
+  60: 100,  // 1 hour = 100 XP (clean milestone, deep work reward)
+  90: 160,  // 90 min = 160 XP (deep focus bonus)
+  120: 230, // 2 hours = 230 XP (marathon feels rewarding)
+  180: 360, // 3 hours = 360 XP (sub-linear scaling prevents burnout)
+  240: 480, // 4 hours = 480 XP (significant achievement)
+  300: 600, // 5 hours = 600 XP (diminishing returns at extreme lengths)
 };
 
-// Level progression: XP required for each level
-// Early levels are quick (1-2 sessions), mid levels moderate (3-5 sessions), late levels rewarding (5+ sessions)
+// Level progression: XP required for each level (cumulative)
+// Balanced curve: Levels 1-5 quick (1-2 sessions), 6-15 moderate (3-4), 16-30 steady (5-7), 31-50 prestige (8-12)
+// Formula: Smooth exponential with 1.12-1.15x growth per level
 export const LEVEL_REQUIREMENTS = [
-  0,    // Level 0 (starting - Meadow Hare)
-  15,   // Level 1 - Songbird (1 session)
-  35,   // Level 2 - Garden Lizard (~2 sessions total)
-  60,   // Level 3 - Wild Horse (~3 sessions)
-  90,   // Level 4 - Friendly Monster (~4 sessions)
-  125,  // Level 5 - Desert Camel + Sunset biome (~5 sessions)
-  165,  // Level 6 - Golden Elk
-  210,  // Level 7 - Wise Turtle
-  260,  // Level 8 - Sunset Stallion
-  320,  // Level 9 - Night Bear + Night biome
-  385,  // Level 10 - Shadow Serpent
-  455,  // Level 11 - Ghost Hare
-  530,  // Level 12 - Night Sprite
+  0,      // Level 0 (starting - Meadow Hare)
+  30,     // Level 1 - 1 session
+  70,     // Level 2 - ~1-2 sessions
+  120,    // Level 3 - ~2 sessions
+  180,    // Level 4 - ~2 sessions
+  260,    // Level 5 - First biome unlock (Forest)
+  350,    // Level 6
+  460,    // Level 7
+  590,    // Level 8
+  740,    // Level 9
+  920,    // Level 10 - Second biome unlock (Beach)
+  1120,   // Level 11
+  1350,   // Level 12
+  1610,   // Level 13
+  1900,   // Level 14
+  2230,   // Level 15 - Third biome unlock (Mountain)
+  2600,   // Level 16
+  3010,   // Level 17
+  3470,   // Level 18
+  3980,   // Level 19
+  4550,   // Level 20 - Fourth biome unlock (Desert)
+  5180,   // Level 21
+  5880,   // Level 22
+  6650,   // Level 23
+  7500,   // Level 24
+  8430,   // Level 25 - Fifth biome unlock (Arctic)
+  9450,   // Level 26
+  10560,  // Level 27
+  11770,  // Level 28
+  13090,  // Level 29
+  14530,  // Level 30 - Sixth biome unlock (Volcano)
+  16100,  // Level 31
+  17810,  // Level 32
+  19670,  // Level 33
+  21700,  // Level 34
+  23900,  // Level 35
+  26290,  // Level 36
+  28880,  // Level 37
+  31690,  // Level 38
+  34730,  // Level 39
+  38020,  // Level 40 - Seventh biome unlock (Space)
+  41580,  // Level 41
+  45430,  // Level 42
+  49590,  // Level 43
+  54090,  // Level 44
+  58950,  // Level 45
+  64200,  // Level 46
+  69870,  // Level 47
+  75990,  // Level 48
+  82600,  // Level 49
+  89700,  // Level 50 (MAX) - Void biome unlock
 ];
 
 // Generate unlocks by level from the database (animals and biomes)

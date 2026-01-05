@@ -4,7 +4,10 @@ import { logger } from '@/lib/logger';
 export interface DailyReward {
   day: number;
   type: 'xp' | 'streak_freeze' | 'mystery_bonus';
-  amount: number;
+  xp: number;
+  coins: number;
+  streakFreeze?: number;
+  luckyWheelSpin?: number;
   label: string;
   description: string;
   icon: string;
@@ -17,15 +20,16 @@ export interface DailyLoginState {
   hasClaimedToday: boolean;
 }
 
-// 7-day reward cycle that repeats with escalating rewards - BOOSTED!
+// 7-day reward cycle with balanced XP + coin rewards
+// Weekly total: 1,150 XP + 1,005 coins + streak freeze + lucky spin
 const DAILY_REWARDS: DailyReward[] = [
-  { day: 1, type: 'xp', amount: 40, label: 'Welcome Back!', description: 'Start your week strong', icon: '🌟' },
-  { day: 2, type: 'xp', amount: 60, label: 'Day 2 Bonus', description: 'Keep the momentum going', icon: '✨' },
-  { day: 3, type: 'xp', amount: 90, label: 'Triple Treat', description: '3 days in a row!', icon: '🎁' },
-  { day: 4, type: 'streak_freeze', amount: 2, label: 'Safety Net', description: 'Earn 2 Streak Freezes!', icon: '🧊' },
-  { day: 5, type: 'xp', amount: 130, label: 'Halfway Hero', description: 'Over halfway there!', icon: '💪' },
-  { day: 6, type: 'xp', amount: 175, label: 'Almost There', description: 'One more day!', icon: '🔥' },
-  { day: 7, type: 'mystery_bonus', amount: 350, label: 'Weekly Jackpot!', description: 'MASSIVE bonus XP!', icon: '🎰' },
+  { day: 1, type: 'xp', xp: 50, coins: 30, label: 'Welcome Back!', description: 'Start your week strong', icon: '🌟' },
+  { day: 2, type: 'xp', xp: 75, coins: 50, label: 'Day 2 Bonus', description: 'Keep the momentum going', icon: '✨' },
+  { day: 3, type: 'xp', xp: 100, coins: 75, label: 'Triple Treat', description: '3 days in a row!', icon: '🎁' },
+  { day: 4, type: 'streak_freeze', xp: 125, coins: 100, streakFreeze: 1, label: 'Safety Net', description: '+1 Streak Freeze!', icon: '🧊' },
+  { day: 5, type: 'xp', xp: 175, coins: 150, label: 'Halfway Hero', description: 'Over halfway there!', icon: '💪' },
+  { day: 6, type: 'xp', xp: 225, coins: 200, label: 'Almost There', description: 'One more day!', icon: '🔥' },
+  { day: 7, type: 'mystery_bonus', xp: 400, coins: 400, luckyWheelSpin: 1, label: 'Weekly Jackpot!', description: 'Massive rewards + free spin!', icon: '🎰' },
 ];
 
 const STORAGE_KEY = 'pet_paradise_daily_login';
