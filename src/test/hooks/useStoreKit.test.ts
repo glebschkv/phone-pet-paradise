@@ -62,10 +62,29 @@ vi.mock('@/lib/logger', () => ({
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      getSession: vi.fn().mockResolvedValue({
+        data: {
+          session: {
+            user: { id: 'test-user-id' },
+            access_token: 'test-token',
+          },
+        },
+      }),
     },
     functions: {
-      invoke: vi.fn().mockResolvedValue({ data: { success: true }, error: null }),
+      invoke: vi.fn().mockResolvedValue({
+        data: {
+          success: true,
+          subscription: {
+            tier: 'premium',
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            purchasedAt: new Date().toISOString(),
+            productId: 'co.nomoinc.nomo.premium.monthly',
+            environment: 'sandbox',
+          },
+        },
+        error: null,
+      }),
     },
   },
 }));
@@ -439,6 +458,8 @@ describe('useStoreKit', () => {
       mockPurchase.mockResolvedValue({
         success: true,
         transactionId: 'txn_123',
+        signedTransaction: 'mock_signed_transaction',
+        productId: 'co.nomoinc.nomo.premium.monthly',
       });
 
       const { result } = renderHook(() => useStoreKit());
@@ -453,7 +474,7 @@ describe('useStoreKit', () => {
 
       expect(mockToastFn).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: expect.stringMatching(/Purchase|Processing/),
+          title: expect.stringMatching(/Purchase|Processing|Successful/),
         })
       );
     });
@@ -462,6 +483,8 @@ describe('useStoreKit', () => {
       mockPurchase.mockResolvedValue({
         success: true,
         transactionId: 'txn_123',
+        signedTransaction: 'mock_signed_transaction',
+        productId: 'co.nomoinc.nomo.premium.monthly',
       });
 
       const { result } = renderHook(() => useStoreKit());
@@ -662,11 +685,13 @@ describe('useStoreKit', () => {
           {
             productId: 'co.nomoinc.nomo.premium.monthly',
             transactionId: 'txn_restored_1',
+            signedTransaction: 'mock_signed_transaction_1',
             purchaseDate: Date.now() - 7 * 24 * 60 * 60 * 1000,
           },
           {
             productId: 'co.nomoinc.nomo.lifetime',
             transactionId: 'txn_restored_2',
+            signedTransaction: 'mock_signed_transaction_2',
             purchaseDate: Date.now() - 30 * 24 * 60 * 60 * 1000,
           },
         ],
@@ -691,7 +716,11 @@ describe('useStoreKit', () => {
       mockRestorePurchases.mockResolvedValue({
         success: true,
         restoredCount: 1,
-        purchases: [{ productId: 'co.nomoinc.nomo.premium.monthly' }],
+        purchases: [{
+          productId: 'co.nomoinc.nomo.premium.monthly',
+          transactionId: 'txn_restored_1',
+          signedTransaction: 'mock_signed_transaction',
+        }],
       });
 
       const { result } = renderHook(() => useStoreKit());
@@ -716,7 +745,11 @@ describe('useStoreKit', () => {
       mockRestorePurchases.mockResolvedValue({
         success: true,
         restoredCount: 1,
-        purchases: [{ productId: 'co.nomoinc.nomo.premium.monthly' }],
+        purchases: [{
+          productId: 'co.nomoinc.nomo.premium.monthly',
+          transactionId: 'txn_restored_1',
+          signedTransaction: 'mock_signed_transaction',
+        }],
       });
 
       const { result } = renderHook(() => useStoreKit());
