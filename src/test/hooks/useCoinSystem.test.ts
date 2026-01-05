@@ -361,50 +361,6 @@ describe('useCoinSystem', () => {
     });
   });
 
-  describe('spendCoinsSync (deprecated)', () => {
-    it('should return true synchronously when balance is sufficient', async () => {
-      act(() => {
-        useCoinStore.getState().addCoins(100);
-      });
-
-      const { result } = renderHook(() => useCoinSystem());
-
-      await waitFor(() => {
-        expect(result.current.balance).toBe(100);
-      });
-
-      let success = false;
-      act(() => {
-        success = result.current.spendCoinsSync(50);
-      });
-
-      expect(success).toBe(true);
-      await waitFor(() => {
-        expect(result.current.balance).toBe(50);
-      });
-    });
-
-    it('should return false synchronously when balance is insufficient', async () => {
-      act(() => {
-        useCoinStore.getState().addCoins(30);
-      });
-
-      const { result } = renderHook(() => useCoinSystem());
-
-      await waitFor(() => {
-        expect(result.current.balance).toBe(30);
-      });
-
-      let success = true;
-      act(() => {
-        success = result.current.spendCoinsSync(50);
-      });
-
-      expect(success).toBe(false);
-      expect(result.current.balance).toBe(30);
-    });
-  });
-
   describe('canAfford', () => {
     it('should return true when balance is sufficient', async () => {
       act(() => {
