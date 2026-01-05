@@ -76,7 +76,7 @@
     "esbuild": "^0.25.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.9.0",
+    "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^6.4.0",

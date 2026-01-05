@@ -133,7 +133,7 @@ function createPositionRegistryHook(): () => PositionRegistry {
       // Find the starting point using binary search
       const minPosition = currentPosition - range;
       const maxPosition = currentPosition + range;
-      let startIndex = binarySearchInsertIndex(sorted, minPosition);
+      const startIndex = binarySearchInsertIndex(sorted, minPosition);
 
       // Scan forward while within range
       for (let i = startIndex; i < sorted.length; i++) {
