@@ -1,19 +1,24 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useStreakSystem } from '@/hooks/useStreakSystem';
+import { useStreakStore } from '@/stores/streakStore';
 
-// Mock logger
+// Mock logger with all required exports
 vi.mock('@/lib/logger', () => ({
   streakLogger: {
     error: vi.fn(),
     info: vi.fn(),
     debug: vi.fn(),
   },
+  storageLogger: {
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn(),
+  },
 }));
 
 describe('useStreakSystem', () => {
-  const STORAGE_KEY = 'pet_paradise_streak_data';
-
   // Helper to get today's date string
   const getTodayString = () => new Date().toDateString();
 
@@ -32,6 +37,14 @@ describe('useStreakSystem', () => {
   };
 
   beforeEach(() => {
+    // Reset Zustand store to initial state
+    useStreakStore.setState({
+      currentStreak: 0,
+      longestStreak: 0,
+      lastSessionDate: '',
+      totalSessions: 0,
+      streakFreezeCount: 0,
+    });
     localStorage.clear();
     vi.clearAllMocks();
   });
@@ -53,16 +66,15 @@ describe('useStreakSystem', () => {
       });
     });
 
-    it('should load saved streak data from localStorage', () => {
-      const savedData = {
+    it('should use Zustand store for streak data', () => {
+      // Set state in store
+      useStreakStore.setState({
         currentStreak: 5,
         longestStreak: 10,
         lastSessionDate: getYesterdayString(),
         totalSessions: 20,
         streakFreezeCount: 2,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -70,15 +82,6 @@ describe('useStreakSystem', () => {
       expect(result.current.streakData.longestStreak).toBe(10);
       expect(result.current.streakData.totalSessions).toBe(20);
       expect(result.current.streakData.streakFreezeCount).toBe(2);
-    });
-
-    it('should handle corrupted localStorage data', () => {
-      localStorage.setItem(STORAGE_KEY, 'invalid json');
-
-      const { result } = renderHook(() => useStreakSystem());
-
-      // Should fall back to default data
-      expect(result.current.streakData.currentStreak).toBe(0);
     });
   });
 
@@ -116,15 +119,13 @@ describe('useStreakSystem', () => {
     });
 
     it('should continue streak on consecutive days', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 1,
         longestStreak: 1,
         lastSessionDate: getYesterdayString(),
         totalSessions: 1,
         streakFreezeCount: 0,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -138,15 +139,13 @@ describe('useStreakSystem', () => {
     });
 
     it('should break streak after missing days', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 5,
         longestStreak: 5,
         lastSessionDate: getDaysAgoString(3), // 3 days ago
         totalSessions: 5,
         streakFreezeCount: 0,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -161,15 +160,13 @@ describe('useStreakSystem', () => {
     });
 
     it('should update longest streak when current exceeds it', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 9,
         longestStreak: 5,
         lastSessionDate: getYesterdayString(),
         totalSessions: 9,
         streakFreezeCount: 0,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -182,15 +179,13 @@ describe('useStreakSystem', () => {
     });
 
     it('should return reward at milestone streak', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 2,
         longestStreak: 2,
         lastSessionDate: getYesterdayString(),
         totalSessions: 2,
         streakFreezeCount: 0,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -211,15 +206,13 @@ describe('useStreakSystem', () => {
 
   describe('Streak Freeze Logic', () => {
     it('should use streak freeze when missing one day', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 5,
         longestStreak: 5,
         lastSessionDate: getDaysAgoString(2), // 2 days ago
         totalSessions: 5,
         streakFreezeCount: 1,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -229,15 +222,13 @@ describe('useStreakSystem', () => {
     });
 
     it('should break streak if no freeze available', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 5,
         longestStreak: 5,
         lastSessionDate: getDaysAgoString(2), // 2 days ago
         totalSessions: 5,
         streakFreezeCount: 0, // No freezes
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -246,15 +237,13 @@ describe('useStreakSystem', () => {
     });
 
     it('should not use freeze for longer gaps', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 5,
         longestStreak: 5,
         lastSessionDate: getDaysAgoString(3), // 3 days ago
         totalSessions: 5,
         streakFreezeCount: 2, // Has freezes but gap too large
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -264,15 +253,13 @@ describe('useStreakSystem', () => {
     });
 
     it('should manually use a streak freeze', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 5,
         longestStreak: 5,
         lastSessionDate: getYesterdayString(),
         totalSessions: 5,
         streakFreezeCount: 3,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -286,15 +273,13 @@ describe('useStreakSystem', () => {
     });
 
     it('should fail to use freeze when none available', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 5,
         longestStreak: 5,
         lastSessionDate: getYesterdayString(),
         totalSessions: 5,
         streakFreezeCount: 0,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -341,15 +326,13 @@ describe('useStreakSystem', () => {
   describe('Day Rollover', () => {
     it('should handle day rollover correctly', () => {
       const yesterday = getYesterdayString();
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 3,
         longestStreak: 3,
         lastSessionDate: yesterday,
         totalSessions: 3,
         streakFreezeCount: 0,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -371,7 +354,7 @@ describe('useStreakSystem', () => {
 
       const streakAfterFirst = firstRender.current.streakData.currentStreak;
 
-      // Unmount and remount
+      // Unmount and remount - Zustand store persists state
       const { result: secondRender } = renderHook(() => useStreakSystem());
 
       expect(secondRender.current.streakData.currentStreak).toBe(streakAfterFirst);
@@ -393,20 +376,6 @@ describe('useStreakSystem', () => {
       expect(result.current.streakData.streakFreezeCount).toBe(3);
     });
 
-    it('should update lastMonthlyFreezeGrant on grant', () => {
-      const { result } = renderHook(() => useStreakSystem());
-
-      const event = new CustomEvent('petIsland_grantStreakFreezes', {
-        detail: { amount: 1 },
-      });
-
-      act(() => {
-        window.dispatchEvent(event);
-      });
-
-      expect(result.current.streakData.lastMonthlyFreezeGrant).toBeTruthy();
-    });
-
     it('should not grant freezes with zero amount', () => {
       const { result } = renderHook(() => useStreakSystem());
 
@@ -424,15 +393,13 @@ describe('useStreakSystem', () => {
 
   describe('Helper Functions', () => {
     it('should get next milestone correctly', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 5,
         longestStreak: 5,
         lastSessionDate: getTodayString(),
         totalSessions: 5,
         streakFreezeCount: 0,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -447,15 +414,13 @@ describe('useStreakSystem', () => {
     });
 
     it('should return null when no next milestone', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 200,
         longestStreak: 200,
         lastSessionDate: getTodayString(),
         totalSessions: 200,
         streakFreezeCount: 0,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -479,15 +444,13 @@ describe('useStreakSystem', () => {
 
   describe('resetStreak', () => {
     it('should reset streak data to defaults', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 10,
         longestStreak: 15,
         lastSessionDate: getTodayString(),
         totalSessions: 50,
         streakFreezeCount: 2,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -533,15 +496,13 @@ describe('useStreakSystem', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty lastSessionDate', () => {
-      const savedData = {
+      useStreakStore.setState({
         currentStreak: 0,
         longestStreak: 0,
         lastSessionDate: '',
         totalSessions: 0,
         streakFreezeCount: 0,
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+      });
 
       const { result } = renderHook(() => useStreakSystem());
 
@@ -552,18 +513,16 @@ describe('useStreakSystem', () => {
       expect(result.current.streakData.currentStreak).toBe(1);
     });
 
-    it('should save data to localStorage after each operation', () => {
+    it('should update Zustand store after each operation', () => {
       const { result } = renderHook(() => useStreakSystem());
 
       act(() => {
         result.current.recordSession();
       });
 
-      const saved = localStorage.getItem(STORAGE_KEY);
-      expect(saved).toBeTruthy();
-
-      const parsed = JSON.parse(saved!);
-      expect(parsed.currentStreak).toBe(1);
+      // Check that store was updated
+      const storeState = useStreakStore.getState();
+      expect(storeState.currentStreak).toBe(1);
     });
   });
 });

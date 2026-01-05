@@ -1,85 +1,72 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { streakLogger } from '@/lib/logger';
 import type { StreakData, StreakReward } from '@/types/streak-system';
 import { STREAK_REWARDS } from '@/types/streak-system';
+import { useStreakStore } from '@/stores/streakStore';
 
 // Re-export types for consumers
 export type { StreakData, StreakReward };
 
 export const useStreakSystem = () => {
-  const [streakData, setStreakData] = useState<StreakData>({
-    currentStreak: 0,
-    longestStreak: 0,
-    lastSessionDate: '',
-    totalSessions: 0,
-    streakFreezeCount: 0, // Start with 0, premium users get monthly grants
-  });
+  // Use Zustand store as the single source of truth
+  const {
+    currentStreak,
+    longestStreak,
+    lastSessionDate,
+    totalSessions,
+    streakFreezeCount,
+    setStreak,
+    setLastSessionDate,
+    incrementSessions,
+    addStreakFreeze,
+    useStreakFreeze: storeUseStreakFreeze,
+    updateState,
+    resetAll,
+  } = useStreakStore();
 
-  const saveStreakData = useCallback((data: StreakData) => {
-    localStorage.setItem('pet_paradise_streak_data', JSON.stringify(data));
-    setStreakData(data);
-  }, []);
+  // Track if we've already checked streak validity on mount
+  const hasCheckedValidityRef = useRef(false);
 
-  // Check streak validity - defined before loadStreakData
-  const checkStreakValidity = useCallback((data: StreakData) => {
-    if (!data.lastSessionDate) return;
+  // Construct streakData object for backwards compatibility
+  const streakData: StreakData = {
+    currentStreak,
+    longestStreak,
+    lastSessionDate,
+    totalSessions,
+    streakFreezeCount,
+  };
 
-    const lastSession = new Date(data.lastSessionDate);
+  // Check streak validity on mount (runs only once)
+  useEffect(() => {
+    if (hasCheckedValidityRef.current) return;
+    if (!lastSessionDate) return;
+
+    hasCheckedValidityRef.current = true;
+
+    const lastSession = new Date(lastSessionDate);
     const today = new Date();
     const daysDiff = Math.floor((today.getTime() - lastSession.getTime()) / (1000 * 60 * 60 * 24));
 
     if (daysDiff > 1) {
       // Streak is broken if more than 1 day has passed
-      if (data.streakFreezeCount > 0 && daysDiff === 2) {
+      if (streakFreezeCount > 0 && daysDiff === 2) {
         // Use a streak freeze
-        const updatedData = {
-          ...data,
-          streakFreezeCount: data.streakFreezeCount - 1,
-        };
-        saveStreakData(updatedData);
+        storeUseStreakFreeze();
+        streakLogger.debug('Streak freeze auto-used');
       } else {
         // Break the streak
-        const updatedData = {
-          ...data,
-          currentStreak: 0,
-        };
-        saveStreakData(updatedData);
+        setStreak(0);
+        streakLogger.debug('Streak broken due to inactivity');
       }
     }
-  }, [saveStreakData]);
-
-  const loadStreakData = useCallback(() => {
-    const saved = localStorage.getItem('pet_paradise_streak_data');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        setStreakData(data);
-        // Check if streak should be broken due to missing days
-        checkStreakValidity(data);
-      } catch (error) {
-        streakLogger.error('Failed to load streak data:', error);
-      }
-    }
-  }, [checkStreakValidity]);
-
-  useEffect(() => {
-    loadStreakData();
-  }, [loadStreakData]);
+  }, [lastSessionDate, streakFreezeCount, storeUseStreakFreeze, setStreak]);
 
   // Listen for streak freeze grants from premium subscription
   useEffect(() => {
     const handleStreakFreezeGrant = (event: CustomEvent<{ amount: number }>) => {
       const { amount } = event.detail;
       if (amount > 0) {
-        setStreakData(prev => {
-          const updatedData = {
-            ...prev,
-            streakFreezeCount: prev.streakFreezeCount + amount,
-            lastMonthlyFreezeGrant: new Date().toISOString(),
-          };
-          localStorage.setItem('pet_paradise_streak_data', JSON.stringify(updatedData));
-          return updatedData;
-        });
+        addStreakFreeze(amount);
       }
     };
 
@@ -88,12 +75,12 @@ export const useStreakSystem = () => {
     return () => {
       window.removeEventListener('petIsland_grantStreakFreezes', handleStreakFreezeGrant as EventListener);
     };
-  }, []);
+  }, [addStreakFreeze]);
 
-  const recordSession = (): StreakReward | null => {
+  const recordSession = useCallback((): StreakReward | null => {
     const today = new Date().toDateString();
-    
-    if (streakData.lastSessionDate === today) {
+
+    if (lastSessionDate === today) {
       // Already recorded today
       return null;
     }
@@ -102,12 +89,12 @@ export const useStreakSystem = () => {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayString = yesterday.toDateString();
 
-    let newStreak = streakData.currentStreak;
-    
-    if (streakData.lastSessionDate === yesterdayString) {
+    let newStreak = currentStreak;
+
+    if (lastSessionDate === yesterdayString) {
       // Continuing streak
-      newStreak = streakData.currentStreak + 1;
-    } else if (streakData.lastSessionDate === '') {
+      newStreak = currentStreak + 1;
+    } else if (lastSessionDate === '') {
       // First session
       newStreak = 1;
     } else {
@@ -115,56 +102,38 @@ export const useStreakSystem = () => {
       newStreak = 1;
     }
 
-    const updatedData: StreakData = {
-      ...streakData,
+    // Update all state at once
+    updateState({
       currentStreak: newStreak,
-      longestStreak: Math.max(streakData.longestStreak, newStreak),
+      longestStreak: Math.max(longestStreak, newStreak),
       lastSessionDate: today,
-      totalSessions: streakData.totalSessions + 1,
-    };
-
-    saveStreakData(updatedData);
+      totalSessions: totalSessions + 1,
+    });
 
     // Check for streak rewards
     const reward = STREAK_REWARDS.find(r => r.milestone === newStreak);
     return reward || null;
-  };
+  }, [currentStreak, longestStreak, lastSessionDate, totalSessions, updateState]);
 
-  const useStreakFreeze = (): boolean => {
-    if (streakData.streakFreezeCount > 0) {
-      const updatedData = {
-        ...streakData,
-        streakFreezeCount: streakData.streakFreezeCount - 1,
-      };
-      saveStreakData(updatedData);
-      return true;
-    }
-    return false;
-  };
+  const useStreakFreeze = useCallback((): boolean => {
+    return storeUseStreakFreeze();
+  }, [storeUseStreakFreeze]);
 
-  const earnStreakFreeze = (amount: number = 1) => {
-    const updatedData = {
-      ...streakData,
-      streakFreezeCount: streakData.streakFreezeCount + amount,
-    };
-    saveStreakData(updatedData);
-  };
+  const earnStreakFreeze = useCallback((amount: number = 1) => {
+    addStreakFreeze(amount);
+  }, [addStreakFreeze]);
 
   // Add multiple streak freezes (for purchases or grants)
-  const addStreakFreezes = (amount: number) => {
+  const addStreakFreezes = useCallback((amount: number) => {
     if (amount <= 0) return;
-    const updatedData = {
-      ...streakData,
-      streakFreezeCount: streakData.streakFreezeCount + amount,
-    };
-    saveStreakData(updatedData);
-  };
+    addStreakFreeze(amount);
+  }, [addStreakFreeze]);
 
-  const getNextMilestone = (): StreakReward | null => {
-    return STREAK_REWARDS.find(r => r.milestone > streakData.currentStreak) || null;
-  };
+  const getNextMilestone = useCallback((): StreakReward | null => {
+    return STREAK_REWARDS.find(r => r.milestone > currentStreak) || null;
+  }, [currentStreak]);
 
-  const getStreakEmoji = (streak: number): string => {
+  const getStreakEmoji = useCallback((streak: number): string => {
     if (streak >= 100) return '🏆';
     if (streak >= 50) return '⭐';
     if (streak >= 30) return '🔥';
@@ -172,18 +141,11 @@ export const useStreakSystem = () => {
     if (streak >= 7) return '🎯';
     if (streak >= 3) return '✨';
     return '🌱';
-  };
+  }, []);
 
-  const resetStreak = () => {
-    const resetData: StreakData = {
-      currentStreak: 0,
-      longestStreak: 0,
-      lastSessionDate: '',
-      totalSessions: 0,
-      streakFreezeCount: 3,
-    };
-    saveStreakData(resetData);
-  };
+  const resetStreak = useCallback(() => {
+    resetAll();
+  }, [resetAll]);
 
   return {
     streakData,
