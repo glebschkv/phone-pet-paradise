@@ -15,12 +15,7 @@ import { toast } from "sonner";
 import { useXPSystem } from "@/hooks/useXPSystem";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { useMilestoneCelebrations } from "@/hooks/useMilestoneCelebrations";
-
-interface DailyReward {
-  type: 'xp' | 'streak_freeze' | 'mystery_bonus';
-  amount: number;
-  description?: string;
-}
+import type { DailyReward } from "@/hooks/useDailyLoginRewards";
 
 interface XPResult {
   leveledUp: boolean;
@@ -67,21 +62,23 @@ export const useRewardHandlers = (handleClaimDailyReward: ClaimDailyRewardFn) =>
   const handleDailyRewardClaim = useCallback(() => {
     const { dailyReward, xpReward } = handleClaimDailyReward();
     if (dailyReward) {
-      if (dailyReward.type === 'xp' || dailyReward.type === 'mystery_bonus') {
-        toast.success(`+${dailyReward.amount} XP claimed!`, {
-          description: dailyReward.description,
-        });
-        // If leveled up, show additional toast
-        if (xpReward?.leveledUp) {
-          toast.success(`Level Up! You're now level ${xpReward.newLevel}!`, {
-            description: xpReward.unlockedRewards.length > 0
-              ? `Unlocked: ${xpReward.unlockedRewards.map(r => r.name).join(', ')}`
-              : undefined,
-          });
-        }
-      } else if (dailyReward.type === 'streak_freeze') {
-        toast.success(`+${dailyReward.amount} Streak Freeze earned!`, {
-          description: "Use it to protect your streak!",
+      // Build reward message
+      const rewardParts: string[] = [];
+      if (dailyReward.xp > 0) rewardParts.push(`+${dailyReward.xp} XP`);
+      if (dailyReward.coins > 0) rewardParts.push(`+${dailyReward.coins} coins`);
+      if (dailyReward.streakFreeze) rewardParts.push(`+${dailyReward.streakFreeze} Streak Freeze`);
+      if (dailyReward.luckyWheelSpin) rewardParts.push(`+${dailyReward.luckyWheelSpin} Free Spin`);
+
+      toast.success(rewardParts.join(' & ') + ' claimed!', {
+        description: dailyReward.description,
+      });
+
+      // If leveled up, show additional toast
+      if (xpReward?.leveledUp) {
+        toast.success(`Level Up! You're now level ${xpReward.newLevel}!`, {
+          description: xpReward.unlockedRewards.length > 0
+            ? `Unlocked: ${xpReward.unlockedRewards.map(r => r.name).join(', ')}`
+            : undefined,
         });
       }
     }
