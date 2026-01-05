@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Coins, Lock, Sparkles, Star } from "lucide-react";
+import { Coins, Lock, Sparkles, Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShopItem, BackgroundBundle, PetBundle } from "@/data/ShopData";
 import { AnimalData } from "@/data/AnimalDatabase";
@@ -13,6 +13,7 @@ interface PurchaseConfirmDialogProps {
   onPurchase: () => void;
   canAfford: (price: number) => boolean;
   coinBalance: number;
+  isPurchasing?: boolean;
 }
 
 export const PurchaseConfirmDialog = ({
@@ -22,6 +23,7 @@ export const PurchaseConfirmDialog = ({
   onPurchase,
   canAfford,
   coinBalance,
+  isPurchasing = false,
 }: PurchaseConfirmDialogProps) => {
   const getRarityStars = (rarity: string) => {
     const count = rarity === 'common' ? 1 : rarity === 'rare' ? 2 : rarity === 'epic' ? 3 : 4;
@@ -129,15 +131,20 @@ export const PurchaseConfirmDialog = ({
 
             <button
               onClick={onPurchase}
-              disabled={!canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)}
+              disabled={isPurchasing || !canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)}
               className={cn(
                 "retro-purchase-button w-full py-2.5",
-                canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)
+                !isPurchasing && canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0)
                   ? "retro-purchase-button-active"
                   : "retro-purchase-button-disabled"
               )}
             >
-              {canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0) ? (
+              {isPurchasing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="font-black uppercase tracking-wide text-sm">Processing...</span>
+                </>
+              ) : canAfford('coinPrice' in selectedItem ? selectedItem.coinPrice || 0 : 0) ? (
                 <>
                   <Sparkles className="w-4 h-4" />
                   <span className="font-black uppercase tracking-wide text-sm">Purchase</span>
@@ -152,7 +159,11 @@ export const PurchaseConfirmDialog = ({
 
             <button
               onClick={() => onOpenChange(false)}
-              className="retro-cancel-button w-full py-2"
+              disabled={isPurchasing}
+              className={cn(
+                "retro-cancel-button w-full py-2",
+                isPurchasing && "opacity-50 cursor-not-allowed"
+              )}
             >
               <span className="text-xs font-bold uppercase">Cancel</span>
             </button>

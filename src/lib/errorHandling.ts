@@ -34,7 +34,7 @@ export interface HandleErrorOptions {
  * Standardized error handler
  *
  * Provides consistent error logging across the application.
- * Replaces inconsistent patterns like `catch { /* ignore */ }` and
+ * Replaces inconsistent patterns like empty catch blocks and
  * explicit error logging.
  *
  * @param error - The error to handle

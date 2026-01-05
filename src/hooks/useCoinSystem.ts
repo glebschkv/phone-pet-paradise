@@ -39,7 +39,7 @@ import { useCoinStore } from '@/stores/coinStore';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, isValidSubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
-import { COIN_CONFIG } from '@/lib/constants';
+import { COIN_CONFIG, RATE_LIMIT_CONFIG } from '@/lib/constants';
 import { supabase } from '@/integrations/supabase/client';
 import {
   validateCoinTransaction,
@@ -69,11 +69,10 @@ interface ServerCoinResponse {
  * Prevents spam requests before they hit the server
  */
 const lastOperationTime = { earn: 0, spend: 0 };
-const MIN_OPERATION_INTERVAL_MS = 1000; // 1 second between operations
 
 function canPerformOperation(operation: 'earn' | 'spend'): boolean {
   const now = Date.now();
-  if (now - lastOperationTime[operation] < MIN_OPERATION_INTERVAL_MS) {
+  if (now - lastOperationTime[operation] < RATE_LIMIT_CONFIG.MIN_COIN_OPERATION_INTERVAL_MS) {
     return false;
   }
   lastOperationTime[operation] = now;
@@ -534,55 +533,6 @@ export const useCoinSystem = () => {
     }
   }, [balance, storeCanAfford, storeSpendCoins, storeSyncFromServer, totalEarned, totalSpent]);
 
-  /**
-   * SECURITY: Synchronous spend for backwards compatibility
-   *
-   * This function provides a synchronous interface but validates asynchronously.
-   * Use spendCoins (async) when possible for proper server validation.
-   *
-   * @deprecated Use spendCoins (async version) instead for proper server validation
-   */
-  const spendCoinsSync = useCallback((amount: number): boolean => {
-    // Validate input - must be a positive integer
-    const validAmount = validateCoinTransaction(amount);
-    if (validAmount <= 0) {
-      coinLogger.warn('Invalid spend amount:', amount);
-      return false;
-    }
-
-    if (!storeCanAfford(validAmount)) {
-      return false;
-    }
-
-    // Optimistically update Zustand store
-    storeSpendCoins(validAmount);
-
-    // SECURITY: Validate with server asynchronously and sync state
-    serverSpendCoins(validAmount, 'shop_purchase').then((response) => {
-      if (response.success && response.newBalance !== undefined) {
-        storeSyncFromServer(
-          response.newBalance,
-          response.totalEarned || totalEarned,
-          response.totalSpent || totalSpent + validAmount
-        );
-      } else if (!response.success) {
-        // Server rejected - sync from server to get correct state
-        coinLogger.warn('Server rejected spend, syncing from server');
-        serverGetBalance().then((balanceResponse) => {
-          if (balanceResponse.success && balanceResponse.newBalance !== undefined) {
-            storeSyncFromServer(
-              balanceResponse.newBalance,
-              balanceResponse.totalEarned || totalEarned,
-              balanceResponse.totalSpent || totalSpent
-            );
-          }
-        });
-      }
-    });
-
-    return true;
-  }, [storeCanAfford, storeSpendCoins, storeSyncFromServer, totalEarned, totalSpent]);
-
   // Check if user can afford something
   const canAfford = useCallback((amount: number): boolean => {
     return storeCanAfford(amount);
@@ -619,12 +569,11 @@ export const useCoinSystem = () => {
     awardCoins,
     addCoins,
     spendCoins,
-    spendCoinsSync, // For backwards compatibility
     canAfford,
     resetProgress,
     calculateCoinsFromDuration,
     getSubscriptionMultiplier,
-    syncFromServer, // New: sync balance from server
+    syncFromServer,
   }), [
     balance,
     totalEarned,
@@ -632,7 +581,6 @@ export const useCoinSystem = () => {
     awardCoins,
     addCoins,
     spendCoins,
-    spendCoinsSync,
     canAfford,
     resetProgress,
     calculateCoinsFromDuration,

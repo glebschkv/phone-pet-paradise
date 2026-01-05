@@ -23,6 +23,28 @@ export interface PurchaseResult {
   item?: ShopItem | AnimalData;
 }
 
+/**
+ * Configuration for a generic purchase operation
+ */
+interface PurchaseConfig<T> {
+  /** Function to look up the item by ID */
+  getItem: (id: string) => T | undefined;
+  /** Displayed name for the item type (e.g., 'Character', 'Background') */
+  itemTypeName: string;
+  /** Array of already owned item IDs */
+  ownedItems: string[];
+  /** Function to add the item ID to the owned list */
+  addOwned: (id: string) => void;
+  /** Function to get the price from the item (returns undefined if not purchasable) */
+  getPrice: (item: T) => number | undefined;
+  /** Purpose of the spend for audit logging */
+  spendPurpose: 'pet_unlock' | 'cosmetic' | 'booster' | 'streak_freeze';
+  /** Optional validation function - return error message or null if valid */
+  validate?: (item: T) => string | null;
+  /** Function to get the item's display name */
+  getItemName: (item: T) => string;
+}
+
 export interface ShopInventory {
   ownedCharacters: string[];
   ownedBackgrounds: string[];
@@ -115,94 +137,99 @@ export const useShop = () => {
   }, [ownedCharacters, ownedBackgrounds, ownedBadges]);
 
   /**
-   * SECURITY: Purchase a character with server-validated coin spending
+   * SECURITY: Generic purchase function with server-validated coin spending
    *
-   * Uses async server validation to prevent manipulation.
+   * This function encapsulates the common purchase pattern:
+   * 1. Look up item by ID
+   * 2. Validate item exists and is purchasable
+   * 3. Check if already owned
+   * 4. Check if can afford
+   * 5. Spend coins (async with server validation)
+   * 6. Add to owned list
    */
-  const purchaseCharacter = useCallback(async (characterId: string): Promise<PurchaseResult> => {
-    const animal = getAnimalById(characterId);
-    if (!animal) {
-      return { success: false, message: 'Character not found' };
+  const genericPurchase = useCallback(async <T>(
+    itemId: string,
+    config: PurchaseConfig<T>
+  ): Promise<PurchaseResult> => {
+    const item = config.getItem(itemId);
+    if (!item) {
+      return { success: false, message: `${config.itemTypeName} not found` };
     }
 
-    if (!animal.isExclusive || !animal.coinPrice) {
-      return { success: false, message: 'This character cannot be purchased' };
+    // Run custom validation if provided
+    if (config.validate) {
+      const validationError = config.validate(item);
+      if (validationError) {
+        return { success: false, message: validationError };
+      }
     }
 
-    if (ownedCharacters.includes(characterId)) {
-      return { success: false, message: 'You already own this character' };
+    if (config.ownedItems.includes(itemId)) {
+      return { success: false, message: `You already own this ${config.itemTypeName.toLowerCase()}` };
     }
 
-    if (!coinSystem.canAfford(animal.coinPrice)) {
+    const price = config.getPrice(item);
+    if (!price || !coinSystem.canAfford(price)) {
       return { success: false, message: 'Not enough coins' };
     }
 
     // SECURITY: Server-validated spending
-    const spendSuccess = await coinSystem.spendCoins(animal.coinPrice, 'pet_unlock', characterId);
+    const spendSuccess = await coinSystem.spendCoins(price, config.spendPurpose, itemId);
     if (!spendSuccess) {
       return { success: false, message: 'Failed to process payment' };
     }
 
-    addOwnedCharacter(characterId);
+    config.addOwned(itemId);
 
-    return { success: true, message: `${animal.name} purchased!`, item: animal };
-  }, [ownedCharacters, coinSystem, addOwnedCharacter]);
+    const itemName = config.getItemName(item);
+    return { success: true, message: `${itemName} purchased!`, item: item as ShopItem | AnimalData };
+  }, [coinSystem]);
+
+  /**
+   * SECURITY: Purchase a character with server-validated coin spending
+   */
+  const purchaseCharacter = useCallback(async (characterId: string): Promise<PurchaseResult> => {
+    return genericPurchase(characterId, {
+      getItem: getAnimalById,
+      itemTypeName: 'Character',
+      ownedItems: ownedCharacters,
+      addOwned: addOwnedCharacter,
+      getPrice: (animal) => animal.isExclusive ? animal.coinPrice : undefined,
+      spendPurpose: 'pet_unlock',
+      validate: (animal) => (!animal.isExclusive || !animal.coinPrice) ? 'This character cannot be purchased' : null,
+      getItemName: (animal) => animal.name,
+    });
+  }, [genericPurchase, ownedCharacters, addOwnedCharacter]);
 
   /**
    * SECURITY: Purchase a background with server-validated coin spending
    */
   const purchaseBackground = useCallback(async (backgroundId: string): Promise<PurchaseResult> => {
-    const background = PREMIUM_BACKGROUNDS.find(bg => bg.id === backgroundId);
-    if (!background) {
-      return { success: false, message: 'Background not found' };
-    }
-
-    if (ownedBackgrounds.includes(backgroundId)) {
-      return { success: false, message: 'You already own this background' };
-    }
-
-    if (!background.coinPrice || !coinSystem.canAfford(background.coinPrice)) {
-      return { success: false, message: 'Not enough coins' };
-    }
-
-    // SECURITY: Server-validated spending
-    const spendSuccess = await coinSystem.spendCoins(background.coinPrice, 'cosmetic', backgroundId);
-    if (!spendSuccess) {
-      return { success: false, message: 'Failed to process payment' };
-    }
-
-    addOwnedBackground(backgroundId);
-
-    return { success: true, message: `${background.name} purchased!`, item: background };
-  }, [ownedBackgrounds, coinSystem, addOwnedBackground]);
+    return genericPurchase(backgroundId, {
+      getItem: (id) => PREMIUM_BACKGROUNDS.find(bg => bg.id === id),
+      itemTypeName: 'Background',
+      ownedItems: ownedBackgrounds,
+      addOwned: addOwnedBackground,
+      getPrice: (bg) => bg.coinPrice,
+      spendPurpose: 'cosmetic',
+      getItemName: (bg) => bg.name,
+    });
+  }, [genericPurchase, ownedBackgrounds, addOwnedBackground]);
 
   /**
    * SECURITY: Purchase a badge with server-validated coin spending
    */
   const purchaseBadge = useCallback(async (badgeId: string): Promise<PurchaseResult> => {
-    const badge = PROFILE_BADGES.find(b => b.id === badgeId);
-    if (!badge) {
-      return { success: false, message: 'Badge not found' };
-    }
-
-    if (ownedBadges.includes(badgeId)) {
-      return { success: false, message: 'You already own this badge' };
-    }
-
-    if (!badge.coinPrice || !coinSystem.canAfford(badge.coinPrice)) {
-      return { success: false, message: 'Not enough coins' };
-    }
-
-    // SECURITY: Server-validated spending
-    const spendSuccess = await coinSystem.spendCoins(badge.coinPrice, 'cosmetic', badgeId);
-    if (!spendSuccess) {
-      return { success: false, message: 'Failed to process payment' };
-    }
-
-    addOwnedBadge(badgeId);
-
-    return { success: true, message: `${badge.name} purchased!`, item: badge };
-  }, [ownedBadges, coinSystem, addOwnedBadge]);
+    return genericPurchase(badgeId, {
+      getItem: (id) => PROFILE_BADGES.find(b => b.id === id),
+      itemTypeName: 'Badge',
+      ownedItems: ownedBadges,
+      addOwned: addOwnedBadge,
+      getPrice: (badge) => badge.coinPrice,
+      spendPurpose: 'cosmetic',
+      getItemName: (badge) => badge.name,
+    });
+  }, [genericPurchase, ownedBadges, addOwnedBadge]);
 
   // Unlock a character (without payment - used for bundles and rewards)
   const unlockCharacter = useCallback((characterId: string): boolean => {
