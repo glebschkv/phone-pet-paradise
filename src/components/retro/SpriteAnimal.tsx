@@ -235,15 +235,18 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
 
   // Determine which sprite to use
   const currentSpritePath = isIdle ? idleSpritePath : walkSpritePath;
+  const hasSeperateIdleSprite = spriteConfig?.idleSprite && spriteConfig.idleSprite !== walkSpritePath;
 
   // Calculate background position - ensure frame is valid
   const safeFrame = isIdle ? 0 : Math.min(currentFrame, frameCount - 1);
   const backgroundPositionX = -(safeFrame * frameWidth * scale);
+  // When idle without separate idle sprite, use row 0 (front-facing); otherwise use frameRow for walking
   const backgroundPositionY = isIdle ? 0 : -(frameRow * frameHeight * scale);
 
   // Calculate background size
-  const bgWidth = isIdle ? 4 * scaledWidth : frameCount * scaledWidth;
-  const bgHeight = isIdle ? scaledHeight : walkRows * scaledHeight;
+  // If idle with separate idle sprite, assume 4 frames; otherwise use walk sprite's frameCount
+  const bgWidth = (isIdle && hasSeperateIdleSprite) ? 4 * scaledWidth : frameCount * scaledWidth;
+  const bgHeight = (isIdle && hasSeperateIdleSprite) ? scaledHeight : walkRows * scaledHeight;
 
   // Ground offset (per-animal adjustment on top of biome ground level)
   const groundOffset = animal.groundOffset || 0;
