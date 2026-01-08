@@ -35,7 +35,15 @@ export default tseslint.config(
           ],
         },
       ],
-      "@typescript-eslint/no-unused-vars": "off",
+      // Re-enable unused vars check with reasonable exceptions
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   }
 );

@@ -40,7 +40,8 @@ export const SettingsAccount = () => {
         await storeKit.manageSubscriptions();
       } else {
         // On web, open Apple's subscription management page
-        window.open('https://apps.apple.com/account/subscriptions', '_blank');
+        // SECURITY: Use noopener,noreferrer to prevent reverse tabnabbing attacks
+        window.open('https://apps.apple.com/account/subscriptions', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       toast.error('Failed to open subscription management');
