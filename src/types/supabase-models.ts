@@ -27,6 +27,9 @@ export interface UserProgress {
   total_sessions: number;
   last_session_date: string | null;
   streak_freeze_count: number;
+  coins: number;
+  total_coins_earned: number;
+  total_coins_spent: number;
   created_at: string;
   updated_at: string;
 }
@@ -82,6 +85,9 @@ export const createDefaultProgress = (userId: string): UserProgress => ({
   total_sessions: 0,
   last_session_date: null,
   streak_freeze_count: 0,
+  coins: 0,
+  total_coins_earned: 0,
+  total_coins_spent: 0,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 });

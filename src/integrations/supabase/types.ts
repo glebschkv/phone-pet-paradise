@@ -176,8 +176,51 @@ export type Database = {
         }
         Relationships: []
       }
+      coin_transactions: {
+        Row: {
+          id: string
+          user_id: string
+          operation: string
+          amount: number
+          source_or_purpose: string
+          balance_before: number
+          balance_after: number
+          session_id: string | null
+          item_id: string | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          operation: string
+          amount: number
+          source_or_purpose: string
+          balance_before: number
+          balance_after: number
+          session_id?: string | null
+          item_id?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          operation?: string
+          amount?: number
+          source_or_purpose?: string
+          balance_before?: number
+          balance_after?: number
+          session_id?: string | null
+          item_id?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       user_progress: {
         Row: {
+          coins: number
           created_at: string
           current_level: number
           current_streak: number
@@ -185,12 +228,15 @@ export type Database = {
           last_session_date: string | null
           longest_streak: number
           streak_freeze_count: number
+          total_coins_earned: number
+          total_coins_spent: number
           total_sessions: number
           total_xp: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          coins?: number
           created_at?: string
           current_level?: number
           current_streak?: number
@@ -198,12 +244,15 @@ export type Database = {
           last_session_date?: string | null
           longest_streak?: number
           streak_freeze_count?: number
+          total_coins_earned?: number
+          total_coins_spent?: number
           total_sessions?: number
           total_xp?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          coins?: number
           created_at?: string
           current_level?: number
           current_streak?: number
@@ -211,6 +260,8 @@ export type Database = {
           last_session_date?: string | null
           longest_streak?: number
           streak_freeze_count?: number
+          total_coins_earned?: number
+          total_coins_spent?: number
           total_sessions?: number
           total_xp?: number
           updated_at?: string
@@ -338,6 +389,16 @@ export type Database = {
           expires_at: string
           is_lifetime: boolean
           tier: string
+        }[]
+      }
+      verify_coin_balance: {
+        Args: { p_user_id: string }
+        Returns: {
+          stored_balance: number
+          calculated_balance: number
+          total_earned: number
+          total_spent: number
+          is_valid: boolean
         }[]
       }
     }
