@@ -731,7 +731,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Meadow',
     spriteConfig: {
       spritePath: '/assets/sprites/Cat_Walk.png',
-      idleSprite: '/assets/sprites/Cat_Idle.png',
       frameCount: 11,
       frameWidth: 128,
       frameHeight: 128,
@@ -750,7 +749,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Night',
     spriteConfig: {
       spritePath: '/assets/sprites/Kitsune_Walk.png',
-      idleSprite: '/assets/sprites/Kitsune_Idle.png',
       frameCount: 8,
       frameWidth: 128,
       frameHeight: 128,
@@ -823,7 +821,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Sunset',
     spriteConfig: {
       spritePath: '/assets/sprites/Horse_Walk.png',
-      idleSprite: '/assets/sprites/Horse_Idle.png',
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
@@ -842,7 +839,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Sunset',
     spriteConfig: {
       spritePath: '/assets/sprites/Turtle_Walk.png',
-      idleSprite: '/assets/sprites/Turtle_Idle.png',
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
@@ -861,7 +857,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Night',
     spriteConfig: {
       spritePath: '/assets/sprites/VampireBat_walk.png',
-      idleSprite: '/assets/sprites/VampireBat_idle.png',
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
@@ -882,7 +877,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Ruins',
     spriteConfig: {
       spritePath: '/assets/sprites/GoblinKing_walk.png',
-      idleSprite: '/assets/sprites/GoblinKing_idle.png',
       frameCount: 6,
       frameWidth: 72,
       frameHeight: 72,
@@ -901,7 +895,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Sunset',
     spriteConfig: {
       spritePath: '/assets/sprites/GoldenFox_Walk.png',
-      idleSprite: '/assets/sprites/GoldenFox_Idle.png',
       frameCount: 8,
       frameWidth: 128,
       frameHeight: 128,
@@ -922,7 +915,6 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     biome: 'Ruins',
     spriteConfig: {
       spritePath: '/assets/sprites/BabyDragon_Walk.png',
-      idleSprite: '/assets/sprites/BabyDragon_Idle.png',
       frameCount: 8,
       frameWidth: 128,
       frameHeight: 128,
