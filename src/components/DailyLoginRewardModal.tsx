@@ -38,9 +38,9 @@ export const DailyLoginRewardModal = ({
 
   const getRewardValue = (r: DailyReward) => {
     if (r.type === 'streak_freeze') {
-      return `+${r.amount} Freeze`;
+      return `+${r.streakFreeze} Freeze`;
     }
-    return `+${r.amount} XP`;
+    return `+${r.xp} XP`;
   };
 
   return (
@@ -131,7 +131,7 @@ export const DailyLoginRewardModal = ({
                       {isClaimed ? '✓' : r.icon}
                     </span>
                     <span className="text-[9px] font-medium text-muted-foreground">
-                      {r.type === 'streak_freeze' ? '🧊' : `${r.amount}`}
+                      {r.type === 'streak_freeze' ? '🧊' : `${r.xp}`}
                     </span>
                   </div>
                 );
