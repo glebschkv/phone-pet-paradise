@@ -490,7 +490,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameHeight: 64,
       animationSpeed: 10,
       walkRows: 2,
-      frameRow: 1
+      frameRow: 0
     }
   },
   {
