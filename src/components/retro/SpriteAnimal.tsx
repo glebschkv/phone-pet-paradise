@@ -251,12 +251,12 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   // Ground offset (per-animal adjustment on top of biome ground level)
   const manualGroundOffset = animal.groundOffset || 0;
 
-  // Auto-adjust for legacy sprites (non-64px frames)
-  // Standard chibi sprites are 64px - legacy sprites need adjustment based on their size
+  // Legacy sprites (non-64px) need a different ground offset than standard chibi sprites
+  // Adjust this value to position all legacy animals correctly across backgrounds
+  const LEGACY_GROUND_OFFSET = -4; // Negative = lower, Positive = higher
   const STANDARD_FRAME_SIZE = 64;
-  const legacyGroundAdjustment = frameHeight !== STANDARD_FRAME_SIZE
-    ? -((frameHeight - STANDARD_FRAME_SIZE) / STANDARD_FRAME_SIZE) * 4  // Lower larger sprites, raise smaller ones
-    : 0;
+  const isLegacySprite = frameHeight !== STANDARD_FRAME_SIZE;
+  const legacyGroundAdjustment = isLegacySprite ? LEGACY_GROUND_OFFSET : 0;
 
   const totalGroundOffset = manualGroundOffset + legacyGroundAdjustment;
 
