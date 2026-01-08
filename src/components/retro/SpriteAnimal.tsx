@@ -249,7 +249,16 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
   const bgHeight = (isIdle && hasSeperateIdleSprite) ? scaledHeight : walkRows * scaledHeight;
 
   // Ground offset (per-animal adjustment on top of biome ground level)
-  const groundOffset = animal.groundOffset || 0;
+  const manualGroundOffset = animal.groundOffset || 0;
+
+  // Auto-adjust for legacy sprites (non-64px frames)
+  // Standard chibi sprites are 64px - legacy sprites need adjustment based on their size
+  const STANDARD_FRAME_SIZE = 64;
+  const legacyGroundAdjustment = frameHeight !== STANDARD_FRAME_SIZE
+    ? -((frameHeight - STANDARD_FRAME_SIZE) / STANDARD_FRAME_SIZE) * 4  // Lower larger sprites, raise smaller ones
+    : 0;
+
+  const totalGroundOffset = manualGroundOffset + legacyGroundAdjustment;
 
   // Flip sprite when walking opposite to its natural facing direction
   // If sprite faces left naturally, flip when walking right; otherwise flip when walking left
@@ -259,7 +268,7 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
     <div
       className="absolute"
       style={{
-        bottom: `${groundLevel + groundOffset}%`,
+        bottom: `${groundLevel + totalGroundOffset}%`,
         left: `${renderPosition * 100}%`,
         width: `${scaledWidth}px`,
         height: `${scaledHeight}px`,
