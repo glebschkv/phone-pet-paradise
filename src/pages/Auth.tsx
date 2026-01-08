@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Mail, Lock, Sparkles, User, ArrowRight, Loader2 } from 'lucide-react';
 import { getAppBaseUrl, isValidEmail, validatePassword, sanitizeErrorMessage } from '@/lib/apiUtils';
 import { PageErrorBoundary } from '@/components/PageErrorBoundary';
+import { checkRateLimit, recordRateLimitAttempt, clearRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/security';
 
 type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot-password';
 
@@ -45,6 +46,14 @@ export default function Auth() {
       return;
     }
 
+    // SECURITY: Check rate limit before attempting auth
+    const rateLimitKey = `auth:magic-link:${email.toLowerCase()}`;
+    const rateLimit = checkRateLimit(rateLimitKey, RATE_LIMIT_CONFIGS.auth);
+    if (rateLimit.isLimited) {
+      toast.error(rateLimit.message);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -54,8 +63,13 @@ export default function Auth() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.auth, false);
+        throw error;
+      }
 
+      // Clear rate limit on success
+      clearRateLimit(rateLimitKey);
       toast.success('Check your email!', {
         description: 'We sent you a magic link to sign in.',
       });
@@ -79,6 +93,14 @@ export default function Auth() {
       return;
     }
 
+    // SECURITY: Check rate limit before attempting auth
+    const rateLimitKey = `auth:password:${email.toLowerCase()}`;
+    const rateLimit = checkRateLimit(rateLimitKey, RATE_LIMIT_CONFIGS.auth);
+    if (rateLimit.isLimited) {
+      toast.error(rateLimit.message);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -86,8 +108,13 @@ export default function Auth() {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.auth, false);
+        throw error;
+      }
 
+      // Clear rate limit on successful login
+      clearRateLimit(rateLimitKey);
       toast.success('Welcome back!');
       navigate('/');
     } catch (error: unknown) {
@@ -115,6 +142,14 @@ export default function Auth() {
       return;
     }
 
+    // SECURITY: Check rate limit before attempting signup
+    const rateLimitKey = `auth:signup:${email.toLowerCase()}`;
+    const rateLimit = checkRateLimit(rateLimitKey, RATE_LIMIT_CONFIGS.auth);
+    if (rateLimit.isLimited) {
+      toast.error(rateLimit.message);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signUp({
@@ -125,8 +160,13 @@ export default function Auth() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.auth, false);
+        throw error;
+      }
 
+      // Clear rate limit on success
+      clearRateLimit(rateLimitKey);
       toast.success('Account created!', {
         description: 'Check your email to confirm your account.',
       });
@@ -150,14 +190,27 @@ export default function Auth() {
       return;
     }
 
+    // SECURITY: Check rate limit for password reset (stricter limits)
+    const rateLimitKey = `auth:reset:${email.toLowerCase()}`;
+    const rateLimit = checkRateLimit(rateLimitKey, RATE_LIMIT_CONFIGS.passwordReset);
+    if (rateLimit.isLimited) {
+      toast.error(rateLimit.message);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${getRedirectUrl()}/auth?mode=reset-password`,
       });
 
-      if (error) throw error;
+      if (error) {
+        recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.passwordReset, false);
+        throw error;
+      }
 
+      // Record attempt even on success to prevent email enumeration
+      recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.passwordReset, false);
       toast.success('Password reset email sent!', {
         description: 'Check your email for a link to reset your password.',
       });
