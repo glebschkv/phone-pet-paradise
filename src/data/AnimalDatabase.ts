@@ -716,6 +716,220 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       walkRows: 1
     }
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CLASSIC SPRITES (128x128 detailed art style) - Restored from legacy
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'playful-cat',
+    name: 'Playful Cat',
+    emoji: '🐱',
+    rarity: 'rare',
+    unlockLevel: 21,
+    description: 'A mischievous cat with silky fur who loves to jump and play during your focus sessions.',
+    abilities: ['Cat Nap', 'Playful Pounce', 'Whisker Wisdom'],
+    biome: 'Meadow',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Cat_Walk.png',
+      idleSprite: '/assets/sprites/Cat_Idle.png',
+      frameCount: 11,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'mystic-kitsune',
+    name: 'Mystic Kitsune',
+    emoji: '🦊',
+    rarity: 'epic',
+    unlockLevel: 23,
+    description: 'A mystical fox spirit with flowing tails that dances gracefully through your sessions.',
+    abilities: ['Fox Magic', 'Spirit Dash', 'Mystic Leap'],
+    biome: 'Night',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Kitsune_Walk.png',
+      idleSprite: '/assets/sprites/Kitsune_Idle.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'happy-doggo',
+    name: 'Happy Doggo',
+    emoji: '🐕',
+    rarity: 'common',
+    unlockLevel: 22,
+    description: 'An energetic pup that jumps for joy and keeps your spirits high.',
+    abilities: ['Tail Wag', 'Joyful Jump', 'Loyal Friend'],
+    biome: 'Meadow',
+    spriteConfig: {
+      spritePath: '/assets/sprites/doggo_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'spotted-doggo',
+    name: 'Spotted Doggo',
+    emoji: '🐶',
+    rarity: 'rare',
+    unlockLevel: 24,
+    description: 'A spotted companion full of tricks and boundless energy.',
+    abilities: ['Spot Power', 'Quick Dash', 'Friendly Bark'],
+    biome: 'Meadow',
+    spriteConfig: {
+      spritePath: '/assets/sprites/doggo2_Walk.png',
+      frameCount: 10,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'dude-monster',
+    name: 'Dude Monster',
+    emoji: '👾',
+    rarity: 'common',
+    unlockLevel: 25,
+    description: 'A cheerful blob monster that rolls and bounces with infectious happiness.',
+    abilities: ['Happy Roll', 'Bounce Attack', 'Monster Hug'],
+    biome: 'Forest',
+    spriteConfig: {
+      spritePath: '/assets/sprites/DudeMonster_Walk2.png',
+      frameCount: 6,
+      frameWidth: 32,
+      frameHeight: 32,
+      animationSpeed: 10,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'wild-horse',
+    name: 'Wild Horse',
+    emoji: '🐴',
+    rarity: 'rare',
+    unlockLevel: 26,
+    description: 'A majestic horse that gallops freely, bringing untamed energy to your focus.',
+    abilities: ['Wild Gallop', 'Mane Power', 'Horse Leap'],
+    biome: 'Sunset',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Horse_Walk.png',
+      idleSprite: '/assets/sprites/Horse_Idle.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 10,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'sea-turtle',
+    name: 'Sea Turtle',
+    emoji: '🐢',
+    rarity: 'common',
+    unlockLevel: 27,
+    description: 'A wise turtle that swims through the currents of time with patience and grace.',
+    abilities: ['Shell Shield', 'Ocean Wisdom', 'Calm Swim'],
+    biome: 'Sunset',
+    spriteConfig: {
+      spritePath: '/assets/sprites/Turtle_Walk.png',
+      idleSprite: '/assets/sprites/Turtle_Idle.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 8,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'vampire-bat',
+    name: 'Vampire Bat',
+    emoji: '🦇',
+    rarity: 'rare',
+    unlockLevel: 28,
+    description: 'A mischievous bat that sneers playfully and brings spooky fun to night sessions.',
+    abilities: ['Night Flight', 'Spooky Sneer', 'Echo Focus'],
+    biome: 'Night',
+    spriteConfig: {
+      spritePath: '/assets/sprites/VampireBat_walk.png',
+      idleSprite: '/assets/sprites/VampireBat_idle.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 10,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'goblin-king',
+    name: 'Goblin King',
+    emoji: '👺',
+    rarity: 'epic',
+    unlockLevel: 99,
+    coinPrice: 4000,
+    isExclusive: true,
+    description: 'The mischievous ruler of goblins who sneers at distraction and commands focus.',
+    abilities: ['Royal Sneer', 'Goblin Command', 'King\'s Focus'],
+    biome: 'Ruins',
+    spriteConfig: {
+      spritePath: '/assets/sprites/GoblinKing_walk.png',
+      idleSprite: '/assets/sprites/GoblinKing_idle.png',
+      frameCount: 6,
+      frameWidth: 72,
+      frameHeight: 72,
+      animationSpeed: 8,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'golden-fox',
+    name: 'Golden Fox',
+    emoji: '🦊',
+    rarity: 'epic',
+    unlockLevel: 30,
+    description: 'A magnificent fox with golden fur that shimmers with ancient wisdom.',
+    abilities: ['Golden Glow', 'Fox Wisdom', 'Sunset Dash'],
+    biome: 'Sunset',
+    spriteConfig: {
+      spritePath: '/assets/sprites/GoldenFox_Walk.png',
+      idleSprite: '/assets/sprites/GoldenFox_Idle.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      walkRows: 1
+    }
+  },
+  {
+    id: 'baby-dragon',
+    name: 'Baby Dragon',
+    emoji: '🐲',
+    rarity: 'legendary',
+    unlockLevel: 99,
+    coinPrice: 6000,
+    isExclusive: true,
+    description: 'An adorable dragon hatchling with tiny wings and a fiery spirit.',
+    abilities: ['Baby Flame', 'Dragon Roar', 'Hatchling Power'],
+    biome: 'Ruins',
+    spriteConfig: {
+      spritePath: '/assets/sprites/BabyDragon_Walk.png',
+      idleSprite: '/assets/sprites/BabyDragon_Idle.png',
+      frameCount: 8,
+      frameWidth: 128,
+      frameHeight: 128,
+      animationSpeed: 10,
+      walkRows: 1
+    }
+  },
 ];
 
 // Biome definitions with ground levels for pet positioning
@@ -724,7 +938,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Meadow',
     unlockLevel: 0,
     description: 'A peaceful meadow where your journey begins. Home to friendly creatures.',
-    animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood', 'bear-hood'],
+    animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood', 'bear-hood', 'playful-cat', 'happy-doggo', 'spotted-doggo'],
     backgroundImage: '/assets/worlds/MEADOW.png',
     groundLevel: 16.15
   },
@@ -732,7 +946,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Sunset',
     unlockLevel: 5,
     description: 'Golden fields bathed in warm sunset light.',
-    animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood'],
+    animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood', 'wild-horse', 'sea-turtle', 'golden-fox'],
     backgroundImage: '/assets/worlds/SUNSET_WINDMILL.png',
     groundLevel: 19
   },
@@ -740,7 +954,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Night',
     unlockLevel: 9,
     description: 'A mystical realm under the stars where nocturnal creatures thrive.',
-    animals: ['luna-moth', 'star-jelly', 'shadow-cat', 'cute-ghost', 'kitsune-spirit'],
+    animals: ['luna-moth', 'star-jelly', 'shadow-cat', 'cute-ghost', 'kitsune-spirit', 'mystic-kitsune', 'vampire-bat'],
     backgroundImage: '/assets/worlds/NIGHT_LAVENDER.png',
     groundLevel: 19.4
   },
@@ -748,7 +962,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Forest',
     unlockLevel: 13,
     description: 'An enchanted forest where elemental spirits dwell.',
-    animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid'],
+    animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid', 'dude-monster'],
     backgroundImage: '/assets/worlds/FOREST_ENCHANTED.png',
     groundLevel: 17.7
   },
@@ -772,7 +986,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     name: 'Ruins',
     unlockLevel: 29,
     description: 'Ancient ruins holding powerful warriors.',
-    animals: ['dragon-knight'],
+    animals: ['dragon-knight', 'goblin-king', 'baby-dragon'],
     backgroundImage: '/assets/worlds/RUINS_OVERGROWN.png',
     groundLevel: 17
   }
