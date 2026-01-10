@@ -9,7 +9,7 @@ import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { FocusCategory } from "@/types/analytics";
-import { TimerPreset } from "../constants";
+import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { TimerState } from "./useTimerPersistence";
 
 interface UseTimerControlsProps {
@@ -59,10 +59,13 @@ export const useTimerControls = ({
         category: undefined,
         taskLabel: undefined,
       });
+    } else if (selectedPreset.isCountup) {
+      // Countup mode also requires intention
+      setShowIntentionModal(true);
     } else {
       setShowIntentionModal(true);
     }
-  }, [saveTimerState, timerState.timeLeft, selectedPreset.type, setDisplayTime, setShowIntentionModal]);
+  }, [saveTimerState, timerState.timeLeft, selectedPreset.type, selectedPreset.isCountup, setDisplayTime, setShowIntentionModal]);
 
   const startTimerWithIntent = useCallback(async (category: FocusCategory, taskLabel?: string) => {
     setShowIntentionModal(false);
@@ -75,34 +78,70 @@ export const useTimerControls = ({
     }
 
     const now = Date.now();
-    setDisplayTime(timerState.timeLeft);
-    saveTimerState({
-      isRunning: true,
-      startTime: now,
-      sessionDuration: timerState.timeLeft,
-      category,
-      taskLabel,
-    });
-  }, [saveTimerState, timerState.timeLeft, appBlockingEnabled, hasAppsConfigured, blockedAppsCount, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
+
+    if (timerState.isCountup) {
+      // Countup mode: start from 0, duration is max 6 hours
+      setDisplayTime(0);
+      saveTimerState({
+        isRunning: true,
+        startTime: now,
+        sessionDuration: MAX_COUNTUP_DURATION,
+        elapsedTime: 0,
+        category,
+        taskLabel,
+        isCountup: true,
+      });
+    } else {
+      // Countdown mode: start from timeLeft
+      setDisplayTime(timerState.timeLeft);
+      saveTimerState({
+        isRunning: true,
+        startTime: now,
+        sessionDuration: timerState.timeLeft,
+        category,
+        taskLabel,
+      });
+    }
+  }, [saveTimerState, timerState.timeLeft, timerState.isCountup, appBlockingEnabled, hasAppsConfigured, blockedAppsCount, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
 
   const pauseTimer = useCallback(() => {
     const now = Date.now();
-    let currentTimeLeft = timerState.timeLeft;
 
-    if (timerState.startTime) {
-      const elapsedMs = now - timerState.startTime;
-      const elapsedSeconds = Math.floor(elapsedMs / 1000);
-      currentTimeLeft = Math.max(0, timerState.sessionDuration - elapsedSeconds);
+    if (timerState.isCountup) {
+      // Countup mode: calculate elapsed time
+      let currentElapsed = timerState.elapsedTime || 0;
+      if (timerState.startTime) {
+        const elapsedMs = now - timerState.startTime;
+        const elapsedSeconds = Math.floor(elapsedMs / 1000);
+        currentElapsed = Math.min(elapsedSeconds, MAX_COUNTUP_DURATION);
+      }
+
+      setDisplayTime(currentElapsed);
+      saveTimerState({
+        isRunning: false,
+        startTime: null,
+        elapsedTime: currentElapsed,
+        sessionDuration: MAX_COUNTUP_DURATION,
+      });
+    } else {
+      // Countdown mode: calculate remaining time
+      let currentTimeLeft = timerState.timeLeft;
+
+      if (timerState.startTime) {
+        const elapsedMs = now - timerState.startTime;
+        const elapsedSeconds = Math.floor(elapsedMs / 1000);
+        currentTimeLeft = Math.max(0, timerState.sessionDuration - elapsedSeconds);
+      }
+
+      setDisplayTime(currentTimeLeft);
+      saveTimerState({
+        isRunning: false,
+        startTime: null,
+        timeLeft: currentTimeLeft,
+        sessionDuration: selectedPreset.duration * 60,
+      });
     }
-
-    setDisplayTime(currentTimeLeft);
-    saveTimerState({
-      isRunning: false,
-      startTime: null,
-      timeLeft: currentTimeLeft,
-      sessionDuration: selectedPreset.duration * 60,
-    });
-  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, selectedPreset.duration, setDisplayTime]);
+  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, selectedPreset.duration, setDisplayTime]);
 
   const stopTimer = useCallback(async () => {
     let elapsedSeconds = 0;
@@ -110,18 +149,24 @@ export const useTimerControls = ({
       const now = Date.now();
       const elapsedMs = now - timerState.startTime;
       elapsedSeconds = Math.floor(elapsedMs / 1000);
+    } else if (timerState.isCountup) {
+      elapsedSeconds = timerState.elapsedTime || 0;
     } else {
       elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
     }
 
-    if (timerState.sessionType !== 'break' && hasAppsConfigured) {
+    if (timerState.sessionType !== 'break' && timerState.sessionType !== 'countup' && hasAppsConfigured) {
+      await stopAppBlocking();
+    }
+    // Also stop blocking for countup mode
+    if (timerState.sessionType === 'countup' && hasAppsConfigured) {
       await stopAppBlocking();
     }
 
     if (timerState.isRunning && elapsedSeconds > 60) {
       recordSession(
         timerState.sessionType,
-        timerState.sessionDuration,
+        timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
         elapsedSeconds,
         'abandoned',
         0,
@@ -135,18 +180,36 @@ export const useTimerControls = ({
       intervalRef.current = null;
     }
 
-    const fullDuration = selectedPreset.duration * 60;
-    setDisplayTime(fullDuration);
     clearPersistence();
-    saveTimerState({
-      isRunning: false,
-      timeLeft: fullDuration,
-      sessionDuration: fullDuration,
-      startTime: null,
-      category: undefined,
-      taskLabel: undefined,
-    });
-  }, [clearPersistence, saveTimerState, selectedPreset.duration, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
+
+    if (timerState.isCountup || selectedPreset.isCountup) {
+      // Countup mode: reset to 0
+      setDisplayTime(0);
+      saveTimerState({
+        isRunning: false,
+        timeLeft: 0,
+        elapsedTime: 0,
+        sessionDuration: MAX_COUNTUP_DURATION,
+        startTime: null,
+        category: undefined,
+        taskLabel: undefined,
+        isCountup: true,
+      });
+    } else {
+      // Countdown mode: reset to full duration
+      const fullDuration = selectedPreset.duration * 60;
+      setDisplayTime(fullDuration);
+      saveTimerState({
+        isRunning: false,
+        timeLeft: fullDuration,
+        sessionDuration: fullDuration,
+        startTime: null,
+        category: undefined,
+        taskLabel: undefined,
+        isCountup: false,
+      });
+    }
+  }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
   const skipTimer = useCallback(async () => {
     let elapsedSeconds = 0;
@@ -154,6 +217,8 @@ export const useTimerControls = ({
       const now = Date.now();
       const elapsedMs = now - timerState.startTime;
       elapsedSeconds = Math.floor(elapsedMs / 1000);
+    } else if (timerState.isCountup) {
+      elapsedSeconds = timerState.elapsedTime || 0;
     } else {
       elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
     }
@@ -172,6 +237,7 @@ export const useTimerControls = ({
     clearPersistence();
 
     let xpEarned = 0;
+    // Both countdown and countup focus sessions can earn XP
     if (timerState.sessionType !== 'break' && completedMinutes >= 25) {
       try {
         const reward = await awardXP(completedMinutes);
@@ -199,7 +265,7 @@ export const useTimerControls = ({
     if (elapsedSeconds > 60) {
       recordSession(
         timerState.sessionType,
-        timerState.sessionDuration,
+        timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
         elapsedSeconds,
         'skipped',
         xpEarned,
@@ -208,17 +274,34 @@ export const useTimerControls = ({
       );
     }
 
-    const fullDuration = selectedPreset.duration * 60;
-    setDisplayTime(fullDuration);
-    saveTimerState({
-      isRunning: false,
-      timeLeft: fullDuration,
-      sessionDuration: fullDuration,
-      startTime: null,
-      category: undefined,
-      taskLabel: undefined,
-    });
-  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
+    if (timerState.isCountup || selectedPreset.isCountup) {
+      // Countup mode: reset to 0
+      setDisplayTime(0);
+      saveTimerState({
+        isRunning: false,
+        timeLeft: 0,
+        elapsedTime: 0,
+        sessionDuration: MAX_COUNTUP_DURATION,
+        startTime: null,
+        category: undefined,
+        taskLabel: undefined,
+        isCountup: true,
+      });
+    } else {
+      // Countdown mode: reset to full duration
+      const fullDuration = selectedPreset.duration * 60;
+      setDisplayTime(fullDuration);
+      saveTimerState({
+        isRunning: false,
+        timeLeft: fullDuration,
+        sessionDuration: fullDuration,
+        startTime: null,
+        category: undefined,
+        taskLabel: undefined,
+        isCountup: false,
+      });
+    }
+  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });

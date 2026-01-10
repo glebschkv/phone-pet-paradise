@@ -30,6 +30,7 @@ interface TimerViewProps {
   // Timer state
   timerState: TimerState;
   displayTime: number;
+  elapsedTime: number;
   selectedPreset: TimerPreset;
 
   // Timer actions
@@ -51,6 +52,7 @@ export const TimerView = ({
   onViewChange,
   timerState,
   displayTime,
+  elapsedTime,
   selectedPreset,
   onStart,
   onPause,
@@ -73,10 +75,12 @@ export const TimerView = ({
       <TimerDisplay
         preset={selectedPreset}
         timeLeft={displayTime}
-        sessionDuration={selectedPreset.duration * 60}
+        sessionDuration={timerState.sessionDuration}
         isRunning={timerState.isRunning}
         soundEnabled={timerState.soundEnabled}
         onToggleSound={onToggleSound}
+        isCountup={timerState.isCountup}
+        elapsedTime={elapsedTime}
       />
 
       <TimerControls

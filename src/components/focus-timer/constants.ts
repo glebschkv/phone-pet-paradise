@@ -1,4 +1,4 @@
-import { Clock, Brain, Coffee, Sun, Sunset, Moon, TreePine, Snowflake, LucideIcon } from "lucide-react";
+import { Clock, Brain, Coffee, Sun, Sunset, Moon, TreePine, Snowflake, Timer, LucideIcon } from "lucide-react";
 import { FocusCategory, SessionType } from "@/types/analytics";
 
 // Re-export SessionType for consumers that import from constants
@@ -33,7 +33,13 @@ export interface TimerState {
   // Task/intention tracking
   category?: FocusCategory;
   taskLabel?: string;
+  // Countup timer mode (counts up instead of down, max 6 hours)
+  isCountup?: boolean;
+  elapsedTime?: number; // For countup mode: tracks elapsed seconds
 }
+
+// Maximum countup duration: 6 hours in seconds
+export const MAX_COUNTUP_DURATION = 6 * 60 * 60; // 21600 seconds
 
 export interface TimerPreset {
   id: string;
@@ -43,6 +49,7 @@ export interface TimerPreset {
   icon: LucideIcon;
   color: string;
   description: string;
+  isCountup?: boolean; // For countup mode preset
 }
 
 export const TIMER_PRESETS: TimerPreset[] = [
@@ -100,6 +107,16 @@ export const TIMER_PRESETS: TimerPreset[] = [
     color: 'text-warning',
     description: '15-minute extended break'
   },
+  {
+    id: 'countup',
+    name: 'Count Up',
+    duration: 360, // Max 6 hours (display only, actual max enforced in code)
+    type: 'countup',
+    icon: Timer,
+    color: 'text-info',
+    description: 'Open-ended focus (max 6 hours)',
+    isCountup: true
+  },
 ];
 
 export const DEFAULT_TIMER_STATE: TimerState = {
@@ -110,6 +127,8 @@ export const DEFAULT_TIMER_STATE: TimerState = {
   sessionType: 'pomodoro',
   completedSessions: 0,
   soundEnabled: true,
+  isCountup: false,
+  elapsedTime: 0,
 };
 
 // Re-export formatTime from shared utils for backwards compatibility

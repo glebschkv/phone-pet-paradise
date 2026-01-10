@@ -1,6 +1,6 @@
 // Analytics Types for Focus Timer
 
-export type SessionType = 'pomodoro' | 'deep-work' | 'break';
+export type SessionType = 'pomodoro' | 'deep-work' | 'break' | 'countup';
 export type SessionStatus = 'completed' | 'skipped' | 'abandoned';
 
 // Focus categories for task/intention tracking
