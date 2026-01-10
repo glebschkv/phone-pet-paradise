@@ -295,7 +295,7 @@ export function getLevelThresholds(): LevelThreshold[] {
 // ============================================================================
 
 export function calculateSessionXP(input: XPCalculationInput): XPCalculationResult {
-  const { sessionMinutes, streakDays, shieldAttempts, hasAppsConfigured, activeEventMultiplier = 1, boosterMultiplier = 1 } = input;
+  const { sessionMinutes, streakDays, shieldAttempts, hasAppsConfigured, activeEventMultiplier = 1, boosterMultiplier: _boosterMultiplier = 1 } = input;
 
   // Base XP calculation
   const baseXP = sessionMinutes * XP_CONFIG.BASE_XP_PER_MINUTE;

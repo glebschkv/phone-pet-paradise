@@ -84,7 +84,8 @@ const getCorsHeaders = (origin: string | null) => {
 
 // Apple's root certificate for production and sandbox
 // These are Apple's root CA certificates for App Store
-const APPLE_ROOT_CA_G3_CERTIFICATE = `-----BEGIN CERTIFICATE-----
+// Note: Kept for future certificate pinning implementation
+const _APPLE_ROOT_CA_G3_CERTIFICATE = `-----BEGIN CERTIFICATE-----
 MIICQzCCAcmgAwIBAgIILcX8iNLFS5UwCgYIKoZIzj0EAwMwZzEbMBkGA1UEAwwS
 QXBwbGUgUm9vdCBDQSAtIEczMSYwJAYDVQQLDB1BcHBsZSBDZXJ0aWZpY2F0aW9u
 IEF1dGhvcml0eTETMBEGA1UECgwKQXBwbGUgSW5jLjELMAkGA1UEBhMCVVMwHhcN
@@ -239,7 +240,7 @@ async function validateCertificateChain(x5cChain: string[]): Promise<void> {
     try {
       const certPEM = `-----BEGIN CERTIFICATE-----\n${x5cChain[i].match(/.{1,64}/g)?.join('\n')}\n-----END CERTIFICATE-----`;
       await jose.importX509(certPEM, 'ES256');
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Invalid certificate at position ${i}: failed to parse as X.509`);
     }
   }
@@ -311,7 +312,7 @@ serve(async (req) => {
     }
 
     const requestBody: ReceiptValidationRequest = await req.json();
-    const { signedTransaction, productId, transactionId, originalTransactionId, environment, platform } = requestBody;
+    const { signedTransaction, productId, transactionId, originalTransactionId: _originalTransactionId, environment: _environment, platform } = requestBody;
 
     if (!signedTransaction || !productId || !transactionId) {
       throw new Error('Missing required fields: signedTransaction, productId, and transactionId');

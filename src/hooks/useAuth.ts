@@ -93,7 +93,7 @@ export const useAuth = () => {
         }
         // If no session and no guest choice, user will be null (not authenticated)
         // This will trigger redirect to auth page in Index.tsx
-      } catch (error) {
+      } catch (_error) {
         authLogger.debug('Auth initialization failed');
         if (hasChosenGuestMode()) {
           enableGuestMode();

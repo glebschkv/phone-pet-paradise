@@ -25,7 +25,6 @@ import { TIER_BENEFITS, isValidSubscriptionTier } from '../usePremiumStatus';
 import { useAuth } from '../useAuth';
 import { useSupabaseData } from '../useSupabaseData';
 import { validateXPAmount, validateLevel, validateSessionMinutes } from '@/lib/validation';
-import { supabase } from '@/integrations/supabase/client';
 
 import { XPReward, XPSystemState } from './xpTypes';
 

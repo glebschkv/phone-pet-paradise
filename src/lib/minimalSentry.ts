@@ -7,7 +7,8 @@
  * Full SDK can be lazy-loaded if advanced features are needed.
  */
 
-import { APP_CONFIG } from './constants';
+// APP_CONFIG would be used for release/environment info in production
+// Currently unused but kept for future enhancement
 
 interface SentryEvent {
   event_id: string;

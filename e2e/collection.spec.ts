@@ -56,7 +56,7 @@ test.describe('Pet Collection Flow', () => {
       await page.waitForTimeout(300);
 
       // Collection should still show content
-      const petCards = page.locator('.pet-card, [data-testid="pet-card"], .animal-card');
+      const _petCards = page.locator('.pet-card, [data-testid="pet-card"], .animal-card');
       // Just verify the page didn't crash
       await expect(page.locator('body')).toBeVisible();
     }

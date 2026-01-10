@@ -118,6 +118,9 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
     }
   }, [isAuthenticated, user]);
 
+  // MEMORY: Maximum queue size to prevent unbounded growth during rapid achievement unlocks
+  const MAX_PENDING_QUEUE_SIZE = 10;
+
   // Queue an achievement unlock for display
   const queueAchievementUnlock = useCallback((achievement: Achievement) => {
     // Prevent duplicate queuing
@@ -134,7 +137,17 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       if (current === null) {
         return event;
       } else {
-        pendingUnlockQueue.current.push(event);
+        // MEMORY: Limit queue size to prevent unbounded growth
+        if (pendingUnlockQueue.current.length < MAX_PENDING_QUEUE_SIZE) {
+          pendingUnlockQueue.current.push(event);
+        } else {
+          // Drop oldest unlock if queue is full (user will still see latest ones)
+          const dropped = pendingUnlockQueue.current.shift();
+          if (dropped) {
+            queuedUnlockIdsRef.current.delete(dropped.achievement.id);
+          }
+          pendingUnlockQueue.current.push(event);
+        }
         return current;
       }
     });
@@ -148,11 +161,17 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
   // Dismiss the current pending unlock and show next if any
   const dismissPendingUnlock = useCallback(() => {
-    if (pendingUnlockQueue.current.length > 0) {
-      setPendingUnlock(pendingUnlockQueue.current.shift()!);
-    } else {
-      setPendingUnlock(null);
-    }
+    // MEMORY: Clean up the current unlock's ID from the queued set to prevent unbounded growth
+    setPendingUnlock(current => {
+      if (current) {
+        queuedUnlockIdsRef.current.delete(current.achievement.id);
+      }
+
+      if (pendingUnlockQueue.current.length > 0) {
+        return pendingUnlockQueue.current.shift()!;
+      }
+      return null;
+    });
   }, []);
 
   // Claim rewards for an achievement (called externally)
@@ -319,7 +338,7 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
           // Update claimed IDs ref
           claimedIdsRef.current = getClaimedAchievementIds();
           setAchievements(merged);
-        } catch (error) {
+        } catch (_error) {
           // Error already logged in mergeWithDefinitions if needed
         }
       }

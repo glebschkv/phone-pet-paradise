@@ -12,8 +12,8 @@ import { TaskIntentionModal } from "./TaskIntentionModal";
 import { SessionNotesModal } from "./SessionNotesModal";
 import { BreakTransitionModal } from "./BreakTransitionModal";
 import { FocusLockScreen } from "./FocusLockScreen";
-import { TimerPreset } from "./constants";
-import { FocusCategory } from "@/types/analytics";
+import type { TimerPreset } from "./constants";
+import type { FocusCategory } from "@/types/analytics";
 
 interface TimerModalsProps {
   // Intention modal

@@ -14,8 +14,8 @@ import { storageLogger } from '@/lib/logger';
 
 const PREFIX = APP_CONFIG.STORAGE_PREFIX; // 'nomo_'
 
-// Legacy prefix mapping for migration
-const LEGACY_PREFIXES = {
+// Legacy prefix mapping for migration (kept for documentation/future use)
+const _LEGACY_PREFIXES = {
   petIsland: 'petIsland_',
   pet_paradise: 'pet_paradise_',
   nomoPhone: 'nomoPhone_',

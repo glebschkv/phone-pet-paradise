@@ -43,7 +43,7 @@ export const SettingsAccount = () => {
         // SECURITY: Use noopener,noreferrer to prevent reverse tabnabbing attacks
         window.open('https://apps.apple.com/account/subscriptions', '_blank', 'noopener,noreferrer');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to open subscription management');
     } finally {
       setIsManaging(false);
@@ -63,7 +63,7 @@ export const SettingsAccount = () => {
           toast.info(result.message);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to restore purchases');
     } finally {
       setIsRestoring(false);
