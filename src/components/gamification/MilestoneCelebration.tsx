@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
 import { useMilestoneCelebrations } from '@/hooks/useMilestoneCelebrations';
 import { cn } from '@/lib/utils';
@@ -77,6 +78,9 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
   return (
     <Dialog open={showCelebration} onOpenChange={handleClaim}>
       <DialogContent className="max-w-sm p-0 overflow-hidden border-0">
+        <VisuallyHidden>
+          <DialogTitle>Milestone Celebration</DialogTitle>
+        </VisuallyHidden>
         {/* Celebration background */}
         <div className={cn(
           "relative min-h-[400px] flex flex-col items-center justify-center p-6",

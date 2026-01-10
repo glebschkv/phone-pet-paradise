@@ -12,13 +12,27 @@ interface AchievementTrackerProps {
 }
 
 export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children }) => {
-  const tracking = useAchievementTracking();
+  const {
+    trackFocusSession,
+    trackLevelUp,
+    trackPetUnlock,
+    trackStreak,
+    trackCoinsEarned,
+    trackPurchase,
+    trackWheelSpin,
+    trackBondLevel,
+  } = useAchievementTracking();
   const { addDirectXP, currentLevel } = useXPSystem();
   const coinSystem = useCoinSystem();
   const { unlockedAnimalsData } = useCollection();
   const streakSystem = useStreakSystem();
   const { inventory } = useShop();
   const hasInitialized = useRef(false);
+  const prevLevelRef = useRef(currentLevel);
+  const prevStreakRef = useRef(0);
+  const prevPetsRef = useRef(0);
+  const prevCoinsRef = useRef(0);
+  const prevPurchasesRef = useRef(0);
 
   // Handle achievement reward claims
   const handleRewardClaim = useCallback((xp: number, coins: number) => {
@@ -34,7 +48,7 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
   useEffect(() => {
     const handleFocusSession = (event: CustomEvent) => {
       const { minutes, wasJackpot } = event.detail;
-      tracking.trackFocusSession(minutes, wasJackpot);
+      trackFocusSession(minutes, wasJackpot);
     };
 
     window.addEventListener(
@@ -48,37 +62,39 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
         handleFocusSession as EventListener
       );
     };
-  }, [tracking]);
+  }, [trackFocusSession]);
 
-  // Track level changes
+  // Track level changes - only when level actually changes
   useEffect(() => {
-    if (currentLevel > 0) {
-      tracking.trackLevelUp(currentLevel);
+    if (currentLevel > 0 && currentLevel !== prevLevelRef.current) {
+      prevLevelRef.current = currentLevel;
+      trackLevelUp(currentLevel);
     }
-  }, [currentLevel, tracking]);
+  }, [currentLevel, trackLevelUp]);
 
-  // Track pet collection changes
+  // Track pet collection changes - only when count changes
   useEffect(() => {
-    if (unlockedAnimalsData && unlockedAnimalsData.length > 0) {
-      // Count pets by rarity (would need to cross-reference with animal database)
-      // For now, just track total count
-      tracking.trackPetUnlock(unlockedAnimalsData.length, 0, 0, 0);
+    const petCount = unlockedAnimalsData?.length || 0;
+    if (petCount > 0 && petCount !== prevPetsRef.current) {
+      prevPetsRef.current = petCount;
+      trackPetUnlock(petCount, 0, 0, 0);
     }
-  }, [unlockedAnimalsData, tracking]);
+  }, [unlockedAnimalsData, trackPetUnlock]);
 
-  // Track streak changes
+  // Track streak changes - only when streak changes
   useEffect(() => {
     const streak = streakSystem?.streakData?.currentStreak || 0;
-    if (streak > 0) {
-      tracking.trackStreak(streak);
+    if (streak > 0 && streak !== prevStreakRef.current) {
+      prevStreakRef.current = streak;
+      trackStreak(streak);
     }
-  }, [streakSystem?.streakData?.currentStreak, tracking]);
+  }, [streakSystem?.streakData?.currentStreak, trackStreak]);
 
-  // Track coin events
+  // Track coin events via custom events
   useEffect(() => {
     const handleCoinsEarned = (event: CustomEvent) => {
       const { amount, total } = event.detail;
-      tracking.trackCoinsEarned(amount, total);
+      trackCoinsEarned(amount, total);
     };
 
     window.addEventListener(
@@ -92,13 +108,13 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
         handleCoinsEarned as EventListener
       );
     };
-  }, [tracking]);
+  }, [trackCoinsEarned]);
 
-  // Track purchase events
+  // Track purchase events via custom events
   useEffect(() => {
     const handlePurchase = (event: CustomEvent) => {
       const { totalPurchases } = event.detail;
-      tracking.trackPurchase(totalPurchases);
+      trackPurchase(totalPurchases);
     };
 
     window.addEventListener(
@@ -112,12 +128,12 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
         handlePurchase as EventListener
       );
     };
-  }, [tracking]);
+  }, [trackPurchase]);
 
   // Track wheel spin events
   useEffect(() => {
     const handleWheelSpin = () => {
-      tracking.trackWheelSpin();
+      trackWheelSpin();
     };
 
     window.addEventListener(
@@ -131,13 +147,13 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
         handleWheelSpin as EventListener
       );
     };
-  }, [tracking]);
+  }, [trackWheelSpin]);
 
   // Track bond level events
   useEffect(() => {
     const handleBondUpdate = (event: CustomEvent) => {
       const { bondLevel, maxBondPets } = event.detail;
-      tracking.trackBondLevel(bondLevel, maxBondPets);
+      trackBondLevel(bondLevel, maxBondPets);
     };
 
     window.addEventListener(
@@ -151,44 +167,41 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
         handleBondUpdate as EventListener
       );
     };
-  }, [tracking]);
+  }, [trackBondLevel]);
 
-  // Initial tracking on mount - sync with current state
+  // Initial tracking on mount - sync with current state (runs once)
   useEffect(() => {
     if (hasInitialized.current) return;
     hasInitialized.current = true;
 
-    // Track current level
-    if (currentLevel > 0) {
-      tracking.trackLevelUp(currentLevel);
-    }
-
-    // Track current streak
-    const streak = streakSystem?.streakData?.currentStreak || 0;
-    if (streak > 0) {
-      tracking.trackStreak(streak);
-    }
-
-    // Track current collection
-    if (unlockedAnimalsData && unlockedAnimalsData.length > 0) {
-      tracking.trackPetUnlock(unlockedAnimalsData.length, 0, 0, 0);
-    }
-
-    // Track total coins earned
-    const totalCoins = coinSystem?.totalEarned || 0;
-    if (totalCoins > 0) {
-      tracking.trackCoinsEarned(0, totalCoins);
-    }
-
-    // Track total purchases
-    const totalPurchases =
+    // Initialize refs with current values
+    prevLevelRef.current = currentLevel;
+    prevStreakRef.current = streakSystem?.streakData?.currentStreak || 0;
+    prevPetsRef.current = unlockedAnimalsData?.length || 0;
+    prevCoinsRef.current = coinSystem?.totalEarned || 0;
+    prevPurchasesRef.current =
       (inventory?.ownedCharacters?.length || 0) +
       (inventory?.ownedBackgrounds?.length || 0) +
       (inventory?.ownedBadges?.length || 0);
-    if (totalPurchases > 0) {
-      tracking.trackPurchase(totalPurchases);
+
+    // Track initial state
+    if (currentLevel > 0) {
+      trackLevelUp(currentLevel);
     }
-  }, [currentLevel, streakSystem, unlockedAnimalsData, coinSystem, inventory, tracking]);
+    if (prevStreakRef.current > 0) {
+      trackStreak(prevStreakRef.current);
+    }
+    if (prevPetsRef.current > 0) {
+      trackPetUnlock(prevPetsRef.current, 0, 0, 0);
+    }
+    if (prevCoinsRef.current > 0) {
+      trackCoinsEarned(0, prevCoinsRef.current);
+    }
+    if (prevPurchasesRef.current > 0) {
+      trackPurchase(prevPurchasesRef.current);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
