@@ -7,7 +7,7 @@
  * Includes preloading to ensure components are ready before user navigates.
  */
 
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import {
   TimerDisplaySkeleton,
   CollectionPageSkeleton,
