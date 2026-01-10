@@ -12,15 +12,14 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
-    process.env.ANALYZE && visualizer({
+    mode === 'development' ? componentTagger() : null,
+    process.env.ANALYZE ? visualizer({
       filename: 'dist/stats.html',
       open: true,
       gzipSize: true,
       brotliSize: true,
       template: 'treemap',
-    }),
+    }) : null,
   ].filter(Boolean),
   resolve: {
     alias: {
