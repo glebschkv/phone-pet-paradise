@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   Achievement,
-  AchievementReward,
+  // AchievementReward type available if needed
   ACHIEVEMENT_STORAGE_KEY,
   TIER_POINTS,
   ACHIEVEMENT_DEFINITIONS,

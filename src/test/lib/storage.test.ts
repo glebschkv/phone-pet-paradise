@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { STORAGE_KEYS, storage, migrateAllStorageKeys } from '@/lib/storage-keys';
+import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 
 describe('Storage Keys', () => {
   beforeEach(() => {

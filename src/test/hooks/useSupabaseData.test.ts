@@ -247,7 +247,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should update progress in localStorage', async () => {
@@ -280,7 +280,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should add focus session to localStorage', async () => {
@@ -332,7 +332,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should add a new pet', async () => {
@@ -390,7 +390,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: false,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should load data from Supabase when authenticated', async () => {
@@ -439,7 +439,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -456,7 +456,7 @@ describe('useSupabaseData', () => {
         user: null,
         isAuthenticated: false,
         isGuestMode: false,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -476,7 +476,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should handle localStorage parse errors', async () => {
@@ -510,7 +510,7 @@ describe('useSupabaseData', () => {
         user: null,
         isAuthenticated: false,
         isGuestMode: false,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
 
       const { result } = renderHook(() => useSupabaseData());
 

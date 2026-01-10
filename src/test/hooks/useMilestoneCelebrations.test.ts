@@ -128,13 +128,13 @@ describe('useMilestoneCelebrations', () => {
     it('should detect new milestone achievement', () => {
       const { result } = renderHook(() => useMilestoneCelebrations());
 
-      let achieved: { id?: string } | null = null;
+      let achieved: unknown = null;
       act(() => {
         achieved = result.current.checkMilestone('level', 5);
       });
 
       expect(achieved).toBeTruthy();
-      expect(achieved?.id).toBe('level-5');
+      expect((achieved as { id?: string } | null)?.id).toBe('level-5');
       expect(result.current.state.achievedMilestones).toContain('level-5');
     });
 
