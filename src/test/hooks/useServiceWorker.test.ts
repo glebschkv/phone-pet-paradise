@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
 import { useServiceWorker, useServiceWorkerSync, requestBackgroundSync } from '@/hooks/useServiceWorker';
 
 // Mock sonner toast
@@ -25,7 +25,6 @@ describe('useServiceWorker', () => {
   let stateChangeListeners: Array<() => void>;
   let messageHandlers: Array<(event: MessageEvent) => void>;
   let originalServiceWorker: ServiceWorkerContainer | undefined;
-  let originalImportMetaEnv: ImportMetaEnv;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -35,7 +34,6 @@ describe('useServiceWorker', () => {
 
     // Save original values
     originalServiceWorker = navigator.serviceWorker;
-    originalImportMetaEnv = { ...import.meta.env };
 
     mockServiceWorker = {
       state: 'activated',
