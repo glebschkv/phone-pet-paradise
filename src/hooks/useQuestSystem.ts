@@ -309,8 +309,10 @@ export const useQuestSystem = (): QuestSystemReturn => {
           break;
         case 'ability':
         case 'cosmetic':
-          // TODO: Implement ability and cosmetic reward application
-          questLogger.debug(`${reward.type} reward not yet implemented: ${reward.description}`);
+          // These reward types are defined in the type system but currently unused
+          // When adding quests with these rewards, implement handling here
+          // For now, just log for debugging purposes
+          questLogger.debug(`Received ${reward.type} reward: ${reward.description || 'no description'}`);
           break;
       }
     });

@@ -144,7 +144,7 @@ interface GetBalanceRequest {
 
 type CoinRequest = EarnRequest | SpendRequest | GetBalanceRequest;
 
-interface CoinTransaction {
+interface _CoinTransaction {
   user_id: string;
   operation: 'earn' | 'spend';
   amount: number;

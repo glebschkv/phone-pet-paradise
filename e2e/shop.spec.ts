@@ -63,7 +63,7 @@ test.describe('Shop Flow', () => {
     await page.goto('/shop');
 
     // Should show some items for purchase
-    const purchaseButtons = page.getByRole('button', { name: /buy|purchase|unlock|get/i });
+    const _purchaseButtons = page.getByRole('button', { name: /buy|purchase|unlock|get/i });
 
     // Wait for items to load
     await page.waitForTimeout(500);

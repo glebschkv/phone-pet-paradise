@@ -367,7 +367,6 @@ export const useStoreKit = (): UseStoreKitReturn => {
     if (result.success && result.restoredCount > 0) {
       // SECURITY: Validate each restored purchase with the server (fail-closed)
       let validatedCount = 0;
-      let failedCount = 0;
 
       for (const purchase of result.purchases) {
         const validationResult = await serverValidatePurchase(purchase);
@@ -386,7 +385,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
           }
           validatedCount++;
         } else {
-          failedCount++;
+          // Log but don't track count since we show generic error anyway
           logger.warn('Failed to validate restored purchase:', purchase.productId);
         }
       }

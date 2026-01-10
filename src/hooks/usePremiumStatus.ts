@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { safeJsonParse } from '@/lib/apiUtils';
 import { logger } from '@/lib/logger';
+import { useIsGuestMode } from '@/stores/authStore';
 
 const PREMIUM_STORAGE_KEY = 'petIsland_premium';
 const LAST_VERIFICATION_KEY = 'petIsland_premium_lastVerified';
@@ -243,6 +244,9 @@ export const usePremiumStatus = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const verificationInProgressRef = useRef(false);
 
+  // SECURITY: Guest users cannot have premium status
+  const isGuestMode = useIsGuestMode();
+
   /**
    * SECURITY: Verify premium status with server
    * Server is authoritative - if server says no subscription, clear local state
@@ -420,11 +424,13 @@ export const usePremiumStatus = () => {
   }, []);
 
   // Get effective tier (lifetime is treated as premium_plus for features)
-  const effectiveTier = state.tier === 'lifetime' ? 'lifetime' : state.tier;
+  // SECURITY: Guest users are always treated as free tier
+  const effectiveTier = isGuestMode ? 'free' : (state.tier === 'lifetime' ? 'lifetime' : state.tier);
 
-  const isPremium = state.tier === 'premium' || state.tier === 'premium_plus' || state.tier === 'lifetime';
-  const isPremiumPlus = state.tier === 'premium_plus' || state.tier === 'lifetime';
-  const isLifetime = state.tier === 'lifetime';
+  // SECURITY: Guest users cannot have premium status - must sign up first
+  const isPremium = !isGuestMode && (state.tier === 'premium' || state.tier === 'premium_plus' || state.tier === 'lifetime');
+  const isPremiumPlus = !isGuestMode && (state.tier === 'premium_plus' || state.tier === 'lifetime');
+  const isLifetime = !isGuestMode && state.tier === 'lifetime';
 
   // Get current tier benefits
   const getTierBenefits = useCallback(() => {
@@ -588,6 +594,12 @@ export const usePremiumStatus = () => {
    * This function is only for development/testing purposes.
    */
   const purchaseSubscription = useCallback((planId: string): { success: boolean; message: string } => {
+    // SECURITY: Guest users must sign up before purchasing
+    if (isGuestMode) {
+      logger.warn('purchaseSubscription blocked - guest users must sign up first');
+      return { success: false, message: 'Please create an account to subscribe.' };
+    }
+
     // In development, we allow direct state setting for testing
     // In production, this should NEVER be used - use validatePurchase with StoreKit instead
     if (import.meta.env.PROD) {
@@ -626,7 +638,7 @@ export const usePremiumStatus = () => {
     dispatchSubscriptionChange(plan.tier);
 
     return { success: true, message: `Successfully subscribed to ${plan.name}!` };
-  }, []);
+  }, [isGuestMode]);
 
   // Restore purchases (for app reinstalls)
   const restorePurchases = useCallback((): { success: boolean; message: string } => {
@@ -689,6 +701,8 @@ export const usePremiumStatus = () => {
     isLifetime,
     isLoading,
     isVerifying,
+    // SECURITY: Expose guest mode status for UI to show sign-up prompts
+    isGuestMode,
     expiresAt: state.expiresAt,
     purchasedAt: state.purchasedAt,
     currentPlan,

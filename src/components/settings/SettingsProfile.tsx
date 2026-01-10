@@ -47,7 +47,7 @@ export const SettingsProfile = () => {
       });
       setIsEditing(false);
       toast.success('Profile updated!');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update profile');
     } finally {
       setIsSaving(false);
