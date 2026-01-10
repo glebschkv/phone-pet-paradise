@@ -258,7 +258,7 @@ describe('themeStore', () => {
     });
 
     it('should properly unmount and remount', () => {
-      const { result, unmount, rerender } = renderHook(() => useHomeBackground());
+      const { result, unmount } = renderHook(() => useHomeBackground());
 
       expect(result.current).toBe('day');
 

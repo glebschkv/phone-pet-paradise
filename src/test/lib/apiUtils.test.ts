@@ -396,7 +396,7 @@ describe('apiUtils', () => {
 
   describe('getAppBaseUrl', () => {
     const originalLocation = window.location;
-    const originalEnv = import.meta.env;
+    void originalLocation; // stored for restoration
 
     beforeEach(() => {
       // Reset environment

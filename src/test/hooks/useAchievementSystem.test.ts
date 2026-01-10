@@ -56,10 +56,12 @@ import {
   checkAchievementProgress,
 } from '@/services/achievementService';
 
-const _mockInitializeAchievements = initializeAchievements as ReturnType<typeof vi.fn>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void (initializeAchievements as ReturnType<typeof vi.fn>);
 const mockLoadFromStorage = loadFromStorage as ReturnType<typeof vi.fn>;
 const mockSaveToStorage = saveToStorage as ReturnType<typeof vi.fn>;
-const _mockCheckProgress = checkAchievementProgress as ReturnType<typeof vi.fn>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void (checkAchievementProgress as ReturnType<typeof vi.fn>);
 
 describe('useAchievementSystem', () => {
   beforeEach(() => {
@@ -419,7 +421,7 @@ describe('useAchievementSystem', () => {
         expect(result.current.pendingUnlock).toBeTruthy();
       });
 
-      const _firstUnlock = result.current.pendingUnlock;
+      void result.current.pendingUnlock; // store reference for potential future assertions
 
       act(() => {
         result.current.dismissPendingUnlock();

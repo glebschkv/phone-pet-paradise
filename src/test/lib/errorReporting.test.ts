@@ -12,7 +12,7 @@ import {
   globalErrorHandler,
   globalPromiseRejectionHandler,
   initializeErrorReporting,
-  type ErrorReport,
+  // ErrorReport type available if needed
 } from '@/lib/errorReporting';
 
 // Mock Capacitor
@@ -373,7 +373,7 @@ describe('Error Reporting', () => {
         throw new Error('QuotaExceededError');
       });
 
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       // Should not throw
       expect(() => reportError(new Error('Storage full error'))).not.toThrow();

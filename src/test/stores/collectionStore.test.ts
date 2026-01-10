@@ -14,7 +14,7 @@ vi.mock('@/lib/logger', () => ({
 import { useCollectionStore, useActiveHomePets, useFavorites } from '@/stores/collectionStore';
 
 describe('collectionStore', () => {
-  const STORAGE_KEY = 'petparadise-collection';
+  // Storage key: 'petparadise-collection'
 
   beforeEach(() => {
     localStorage.clear();
@@ -238,7 +238,7 @@ describe('collectionStore', () => {
   describe('Selector Functions', () => {
     describe('isPetHomeActive', () => {
       it('should return true for active pets', () => {
-        const { isPetHomeActive, setActiveHomePets } = useCollectionStore.getState();
+        const { setActiveHomePets } = useCollectionStore.getState();
 
         act(() => {
           setActiveHomePets(['cat', 'dog', 'bird']);
