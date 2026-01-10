@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { useOnboardingStore } from "@/stores/onboardingStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useDataBackup } from "@/hooks/useDataBackup";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,7 +41,8 @@ const Index = () => {
   const { isAuthenticated, isLoading } = useAuth();
   useSupabaseData(); // Initialize Supabase data loading
   const { unlockedAnimals, currentLevel, currentBiome } = useBackendAppState();
-  const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
+  const hasCompletedOnboarding = useOnboardingStore((s) => s.hasCompletedOnboarding);
+  const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   usePerformanceMonitor(); // Initialize performance monitoring
   const { autoBackup } = useDataBackup(); // Initialize auto-backup
 
@@ -103,20 +104,6 @@ const Index = () => {
             <h1 className="text-4xl font-bold text-primary">Pet Island Paradise</h1>
             <p className="text-muted-foreground">Create an account to save your progress!</p>
             <Button onClick={() => navigate('/auth')}>Get Started</Button>
-          </div>
-        </div>
-      </PageErrorBoundary>
-    );
-  }
-
-  // Show loading state while checking onboarding status
-  if (hasCompletedOnboarding === null) {
-    return (
-      <PageErrorBoundary pageName="home page">
-        <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading Pet Paradise...</p>
           </div>
         </div>
       </PageErrorBoundary>
