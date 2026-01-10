@@ -24,6 +24,16 @@ function checkRateLimit(userId: string): { allowed: boolean; retryAfter?: number
   return { allowed: true };
 }
 
+// Clean up old rate limit entries periodically to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [userId, limit] of rateLimitMap.entries()) {
+    if (now > limit.resetTime) {
+      rateLimitMap.delete(userId);
+    }
+  }
+}, RATE_LIMIT_WINDOW_MS);
+
 // CORS configuration - environment-based for security
 // SECURITY: Production origins loaded from environment, localhost only in development
 const getProductionOrigins = (): string[] => {
