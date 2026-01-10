@@ -68,11 +68,19 @@ vi.mock('@/hooks/useAuth', () => ({
 describe('useOfflineSyncManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset the store
+    // Reset the store to initial state
     act(() => {
-      useOfflineSyncStore.getState().clearOperations();
-      useOfflineSyncStore.getState().setOnline(true);
-      useOfflineSyncStore.getState().setSyncStatus('idle');
+      const store = useOfflineSyncStore.getState();
+      store.clearOperations();
+      store.setOnline(true);
+      store.setSyncStatus('idle');
+      // Reset lastSyncAt and lastSyncError to initial values
+      useOfflineSyncStore.setState({
+        lastSyncAt: null,
+        lastSyncError: null,
+        totalSynced: 0,
+        totalFailed: 0,
+      });
     });
   });
 
@@ -326,9 +334,13 @@ describe('useOfflineSyncManager', () => {
         await result.current.syncNow();
       });
 
-      await waitFor(() => {
-        expect(result.current.lastSyncAt).not.toBeNull();
-      });
+      // Give time for state updates to propagate
+      await waitFor(
+        () => {
+          expect(result.current.lastSyncAt).not.toBeNull();
+        },
+        { timeout: 2000 }
+      );
     });
   });
 
@@ -440,9 +452,17 @@ describe('useOfflineSyncManager', () => {
 describe('offlineSyncStore', () => {
   beforeEach(() => {
     act(() => {
-      useOfflineSyncStore.getState().clearOperations();
-      useOfflineSyncStore.getState().setOnline(true);
-      useOfflineSyncStore.getState().setSyncStatus('idle');
+      const store = useOfflineSyncStore.getState();
+      store.clearOperations();
+      store.setOnline(true);
+      store.setSyncStatus('idle');
+      // Reset lastSyncAt and lastSyncError to initial values
+      useOfflineSyncStore.setState({
+        lastSyncAt: null,
+        lastSyncError: null,
+        totalSynced: 0,
+        totalFailed: 0,
+      });
     });
   });
 

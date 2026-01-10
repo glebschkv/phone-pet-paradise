@@ -282,9 +282,16 @@ export const useNotifications = () => {
     // Cleanup function to remove all listeners
     return () => {
       for (const cleanup of listenerCleanupRef.current) {
-        cleanup().catch(() => {
+        try {
+          const result = cleanup();
+          if (result && typeof result.catch === 'function') {
+            result.catch(() => {
+              // Ignore cleanup errors on unmount
+            });
+          }
+        } catch {
           // Ignore cleanup errors on unmount
-        });
+        }
       }
       listenerCleanupRef.current = [];
     };

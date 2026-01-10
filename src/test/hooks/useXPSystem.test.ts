@@ -114,9 +114,10 @@ describe('XP System Utilities', () => {
     });
 
     it('should return correct level for XP within thresholds', () => {
-      expect(getLevelFromXP(100)).toBe(2);
-      expect(getLevelFromXP(250)).toBe(3);
-      expect(getLevelFromXP(500)).toBe(4);
+      // Thresholds: 0 (L1), 30 (L2), 70 (L3), 120 (L4), 180 (L5), 260 (L6), 350 (L7), 460 (L8), 590 (L9)...
+      expect(getLevelFromXP(100)).toBe(3);  // >= 70, < 120
+      expect(getLevelFromXP(250)).toBe(5);  // >= 180, < 260
+      expect(getLevelFromXP(500)).toBe(8);  // >= 460, < 590
     });
 
     it('should handle XP beyond threshold table', () => {

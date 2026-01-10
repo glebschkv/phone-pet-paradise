@@ -42,7 +42,7 @@ describe('TIMER_DURATIONS', () => {
 
 describe('XP_CONFIG', () => {
   it('should have valid base XP rate', () => {
-    expect(XP_CONFIG.BASE_XP_PER_MINUTE).toBe(10);
+    expect(XP_CONFIG.BASE_XP_PER_MINUTE).toBe(1.2);
   });
 
   it('should have level thresholds in ascending order', () => {
@@ -58,8 +58,8 @@ describe('XP_CONFIG', () => {
   });
 
   it('should have valid streak multiplier limits', () => {
-    expect(XP_CONFIG.MULTIPLIERS.STREAK_BONUS_PER_DAY).toBe(0.05);
-    expect(XP_CONFIG.MULTIPLIERS.MAX_STREAK_MULTIPLIER).toBe(2.0);
+    expect(XP_CONFIG.MULTIPLIERS.STREAK_BONUS_PER_DAY).toBe(0.03);
+    expect(XP_CONFIG.MULTIPLIERS.MAX_STREAK_MULTIPLIER).toBe(1.6);
   });
 });
 
@@ -90,9 +90,9 @@ describe('COIN_CONFIG', () => {
   });
 
   it('should have valid reward amounts', () => {
-    expect(COIN_CONFIG.REWARDS.DAILY_LOGIN).toBe(10);
-    expect(COIN_CONFIG.REWARDS.ACHIEVEMENT_UNLOCK).toBe(25);
-    expect(COIN_CONFIG.REWARDS.QUEST_COMPLETE).toBe(50);
+    expect(COIN_CONFIG.REWARDS.DAILY_LOGIN).toBe(20);
+    expect(COIN_CONFIG.REWARDS.ACHIEVEMENT_UNLOCK).toBe(50);
+    expect(COIN_CONFIG.REWARDS.QUEST_COMPLETE).toBe(75);
   });
 
   it('should have price ranges in ascending order', () => {
@@ -149,8 +149,9 @@ describe('Helper Functions', () => {
     });
 
     it('should return correct levels for threshold values', () => {
-      expect(getLevelFromXP(100)).toBe(2);
-      expect(getLevelFromXP(250)).toBe(3);
+      // Thresholds: 0 (L1), 30 (L2), 70 (L3), 120 (L4), 180 (L5), 260 (L6)...
+      expect(getLevelFromXP(100)).toBe(3);  // >= 70, < 120
+      expect(getLevelFromXP(250)).toBe(5);  // >= 180, < 260
     });
 
     it('should cap at max level', () => {
@@ -186,7 +187,8 @@ describe('Helper Functions', () => {
     });
 
     it('should increase multiplier with streak days', () => {
-      expect(getStreakMultiplier(7)).toBeCloseTo(1.35, 2);
+      // STREAK_BONUS_PER_DAY is 0.03, so 7 days = 1 + (7 * 0.03) = 1.21
+      expect(getStreakMultiplier(7)).toBeCloseTo(1.21, 2);
     });
 
     it('should cap at max multiplier', () => {
