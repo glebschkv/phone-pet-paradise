@@ -162,7 +162,7 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -175,10 +175,20 @@ export default function Auth() {
         throw error;
       }
 
+      // Check if user already exists (Supabase returns user but with empty identities)
+      if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+        toast.info('Account may already exist', {
+          description: 'Try signing in or use "Forgot Password" to recover your account.',
+        });
+        setMode('email-password');
+        setIsLoading(false);
+        return;
+      }
+
       // Clear rate limit on success
       clearRateLimit(rateLimitKey);
-      toast.success('Account created!', {
-        description: 'Check your email to confirm your account.',
+      toast.success('Check your email!', {
+        description: 'Click the confirmation link we sent to verify your account.',
       });
       setMode('welcome');
     } catch (error: unknown) {
