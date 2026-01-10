@@ -99,7 +99,6 @@ class MinimalSentryClient {
     beforeSend?: (event: SentryEvent) => SentryEvent | null;
   }) {
     this.dsnParsed = parseDsn(options.dsn);
-    this.dsnParsed = parseDsn(options.dsn);
     this.release = options.release || null;
     this.environment = options.environment || null;
     this.beforeSend = options.beforeSend || null;
