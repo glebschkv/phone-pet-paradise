@@ -328,7 +328,7 @@ describe('useShop', () => {
     it('should successfully purchase a background bundle', async () => {
       const { result } = renderHook(() => useShop());
 
-      let purchaseResult;
+      let purchaseResult: { success: boolean; message: string } | undefined;
       await act(async () => {
         purchaseResult = await result.current.purchaseBackgroundBundle('bundle-nature');
       });
@@ -343,7 +343,7 @@ describe('useShop', () => {
     it('should successfully purchase a pet bundle', async () => {
       const { result } = renderHook(() => useShop());
 
-      let purchaseResult;
+      let purchaseResult: { success: boolean; message: string } | undefined;
       await act(async () => {
         purchaseResult = await result.current.purchasePetBundle('bundle-pets');
       });

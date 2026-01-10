@@ -23,7 +23,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 // Mock import.meta.env
-const originalEnv = import.meta.env;
+const _originalEnv = import.meta.env;
 
 describe('usePremiumStatus', () => {
   const STORAGE_KEY = 'petIsland_premium';

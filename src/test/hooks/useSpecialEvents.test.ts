@@ -26,7 +26,7 @@ const mockActiveEvent = {
   backgroundGradient: 'from-purple-600 to-pink-600',
 };
 
-const mockUpcomingEvent = {
+const _mockUpcomingEvent = {
   id: 'holiday-bonus',
   name: 'Holiday Celebration',
   description: 'Special holiday rewards!',
@@ -110,7 +110,7 @@ const mockStorage = storage as unknown as {
 };
 
 const mockGetActiveEvents = getActiveEvents as ReturnType<typeof vi.fn>;
-const mockGetUpcomingEvents = getUpcomingEvents as ReturnType<typeof vi.fn>;
+const _mockGetUpcomingEvents = getUpcomingEvents as ReturnType<typeof vi.fn>;
 
 describe('useSpecialEvents', () => {
   beforeEach(() => {
@@ -547,7 +547,7 @@ describe('useSpecialEvents', () => {
       const { result } = renderHook(() => useSpecialEvents());
 
       // Initial state
-      const initialEvents = result.current.activeEvents;
+      const _initialEvents = result.current.activeEvents;
 
       // Advance timer
       await act(async () => {

@@ -128,7 +128,7 @@ describe('useMilestoneCelebrations', () => {
     it('should detect new milestone achievement', () => {
       const { result } = renderHook(() => useMilestoneCelebrations());
 
-      let achieved;
+      let achieved: { id?: string } | null = null;
       act(() => {
         achieved = result.current.checkMilestone('level', 5);
       });
