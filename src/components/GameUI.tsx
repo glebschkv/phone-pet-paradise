@@ -9,18 +9,23 @@
  * - RewardModals: Orchestrates all reward-related modals
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useRewardHandlers } from "@/hooks/useRewardHandlers";
 import { TopStatusBar } from "@/components/TopStatusBar";
 import { IOSTabBar } from "@/components/IOSTabBar";
 import { AchievementTracker } from "@/components/AchievementTracker";
-import { TabContent } from "@/components/TabContent";
+import { TabContent, preloadTabComponents } from "@/components/TabContent";
 import { RewardModals } from "@/components/RewardModals";
 
 export const GameUI = () => {
   const [currentTab, setCurrentTab] = useState("home");
   const [isTaskbarCompact, setIsTaskbarCompact] = useState(false);
+
+  // Preload tab components after initial render for faster navigation
+  useEffect(() => {
+    preloadTabComponents();
+  }, []);
 
   const {
     currentLevel,

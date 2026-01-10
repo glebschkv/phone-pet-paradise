@@ -3,9 +3,11 @@
  *
  * Renders the content for each tab with lazy loading and context-aware skeletons.
  * Extracts tab rendering logic from GameUI for better separation of concerns.
+ *
+ * Includes preloading to ensure components are ready before user navigates.
  */
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import {
   TimerDisplaySkeleton,
   CollectionPageSkeleton,
@@ -14,12 +16,47 @@ import {
   AchievementGridSkeleton,
 } from "@/components/ui/skeleton-loaders";
 
+// Component import functions for preloading
+const importUnifiedFocusTimer = () => import("@/components/UnifiedFocusTimer").then(m => ({ default: m.UnifiedFocusTimer }));
+const importPetCollectionGrid = () => import("@/components/PetCollectionGrid").then(m => ({ default: m.PetCollectionGrid }));
+const importSettings = () => import("@/components/Settings").then(m => ({ default: m.Settings }));
+const importShop = () => import("@/components/Shop").then(m => ({ default: m.Shop }));
+const importGamificationHub = () => import("@/components/gamification").then(m => ({ default: m.GamificationHub }));
+
 // Lazy load heavy tab components for better initial load performance
-const UnifiedFocusTimer = lazy(() => import("@/components/UnifiedFocusTimer").then(m => ({ default: m.UnifiedFocusTimer })));
-const PetCollectionGrid = lazy(() => import("@/components/PetCollectionGrid").then(m => ({ default: m.PetCollectionGrid })));
-const Settings = lazy(() => import("@/components/Settings").then(m => ({ default: m.Settings })));
-const Shop = lazy(() => import("@/components/Shop").then(m => ({ default: m.Shop })));
-const GamificationHub = lazy(() => import("@/components/gamification").then(m => ({ default: m.GamificationHub })));
+const UnifiedFocusTimer = lazy(importUnifiedFocusTimer);
+const PetCollectionGrid = lazy(importPetCollectionGrid);
+const Settings = lazy(importSettings);
+const Shop = lazy(importShop);
+const GamificationHub = lazy(importGamificationHub);
+
+// Preload all tab components after initial render
+// This ensures components are cached and ready when user navigates
+export const preloadTabComponents = () => {
+  // Use requestIdleCallback if available, otherwise setTimeout
+  const schedulePreload = (callback: () => void) => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(callback, { timeout: 2000 });
+    } else {
+      setTimeout(callback, 100);
+    }
+  };
+
+  // Preload components in order of likely use
+  schedulePreload(() => {
+    importUnifiedFocusTimer();
+    importPetCollectionGrid();
+  });
+
+  // Preload less commonly used components with slight delay
+  schedulePreload(() => {
+    setTimeout(() => {
+      importShop();
+      importGamificationHub();
+      importSettings();
+    }, 500);
+  });
+};
 
 // Context-aware loading skeleton based on tab
 const getTabSkeleton = (tab: string) => {
