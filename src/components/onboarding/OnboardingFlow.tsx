@@ -246,7 +246,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     {
       id: 'welcome',
       title: 'Welcome to',
-      highlight: 'Pet Paradise',
+      highlight: 'NoMo',
       description: 'Build your magical island and care for adorable pixel pets',
       content: (
         <div className="relative h-48 flex items-center justify-center overflow-hidden">

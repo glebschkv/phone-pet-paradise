@@ -88,7 +88,7 @@ const Index = () => {
         <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading Pet Paradise...</p>
+            <p className="text-muted-foreground">Loading NoMo...</p>
           </div>
         </div>
       </PageErrorBoundary>
@@ -101,7 +101,7 @@ const Index = () => {
       <PageErrorBoundary pageName="home page">
         <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-primary">Pet Island Paradise</h1>
+            <h1 className="text-4xl font-bold text-primary">NoMo</h1>
             <p className="text-muted-foreground">Create an account to save your progress!</p>
             <Button onClick={() => navigate('/auth')}>Get Started</Button>
           </div>
