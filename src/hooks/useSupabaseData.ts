@@ -193,7 +193,18 @@ export const useSupabaseData = () => {
 
       // Use data from Supabase, or create defaults if not found
       setProfile(profileResult.data || createDefaultProfile(user.id));
-      setProgress(progressResult.data || createDefaultProgress(user.id));
+      // Handle coins being null from database
+      const progressData = progressResult.data;
+      if (progressData) {
+        setProgress({
+          ...progressData,
+          coins: progressData.coins ?? 0,
+          total_coins_earned: progressData.total_coins_earned ?? 0,
+          total_coins_spent: progressData.total_coins_spent ?? 0,
+        });
+      } else {
+        setProgress(createDefaultProgress(user.id));
+      }
       setPets(petsResult.data && petsResult.data.length > 0 ? petsResult.data : [createDefaultPet(user.id)]);
       setIsLoading(false);
     } catch (error: unknown) {
@@ -281,7 +292,13 @@ export const useSupabaseData = () => {
 
       if (error) throw error;
 
-      setProgress(data);
+      // Handle coins being null from database
+      setProgress({
+        ...data,
+        coins: data.coins ?? 0,
+        total_coins_earned: data.total_coins_earned ?? 0,
+        total_coins_spent: data.total_coins_spent ?? 0,
+      });
     } catch (error: unknown) {
       supabaseLogger.error('Error updating progress:', error);
       // Fall back to local update on error

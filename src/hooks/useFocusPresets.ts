@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TIER_BENEFITS, isValidSubscriptionTier } from './usePremiumStatus';
+import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from './usePremiumStatus';
 
 const FOCUS_PRESETS_STORAGE_KEY = 'petIsland_focusPresets';
 
@@ -92,7 +92,7 @@ export const useFocusPresets = () => {
       try {
         const parsed = JSON.parse(premiumData);
         if (isValidSubscriptionTier(parsed.tier)) {
-          return TIER_BENEFITS[parsed.tier].focusPresetSlots;
+          return TIER_BENEFITS[parsed.tier as SubscriptionTier].focusPresetSlots;
         }
       } catch {
         // Invalid data

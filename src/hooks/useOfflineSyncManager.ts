@@ -139,15 +139,19 @@ async function processSyncOperation(
       }
 
       case 'quest_update': {
+        // Update quest progress in the quests table
+        const questId = getString(payload, 'questId', '');
+        const progress = getNumber(payload, 'progress', 0);
+        const completed = getBoolean(payload, 'completed', false);
+        
         const { error } = await supabase
-          .from('quest_progress')
-          .upsert({
-            user_id: userId,
-            quest_id: getString(payload, 'questId', ''),
-            progress: getNumber(payload, 'progress', 0),
-            completed: getBoolean(payload, 'completed', false),
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id,quest_id' });
+          .from('quests')
+          .update({
+            current_progress: progress,
+            completed_at: completed ? new Date().toISOString() : null,
+          })
+          .eq('id', questId)
+          .eq('user_id', userId);
         if (error) throw error;
         break;
       }
@@ -155,7 +159,8 @@ async function processSyncOperation(
       case 'achievement_unlock': {
         const { error } = await supabase.from('achievements').insert({
           user_id: userId,
-          achievement_id: getString(payload, 'achievementId', ''),
+          achievement_type: getString(payload, 'achievementType', 'general'),
+          title: getString(payload, 'title', 'Achievement'),
           unlocked_at: getString(payload, 'unlockedAt', new Date().toISOString()),
         });
         // Ignore duplicate key errors for achievements
