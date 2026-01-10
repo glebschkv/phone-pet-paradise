@@ -21,5 +21,10 @@
 	<array>
 		<string>merchant.co.nomoinc.nomo</string>
 	</array>
+	<!-- Required for Sign in with Apple -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 </dict>
 </plist>

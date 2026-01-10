@@ -10,6 +10,14 @@ import { Mail, Lock, Sparkles, User, ArrowRight, Loader2 } from 'lucide-react';
 import { getAppBaseUrl, isValidEmail, validatePassword, sanitizeErrorMessage } from '@/lib/apiUtils';
 import { PageErrorBoundary } from '@/components/PageErrorBoundary';
 import { checkRateLimit, recordRateLimitAttempt, clearRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/security';
+import { Capacitor } from '@capacitor/core';
+
+// Apple logo SVG component
+const AppleIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83" />
+  </svg>
+);
 
 type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot-password' | 'reset-password';
 
@@ -290,6 +298,69 @@ export default function Auth() {
     navigate('/');
   };
 
+  const handleAppleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const isNativeIOS = Capacitor.getPlatform() === 'ios';
+      
+      if (isNativeIOS) {
+        // Use native Sign in with Apple for iOS
+        const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
+        
+        const options = {
+          clientId: 'co.nomoinc.nomo',
+          redirectURI: getRedirectUrl(),
+          scopes: 'email name',
+          state: crypto.randomUUID(),
+          nonce: crypto.randomUUID(),
+        };
+        
+        const result = await SignInWithApple.authorize(options);
+        
+        // Use Supabase's signInWithIdToken for native auth
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'apple',
+          token: result.response.identityToken,
+          nonce: options.nonce,
+        });
+        
+        if (error) throw error;
+        
+        toast.success('Welcome!');
+        navigate('/');
+      } else {
+        // Use web OAuth redirect for non-iOS platforms
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'apple',
+          options: {
+            redirectTo: getRedirectUrl(),
+          },
+        });
+        
+        if (error) throw error;
+      }
+    } catch (error: unknown) {
+      // If native fails, try web fallback
+      if (Capacitor.getPlatform() === 'ios') {
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'apple',
+            options: {
+              redirectTo: getRedirectUrl(),
+            },
+          });
+          if (error) throw error;
+        } catch (fallbackError) {
+          toast.error(sanitizeErrorMessage(fallbackError));
+        }
+      } else {
+        toast.error(sanitizeErrorMessage(error));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Show loading while checking auth state
   if (authLoading) {
     return (
@@ -333,6 +404,26 @@ export default function Auth() {
 
           {/* Auth Options */}
           <div className="space-y-3">
+            {/* Apple Sign-In - Primary option */}
+            <button
+              onClick={handleAppleSignIn}
+              disabled={isLoading}
+              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] hover:shadow-lg bg-black text-white disabled:opacity-50"
+            >
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <AppleIcon className="w-5 h-5" />
+                )}
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-semibold text-sm">Continue with Apple</p>
+                <p className="text-xs text-white/70">Fast & private sign in</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-white/50" />
+            </button>
+
             <button
               onClick={() => { resetForm(); setMode('magic-link'); }}
               className="w-full p-4 retro-card rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] hover:shadow-lg"
