@@ -94,6 +94,9 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
   if (typeof a !== 'object' || typeof b !== 'object') return false;
   if (a === null || b === null) return false;
 
+  // Arrays and plain objects should not be considered equal
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+
   const keysA = Object.keys(a as Record<string, unknown>);
   const keysB = Object.keys(b as Record<string, unknown>);
 

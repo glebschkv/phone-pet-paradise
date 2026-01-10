@@ -641,14 +641,17 @@ describe('useNotifications', () => {
     });
 
     it('should use setTimeout for delayed web notifications', async () => {
-      vi.useFakeTimers();
+      // Use fake timers with a modern config
+      vi.useFakeTimers({ shouldAdvanceTime: true });
 
       const { result } = renderHook(() => useNotifications());
 
-      await waitFor(() => {
-        expect(result.current.permissions.localEnabled).toBe(true);
+      // Let hook initialize
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
       });
 
+      // Schedule delayed notification
       await act(async () => {
         await result.current.scheduleLocalNotification({
           title: 'Delayed Test',
@@ -660,8 +663,10 @@ describe('useNotifications', () => {
       // Notification should not be called immediately
       expect(mockNotification).not.toHaveBeenCalled();
 
-      // Advance timers
-      vi.advanceTimersByTime(5000);
+      // Advance timers by the delay amount
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5000);
+      });
 
       expect(mockNotification).toHaveBeenCalledWith('Delayed Test', {
         body: 'Delayed body',
@@ -676,19 +681,27 @@ describe('useNotifications', () => {
   describe('Re-initialization Prevention', () => {
     it('should not re-initialize if already initialized', async () => {
       (Capacitor.isNativePlatform as Mock).mockReturnValue(false);
+      const mockRequestPermission = vi.fn().mockResolvedValue('granted');
       Object.defineProperty(window, 'Notification', {
-        value: { requestPermission: vi.fn().mockResolvedValue('granted') },
+        value: {
+          requestPermission: mockRequestPermission,
+          permission: 'granted',
+        },
         writable: true,
         configurable: true,
       });
 
       const { result } = renderHook(() => useNotifications());
 
-      await waitFor(() => {
-        expect(result.current.isInitialized).toBe(true);
+      // Manually trigger initialization
+      await act(async () => {
+        await result.current.initializeNotifications();
       });
 
-      const requestPermissionCalls = (window.Notification.requestPermission as Mock).mock.calls.length;
+      // Verify it's initialized
+      expect(result.current.isInitialized).toBe(true);
+
+      const requestPermissionCalls = mockRequestPermission.mock.calls.length;
 
       // Try to initialize again
       await act(async () => {
@@ -696,7 +709,7 @@ describe('useNotifications', () => {
       });
 
       // Should not have called requestPermission again
-      expect((window.Notification.requestPermission as Mock).mock.calls.length).toBe(requestPermissionCalls);
+      expect(mockRequestPermission.mock.calls.length).toBe(requestPermissionCalls);
     });
   });
 });

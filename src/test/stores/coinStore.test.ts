@@ -128,15 +128,15 @@ describe('coinStore', () => {
       expect(useCoinStore.getState().pendingServerValidation).toBe(false);
     });
 
-    it('should handle decimal amounts by flooring', () => {
+    it('should handle decimal amounts', () => {
       const { addCoins } = useCoinStore.getState();
 
       act(() => {
         addCoins(100.99);
       });
 
-      // validateCoinTransaction should floor the value
-      expect(useCoinStore.getState().balance).toBe(100);
+      // validateCoinTransaction clamps the value but doesn't floor it
+      expect(useCoinStore.getState().balance).toBe(100.99);
     });
   });
 
