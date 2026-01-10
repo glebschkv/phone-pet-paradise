@@ -484,7 +484,7 @@ describe('useAmbientSound', () => {
         result.current.play('white-noise');
       });
 
-      const gainNode = mockAudioContext.createGain();
+      const _gainNode = mockAudioContext.createGain();
 
       act(() => {
         result.current.setVolume(30);

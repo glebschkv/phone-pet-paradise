@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 
 // Mock storage module
@@ -192,7 +192,7 @@ describe('useLuckyWheel', () => {
       mockSpinWheel.mockReturnValue(mockPrizes[0]);
       const { result } = renderHook(() => useLuckyWheel());
 
-      let prize: typeof mockPrizes[0] | undefined;
+      let prize: { id: string; name: string; emoji: string; type: string; amount?: number; probability: number; rarity: string; color: string } | undefined;
 
       await act(async () => {
         const spinPromise = result.current.spin();
@@ -316,7 +316,7 @@ describe('useLuckyWheel', () => {
       });
 
       // Need to reset the date to allow spinning
-      const { result, rerender } = renderHook(() => useLuckyWheel());
+      const { result, rerender: _rerender } = renderHook(() => useLuckyWheel());
 
       mockSpinWheel.mockReturnValue(mockPrizes[1]);
 
@@ -334,8 +334,8 @@ describe('useLuckyWheel', () => {
     it('should return correct segment index for prize', () => {
       const { result } = renderHook(() => useLuckyWheel());
 
-      expect(result.current.getWinningSegmentIndex(mockPrizes[0])).toBe(0);
-      expect(result.current.getWinningSegmentIndex(mockPrizes[4])).toBe(4);
+      expect(result.current.getWinningSegmentIndex(mockPrizes[0] as Parameters<typeof result.current.getWinningSegmentIndex>[0])).toBe(0);
+      expect(result.current.getWinningSegmentIndex(mockPrizes[4] as Parameters<typeof result.current.getWinningSegmentIndex>[0])).toBe(4);
     });
   });
 

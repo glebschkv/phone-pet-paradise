@@ -1,5 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import { XP_CONFIG, TIMER_DURATIONS, getLevelFromXP, getXPForLevel } from '@/lib/constants';
 import { calculateSessionXP } from '@/types/xp-system';
 

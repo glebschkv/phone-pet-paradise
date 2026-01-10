@@ -8,7 +8,6 @@ import {
   AnalyticsSettings,
   PersonalRecords,
   DEFAULT_ANALYTICS_SETTINGS,
-  DEFAULT_PERSONAL_RECORDS,
   createEmptyDailyStats,
 } from '@/types/analytics';
 
