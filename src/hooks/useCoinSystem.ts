@@ -37,7 +37,7 @@
 import { useCallback, useMemo, useEffect } from 'react';
 import { useCoinStore } from '@/stores/coinStore';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
-import { TIER_BENEFITS, isValidSubscriptionTier } from './usePremiumStatus';
+import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
 import { COIN_CONFIG, RATE_LIMIT_CONFIG } from '@/lib/constants';
 import { supabase } from '@/integrations/supabase/client';
@@ -291,7 +291,7 @@ export const useCoinSystem = () => {
       try {
         const parsed = JSON.parse(premiumData);
         if (isValidSubscriptionTier(parsed.tier)) {
-          return TIER_BENEFITS[parsed.tier].coinMultiplier;
+          return TIER_BENEFITS[parsed.tier as SubscriptionTier].coinMultiplier;
         }
       } catch {
         // Invalid data

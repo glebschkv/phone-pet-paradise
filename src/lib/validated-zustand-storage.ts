@@ -12,7 +12,7 @@
  * - Prevents storing invalid data
  */
 
-import { type StateStorage } from 'zustand/middleware';
+import { type PersistStorage, type StorageValue } from 'zustand/middleware';
 import { z } from 'zod';
 import { storageLogger } from '@/lib/logger';
 
@@ -51,16 +51,16 @@ export interface ValidatedStorageOptions<T> {
  */
 export function createValidatedStorage<T extends object>(
   options: ValidatedStorageOptions<T>
-): StateStorage {
+): PersistStorage<T> {
   const { schema, defaultState, name, logErrors = true, attemptRepair = true } = options;
 
   return {
-    getItem: (key: string): string | null => {
+    getItem: (key: string): StorageValue<T> | null => {
       try {
         const item = localStorage.getItem(key);
         if (!item) return null;
 
-        const parsed = JSON.parse(item);
+        const parsed = JSON.parse(item) as StorageValue<T>;
 
         // Zustand wraps state in { state: ..., version: ... }
         // We need to validate the inner state object
@@ -69,7 +69,7 @@ export function createValidatedStorage<T extends object>(
 
           if (result.success) {
             // Return the full Zustand structure with validated state
-            return JSON.stringify({ ...parsed, state: result.data });
+            return { ...parsed, state: result.data };
           }
 
           if (logErrors) {
@@ -101,7 +101,7 @@ export function createValidatedStorage<T extends object>(
                 ...validFields,
               });
               storageLogger.debug(`[ValidatedStorage] Repaired ${name} with defaults, preserved XP: ${(repaired as Record<string, unknown>).currentXP || 0}`);
-              return JSON.stringify({ ...parsed, state: repaired });
+              return { ...parsed, state: repaired as T };
             } catch {
               // Repair failed, use full defaults
               storageLogger.debug(`[ValidatedStorage] Using default state for ${name}`);
@@ -109,7 +109,7 @@ export function createValidatedStorage<T extends object>(
           }
 
           // Return default state wrapped in Zustand structure
-          return JSON.stringify({ ...parsed, state: defaultState });
+          return { ...parsed, state: defaultState };
         }
 
         // If the structure is unexpected, return null to trigger rehydration with defaults
@@ -122,13 +122,11 @@ export function createValidatedStorage<T extends object>(
       }
     },
 
-    setItem: (key: string, value: string): void => {
+    setItem: (key: string, value: StorageValue<T>): void => {
       try {
-        const parsed = JSON.parse(value);
-
         // Validate before storing
-        if (parsed && typeof parsed === 'object' && 'state' in parsed) {
-          const result = schema.safeParse(parsed.state);
+        if (value && typeof value === 'object' && 'state' in value) {
+          const result = schema.safeParse(value.state);
 
           if (!result.success) {
             if (logErrors) {
@@ -145,12 +143,12 @@ export function createValidatedStorage<T extends object>(
           }
 
           // Store with validated data
-          localStorage.setItem(key, JSON.stringify({ ...parsed, state: result.data }));
+          localStorage.setItem(key, JSON.stringify({ ...value, state: result.data }));
           return;
         }
 
         // Store as-is if structure is not recognized
-        localStorage.setItem(key, value);
+        localStorage.setItem(key, JSON.stringify(value));
       } catch (error) {
         if (logErrors) {
           storageLogger.error(`[ValidatedStorage] Error saving ${name}:`, error);

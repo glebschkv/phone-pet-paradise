@@ -21,11 +21,11 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { xpLogger as logger } from '@/lib/logger';
 import { safeJsonParse } from '@/lib/apiUtils';
-import { TIER_BENEFITS, isValidSubscriptionTier } from '../usePremiumStatus';
+import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from '../usePremiumStatus';
 import { useAuth } from '../useAuth';
 import { useSupabaseData } from '../useSupabaseData';
 import { validateXPAmount, validateLevel, validateSessionMinutes } from '@/lib/validation';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase import removed - sync handled by useSupabaseData
 
 import { XPReward, XPSystemState } from './xpTypes';
 
@@ -377,7 +377,7 @@ export const useXPSystem = () => {
       try {
         const parsed = JSON.parse(premiumData);
         if (isValidSubscriptionTier(parsed.tier)) {
-          return TIER_BENEFITS[parsed.tier].xpMultiplier;
+          return TIER_BENEFITS[parsed.tier as SubscriptionTier].xpMultiplier;
         }
       } catch {
         // Invalid data

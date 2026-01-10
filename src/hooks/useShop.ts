@@ -182,7 +182,7 @@ export const useShop = () => {
     config.addOwned(itemId);
 
     const itemName = config.getItemName(item);
-    return { success: true, message: `${itemName} purchased!`, item: item as ShopItem | AnimalData };
+    return { success: true, message: `${itemName} purchased!`, item: item as unknown as ShopItem | AnimalData };
   }, [coinSystem]);
 
   /**

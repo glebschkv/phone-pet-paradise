@@ -256,7 +256,7 @@ export function createDebouncedFunction<T extends (...args: Parameters<T>) => Re
  * React hook for debouncing a value.
  * Returns the debounced value that updates after the specified delay.
  */
-export function useDebouncedValue<T>(value: T, delay: number = NETWORK_CONFIG.DEBOUNCE.DEFAULT): T {
+export function useDebouncedValue<T>(value: T, _delay: number = NETWORK_CONFIG.DEBOUNCE.DEFAULT): T {
   // This is a type definition only - actual implementation would use useState/useEffect
   // Keeping here for documentation purposes
   return value;
