@@ -163,12 +163,12 @@ export const FeaturedTab = ({
             return (
               <button
                 key={bundle.id}
-                onClick={() => {
+                onClick={async () => {
                   if (alreadyPurchased) {
                     toast.info("You already have all items from this bundle!");
                     return;
                   }
-                  const result = purchaseStarterBundle(bundle.id);
+                  const result = await purchaseStarterBundle(bundle.id);
                   if (result.success) {
                     toast.success(result.message);
                   } else {

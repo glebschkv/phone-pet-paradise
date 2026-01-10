@@ -25,8 +25,8 @@ interface UseTimerControlsProps {
   blockedAppsCount: number;
   startAppBlocking: () => Promise<{ appsBlocked: number }>;
   stopAppBlocking: () => Promise<{ shieldAttempts: number }>;
-  triggerHaptic: (type: string) => void;
-  awardXP: (minutes: number) => Promise<{ xpGained?: number } | undefined>;
+  triggerHaptic: (style?: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error') => void | Promise<void>;
+  awardXP: (minutes: number) => Promise<{ xpGained?: number } | null | undefined>;
 }
 
 export const useTimerControls = ({

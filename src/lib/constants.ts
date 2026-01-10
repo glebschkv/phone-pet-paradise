@@ -446,6 +446,7 @@ export const NETWORK_CONFIG = {
     SEARCH: 300,
     SAVE: 500,
     SYNC: 1000,
+    DEFAULT: 300,
   },
 
   /** Real-time subscription refresh interval in milliseconds */

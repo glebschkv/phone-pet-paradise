@@ -18,51 +18,51 @@ export type { Quest, QuestObjective, QuestReward, QuestSystemReturn };
 const QUESTS_STORAGE_KEY = 'pet_paradise_quests';
 
 // Quest templates for generation
-const DAILY_QUEST_TEMPLATES = [
+const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
   {
     title: "Focus Marathon",
     description: "Complete 30 minutes of focus time",
     objectives: [{ type: 'focus_time', target: 30, description: "Focus for 30 minutes" }],
-    rewards: [{ type: 'xp', amount: 100, description: "+100 XP" }]
+    rewards: [{ type: 'xp' as const, amount: 100, description: "+100 XP" }]
   },
   {
     title: "Pet Companion",
     description: "Interact with 3 different pets",
     objectives: [{ type: 'pet_interaction', target: 3, description: "Interact with 3 pets" }],
-    rewards: [{ type: 'xp', amount: 75, description: "+75 XP" }]
+    rewards: [{ type: 'xp' as const, amount: 75, description: "+75 XP" }]
   },
   {
     title: "Bond Builder",
     description: "Increase bond level with any pet",
     objectives: [{ type: 'bond_level', target: 1, description: "Level up a pet bond" }],
-    rewards: [{ type: 'xp', amount: 150, description: "+150 XP" }]
+    rewards: [{ type: 'xp' as const, amount: 150, description: "+150 XP" }]
   },
   {
     title: "Streak Keeper",
     description: "Maintain your focus streak",
     objectives: [{ type: 'streak', target: 1, description: "Complete a focus session" }],
-    rewards: [{ type: 'xp', amount: 50, description: "+50 XP" }]
+    rewards: [{ type: 'xp' as const, amount: 50, description: "+50 XP" }]
   }
 ];
 
-const WEEKLY_QUEST_TEMPLATES = [
+const WEEKLY_QUEST_TEMPLATES: QuestTemplate[] = [
   {
     title: "Focus Master",
     description: "Complete 5 hours of total focus time this week",
     objectives: [{ type: 'focus_time', target: 300, description: "Focus for 5 hours total" }],
-    rewards: [{ type: 'xp', amount: 500, description: "+500 XP" }]
+    rewards: [{ type: 'xp' as const, amount: 500, description: "+500 XP" }]
   },
   {
     title: "Pet Collector",
     description: "Unlock 2 new pets",
     objectives: [{ type: 'collection', target: 2, description: "Unlock 2 new pets" }],
-    rewards: [{ type: 'xp', amount: 300, description: "+300 XP" }]
+    rewards: [{ type: 'xp' as const, amount: 300, description: "+300 XP" }]
   },
   {
     title: "Perfect Week",
     description: "Complete focus sessions for 7 consecutive days",
     objectives: [{ type: 'streak', target: 7, description: "7-day focus streak" }],
-    rewards: [{ type: 'xp', amount: 750, description: "+750 XP" }]
+    rewards: [{ type: 'xp' as const, amount: 750, description: "+750 XP" }]
   }
 ];
 
