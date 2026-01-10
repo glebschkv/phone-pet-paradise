@@ -110,13 +110,11 @@ export type {
   // Boss
   BossDifficulty,
   BossRequirementType,
-  BossRequirement,
+  BossChallengeRequirement,
   BossChallenge,
   // Events
   SpecialEventType,
   SpecialEvent,
-  ActiveEventInfo,
-  SpecialEventsState,
   // Lucky Wheel
   LuckyWheelPrizeType,
   LuckyWheelPrize,
@@ -126,16 +124,10 @@ export type {
   MilestoneType,
   Milestone,
   // Guild
-  GuildRole,
+  GuildMemberRole,
   Guild,
   GuildMember,
   GuildChallenge,
-  // Quest
-  QuestStatus,
-  QuestType,
-  Quest,
-  // Focus
-  FocusPreset,
 } from './gamification';
 
 // ============================================================================

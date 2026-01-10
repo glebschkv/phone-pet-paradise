@@ -1,13 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useSupabaseData, UserProfile, UserProgress, Pet, FocusSession } from '@/hooks/useSupabaseData';
+import { useSupabaseData, UserProfile, UserProgress, Pet } from '@/hooks/useSupabaseData';
 
-// Type for mocked auth state
-interface MockAuthState {
-  user: { id: string } | null;
-  isAuthenticated: boolean;
-  isGuestMode: boolean;
-}
+// Helper to create mock auth return value
+const createMockAuth = (overrides: {
+  user?: { id: string } | null;
+  isAuthenticated?: boolean;
+  isGuestMode?: boolean;
+}) => ({
+  user: overrides.user ?? null,
+  session: null,
+  isLoading: false,
+  isAuthenticated: overrides.isAuthenticated ?? false,
+  isGuestMode: overrides.isGuestMode ?? false,
+  signOut: vi.fn() as () => Promise<void>,
+  continueAsGuest: vi.fn() as () => void,
+} as unknown as ReturnType<typeof import('@/hooks/useAuth').useAuth>);
 
 // Mock useAuth
 vi.mock('@/hooks/useAuth', () => ({
@@ -48,7 +56,7 @@ const mockSupabaseFrom = vi.fn(() => ({
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: (table: string) => mockSupabaseFrom(table),
+    from: () => mockSupabaseFrom(),
     auth: {
       getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
       onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
@@ -88,6 +96,9 @@ describe('useSupabaseData', () => {
     total_sessions: 25,
     last_session_date: '2024-01-01',
     streak_freeze_count: 2,
+    coins: 100,
+    total_coins_earned: 500,
+    total_coins_spent: 400,
     created_at: '2024-01-01T00:00:00.000Z',
     updated_at: '2024-01-01T00:00:00.000Z',
   };
@@ -121,11 +132,11 @@ describe('useSupabaseData', () => {
 
   describe('initialization', () => {
     it('should initialize with null/empty state', () => {
-      vi.mocked(useAuth).mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue(createMockAuth({
         user: null,
         isAuthenticated: false,
         isGuestMode: false,
-      } as MockAuthState);
+      }));
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -136,11 +147,11 @@ describe('useSupabaseData', () => {
     });
 
     it('should have isGuestMode property', () => {
-      vi.mocked(useAuth).mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue(createMockAuth({
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      }));
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -150,11 +161,11 @@ describe('useSupabaseData', () => {
 
   describe('guest mode - loading data', () => {
     beforeEach(() => {
-      vi.mocked(useAuth).mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue(createMockAuth({
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      }));
     });
 
     it('should load guest data from localStorage', async () => {
@@ -198,11 +209,11 @@ describe('useSupabaseData', () => {
 
   describe('guest mode - updating profile', () => {
     beforeEach(() => {
-      vi.mocked(useAuth).mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue(createMockAuth({
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      }));
     });
 
     it('should update profile in localStorage', async () => {
@@ -236,7 +247,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should update progress in localStorage', async () => {
@@ -269,7 +280,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should add focus session to localStorage', async () => {
@@ -321,7 +332,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should add a new pet', async () => {
@@ -379,7 +390,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: false,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should load data from Supabase when authenticated', async () => {
@@ -428,7 +439,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -445,7 +456,7 @@ describe('useSupabaseData', () => {
         user: null,
         isAuthenticated: false,
         isGuestMode: false,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
 
       const { result } = renderHook(() => useSupabaseData());
 
@@ -465,7 +476,7 @@ describe('useSupabaseData', () => {
         user: mockUser,
         isAuthenticated: true,
         isGuestMode: true,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
     });
 
     it('should handle localStorage parse errors', async () => {
@@ -499,7 +510,7 @@ describe('useSupabaseData', () => {
         user: null,
         isAuthenticated: false,
         isGuestMode: false,
-      } as MockAuthState);
+      } as ReturnType<typeof useAuth>);
 
       const { result } = renderHook(() => useSupabaseData());
 

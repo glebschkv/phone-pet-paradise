@@ -296,8 +296,8 @@ describe('useSoundMixer', () => {
     it('should add a sound layer', () => {
       const { result } = renderHook(() => useSoundMixer());
 
-      const success = act(() => {
-        return result.current.addLayer('white-noise');
+      act(() => {
+        result.current.addLayer('white-noise');
       });
 
       expect(result.current.layers).toHaveLength(1);

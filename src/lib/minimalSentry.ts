@@ -7,8 +7,7 @@
  * Full SDK can be lazy-loaded if advanced features are needed.
  */
 
-// APP_CONFIG would be used for release/environment info in production
-// Currently unused but kept for future enhancement
+import { APP_CONFIG as _APP_CONFIG } from './constants';
 
 interface SentryEvent {
   event_id: string;
@@ -86,7 +85,6 @@ function parseStack(stack?: string): Array<{ filename: string; lineno?: number; 
 
 // Minimal Sentry client
 class MinimalSentryClient {
-  private dsn: string | null = null;
   private dsnParsed: ReturnType<typeof parseDsn> = null;
   private tags: Record<string, string> = {};
   private user: { id?: string; email?: string } | null = null;
@@ -100,7 +98,7 @@ class MinimalSentryClient {
     environment?: string;
     beforeSend?: (event: SentryEvent) => SentryEvent | null;
   }) {
-    this.dsn = options.dsn;
+    this.dsnParsed = parseDsn(options.dsn);
     this.dsnParsed = parseDsn(options.dsn);
     this.release = options.release || null;
     this.environment = options.environment || null;

@@ -8,7 +8,7 @@
 import React, { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions, RenderResult, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter, MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { vi } from 'vitest';
@@ -367,26 +367,34 @@ export const navigateAndWait = async (
   await user.click(link);
 
   await waitFor(() => {
-    expect(window.location.pathname).toMatch(expectedUrl);
+    // Check pathname matches expected URL
+    if (typeof expectedUrl === 'string') {
+      if (window.location.pathname !== expectedUrl) {
+        throw new Error(`Expected ${expectedUrl} but got ${window.location.pathname}`);
+      }
+    } else {
+      if (!expectedUrl.test(window.location.pathname)) {
+        throw new Error(`Expected ${expectedUrl} but got ${window.location.pathname}`);
+      }
+    }
   });
 };
 
 // ============================================================================
-// Common Assertions
+// Common Assertions (use with expect from test file)
 // ============================================================================
 
 /**
- * Assert that an element is visible and has specific text
+ * Get element with specific text for assertions
  */
-export const expectVisibleWithText = (text: string | RegExp): void => {
-  const element = screen.getByText(text);
-  expect(element).toBeVisible();
+export const getVisibleElement = (text: string | RegExp): HTMLElement => {
+  return screen.getByText(text);
 };
 
 /**
- * Assert that no error messages are displayed
+ * Query for error messages
  */
-export const expectNoErrors = (): void => {
+export const queryErrorMessages = (): HTMLElement[] => {
   const errorPatterns = [
     /error/i,
     /something went wrong/i,
@@ -394,15 +402,16 @@ export const expectNoErrors = (): void => {
     /failed/i,
   ];
 
+  const allErrors: HTMLElement[] = [];
   errorPatterns.forEach((pattern) => {
     const elements = screen.queryAllByText(pattern);
     elements.forEach((el) => {
-      // Ignore if it's in an error boundary or expected error state
       if (!el.closest('[data-testid="error-boundary"]')) {
-        expect(el).not.toBeInTheDocument();
+        allErrors.push(el);
       }
     });
   });
+  return allErrors;
 };
 
 // ============================================================================
@@ -412,16 +421,15 @@ export const expectNoErrors = (): void => {
 /**
  * Create a mock function that tracks calls and returns values
  */
-export const createMockFn = <T extends unknown[], R>(
+export const createMockFn = <R,>(
   returnValue?: R
-): jest.Mock<R, T> & { calls: T[] } => {
-  const calls: T[] = [];
-  const mockFn = vi.fn((...args: T) => {
+) => {
+  const calls: unknown[][] = [];
+  const mockFn = vi.fn((...args: unknown[]) => {
     calls.push(args);
     return returnValue as R;
-  }) as jest.Mock<R, T> & { calls: T[] };
-  mockFn.calls = calls;
-  return mockFn;
+  });
+  return Object.assign(mockFn, { calls });
 };
 
 /**

@@ -81,8 +81,8 @@ export const CSS_PERFORMANCE_HINTS = {
  */
 export function applyTouchOptimizations(element: HTMLElement): void {
   element.style.touchAction = 'manipulation';
-  element.style.webkitTouchCallout = 'none';
-  element.style.webkitUserSelect = 'none';
+  (element.style as unknown as Record<string, string>).webkitTouchCallout = 'none';
+  (element.style as unknown as Record<string, string>).webkitUserSelect = 'none';
 }
 
 /**
@@ -104,7 +104,7 @@ export const TOUCH_OPTIMIZED_STYLES = `
  */
 export function optimizeScrollContainer(element: HTMLElement): void {
   // Enable momentum scrolling
-  element.style.webkitOverflowScrolling = 'touch';
+  (element.style as unknown as Record<string, string>).webkitOverflowScrolling = 'touch';
 
   // Prevent scroll chaining (overscroll affecting parent)
   element.style.overscrollBehavior = 'contain';
@@ -161,11 +161,11 @@ export function requestIdleCallback(
   options?: IdleRequestOptions
 ): number {
   if ('requestIdleCallback' in window) {
-    return window.requestIdleCallback(callback, options);
+    return (window as Window & { requestIdleCallback: (cb: IdleRequestCallback, opts?: IdleRequestOptions) => number }).requestIdleCallback(callback, options);
   }
 
   // iOS Safari doesn't support requestIdleCallback, use setTimeout fallback
-  return window.setTimeout(() => {
+  return (window as Window).setTimeout(() => {
     callback({
       didTimeout: false,
       timeRemaining: () => 50,
@@ -178,9 +178,9 @@ export function requestIdleCallback(
  */
 export function cancelIdleCallback(handle: number): void {
   if ('cancelIdleCallback' in window) {
-    window.cancelIdleCallback(handle);
+    (window as Window & { cancelIdleCallback: (handle: number) => void }).cancelIdleCallback(handle);
   } else {
-    window.clearTimeout(handle);
+    (window as Window).clearTimeout(handle);
   }
 }
 

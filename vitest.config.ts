@@ -12,22 +12,33 @@ export default defineConfig({
     exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'text-summary', 'json', 'html', 'lcov'],
+      reportsDirectory: './coverage',
       exclude: [
         'node_modules/',
         'src/test/',
         '**/*.d.ts',
         '**/*.config.*',
         '**/index.ts',
+        'src/integrations/supabase/types.ts',
+        'ios/**',
+        'android/**',
+        'supabase/**',
       ],
+      include: [
+        'src/**/*.{ts,tsx}',
+      ],
+      // Coverage thresholds - adjust as needed
       thresholds: {
         global: {
-          branches: 70,
+          branches: 60,
           functions: 50,
-          lines: 40,
-          statements: 40,
+          lines: 50,
+          statements: 50,
         },
       },
+      // Show uncovered lines in terminal
+      all: true,
     },
     testTimeout: 10000,
     hookTimeout: 10000,

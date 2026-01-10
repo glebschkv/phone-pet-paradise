@@ -80,7 +80,7 @@ class WidgetDataService {
     this.data = this.getDefaultData();
     this.isNative = Capacitor.isNativePlatform();
     this.saveToNativeDebounced = debounce(
-      this._saveToNative.bind(this),
+      ((...args: unknown[]) => this._saveToNative(args[0] as WidgetData)) as (...args: unknown[]) => void,
       NETWORK_CONFIG.DEBOUNCE.SAVE
     );
   }

@@ -26,17 +26,8 @@ const mockActiveEvent = {
   backgroundGradient: 'from-purple-600 to-pink-600',
 };
 
-const mockUpcomingEvent = {
-  id: 'holiday-bonus',
-  name: 'Holiday Celebration',
-  description: 'Special holiday rewards!',
-  emoji: '🎄',
-  type: 'bonus_rewards' as const,
-  startDate: '2024-12-24',
-  endDate: '2024-12-26',
-  backgroundGradient: 'from-red-600 to-green-600',
-  rewards: { xp: 500, coins: 1000 },
-};
+// Upcoming event mock available if needed for future tests
+// const mockUpcomingEvent = { id: 'holiday-bonus', ... };
 
 vi.mock('@/data/GamificationData', () => ({
   SPECIAL_EVENTS: [
@@ -110,7 +101,7 @@ const mockStorage = storage as unknown as {
 };
 
 const mockGetActiveEvents = getActiveEvents as ReturnType<typeof vi.fn>;
-const mockGetUpcomingEvents = getUpcomingEvents as ReturnType<typeof vi.fn>;
+void (getUpcomingEvents as ReturnType<typeof vi.fn>); // available for future tests
 
 describe('useSpecialEvents', () => {
   beforeEach(() => {
@@ -547,7 +538,7 @@ describe('useSpecialEvents', () => {
       const { result } = renderHook(() => useSpecialEvents());
 
       // Initial state
-      const initialEvents = result.current.activeEvents;
+      void result.current.activeEvents; // capture initial state
 
       // Advance timer
       await act(async () => {

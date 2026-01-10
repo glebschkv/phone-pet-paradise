@@ -20,7 +20,7 @@ import {
 } from '@/stores/shopStore';
 
 describe('shopStore', () => {
-  const STORAGE_KEY = 'petIsland_shopInventory';
+  // Storage key: 'petIsland_shopInventory'
 
   beforeEach(() => {
     localStorage.clear();

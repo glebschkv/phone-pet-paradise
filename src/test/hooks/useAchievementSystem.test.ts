@@ -53,21 +53,15 @@ import {
   initializeAchievements,
   loadFromStorage,
   saveToStorage,
-  calculateRewards,
   checkAchievementProgress,
-  getAchievementsByCategory,
-  getTotalAchievementPoints,
-  getCompletionPercentage,
-  generateShareText,
-  isAchievementClaimed,
 } from '@/services/achievementService';
 
-const mockInitializeAchievements = initializeAchievements as ReturnType<typeof vi.fn>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void (initializeAchievements as ReturnType<typeof vi.fn>);
 const mockLoadFromStorage = loadFromStorage as ReturnType<typeof vi.fn>;
 const mockSaveToStorage = saveToStorage as ReturnType<typeof vi.fn>;
-const mockCalculateRewards = calculateRewards as ReturnType<typeof vi.fn>;
-const mockCheckProgress = checkAchievementProgress as ReturnType<typeof vi.fn>;
-const mockIsAchievementClaimed = isAchievementClaimed as ReturnType<typeof vi.fn>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void (checkAchievementProgress as ReturnType<typeof vi.fn>);
 
 describe('useAchievementSystem', () => {
   beforeEach(() => {
@@ -427,7 +421,7 @@ describe('useAchievementSystem', () => {
         expect(result.current.pendingUnlock).toBeTruthy();
       });
 
-      const firstUnlock = result.current.pendingUnlock;
+      void result.current.pendingUnlock; // store reference for potential future assertions
 
       act(() => {
         result.current.dismissPendingUnlock();
@@ -563,8 +557,9 @@ describe('useAchievementSystem', () => {
       });
 
       // Only one should succeed with rewards
-      const totalXP = (rewards1?.xp || 0) + (rewards2?.xp || 0);
-      expect(totalXP).toBe(50); // Only one claim should have XP
+      const xp1 = (rewards1 as { xp?: number } | undefined)?.xp ?? 0;
+      const xp2 = (rewards2 as { xp?: number } | undefined)?.xp ?? 0;
+      expect(xp1 + xp2).toBe(50); // Only one claim should have XP
     });
 
     it('should handle storage change events', async () => {

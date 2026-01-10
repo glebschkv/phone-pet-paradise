@@ -33,7 +33,6 @@ class SpriteAnimationManager {
   private currentFps: number = 60;
 
   // Throttling for low-power mode
-  private targetFps: number = 60;
   private frameInterval: number = 1000 / 60;
 
   private constructor() {
@@ -104,7 +103,6 @@ class SpriteAnimationManager {
    * @param fps Target frames per second (15, 30, or 60)
    */
   setTargetFps(fps: 15 | 30 | 60): void {
-    this.targetFps = fps;
     this.frameInterval = 1000 / fps;
   }
 

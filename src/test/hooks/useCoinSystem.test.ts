@@ -51,8 +51,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 describe('useCoinSystem', () => {
-  // The new storage key used by Zustand
-  const STORAGE_KEY = 'nomo_coin_system';
+  // The new storage key used by Zustand: 'nomo_coin_system'
 
   beforeEach(() => {
     vi.clearAllMocks();

@@ -228,7 +228,7 @@ describe('useFocusPresets', () => {
     it('should create a new custom preset', () => {
       const { result } = renderHook(() => useFocusPresets());
 
-      let newPreset: ReturnType<typeof result.current.createPreset>;
+      let newPreset: ReturnType<typeof result.current.createPreset> | undefined;
       act(() => {
         newPreset = result.current.createPreset({
           name: 'My Preset',
@@ -269,7 +269,7 @@ describe('useFocusPresets', () => {
       expect(result.current.canCreatePreset()).toBe(false);
 
       // Try to create second preset
-      let secondPreset: ReturnType<typeof result.current.createPreset>;
+      let secondPreset: ReturnType<typeof result.current.createPreset> | undefined;
       act(() => {
         secondPreset = result.current.createPreset({
           name: 'Second',
@@ -290,7 +290,7 @@ describe('useFocusPresets', () => {
     it('should set correct timestamps', () => {
       const { result } = renderHook(() => useFocusPresets());
 
-      let newPreset: ReturnType<typeof result.current.createPreset>;
+      let newPreset: ReturnType<typeof result.current.createPreset> | undefined;
       act(() => {
         newPreset = result.current.createPreset({
           name: 'Timed Preset',
@@ -313,7 +313,7 @@ describe('useFocusPresets', () => {
     it('should update a custom preset', () => {
       const { result } = renderHook(() => useFocusPresets());
 
-      let newPreset: ReturnType<typeof result.current.createPreset>;
+      let newPreset: ReturnType<typeof result.current.createPreset> | undefined;
       act(() => {
         newPreset = result.current.createPreset({
           name: 'Original',
@@ -489,7 +489,7 @@ describe('useFocusPresets', () => {
     it('should duplicate a preset', () => {
       const { result } = renderHook(() => useFocusPresets());
 
-      let duplicated: ReturnType<typeof result.current.duplicatePreset>;
+      let duplicated: ReturnType<typeof result.current.duplicatePreset> | undefined;
       act(() => {
         duplicated = result.current.duplicatePreset('default-pomodoro');
       });
@@ -503,7 +503,7 @@ describe('useFocusPresets', () => {
     it('should use custom name when provided', () => {
       const { result } = renderHook(() => useFocusPresets());
 
-      let duplicated: ReturnType<typeof result.current.duplicatePreset>;
+      let duplicated: ReturnType<typeof result.current.duplicatePreset> | undefined;
       act(() => {
         duplicated = result.current.duplicatePreset('default-deep-work', 'My Deep Work');
       });
@@ -520,7 +520,7 @@ describe('useFocusPresets', () => {
 
       expect(result.current.canCreatePreset()).toBe(false);
 
-      let secondDuplicate: ReturnType<typeof result.current.duplicatePreset>;
+      let secondDuplicate: ReturnType<typeof result.current.duplicatePreset> | undefined;
       act(() => {
         secondDuplicate = result.current.duplicatePreset('default-deep-work');
       });
@@ -531,7 +531,7 @@ describe('useFocusPresets', () => {
     it('should return null for non-existent preset', () => {
       const { result } = renderHook(() => useFocusPresets());
 
-      let duplicated: ReturnType<typeof result.current.duplicatePreset>;
+      let duplicated: ReturnType<typeof result.current.duplicatePreset> | undefined;
       act(() => {
         duplicated = result.current.duplicatePreset('non-existent');
       });
