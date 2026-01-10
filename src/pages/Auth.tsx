@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -11,15 +11,25 @@ import { getAppBaseUrl, isValidEmail, validatePassword, sanitizeErrorMessage } f
 import { PageErrorBoundary } from '@/components/PageErrorBoundary';
 import { checkRateLimit, recordRateLimitAttempt, clearRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/security';
 
-type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot-password';
+type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot-password' | 'reset-password';
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, isLoading: authLoading, continueAsGuest, isGuestMode } = useAuth();
   const [mode, setMode] = useState<AuthMode>('welcome');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check for reset-password mode from URL query params
+  useEffect(() => {
+    const urlMode = searchParams.get('mode');
+    if (urlMode === 'reset-password') {
+      setMode('reset-password');
+    }
+  }, [searchParams]);
 
   // Redirect to home if already authenticated with Supabase (not guest mode)
   // Guest users should be able to access auth page to create real accounts
@@ -222,6 +232,48 @@ export default function Auth() {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password || !confirmPassword) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      toast.error(passwordValidation.message);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Password updated successfully!', {
+        description: 'You can now sign in with your new password.',
+      });
+      resetForm();
+      // Clear the URL params and go to sign in
+      navigate('/auth', { replace: true });
+      setMode('email-password');
+    } catch (error: unknown) {
+      toast.error(sanitizeErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleGuestMode = () => {
     // Set guest mode flag and navigate
     continueAsGuest();
@@ -247,6 +299,7 @@ export default function Auth() {
   const resetForm = () => {
     setEmail('');
     setPassword('');
+    setConfirmPassword('');
   };
 
   // Welcome screen with options
@@ -641,6 +694,79 @@ export default function Auth() {
               Sign in
             </button>
           </p>
+        </div>
+        </div>
+      </PageErrorBoundary>
+    );
+  }
+
+  // Reset Password form (when user clicks link from email)
+  if (mode === 'reset-password') {
+    return (
+      <PageErrorBoundary pageName="authentication page">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
+        }}>
+          <div className="w-full max-w-sm space-y-6">
+          <button
+            onClick={() => { resetForm(); setMode('welcome'); navigate('/auth', { replace: true }); }}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Back
+          </button>
+
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Lock className="w-7 h-7 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold">Set New Password</h2>
+            <p className="text-sm text-muted-foreground">
+              Enter your new password below
+            </p>
+          </div>
+
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">New Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="At least 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12 rounded-xl"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="h-12 rounded-xl"
+                disabled={isLoading}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-12 rounded-xl font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Update Password'
+              )}
+            </Button>
+          </form>
         </div>
         </div>
       </PageErrorBoundary>
