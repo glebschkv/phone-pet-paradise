@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { cn } from '@/lib/utils';
-import { Clock, Trophy, XCircle, CheckCircle, Lock, Flame, Skull, Zap, ChevronLeft, ChevronRight, Coins, X } from 'lucide-react';
+import { Clock, XCircle, CheckCircle, Lock, Flame, Skull, Zap, ChevronLeft, ChevronRight, Coins, X } from 'lucide-react';
 import { BOSS_CHALLENGES, BossChallenge } from '@/data/GamificationData';
 
 interface BossChallengeModalProps {
@@ -63,7 +64,6 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
   const isActive = currentStatus.isActive;
   const isCompleted = currentStatus.isCompleted;
   const onCooldown = currentStatus.cooldownRemaining > 0;
-  const canStart = !activeChallenge.challenge && !onCooldown;
 
   // If there's an active challenge, jump to it on open
   const activeIndex = allChallenges.findIndex(c => c.id === activeChallenge.challenge?.id);
@@ -71,6 +71,9 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-sm p-0 overflow-hidden bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900 border-2 border-purple-500/30 rounded-2xl">
+        <VisuallyHidden>
+          <DialogTitle>Boss Battles</DialogTitle>
+        </VisuallyHidden>
         {/* Header */}
         <div className="relative px-4 py-3 border-b border-purple-500/20">
           <button

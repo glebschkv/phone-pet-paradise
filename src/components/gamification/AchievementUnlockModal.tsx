@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Trophy, Sparkles, Star } from 'lucide-react';
 import { useAchievementSystem } from '@/hooks/useAchievementSystem';
 import { cn } from '@/lib/utils';
@@ -92,6 +93,9 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
+        <VisuallyHidden>
+          <DialogTitle>Achievement Unlocked</DialogTitle>
+        </VisuallyHidden>
         {/* Animated scanlines overlay */}
         <div className="absolute inset-0 pointer-events-none z-10 opacity-20">
           <div className="absolute inset-0" style={{
