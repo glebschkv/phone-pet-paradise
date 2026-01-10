@@ -369,7 +369,7 @@ export const useTimerLogic = () => {
     toggleAutoBreak,
     setShowIntentionModal,
     setShowSessionNotesModal,
-    setShowBreakTransitionModal: openBreakModal,
+    setShowBreakTransitionModal: (show: boolean) => { if (show) openBreakModal(); else closeBreakModal(); },
     setShowLockScreen,
   };
 };

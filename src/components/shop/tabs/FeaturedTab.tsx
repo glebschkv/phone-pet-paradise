@@ -12,14 +12,14 @@ interface FeaturedTabProps {
   inventory: ShopInventory;
   isOwned: (itemId: string, category: ShopCategory) => boolean;
   isBundleOwned: (bundleId: string) => boolean;
-  purchaseBackgroundBundle: (bundleId: string) => { success: boolean; message: string };
-  purchaseStarterBundle: (bundleId: string) => { success: boolean; message: string };
+  purchaseBackgroundBundle: (bundleId: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
+  purchaseStarterBundle: (bundleId: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
   setActiveCategory: (category: ShopCategory) => void;
   setSelectedItem: (item: ShopItem | AnimalData | BackgroundBundle | null) => void;
   setShowPurchaseConfirm: (show: boolean) => void;
   setShowPremiumModal: (show: boolean) => void;
   isPremium: boolean;
-  currentPlan: { name: string } | null;
+  currentPlan: { name: string } | null | undefined;
   coinBalance: number;
   canAfford: (price: number) => boolean;
 }
@@ -27,7 +27,7 @@ interface FeaturedTabProps {
 export const FeaturedTab = ({
   inventory,
   isBundleOwned,
-  purchaseBackgroundBundle,
+  purchaseBackgroundBundle: _purchaseBackgroundBundle, // Available for future use
   purchaseStarterBundle,
   setActiveCategory,
   setSelectedItem,

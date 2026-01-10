@@ -5,7 +5,7 @@
  * This context enables graceful degradation when plugins fail to load or have errors.
  */
 
-import React, { createContext, useContext, ReactNode, useMemo, useCallback, useState, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useMemo, useCallback, useState, useEffect } from 'react';
 import { useNativePluginStatus, PluginHealthStatus, safeCallPlugin } from '@/hooks/useNativePluginStatus';
 import { createLogger } from '@/lib/logger';
 

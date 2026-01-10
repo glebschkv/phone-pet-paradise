@@ -6,12 +6,15 @@ import {
   TIMER_VALIDATION
 } from "@/lib/validation";
 import {
-  TimerState,
+  TimerState as TimerStateType,
   TimerPreset,
   STORAGE_KEY,
   TIMER_PRESETS,
   DEFAULT_TIMER_STATE
 } from '../constants';
+
+// Re-export TimerState for other modules
+export type TimerState = TimerStateType;
 
 interface UseTimerPersistenceReturn {
   timerState: TimerState;
@@ -69,7 +72,7 @@ export const useTimerPersistence = (): UseTimerPersistenceReturn => {
         const completedSessions = isNonNegativeInteger(parsed.completedSessions) ? parsed.completedSessions : 0;
 
         // Validate session type
-        const sessionType = parsed.sessionType === 'break' ? 'break' : 'work';
+        const sessionType = parsed.sessionType === 'break' ? 'break' : 'pomodoro';
 
         let finalState: TimerState = {
           timeLeft: Math.min(timeLeft, sessionDuration),

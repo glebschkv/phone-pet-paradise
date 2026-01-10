@@ -54,7 +54,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 /**
  * Subscription tier levels
  */
-export type SubscriptionTier = 'free' | 'premium' | 'lifetime';
+export type SubscriptionTier = 'free' | 'premium' | 'premium_plus' | 'lifetime';
 
 /**
  * Subscription plan definition

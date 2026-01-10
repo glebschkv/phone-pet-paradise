@@ -63,7 +63,7 @@ export const BackgroundDetailModal = memo(({
           <div className="absolute bottom-2 left-3 right-3">
             <h3 className="text-white font-bold text-lg">{background.name}</h3>
             <div className="flex items-center gap-2 mt-1">
-              <RarityBadge rarity={background.rarity} />
+              <RarityBadge rarity={background.rarity || 'common'} />
             </div>
           </div>
         </div>

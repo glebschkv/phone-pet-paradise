@@ -12,30 +12,17 @@
 
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { useXPSystem } from "@/hooks/useXPSystem";
+import { useXPSystem, XPReward } from "@/hooks/useXPSystem";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { useMilestoneCelebrations } from "@/hooks/useMilestoneCelebrations";
-
-interface DailyReward {
-  type: 'xp' | 'streak_freeze' | 'mystery_bonus';
-  amount: number;
-  description?: string;
-}
-
-interface XPResult {
-  leveledUp: boolean;
-  newLevel: number;
-  unlockedRewards: Array<{ name: string }>;
-}
+import { DailyReward } from "@/hooks/useDailyLoginRewards";
 
 interface DailyRewardClaimResult {
   dailyReward: DailyReward | null;
-  xpReward?: XPResult | null;
+  xpReward?: XPReward | null;
 }
 
-interface ClaimDailyRewardFn {
-  (): DailyRewardClaimResult;
-}
+export type ClaimDailyRewardFn = () => DailyRewardClaimResult;
 
 export const useRewardHandlers = (handleClaimDailyReward: ClaimDailyRewardFn) => {
   const { addDirectXP } = useXPSystem();
@@ -68,7 +55,7 @@ export const useRewardHandlers = (handleClaimDailyReward: ClaimDailyRewardFn) =>
     const { dailyReward, xpReward } = handleClaimDailyReward();
     if (dailyReward) {
       if (dailyReward.type === 'xp' || dailyReward.type === 'mystery_bonus') {
-        toast.success(`+${dailyReward.amount} XP claimed!`, {
+        toast.success(`+${dailyReward.xp} XP claimed!`, {
           description: dailyReward.description,
         });
         // If leveled up, show additional toast
@@ -80,7 +67,7 @@ export const useRewardHandlers = (handleClaimDailyReward: ClaimDailyRewardFn) =>
           });
         }
       } else if (dailyReward.type === 'streak_freeze') {
-        toast.success(`+${dailyReward.amount} Streak Freeze earned!`, {
+        toast.success(`+${dailyReward.streakFreeze || 1} Streak Freeze earned!`, {
           description: "Use it to protect your streak!",
         });
       }

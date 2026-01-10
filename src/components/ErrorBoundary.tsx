@@ -97,9 +97,14 @@ export class ErrorBoundary extends Component<Props, State> {
               errorId: undefined,
               isRetryDisabled: false,
               retryCountdown: 0,
+              retryCount: prevState.retryCount,
+              lastErrorTime: prevState.lastErrorTime,
             };
           }
-          return { retryCountdown: newCountdown };
+          return {
+            ...prevState,
+            retryCountdown: newCountdown,
+          };
         });
       }, 1000);
     } else {
