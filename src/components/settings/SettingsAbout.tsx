@@ -50,7 +50,7 @@ export const SettingsAbout = () => {
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
-          Stay focused, earn rewards, and build your pet paradise.
+          Stay focused, earn rewards, and grow your island.
         </p>
       </div>
 

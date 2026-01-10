@@ -1,5 +1,5 @@
 /**
- * Service Worker for Phone Pet Paradise
+ * Service Worker for NoMo Phone
  *
  * Provides offline support by caching essential assets and API responses.
  * Uses a cache-first strategy for static assets and network-first for API calls.
