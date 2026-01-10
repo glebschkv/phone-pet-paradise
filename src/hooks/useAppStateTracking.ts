@@ -183,7 +183,7 @@ export const useAppStateTracking = () => {
     if (reward) {
       if (reward.type === 'xp' || reward.type === 'mystery_bonus') {
         // Use addDirectXP which properly handles level-ups
-        xpReward = xpSystem.addDirectXP(reward.amount);
+        xpReward = xpSystem.addDirectXP(reward.xp);
 
         // If leveled up, show the XP reward modal
         if (xpReward.leveledUp) {

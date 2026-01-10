@@ -12,14 +12,14 @@ import { TaskIntentionModal } from "./TaskIntentionModal";
 import { SessionNotesModal } from "./SessionNotesModal";
 import { BreakTransitionModal } from "./BreakTransitionModal";
 import { FocusLockScreen } from "./FocusLockScreen";
-import { TimerPreset, TimerState } from "./constants";
+import { TimerPreset } from "./constants";
 import { FocusCategory } from "@/types/analytics";
 
 interface TimerModalsProps {
   // Intention modal
   showIntentionModal: boolean;
   onCloseIntentionModal: () => void;
-  onStartWithIntent: (category: FocusCategory, taskLabel: string) => void;
+  onStartWithIntent: (category: FocusCategory, taskLabel?: string) => void;
   selectedPreset: TimerPreset;
 
   // Session notes modal
@@ -32,12 +32,12 @@ interface TimerModalsProps {
 
   // Break transition modal
   showBreakTransitionModal: boolean;
-  onCloseBreakModal: () => void;
+  onCloseBreakModal: () => void; // kept for API compatibility
   onStartBreak: (duration: number) => void;
   onSkipBreak: () => void;
   completedSessions: number;
   autoBreakEnabled: boolean;
-  onToggleAutoBreak: () => void;
+  onToggleAutoBreak: (enabled: boolean) => void;
 
   // Focus lock screen
   showLockScreen: boolean;
@@ -65,7 +65,7 @@ export const TimerModals = ({
 
   // Break transition modal
   showBreakTransitionModal,
-  onCloseBreakModal,
+  onCloseBreakModal: _onCloseBreakModal, // unused but kept for API
   onStartBreak,
   onSkipBreak,
   completedSessions,

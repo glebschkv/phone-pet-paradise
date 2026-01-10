@@ -194,7 +194,7 @@ export function AppProvider({ children }: AppProviderProps) {
   useEffect(() => {
     dispatch({
       type: 'SET_PREMIUM_STATUS',
-      payload: { isPremium, tier, expiresAt },
+      payload: { isPremium, tier, expiresAt: expiresAt ?? undefined },
     });
   }, [isPremium, tier, expiresAt]);
 

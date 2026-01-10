@@ -56,7 +56,7 @@ export function useTimerRewards() {
     };
 
     // Calculate focus bonus based on shield attempts
-    let focusMultiplier = FOCUS_BONUS.DISTRACTED.multiplier;
+    let focusMultiplier: number = FOCUS_BONUS.DISTRACTED.multiplier;
     if (hasAppsConfigured && blockedAppsCount > 0) {
       if (shieldAttempts === 0) {
         focusMultiplier = FOCUS_BONUS.PERFECT_FOCUS.multiplier;

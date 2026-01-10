@@ -13,35 +13,15 @@ import { XPRewardModal } from "@/components/XPRewardModal";
 import { DailyLoginRewardModal } from "@/components/DailyLoginRewardModal";
 import { MilestoneCelebration } from "@/components/gamification";
 import { RewardModalErrorBoundary } from "@/components/FeatureErrorBoundary";
-
-interface DailyReward {
-  type: string;
-  amount: number;
-  description?: string;
-}
-
-interface LoginState {
-  currentStreak: number;
-}
+import { XPReward } from "@/hooks/useXPSystem";
+import { DailyReward, DailyLoginState } from "@/hooks/useDailyLoginRewards";
 
 interface DailyLoginRewards {
   showRewardModal: boolean;
   pendingReward: DailyReward | null;
-  loginState: LoginState;
+  loginState: DailyLoginState;
   dailyRewards: DailyReward[];
   dismissModal: () => void;
-}
-
-interface Reward {
-  name: string;
-  type: string;
-  amount?: number;
-}
-
-interface LevelProgress {
-  current: number;
-  max: number;
-  percentage: number;
 }
 
 interface Milestone {
@@ -55,9 +35,9 @@ interface RewardModalsProps {
   // XP Reward Modal
   showRewardModal: boolean;
   dismissRewardModal: () => void;
-  currentReward: Reward | null;
+  currentReward: XPReward | null;
   newLevel: number;
-  levelProgress: LevelProgress;
+  levelProgress: number;
 
   // Daily Login Reward Modal
   dailyLoginRewards: DailyLoginRewards;
