@@ -231,7 +231,7 @@ export function useOfflineSyncManager(): UseOfflineSyncManagerReturn {
     isOnline,
     addOperation,
     removeOperation,
-    removeOperations,
+    removeOperations: _removeOperations,
     incrementRetry,
     getRetryableOperations,
     setSyncStatus,

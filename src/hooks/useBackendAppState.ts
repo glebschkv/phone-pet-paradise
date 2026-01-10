@@ -179,7 +179,7 @@ export const useBackendAppState = () => {
         leveledUp: reward.leveledUp,
         unlockedRewards: reward.unlockedRewards,
         streakReward,
-        coinReward
+        coinReward: typeof coinReward === 'object' && coinReward !== null ? coinReward.coinsGained : (typeof coinReward === 'number' ? coinReward : 0)
       };
     } catch (error) {
       logger.error('Error awarding XP:', error);

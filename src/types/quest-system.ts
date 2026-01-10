@@ -10,12 +10,14 @@ export type QuestObjectiveType =
   | 'bond_level'
   | 'biome_unlock'
   | 'streak'
-  | 'collection';
+  | 'collection'
+  | 'sessions'
+  | 'perfect_focus';
 
 /**
  * The type of quest reward
  */
-export type QuestRewardType = 'xp' | 'pet_unlock' | 'ability' | 'cosmetic';
+export type QuestRewardType = 'xp' | 'coins' | 'pet_unlock' | 'ability' | 'cosmetic';
 
 /**
  * The type of quest (daily, weekly, or story-based)

@@ -119,7 +119,7 @@ export const useDeviceActivity = () => {
       // Check permissions with safe wrapper
       const { result: permissions, success: permissionSuccess } = await safePluginCall(
         () => DeviceActivity.checkPermissions(),
-        { status: 'unknown' as const },
+        { status: 'unknown' as const, familyControlsEnabled: false },
         'checkPermissions'
       );
 
@@ -166,7 +166,7 @@ export const useDeviceActivity = () => {
         // Start monitoring if permissions granted
         const { result: monitoring } = await safePluginCall(
           () => DeviceActivity.startMonitoring(),
-          { monitoring: false },
+          { success: false, monitoring: false, startTime: 0 },
           'startMonitoring'
         );
         setState(prev => ({
@@ -207,7 +207,7 @@ export const useDeviceActivity = () => {
 
       const { result, success } = await safePluginCall(
         () => DeviceActivity.requestPermissions(),
-        { status: 'denied' as const },
+        { status: 'denied' as const, familyControlsEnabled: false },
         'requestPermissions'
       );
 
@@ -231,7 +231,7 @@ export const useDeviceActivity = () => {
         // Start monitoring after permissions granted
         const { result: monitoring } = await safePluginCall(
           () => DeviceActivity.startMonitoring(),
-          { monitoring: false },
+          { success: false, monitoring: false, startTime: 0 },
           'startMonitoring'
         );
         setState(prev => ({
