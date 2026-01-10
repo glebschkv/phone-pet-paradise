@@ -651,12 +651,15 @@ describe('useNotifications', () => {
         await vi.advanceTimersByTimeAsync(100);
       });
 
+      // Clear mock before test
+      mockNotification.mockClear();
+
       // Schedule delayed notification
       await act(async () => {
         await result.current.scheduleLocalNotification({
           title: 'Delayed Test',
           body: 'Delayed body',
-          delay: 5000,
+          delay: 10, // Very short delay
         });
       });
 
