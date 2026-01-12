@@ -28,3 +28,15 @@ export const useThemeStore = create<ThemeState>()(
 
 // Selector hook
 export const useHomeBackground = () => useThemeStore((state) => state.homeBackground);
+
+// Expose store globally for debugging (use in browser console: window.setDebugBackground())
+if (typeof window !== 'undefined') {
+  (window as unknown as { setDebugBackground: () => void }).setDebugBackground = () => {
+    useThemeStore.getState().setHomeBackground('debug');
+    console.log('Debug background enabled! Refresh if needed.');
+  };
+  (window as unknown as { setDayBackground: () => void }).setDayBackground = () => {
+    useThemeStore.getState().setHomeBackground('day');
+    console.log('Day background restored! Refresh if needed.');
+  };
+}
