@@ -130,13 +130,15 @@ const Index = () => {
   return (
     <PageErrorBoundary pageName="home page">
       <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
-        {/* Debug Button - Add 100k Gold */}
-        <Button
-          onClick={() => coinSystem.addCoins(100000, 'admin_grant')}
-          className="absolute top-2 left-2 z-50 bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-3 py-1"
-        >
-          +100k Gold (Debug)
-        </Button>
+        {/* Debug Button - Add 100k Gold (hidden temporarily) */}
+        {false && (
+          <Button
+            onClick={() => coinSystem.addCoins(100000, 'admin_grant')}
+            className="absolute top-2 left-2 z-50 bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-3 py-1"
+          >
+            +100k Gold (Debug)
+          </Button>
+        )}
 
         {/* Retro Pixel Platform Scene */}
         <ErrorBoundary>
