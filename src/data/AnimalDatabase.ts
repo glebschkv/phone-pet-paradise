@@ -742,7 +742,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mischievous cat with silky fur who loves to jump and play during your focus sessions.',
     abilities: ['Cat Nap', 'Playful Pounce', 'Whisker Wisdom'],
     biome: 'Meadow',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/Cat_Walk.png',
       frameCount: 11,
@@ -761,7 +761,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mystical fox spirit with flowing tails that dances gracefully through your sessions.',
     abilities: ['Fox Magic', 'Spirit Dash', 'Mystic Leap'],
     biome: 'Night',
-    groundOffset: 0.15,
+    groundOffset: -9.35,
     spriteConfig: {
       spritePath: '/assets/sprites/Kitsune_Walk.png',
       frameCount: 8,
@@ -780,7 +780,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'An energetic pup that jumps for joy and keeps your spirits high.',
     abilities: ['Tail Wag', 'Joyful Jump', 'Loyal Friend'],
     biome: 'Meadow',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/doggo_Walk.png',
       frameCount: 10,
@@ -799,7 +799,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A spotted companion full of tricks and boundless energy.',
     abilities: ['Spot Power', 'Quick Dash', 'Friendly Bark'],
     biome: 'Meadow',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/doggo2_Walk.png',
       frameCount: 10,
@@ -837,7 +837,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A majestic horse that gallops freely, bringing untamed energy to your focus.',
     abilities: ['Wild Gallop', 'Mane Power', 'Horse Leap'],
     biome: 'Sunset',
-    groundOffset: 0.15,
+    groundOffset: -0.35,
     spriteConfig: {
       spritePath: '/assets/sprites/Horse_Walk.png',
       frameCount: 6,
@@ -875,7 +875,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mischievous bat that sneers playfully and brings spooky fun to night sessions.',
     abilities: ['Night Flight', 'Spooky Sneer', 'Echo Focus'],
     biome: 'Night',
-    groundOffset: 0.15,
+    groundOffset: -0.35,
     spriteConfig: {
       spritePath: '/assets/sprites/VampireBat_walk.png',
       frameCount: 6,
@@ -896,7 +896,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'The mischievous ruler of goblins who sneers at distraction and commands focus.',
     abilities: ['Royal Sneer', 'Goblin Command', 'King\'s Focus'],
     biome: 'Ruins',
-    groundOffset: 0.15,
+    groundOffset: -0.35,
     spriteConfig: {
       spritePath: '/assets/sprites/GoblinKing_walk.png',
       frameCount: 6,
@@ -915,7 +915,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A magnificent fox with golden fur that shimmers with ancient wisdom.',
     abilities: ['Golden Glow', 'Fox Wisdom', 'Sunset Dash'],
     biome: 'Sunset',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/GoldenFox_Walk.png',
       frameCount: 8,
@@ -936,7 +936,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'An adorable dragon hatchling with tiny wings and a fiery spirit.',
     abilities: ['Baby Flame', 'Dragon Roar', 'Hatchling Power'],
     biome: 'Ruins',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/BabyDragon_Walk.png',
       frameCount: 8,
