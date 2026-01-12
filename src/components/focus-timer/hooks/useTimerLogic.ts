@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useDeviceActivity } from "@/hooks/useDeviceActivity";
-import { TimerPreset } from "../constants";
+import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { useTimerPersistence } from "./useTimerPersistence";
 import { useTimerAudio } from "./useTimerAudio";
 import { useAmbientSound } from "@/hooks/useAmbientSound";
@@ -69,6 +69,7 @@ export const useTimerLogic = () => {
 
   // Local state
   const [displayTime, setDisplayTime] = useState<number>(timerState.timeLeft);
+  const [elapsedTime, setElapsedTime] = useState<number>(timerState.elapsedTime || 0);
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [showLockScreen, setShowLockScreen] = useState(false);
   const [showSessionNotesModal, setShowSessionNotesModal] = useState(false);
@@ -105,15 +106,35 @@ export const useTimerLogic = () => {
   const setPreset = useCallback((preset: TimerPreset) => {
     if (!stateRef.current.timerState.isRunning) {
       setSelectedPreset(preset);
-      const newTimeLeft = preset.duration * 60;
-      setDisplayTime(newTimeLeft);
-      saveTimerState({
-        timeLeft: newTimeLeft,
-        sessionDuration: preset.duration * 60,
-        sessionType: preset.type,
-        isRunning: false,
-        startTime: null,
-      });
+
+      if (preset.isCountup) {
+        // Countup mode: start at 0, max duration is 6 hours
+        setElapsedTime(0);
+        setDisplayTime(0);
+        saveTimerState({
+          timeLeft: 0,
+          elapsedTime: 0,
+          sessionDuration: MAX_COUNTUP_DURATION,
+          sessionType: 'countup',
+          isRunning: false,
+          startTime: null,
+          isCountup: true,
+        });
+      } else {
+        // Countdown mode: start at preset duration
+        const newTimeLeft = preset.duration * 60;
+        setDisplayTime(newTimeLeft);
+        setElapsedTime(0);
+        saveTimerState({
+          timeLeft: newTimeLeft,
+          elapsedTime: 0,
+          sessionDuration: preset.duration * 60,
+          sessionType: preset.type,
+          isRunning: false,
+          startTime: null,
+          isCountup: false,
+        });
+      }
     }
   }, [setSelectedPreset, saveTimerState]);
 
@@ -142,7 +163,10 @@ export const useTimerLogic = () => {
     });
 
     try {
-      const completedMinutes = state.timerState.sessionDuration / 60;
+      // For countup mode, use elapsed time; for countdown, use session duration
+      const completedMinutes = state.timerState.isCountup
+        ? (state.timerState.elapsedTime || 0) / 60
+        : state.timerState.sessionDuration / 60;
 
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -199,15 +223,32 @@ export const useTimerLogic = () => {
         state.timerState.taskLabel
       );
 
-      setDisplayTime(state.timerState.sessionDuration);
-      saveTimerState({
-        isRunning: false,
-        timeLeft: state.timerState.sessionDuration,
-        startTime: null,
-        completedSessions: state.timerState.completedSessions + 1,
-        category: undefined,
-        taskLabel: undefined,
-      });
+      // Reset display based on mode
+      if (state.timerState.isCountup) {
+        // For countup, reset to 0
+        setElapsedTime(0);
+        setDisplayTime(0);
+        saveTimerState({
+          isRunning: false,
+          timeLeft: 0,
+          elapsedTime: 0,
+          startTime: null,
+          completedSessions: state.timerState.completedSessions + 1,
+          category: undefined,
+          taskLabel: undefined,
+        });
+      } else {
+        // For countdown, reset to session duration
+        setDisplayTime(state.timerState.sessionDuration);
+        saveTimerState({
+          isRunning: false,
+          timeLeft: state.timerState.sessionDuration,
+          startTime: null,
+          completedSessions: state.timerState.completedSessions + 1,
+          category: undefined,
+          taskLabel: undefined,
+        });
+      }
 
       if (state.timerState.sessionType !== 'break') {
         setLastSessionXP(xpEarned);
@@ -272,6 +313,7 @@ export const useTimerLogic = () => {
     timerState,
     saveTimerState,
     setDisplayTime,
+    setElapsedTime,
     setShowLockScreen,
     handleComplete,
     intervalRef,
@@ -347,6 +389,7 @@ export const useTimerLogic = () => {
     // State
     timerState,
     displayTime,
+    elapsedTime,
     selectedPreset,
     showIntentionModal,
     showLockScreen,

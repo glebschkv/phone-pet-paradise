@@ -1,5 +1,5 @@
 import { Volume2, VolumeX } from "lucide-react";
-import { TimerPreset, formatTime } from "./constants";
+import { TimerPreset, formatTime, MAX_COUNTUP_DURATION } from "./constants";
 import { ariaLabel, formatTimeForScreenReader } from "@/lib/accessibility";
 
 interface TimerDisplayProps {
@@ -9,6 +9,8 @@ interface TimerDisplayProps {
   isRunning: boolean;
   soundEnabled: boolean;
   onToggleSound: () => void;
+  isCountup?: boolean;
+  elapsedTime?: number;
 }
 
 export const TimerDisplay = ({
@@ -17,9 +19,18 @@ export const TimerDisplay = ({
   sessionDuration,
   isRunning,
   soundEnabled,
-  onToggleSound
+  onToggleSound,
+  isCountup = false,
+  elapsedTime = 0
 }: TimerDisplayProps) => {
-  const progress = sessionDuration > 0 ? ((sessionDuration - timeLeft) / sessionDuration) * 100 : 0;
+  // For countup mode, show elapsed time; for countdown, show remaining time
+  const displayTime = isCountup ? elapsedTime : timeLeft;
+
+  // For countup mode, progress is based on elapsed time toward max duration
+  // For countdown mode, progress is based on time spent in session
+  const progress = isCountup
+    ? (elapsedTime / MAX_COUNTUP_DURATION) * 100
+    : sessionDuration > 0 ? ((sessionDuration - timeLeft) / sessionDuration) * 100 : 0;
   const progressPercent = Math.round(progress);
 
   return (
@@ -39,7 +50,9 @@ export const TimerDisplay = ({
           </div>
           <div>
             <h2 className="text-base font-bold text-foreground">{preset.name}</h2>
-            <p className="text-xs text-muted-foreground">{preset.duration} minutes</p>
+            <p className="text-xs text-muted-foreground">
+              {isCountup ? 'Up to 6 hours' : `${preset.duration} minutes`}
+            </p>
           </div>
         </div>
         <button
@@ -66,9 +79,9 @@ export const TimerDisplay = ({
           role="timer"
           aria-live="polite"
           aria-atomic="true"
-          aria-label={`Time remaining: ${formatTimeForScreenReader(timeLeft)}`}
+          aria-label={isCountup ? `Time elapsed: ${formatTimeForScreenReader(displayTime)}` : `Time remaining: ${formatTimeForScreenReader(displayTime)}`}
         >
-          {formatTime(timeLeft)}
+          {formatTime(displayTime)}
         </div>
 
         {/* Progress Bar */}
@@ -78,7 +91,7 @@ export const TimerDisplay = ({
           aria-valuenow={progressPercent}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`Session progress: ${progressPercent}% complete`}
+          aria-label={isCountup ? `Elapsed: ${progressPercent}% of 6 hours` : `Session progress: ${progressPercent}% complete`}
         >
           <div
             className="retro-xp-fill"
@@ -89,7 +102,7 @@ export const TimerDisplay = ({
         </div>
 
         <p className="text-sm font-medium text-muted-foreground mt-3" aria-live="polite">
-          {isRunning ? 'Focus time...' : 'Ready to focus'}
+          {isRunning ? (isCountup ? 'Counting up...' : 'Focus time...') : 'Ready to focus'}
         </p>
       </div>
     </div>

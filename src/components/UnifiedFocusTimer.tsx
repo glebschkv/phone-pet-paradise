@@ -33,6 +33,7 @@ export const UnifiedFocusTimer = () => {
   const {
     timerState,
     displayTime,
+    elapsedTime,
     selectedPreset,
     showIntentionModal,
     showLockScreen,
@@ -73,6 +74,7 @@ export const UnifiedFocusTimer = () => {
             onViewChange={setCurrentView}
             timerState={timerState}
             displayTime={displayTime}
+            elapsedTime={elapsedTime}
             selectedPreset={selectedPreset}
             onStart={requestStartTimer}
             onPause={pauseTimer}

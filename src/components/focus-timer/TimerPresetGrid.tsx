@@ -80,7 +80,7 @@ export const TimerPresetGrid = ({
               disabled={isRunning}
               role="radio"
               aria-checked={isSelected}
-              aria-label={`${preset.name}: ${preset.duration} minutes${isBreak ? ' (break)' : ''}`}
+              aria-label={`${preset.name}: ${preset.isCountup ? 'open-ended up to 6 hours' : `${preset.duration} minutes`}${isBreak ? ' (break)' : ''}`}
               tabIndex={isSelected ? 0 : -1}
               className={cn(
                 "p-3 rounded-lg text-center active-scale transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
@@ -100,13 +100,13 @@ export const TimerPresetGrid = ({
             >
               <Icon className={cn(
                 "w-5 h-5 mx-auto mb-1",
-                isSelected ? "text-white" : isBreak ? "text-warning" : "text-primary"
+                isSelected ? "text-white" : isBreak ? "text-warning" : preset.isCountup ? "text-info" : "text-primary"
               )} />
               <div className={cn(
                 "text-xs font-semibold",
                 isSelected ? "text-white" : "text-foreground"
               )}>
-                {preset.duration}m
+                {preset.isCountup ? '∞' : `${preset.duration}m`}
               </div>
               <div className={cn(
                 "text-[10px]",

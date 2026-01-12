@@ -10,7 +10,8 @@ import {
   TimerPreset,
   STORAGE_KEY,
   TIMER_PRESETS,
-  DEFAULT_TIMER_STATE
+  DEFAULT_TIMER_STATE,
+  MAX_COUNTUP_DURATION
 } from '../constants';
 
 // Re-export TimerState for other modules
@@ -72,7 +73,12 @@ export const useTimerPersistence = (): UseTimerPersistenceReturn => {
         const completedSessions = isNonNegativeInteger(parsed.completedSessions) ? parsed.completedSessions : 0;
 
         // Validate session type
-        const sessionType = parsed.sessionType === 'break' ? 'break' : 'pomodoro';
+        const validSessionTypes = ['pomodoro', 'deep-work', 'break', 'countup'];
+        const sessionType = validSessionTypes.includes(parsed.sessionType) ? parsed.sessionType : 'pomodoro';
+
+        // Validate countup fields
+        const isCountup = typeof parsed.isCountup === 'boolean' ? parsed.isCountup : false;
+        const elapsedTime = isNonNegativeInteger(parsed.elapsedTime) ? parsed.elapsedTime : 0;
 
         let finalState: TimerState = {
           timeLeft: Math.min(timeLeft, sessionDuration),
@@ -84,38 +90,67 @@ export const useTimerPersistence = (): UseTimerPersistenceReturn => {
           completedSessions,
           category: typeof parsed.category === 'string' ? parsed.category : undefined,
           taskLabel: typeof parsed.taskLabel === 'string' ? parsed.taskLabel : undefined,
+          isCountup,
+          elapsedTime,
         };
 
-        // If timer was running when app closed, calculate remaining time
+        // If timer was running when app closed, calculate remaining/elapsed time
         if (finalState.isRunning && finalState.startTime) {
           const now = Date.now();
           const elapsedMs = now - finalState.startTime;
           const elapsedSeconds = Math.floor(elapsedMs / 1000);
 
-          // Validate elapsed time is reasonable (not negative, not too large)
-          if (elapsedSeconds >= 0 && elapsedSeconds <= TIMER_VALIDATION.MAX_DURATION_SECONDS) {
-            const newTimeLeft = Math.max(0, finalState.sessionDuration - elapsedSeconds);
-
-            finalState = {
-              ...finalState,
-              timeLeft: newTimeLeft,
-              isRunning: newTimeLeft > 0,
-              startTime: newTimeLeft > 0 ? finalState.startTime : null
-            };
+          if (finalState.isCountup) {
+            // For countup mode, calculate total elapsed time
+            if (elapsedSeconds >= 0 && elapsedSeconds <= MAX_COUNTUP_DURATION) {
+              const totalElapsed = Math.min(elapsedSeconds, MAX_COUNTUP_DURATION);
+              finalState = {
+                ...finalState,
+                elapsedTime: totalElapsed,
+                isRunning: totalElapsed < MAX_COUNTUP_DURATION,
+                startTime: totalElapsed < MAX_COUNTUP_DURATION ? finalState.startTime : null
+              };
+            } else {
+              // Invalid elapsed time or exceeded max, reset running state
+              finalState = {
+                ...finalState,
+                isRunning: false,
+                startTime: null,
+                elapsedTime: Math.min(elapsedSeconds, MAX_COUNTUP_DURATION)
+              };
+            }
           } else {
-            // Invalid elapsed time, reset running state
-            finalState = {
-              ...finalState,
-              isRunning: false,
-              startTime: null
-            };
+            // For countdown mode, calculate remaining time
+            // Validate elapsed time is reasonable (not negative, not too large)
+            if (elapsedSeconds >= 0 && elapsedSeconds <= TIMER_VALIDATION.MAX_DURATION_SECONDS) {
+              const newTimeLeft = Math.max(0, finalState.sessionDuration - elapsedSeconds);
+
+              finalState = {
+                ...finalState,
+                timeLeft: newTimeLeft,
+                isRunning: newTimeLeft > 0,
+                startTime: newTimeLeft > 0 ? finalState.startTime : null
+              };
+            } else {
+              // Invalid elapsed time, reset running state
+              finalState = {
+                ...finalState,
+                isRunning: false,
+                startTime: null
+              };
+            }
           }
         }
 
         setTimerState(finalState);
 
         // Set the corresponding preset
-        const preset = TIMER_PRESETS.find(p => p.duration === finalState.sessionDuration / 60);
+        let preset: TimerPreset | undefined;
+        if (finalState.isCountup) {
+          preset = TIMER_PRESETS.find(p => p.isCountup);
+        } else {
+          preset = TIMER_PRESETS.find(p => p.duration === finalState.sessionDuration / 60 && !p.isCountup);
+        }
         if (preset) {
           setSelectedPreset(preset);
         }
