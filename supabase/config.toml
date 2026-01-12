@@ -48,3 +48,6 @@ verify_jwt = true
 
 [functions.delete-account]
 verify_jwt = true
+
+[functions.validate-coins]
+verify_jwt = false

@@ -65,27 +65,43 @@ const getProductionOrigins = (): string[] => {
   return [];
 };
 
-const ALLOWED_ORIGINS = [
+const STATIC_ALLOWED_ORIGINS = [
   'capacitor://localhost',
   'ionic://localhost',
-  ...getProductionOrigins(),
+  'http://localhost:5173',
+  'http://localhost:8080',
+  'http://localhost:3000',
 ];
 
-const isDevelopment = Deno.env.get('ENVIRONMENT') !== 'production';
-if (isDevelopment) {
-  ALLOWED_ORIGINS.push('http://localhost:5173', 'http://localhost:8080');
-}
+const isAllowedOrigin = (origin: string | null): boolean => {
+  if (!origin) return false;
+  
+  // Check static origins
+  if (STATIC_ALLOWED_ORIGINS.includes(origin)) return true;
+  
+  // Check production origins from env
+  const productionOrigins = getProductionOrigins();
+  if (productionOrigins.includes(origin)) return true;
+  
+  // Allow Lovable preview domains (*.lovableproject.com)
+  if (origin.endsWith('.lovableproject.com') || origin.includes('.lovableproject.com')) return true;
+  
+  // Allow Lovable dev domains
+  if (origin.endsWith('.lovable.app') || origin.includes('.lovable.app')) return true;
+  
+  return false;
+};
 
 const getCorsHeaders = (origin: string | null) => {
-  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
+  if (isAllowedOrigin(origin)) {
     return {
-      'Access-Control-Allow-Origin': 'null',
+      'Access-Control-Allow-Origin': origin!,
       'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
     };
   }
   return {
-    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Origin': 'null',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
