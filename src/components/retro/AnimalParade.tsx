@@ -4,7 +4,7 @@ import { AnimalData } from '@/data/AnimalDatabase';
 import { useAnimalPositionRegistry } from './useAnimalPositions';
 
 // Debug ruler overlay - set to true to show measurement lines
-const SHOW_DEBUG_RULER = true;
+const SHOW_DEBUG_RULER = false;
 
 const DebugRulerOverlay = memo(({ groundLevel }: { groundLevel: number }) => {
   const lines = [];
