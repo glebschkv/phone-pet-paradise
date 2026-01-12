@@ -48,6 +48,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'Your first companion! A cheerful frog with a dewdrop on its head that brings refreshing energy to your focus sessions.',
     abilities: ['Fresh Start', 'Dewdrop Shield', 'Hop Focus'],
     biome: 'Meadow',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/meadow/dewdrop-frog-walk.png',
       idleSprite: '/assets/sprites/meadow/dewdrop-frog.png',
@@ -67,6 +68,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A gentle bunny with a sprouting plant on its head, nurturing your growth with every session.',
     abilities: ['Growth Boost', 'Nature Bond', 'Gentle Hop'],
     biome: 'Meadow',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/meadow/sprout-bunny-walk.png',
       idleSprite: '/assets/sprites/meadow/sprout-bunny.png',
@@ -87,6 +89,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A fluffy flower spirit that spreads petals of calm wherever it goes.',
     abilities: ['Petal Dance', 'Calm Aura', 'Bloom Power'],
     biome: 'Meadow',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/meadow/petal-puff-walk.png',
       idleSprite: '/assets/sprites/meadow/petal-puff.png',
@@ -107,6 +110,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A busy little bee that buzzes with productive energy and sweet motivation.',
     abilities: ['Busy Buzz', 'Sweet Focus', 'Pollen Power'],
     biome: 'Meadow',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/meadow/honey-bee-walk.png',
       idleSprite: '/assets/sprites/meadow/honey-bee.png',
@@ -127,6 +131,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A playful squirrel that saves up energy like acorns for when you need it most.',
     abilities: ['Acorn Stash', 'Quick Dash', 'Forest Friend'],
     biome: 'Meadow',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/meadow/acorn-squirrel-walk.png',
       idleSprite: '/assets/sprites/meadow/acorn-squirrel.png',
@@ -146,6 +151,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A zen panda that brings peace and balanced energy to your focus time.',
     abilities: ['Zen Focus', 'Bamboo Strength', 'Peaceful Mind'],
     biome: 'Meadow',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/meadow/panda-walk.png',
       idleSprite: '/assets/sprites/meadow/panda.png',
@@ -166,6 +172,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A cuddly bear that rewards your hard work with sweet honey motivation.',
     abilities: ['Honey Time', 'Bear Hug', 'Sweet Reward'],
     biome: 'Meadow',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/meadow/honey-bear-walk.png',
       idleSprite: '/assets/sprites/meadow/honey-bear.png',
@@ -189,6 +196,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A lucky cat with a four-leaf clover that brings fortune to your sessions.',
     abilities: ['Lucky Charm', 'Clover Shield', 'Fortune Focus'],
     biome: 'Meadow',
+    groundOffset: -2.85,
     spriteConfig: {
       spritePath: '/assets/sprites/meadow/clover-cat-walk.png',
       idleSprite: '/assets/sprites/meadow/clover-cat.png',
@@ -211,6 +219,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'The royal ruler of all slimes, bouncing with majestic energy.',
     abilities: ['Royal Bounce', 'Slime Shield', 'King\'s Focus'],
     biome: 'Meadow',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/meadow/slime-king-walk.png',
       idleSprite: '/assets/sprites/meadow/slime-king.png',
@@ -358,6 +367,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A magnificent moth with golden wings that sparkle in the sunset light.',
     abilities: ['Golden Dust', 'Twilight Dance', 'Moth Glow'],
     biome: 'Sunset',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/sunset/golden-moth-walk.png',
       idleSprite: '/assets/sprites/sunset/golden-moth.png',
@@ -442,6 +452,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A friendly ghost that floats alongside you, bringing supernatural focus.',
     abilities: ['Ghost Float', 'Boo Boost', 'Spirit Shield'],
     biome: 'Night',
+    groundOffset: -2.85,
     spriteConfig: {
       spritePath: '/assets/sprites/night/cute-ghost-walk.png',
       idleSprite: '/assets/sprites/night/cute-ghost.png',
@@ -463,6 +474,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mystical nine-tailed fox spirit with ancient wisdom and magical powers.',
     abilities: ['Fox Fire', 'Spirit Wisdom', 'Nine Tails'],
     biome: 'Night',
+    groundOffset: -2.85,
     spriteConfig: {
       spritePath: '/assets/sprites/night/kitsune-spirit-walk.png',
       idleSprite: '/assets/sprites/night/kitsune-spirit.png',
@@ -551,7 +563,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A young wizard in training who casts spells of concentration.',
     abilities: ['Magic Focus', 'Star Spell', 'Wizard Wisdom'],
     biome: 'Snow',
-    groundOffset: -4.65,
+    groundOffset: -2.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/star-wizard-walk.png',
       idleSprite: '/assets/sprites/humanoid/star-wizard.png',
@@ -571,7 +583,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A cheerful kid in a mushroom costume, spreading fun and focus.',
     abilities: ['Spore Shield', 'Mushroom Power', 'Fun Focus'],
     biome: 'Snow',
-    groundOffset: -4.65,
+    groundOffset: -2.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/mushroom-kid-walk.png',
       idleSprite: '/assets/sprites/humanoid/mushroom-kid.png',
@@ -591,7 +603,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A cute kid wearing a bunny hood, hopping with enthusiasm.',
     abilities: ['Bunny Hop', 'Ear Power', 'Happy Bounce'],
     biome: 'Snow',
-    groundOffset: -4.65,
+    groundOffset: -3.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/bunny-hood-walk.png',
       idleSprite: '/assets/sprites/humanoid/bunny-hood.png',
@@ -611,7 +623,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A magical fairy surrounded by flower petals and sparkles.',
     abilities: ['Fairy Dust', 'Flower Power', 'Magic Wings'],
     biome: 'City',
-    groundOffset: -4.65,
+    groundOffset: -3.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/flower-fairy-walk.png',
       idleSprite: '/assets/sprites/humanoid/flower-fairy.png',
@@ -631,7 +643,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A kid in an adorable penguin costume, waddling with determination.',
     abilities: ['Waddle Walk', 'Ice Slide', 'Cool Focus'],
     biome: 'City',
-    groundOffset: -4.65,
+    groundOffset: -3.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/penguin-kid-walk.png',
       idleSprite: '/assets/sprites/humanoid/penguin-kid.png',
@@ -652,7 +664,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A young adventurer dressed as a pirate, seeking treasure and knowledge.',
     abilities: ['Treasure Hunt', 'Pirate Spirit', 'Adventure Focus'],
     biome: 'City',
-    groundOffset: -4.65,
+    groundOffset: -2.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/pirate-kid-walk.png',
       idleSprite: '/assets/sprites/humanoid/pirate-kid.png',
@@ -672,7 +684,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A brave knight in dragon armor, ready to conquer any challenge.',
     abilities: ['Dragon Fire', 'Knight Shield', 'Brave Focus'],
     biome: 'Ruins',
-    groundOffset: -4.65,
+    groundOffset: -3.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/dragon-knight-walk.png',
       idleSprite: '/assets/sprites/humanoid/dragon-knight.png',
@@ -695,7 +707,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A playful kid in a cat hood costume, full of curiosity and energy.',
     abilities: ['Cat Nap', 'Meow Power', 'Curious Focus'],
     biome: 'Snow',
-    groundOffset: -4.65,
+    groundOffset: -2.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/cat-hood-walk.png',
       idleSprite: '/assets/sprites/humanoid/cat-hood.png',
@@ -718,7 +730,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A friendly robot companion programmed to maximize your productivity.',
     abilities: ['Power Mode', 'System Boost', 'Binary Focus'],
     biome: 'City',
-    groundOffset: -4.65,
+    groundOffset: -2.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/robot-buddy-walk.png',
       idleSprite: '/assets/sprites/humanoid/robot-buddy.png',
@@ -742,7 +754,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mischievous cat with silky fur who loves to jump and play during your focus sessions.',
     abilities: ['Cat Nap', 'Playful Pounce', 'Whisker Wisdom'],
     biome: 'Meadow',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/Cat_Walk.png',
       frameCount: 11,
@@ -761,7 +773,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mystical fox spirit with flowing tails that dances gracefully through your sessions.',
     abilities: ['Fox Magic', 'Spirit Dash', 'Mystic Leap'],
     biome: 'Night',
-    groundOffset: 0.15,
+    groundOffset: -9.35,
     spriteConfig: {
       spritePath: '/assets/sprites/Kitsune_Walk.png',
       frameCount: 8,
@@ -780,7 +792,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'An energetic pup that jumps for joy and keeps your spirits high.',
     abilities: ['Tail Wag', 'Joyful Jump', 'Loyal Friend'],
     biome: 'Meadow',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/doggo_Walk.png',
       frameCount: 10,
@@ -799,7 +811,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A spotted companion full of tricks and boundless energy.',
     abilities: ['Spot Power', 'Quick Dash', 'Friendly Bark'],
     biome: 'Meadow',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/doggo2_Walk.png',
       frameCount: 10,
@@ -837,7 +849,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A majestic horse that gallops freely, bringing untamed energy to your focus.',
     abilities: ['Wild Gallop', 'Mane Power', 'Horse Leap'],
     biome: 'Sunset',
-    groundOffset: 0.15,
+    groundOffset: -0.35,
     spriteConfig: {
       spritePath: '/assets/sprites/Horse_Walk.png',
       frameCount: 6,
@@ -875,7 +887,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mischievous bat that sneers playfully and brings spooky fun to night sessions.',
     abilities: ['Night Flight', 'Spooky Sneer', 'Echo Focus'],
     biome: 'Night',
-    groundOffset: 0.15,
+    groundOffset: -0.35,
     spriteConfig: {
       spritePath: '/assets/sprites/VampireBat_walk.png',
       frameCount: 6,
@@ -896,7 +908,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'The mischievous ruler of goblins who sneers at distraction and commands focus.',
     abilities: ['Royal Sneer', 'Goblin Command', 'King\'s Focus'],
     biome: 'Ruins',
-    groundOffset: 0.15,
+    groundOffset: -0.35,
     spriteConfig: {
       spritePath: '/assets/sprites/GoblinKing_walk.png',
       frameCount: 6,
@@ -915,7 +927,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A magnificent fox with golden fur that shimmers with ancient wisdom.',
     abilities: ['Golden Glow', 'Fox Wisdom', 'Sunset Dash'],
     biome: 'Sunset',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/GoldenFox_Walk.png',
       frameCount: 8,
@@ -936,7 +948,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'An adorable dragon hatchling with tiny wings and a fiery spirit.',
     abilities: ['Baby Flame', 'Dragon Roar', 'Hatchling Power'],
     biome: 'Ruins',
-    groundOffset: -0.35,
+    groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/BabyDragon_Walk.png',
       frameCount: 8,
