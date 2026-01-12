@@ -242,7 +242,8 @@ serve(async (req) => {
 
     if (body.operation === 'earn') {
       // SECURITY: Validate earn request
-      if (amount > MAX_EARN_AMOUNT) {
+      // Allow admin_grant to bypass the limit for debug/testing purposes
+      if (amount > MAX_EARN_AMOUNT && body.source !== 'admin_grant') {
         throw new Error(`Invalid earn amount: cannot exceed ${MAX_EARN_AMOUNT}`);
       }
 
