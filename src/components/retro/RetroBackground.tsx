@@ -9,6 +9,7 @@ import {
   CityHomeBackground,
   RuinsHomeBackground,
   DeepOceanHomeBackground,
+  DebugRulerBackground,
 } from './backgrounds';
 
 interface RetroBackgroundProps {
@@ -45,6 +46,8 @@ export const RetroBackground = memo(({ theme = 'day', customImage }: RetroBackgr
   }
 
   switch (theme) {
+    case 'debug':
+      return <DebugRulerBackground key="debug" />;
     case 'sunset':
       return <SunsetHomeBackground key="sunset" />;
     case 'night':
