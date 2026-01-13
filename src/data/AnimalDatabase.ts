@@ -326,6 +326,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A warm fox with ember-colored fur that glows during sunset focus sessions.',
     abilities: ['Sunset Glow', 'Warm Focus', 'Fox Fire'],
     biome: 'Sunset',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/sunset/ember-fox-walk.png',
       idleSprite: '/assets/sprites/sunset/ember-fox.png',
@@ -345,6 +346,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A wise owl that awakens at dusk, bringing wisdom to your evening sessions.',
     abilities: ['Dusk Wisdom', 'Night Vision', 'Owl Focus'],
     biome: 'Sunset',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/sunset/dusk-owl-walk.png',
       idleSprite: '/assets/sprites/sunset/dusk-owl.png',
@@ -391,6 +393,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mystical moth that dances under moonlight, bringing calm night focus.',
     abilities: ['Moonbeam', 'Night Flutter', 'Luna Shield'],
     biome: 'Night',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/night/luna-moth-walk.png',
       idleSprite: '/assets/sprites/night/luna-moth.png',
@@ -411,6 +414,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A translucent jellyfish that glows with starlight energy.',
     abilities: ['Star Glow', 'Jelly Float', 'Cosmic Calm'],
     biome: 'Night',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/night/star-jelly-walk.png',
       idleSprite: '/assets/sprites/night/star-jelly.png',
@@ -430,6 +434,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mysterious cat that blends with shadows, watching over your night sessions.',
     abilities: ['Shadow Step', 'Night Watch', 'Silent Focus'],
     biome: 'Night',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/night/shadow-cat-walk.png',
       idleSprite: '/assets/sprites/night/shadow-cat.png',
@@ -498,6 +503,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A fiery spirit that burns with passionate focus and determination.',
     abilities: ['Fire Focus', 'Ember Shield', 'Blaze Power'],
     biome: 'Forest',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/elemental/flame-spirit-walk.png',
       idleSprite: '/assets/sprites/elemental/flame-spirit.png',
@@ -518,6 +524,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A water spirit that flows with calm, refreshing energy.',
     abilities: ['Water Flow', 'Calm Waves', 'Aqua Shield'],
     biome: 'Forest',
+    groundOffset: -3.85,
     spriteConfig: {
       spritePath: '/assets/sprites/elemental/aqua-spirit-walk.png',
       idleSprite: '/assets/sprites/elemental/aqua-spirit.png',
@@ -754,7 +761,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mischievous cat with silky fur who loves to jump and play during your focus sessions.',
     abilities: ['Cat Nap', 'Playful Pounce', 'Whisker Wisdom'],
     biome: 'Meadow',
-    groundOffset: -2.35,
+    groundOffset: 0,
     spriteConfig: {
       spritePath: '/assets/sprites/Cat_Walk.png',
       frameCount: 11,
@@ -773,7 +780,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A mystical fox spirit with flowing tails that dances gracefully through your sessions.',
     abilities: ['Fox Magic', 'Spirit Dash', 'Mystic Leap'],
     biome: 'Night',
-    groundOffset: -9.35,
+    groundOffset: 0,
     spriteConfig: {
       spritePath: '/assets/sprites/Kitsune_Walk.png',
       frameCount: 8,
@@ -792,7 +799,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'An energetic pup that jumps for joy and keeps your spirits high.',
     abilities: ['Tail Wag', 'Joyful Jump', 'Loyal Friend'],
     biome: 'Meadow',
-    groundOffset: -2.35,
+    groundOffset: 0,
     spriteConfig: {
       spritePath: '/assets/sprites/doggo_Walk.png',
       frameCount: 10,
@@ -927,7 +934,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     description: 'A magnificent fox with golden fur that shimmers with ancient wisdom.',
     abilities: ['Golden Glow', 'Fox Wisdom', 'Sunset Dash'],
     biome: 'Sunset',
-    groundOffset: -2.35,
+    groundOffset: 0,
     spriteConfig: {
       spritePath: '/assets/sprites/GoldenFox_Walk.png',
       frameCount: 8,
