@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useXPSystem, XPReward } from '@/hooks/useXPSystem';
+import { useCoinSystem } from '@/hooks/useCoinSystem';
 import { useStreakSystem } from '@/hooks/useStreakSystem';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useDailyLoginRewards, DailyReward } from '@/hooks/useDailyLoginRewards';
@@ -16,6 +17,7 @@ const STORAGE_KEY = 'petIsland_appState';
 
 export const useAppStateTracking = () => {
   const xpSystem = useXPSystem();
+  const coinSystem = useCoinSystem();
   const streakSystem = useStreakSystem();
   const notifications = useNotifications();
   const dailyLoginRewards = useDailyLoginRewards();
@@ -181,7 +183,8 @@ export const useAppStateTracking = () => {
     let xpReward: XPReward | null = null;
 
     if (reward) {
-      if (reward.type === 'xp' || reward.type === 'mystery_bonus') {
+      // Award XP if present (all daily rewards have XP)
+      if (reward.xp > 0) {
         // Use addDirectXP which properly handles level-ups
         xpReward = xpSystem.addDirectXP(reward.xp);
 
@@ -192,13 +195,21 @@ export const useAppStateTracking = () => {
             currentReward: xpReward,
           });
         }
-      } else if (reward.type === 'streak_freeze') {
-        // Award streak freeze
-        streakSystem.earnStreakFreeze();
+      }
+
+      // Award coins if present (all daily rewards have coins)
+      if (reward.coins > 0) {
+        coinSystem.addCoins(reward.coins, 'daily_reward');
+        logger.debug(`Daily login: awarded ${reward.coins} coins`);
+      }
+
+      // Award streak freeze for streak_freeze type
+      if (reward.type === 'streak_freeze' && reward.streakFreeze) {
+        streakSystem.earnStreakFreeze(reward.streakFreeze);
       }
     }
     return { dailyReward: reward, xpReward };
-  }, [dailyLoginRewards, xpSystem, streakSystem, saveState]);
+  }, [dailyLoginRewards, xpSystem, coinSystem, streakSystem, saveState]);
 
   return {
     // XP System data

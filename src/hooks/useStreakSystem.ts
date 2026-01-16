@@ -43,22 +43,35 @@ export const useStreakSystem = () => {
 
     hasCheckedValidityRef.current = true;
 
-    const lastSession = new Date(lastSessionDate);
     const today = new Date();
-    const daysDiff = Math.floor((today.getTime() - lastSession.getTime()) / (1000 * 60 * 60 * 24));
+    const todayString = today.toDateString();
 
-    if (daysDiff > 1) {
-      // Streak is broken if more than 1 day has passed
-      if (streakFreezeCount > 0 && daysDiff === 2) {
-        // Use a streak freeze
-        storeUseStreakFreeze();
-        streakLogger.debug('Streak freeze auto-used');
-      } else {
-        // Break the streak
-        setStreak(0);
-        streakLogger.debug('Streak broken due to inactivity');
-      }
+    // Calculate yesterday's date string for comparison
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = yesterday.toDateString();
+
+    // Calculate day before yesterday for streak freeze logic
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const twoDaysAgoString = twoDaysAgo.toDateString();
+
+    // If the last session was today or yesterday, streak is valid
+    if (lastSessionDate === todayString || lastSessionDate === yesterdayString) {
+      // Streak is still valid
+      return;
     }
+
+    // If the last session was 2 days ago and we have a freeze, use it
+    if (lastSessionDate === twoDaysAgoString && streakFreezeCount > 0) {
+      storeUseStreakFreeze();
+      streakLogger.debug('Streak freeze auto-used');
+      return;
+    }
+
+    // Streak is broken - more than 1 day has passed
+    setStreak(0);
+    streakLogger.debug('Streak broken due to inactivity');
   }, [lastSessionDate, streakFreezeCount, storeUseStreakFreeze, setStreak]);
 
   // Listen for streak freeze grants from premium subscription

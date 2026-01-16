@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { questLogger } from '@/lib/logger';
 import { useXPStore } from '@/stores/xpStore';
+import { useCoinStore } from '@/stores/coinStore';
 import { QUEST_CONFIG } from '@/lib/constants';
 import type {
   Quest,
@@ -148,6 +149,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
   const [quests, setQuests] = useState<Quest[]>([]);
   const { toast } = useToast();
   const { addXP, addAnimal } = useXPStore();
+  const { addCoins } = useCoinStore();
 
   // Load quest data
   const loadQuestData = useCallback(() => {
@@ -286,8 +288,9 @@ export const useQuestSystem = (): QuestSystemReturn => {
     const quest = quests.find(q => q.id === questId);
     if (!quest || quest.isCompleted) return;
 
-    // Track total XP earned for the toast
+    // Track rewards for the toast
     let totalXPEarned = 0;
+    let totalCoinsEarned = 0;
     const unlockedPets: string[] = [];
 
     // Process and apply rewards
@@ -298,6 +301,13 @@ export const useQuestSystem = (): QuestSystemReturn => {
             addXP(reward.amount);
             totalXPEarned += reward.amount;
             questLogger.debug(`Applied ${reward.amount} XP reward from quest ${questId}`);
+          }
+          break;
+        case 'coins':
+          if (reward.amount) {
+            addCoins(reward.amount);
+            totalCoinsEarned += reward.amount;
+            questLogger.debug(`Applied ${reward.amount} coins reward from quest ${questId}`);
           }
           break;
         case 'pet_unlock':
@@ -322,6 +332,9 @@ export const useQuestSystem = (): QuestSystemReturn => {
     if (totalXPEarned > 0) {
       rewardMessages.push(`+${totalXPEarned} XP`);
     }
+    if (totalCoinsEarned > 0) {
+      rewardMessages.push(`+${totalCoinsEarned} coins`);
+    }
     if (unlockedPets.length > 0) {
       rewardMessages.push(unlockedPets.join(', '));
     }
@@ -338,7 +351,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
       saveQuestData(updated);
       return updated;
     });
-  }, [quests, toast, saveQuestData, addXP, addAnimal]);
+  }, [quests, toast, saveQuestData, addXP, addCoins, addAnimal]);
 
   // Get quest by ID
   const getQuestById = useCallback((questId: string): Quest | undefined => {
