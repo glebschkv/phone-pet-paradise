@@ -3,8 +3,8 @@ import { SpriteAnimal } from './SpriteAnimal';
 import { AnimalData } from '@/data/AnimalDatabase';
 import { useAnimalPositionRegistry } from './useAnimalPositions';
 
-// Debug ruler overlay - set to true to show measurement lines
-const SHOW_DEBUG_RULER = true;
+// Debug ruler overlay - only enabled in development mode
+const SHOW_DEBUG_RULER = import.meta.env.DEV;
 
 const DebugRulerOverlay = memo(({ groundLevel }: { groundLevel: number }) => {
   const lines = [];

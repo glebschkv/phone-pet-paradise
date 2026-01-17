@@ -1,12 +1,13 @@
 import { Crown, ChevronRight, Check, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { BackgroundBundle, ShopItem } from "@/data/ShopData";
+import { BackgroundBundle, ShopItem, COIN_PACKS } from "@/data/ShopData";
 import { BACKGROUND_BUNDLES, STARTER_BUNDLES } from "@/data/ShopData";
 import type { ShopInventory } from "@/hooks/useShop";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
 import { SpritePreview, BundlePreviewCarousel } from "../ShopPreviewComponents";
 import type { ShopCategory } from "@/data/ShopData";
+import { useStoreKit } from "@/hooks/useStoreKit";
 
 interface FeaturedTabProps {
   inventory: ShopInventory;
@@ -38,6 +39,28 @@ export const FeaturedTab = ({
   canAfford,
 }: FeaturedTabProps) => {
   const bestSellingPets = getCoinExclusiveAnimals().slice(0, 2);
+  const storeKit = useStoreKit();
+  const megaPack = COIN_PACKS.find(pack => pack.id === 'coins-mega');
+
+  const handlePurchaseMegaPack = async () => {
+    if (!megaPack?.iapProductId) {
+      toast.error("Product not available");
+      return;
+    }
+
+    try {
+      const result = await storeKit.purchaseProduct(megaPack.iapProductId);
+      if (result.success) {
+        toast.success(`Successfully purchased ${megaPack.name}!`);
+      } else if (result.cancelled) {
+        // User cancelled - no toast needed
+      } else {
+        toast.error(result.error || "Purchase failed");
+      }
+    } catch (_error) {
+      toast.error("Unable to complete purchase");
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -219,7 +242,7 @@ export const FeaturedTab = ({
           <span>💰</span> Best Value
         </h4>
         <button
-          onClick={() => toast.info("In-app purchases coming soon!")}
+          onClick={handlePurchaseMegaPack}
           className="w-full p-4 rounded-xl text-left bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-3">

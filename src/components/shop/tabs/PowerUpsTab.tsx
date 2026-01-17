@@ -1,11 +1,12 @@
 import { Coins, Check, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ShopItem, getShopItemsByCategory, COIN_PACKS, PROFILE_BADGES } from "@/data/ShopData";
+import { ShopItem, getShopItemsByCategory, COIN_PACKS, PROFILE_BADGES, CoinPack } from "@/data/ShopData";
 import type { ShopInventory } from "@/hooks/useShop";
 import { AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
 import { RARITY_BG, RARITY_BORDER } from "../styles";
 import type { ShopCategory } from "@/data/ShopData";
+import { useStoreKit } from "@/hooks/useStoreKit";
 
 interface PowerUpsTabProps {
   inventory: ShopInventory;
@@ -33,6 +34,27 @@ export const PowerUpsTab = ({
   const boosters = items.filter(i => i.id.includes('boost') || i.id.includes('pass'));
   const utilities = items.filter(i => i.id.includes('streak'));
   const coins = COIN_PACKS;
+  const storeKit = useStoreKit();
+
+  const handlePurchaseCoinPack = async (pack: CoinPack) => {
+    if (!pack.iapProductId) {
+      toast.error("Product not available");
+      return;
+    }
+
+    try {
+      const result = await storeKit.purchaseProduct(pack.iapProductId);
+      if (result.success) {
+        toast.success(`Successfully purchased ${pack.name}!`);
+      } else if (result.cancelled) {
+        // User cancelled - no toast needed
+      } else {
+        toast.error(result.error || "Purchase failed");
+      }
+    } catch (_error) {
+      toast.error("Unable to complete purchase");
+    }
+  };
 
   const handleEquipBadge = (badgeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -197,7 +219,7 @@ export const PowerUpsTab = ({
           {coins.map((pack) => (
             <button
               key={pack.id}
-              onClick={() => toast.info("In-app purchases coming soon!")}
+              onClick={() => handlePurchaseCoinPack(pack)}
               className={cn(
                 "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2",
                 pack.isBestValue
