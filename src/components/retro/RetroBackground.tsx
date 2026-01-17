@@ -47,7 +47,8 @@ export const RetroBackground = memo(({ theme = 'day', customImage }: RetroBackgr
 
   switch (theme) {
     case 'debug':
-      return <DebugRulerBackground key="debug" />;
+      // Only show debug background in development mode
+      return import.meta.env.DEV ? <DebugRulerBackground key="debug" /> : <DayHomeBackground key="day" />;
     case 'sunset':
       return <SunsetHomeBackground key="sunset" />;
     case 'night':
