@@ -974,7 +974,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 0,
     description: 'A peaceful meadow where your journey begins. Home to friendly creatures.',
     animals: ['dewdrop-frog', 'sprout-bunny', 'petal-puff', 'honey-bee', 'acorn-squirrel', 'panda', 'honey-bear', 'clover-cat', 'slime-king', 'frog-hood', 'bear-hood', 'playful-cat', 'happy-doggo', 'spotted-doggo'],
-    backgroundImage: '/assets/worlds/MEADOW.png',
+    backgroundImage: '/assets/worlds/meadowbiome.png',
     groundLevel: 16.15
   },
   {
@@ -982,7 +982,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 5,
     description: 'Golden fields bathed in warm sunset light.',
     animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood', 'wild-horse', 'sea-turtle', 'golden-fox'],
-    backgroundImage: '/assets/worlds/SUNSET_WINDMILL.png',
+    backgroundImage: '/assets/worlds/autumnbiome1.png',
     groundLevel: 19
   },
   {
@@ -998,7 +998,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 13,
     description: 'An enchanted forest where elemental spirits dwell.',
     animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid', 'dude-monster'],
-    backgroundImage: '/assets/worlds/FOREST_ENCHANTED.png',
+    backgroundImage: '/assets/worlds/junglebiome1.png',
     groundLevel: 17.7
   },
   {
@@ -1006,7 +1006,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 19,
     description: 'A winter wonderland of magical costume characters.',
     animals: ['star-wizard', 'mushroom-kid', 'bunny-hood', 'cat-hood'],
-    backgroundImage: '/assets/worlds/SNOW_SKY.png',
+    backgroundImage: '/assets/worlds/snowbiome1.png',
     groundLevel: 16.1
   },
   {
