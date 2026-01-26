@@ -1015,7 +1015,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A bustling city where unique characters gather.',
     animals: ['flower-fairy', 'penguin-kid', 'pirate-kid', 'robot-buddy'],
     backgroundImage: '/assets/worlds/CITY_NIGHT.png',
-    groundLevel: 18.5
+    groundLevel: 19
   }
 ];
 
