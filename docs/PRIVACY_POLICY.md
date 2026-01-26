@@ -1,7 +1,7 @@
 # Privacy Policy
 
 **NoMo Phone**
-**Last Updated: December 3, 2024**
+**Last Updated: January 26, 2025**
 **Effective Date: December 3, 2024**
 
 NoMo Inc. ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use the NoMo Phone mobile application (the "App").
@@ -72,6 +72,7 @@ We use the following third-party services:
 - **Apple StoreKit**: For processing in-app purchases and subscriptions. Apple's privacy policy applies to payment processing.
 - **Supabase**: For secure cloud data storage and authentication. Data is stored in compliance with industry security standards.
 - **Apple Push Notification Service (APNs)**: For optional push notifications. Notification preferences are controlled through iOS Settings.
+- **Error Reporting (Sentry)**: We use a minimal error reporting service to help us identify and fix app crashes and bugs. This service only collects technical error information (such as crash logs and error messages) and does not collect personal data, browsing history, or usage patterns. Error reporting is used solely for app stability improvements.
 
 We do not use any third-party analytics, advertising, or tracking services.
 

@@ -49,8 +49,6 @@
 	<string>UIStatusBarStyleLightContent</string>
 
 	<!-- Privacy Usage Descriptions -->
-	<key>NSUserTrackingUsageDescription</key>
-	<string>NoMo uses this to provide personalized focus insights and improve your experience.</string>
 	<key>NSFamilyControlsUsageDescription</key>
 	<string>NoMo uses Screen Time to track when you're away from your phone, rewarding you for staying focused.</string>
 
