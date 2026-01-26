@@ -23,7 +23,6 @@ const BIOME_CONFIG: Record<string, { bg: string; emoji: string }> = {
   'Forest': { bg: 'forest', emoji: '🌲' },
   'Snow': { bg: 'snow', emoji: '❄️' },
   'City': { bg: 'city', emoji: '🏙️' },
-  'Ruins': { bg: 'ruins', emoji: '🏛️' },
   'Deep Ocean': { bg: 'deepocean', emoji: '🌊' },
 };
 

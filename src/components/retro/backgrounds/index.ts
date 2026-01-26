@@ -12,6 +12,5 @@ export { NightHomeBackground } from './NightBackground';
 export { ForestHomeBackground } from './ForestBackground';
 export { SnowHomeBackground } from './SnowBackground';
 export { CityHomeBackground } from './CityBackground';
-export { RuinsHomeBackground } from './RuinsBackground';
 export { DeepOceanHomeBackground } from './DeepOceanBackground';
 export { DebugRulerBackground } from './DebugRulerBackground';

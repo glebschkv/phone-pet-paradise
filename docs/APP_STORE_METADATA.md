@@ -22,9 +22,9 @@ Set a focus timer and put your phone away. NoMo detects when you're away from yo
 
 Discover adorable pixel-art companions across four rarity tiers: Common, Rare, Epic, and Legendary. Each pet has its own personality and animations. Feed them, play with them, and watch them grow as you level up together.
 
-**EXPLORE 8 STUNNING WORLDS**
+**EXPLORE 7 STUNNING WORLDS**
 
-Journey through Meadow, Sunset, Night, Forest, Snow, City, Ruins, and Deep Ocean biomes. Each world features unique pets and breathtaking retro-inspired backgrounds for your island home.
+Journey through Meadow, Sunset, Night, Forest, Snow, City, and Deep Ocean biomes. Each world features unique pets and breathtaking retro-inspired backgrounds for your island home.
 
 **STAY MOTIVATED WITH GAMIFICATION**
 

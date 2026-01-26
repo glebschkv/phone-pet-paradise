@@ -33,7 +33,6 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
   'Forest': 'forest',
   'Snow': 'snow',
   'City': 'city',
-  'Ruins': 'ruins',
   'Deep Ocean': 'deepocean',
 };
 

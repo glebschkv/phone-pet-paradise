@@ -690,7 +690,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     unlockLevel: 20,
     description: 'A brave knight in dragon armor, ready to conquer any challenge.',
     abilities: ['Dragon Fire', 'Knight Shield', 'Brave Focus'],
-    biome: 'Ruins',
+    biome: 'City',
     groundOffset: -3.5,
     spriteConfig: {
       spritePath: '/assets/sprites/humanoid/dragon-knight-walk.png',
@@ -914,7 +914,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     isExclusive: true,
     description: 'The mischievous ruler of goblins who sneers at distraction and commands focus.',
     abilities: ['Royal Sneer', 'Goblin Command', 'King\'s Focus'],
-    biome: 'Ruins',
+    biome: 'City',
     groundOffset: -0.35,
     spriteConfig: {
       spritePath: '/assets/sprites/GoblinKing_walk.png',
@@ -954,7 +954,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     isExclusive: true,
     description: 'An adorable dragon hatchling with tiny wings and a fiery spirit.',
     abilities: ['Baby Flame', 'Dragon Roar', 'Hatchling Power'],
-    biome: 'Ruins',
+    biome: 'City',
     groundOffset: -2.35,
     spriteConfig: {
       spritePath: '/assets/sprites/BabyDragon_Walk.png',
@@ -1016,14 +1016,6 @@ export const BIOME_DATABASE: BiomeData[] = [
     animals: ['flower-fairy', 'penguin-kid', 'pirate-kid', 'robot-buddy'],
     backgroundImage: '/assets/worlds/CITY_NIGHT.png',
     groundLevel: 23
-  },
-  {
-    name: 'Ruins',
-    unlockLevel: 29,
-    description: 'Ancient ruins holding powerful warriors.',
-    animals: ['dragon-knight', 'goblin-king', 'baby-dragon'],
-    backgroundImage: '/assets/worlds/RUINS_OVERGROWN.png',
-    groundLevel: 17
   }
 ];
 
@@ -1075,7 +1067,6 @@ const THEME_TO_BIOME: Record<string, string> = {
   'forest': 'Forest',
   'snow': 'Snow',
   'city': 'City',
-  'ruins': 'Ruins',
   'deepocean': 'Meadow', // Fallback
 };
 
