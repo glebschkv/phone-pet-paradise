@@ -998,7 +998,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     unlockLevel: 13,
     description: 'An enchanted forest where elemental spirits dwell.',
     animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid', 'dude-monster'],
-    backgroundImage: '/assets/worlds/junglebiome1.png',
+    backgroundImage: '/assets/worlds/junglerealbackground.png',
     groundLevel: 17.7
   },
   {
