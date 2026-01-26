@@ -1,10 +1,7 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState, useEffect, useCallback } from 'react';
 import { SpriteAnimal } from './SpriteAnimal';
 import { AnimalData } from '@/data/AnimalDatabase';
 import { useAnimalPositionRegistry } from './useAnimalPositions';
-
-// Debug ruler overlay - only enabled in development mode
-const SHOW_DEBUG_RULER = import.meta.env.DEV;
 
 const DebugRulerOverlay = memo(({ groundLevel }: { groundLevel: number }) => {
   const lines = [];
@@ -14,6 +11,19 @@ const DebugRulerOverlay = memo(({ groundLevel }: { groundLevel: number }) => {
 
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1000 }}>
+      {/* Hint indicator */}
+      <div
+        className="absolute top-2 right-2 px-3 py-2 rounded font-mono text-xs"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          color: '#00ff00',
+          zIndex: 1002,
+        }}
+      >
+        <div className="font-bold">RULER ACTIVE</div>
+        <div style={{ color: '#888' }}>Press R to hide</div>
+        <div style={{ color: '#00cc00', marginTop: '4px' }}>Ground: {groundLevel}%</div>
+      </div>
       {lines.map((percent) => (
         <div
           key={percent}
@@ -71,6 +81,25 @@ interface AnimalParadeProps {
 }
 
 export const AnimalParade = memo(({ unlockedAnimals, groundLevel = 8 }: AnimalParadeProps) => {
+  // Debug ruler toggle state - press 'R' to toggle
+  const [showRuler, setShowRuler] = useState(false);
+
+  // Keyboard shortcut to toggle ruler
+  const handleKeyPress = useCallback((e: KeyboardEvent) => {
+    // Only toggle if not typing in an input field
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+    if (e.key === 'r' || e.key === 'R') {
+      setShowRuler(prev => !prev);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [handleKeyPress]);
+
   // Create shared position registry for collision-aware spacing
   const positionRegistry = useAnimalPositionRegistry();
 
@@ -97,7 +126,7 @@ export const AnimalParade = memo(({ unlockedAnimals, groundLevel = 8 }: AnimalPa
 
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {SHOW_DEBUG_RULER && <DebugRulerOverlay groundLevel={groundLevel} />}
+      {showRuler && <DebugRulerOverlay groundLevel={groundLevel} />}
       {paradeAnimals.map(({ animal, position, speed, key }) => (
         <SpriteAnimal
           key={key}
