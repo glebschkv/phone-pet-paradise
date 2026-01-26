@@ -49,7 +49,7 @@ export const PowerUpsTab = ({
       } else if (result.cancelled) {
         // User cancelled - no toast needed
       } else {
-        toast.error(result.error || "Purchase failed");
+        toast.error(result.message || "Purchase failed");
       }
     } catch (_error) {
       toast.error("Unable to complete purchase");
