@@ -14,7 +14,6 @@ import {
   Sunset,
   Moon,
   Building2,
-  Columns,
   Waves,
   Lock,
 } from "lucide-react";
@@ -29,7 +28,6 @@ const BIOME_ICONS = {
   'Forest': TreePine,
   'Snow': Snowflake,
   'City': Building2,
-  'Ruins': Columns,
   'Deep Ocean': Waves,
 } as const;
 

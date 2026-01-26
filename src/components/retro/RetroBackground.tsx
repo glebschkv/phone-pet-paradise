@@ -7,7 +7,6 @@ import {
   ForestHomeBackground,
   SnowHomeBackground,
   CityHomeBackground,
-  RuinsHomeBackground,
   DeepOceanHomeBackground,
   DebugRulerBackground,
 } from './backgrounds';
@@ -59,8 +58,6 @@ export const RetroBackground = memo(({ theme = 'day', customImage }: RetroBackgr
       return <SnowHomeBackground key="snow" />;
     case 'city':
       return <CityHomeBackground key="city" />;
-    case 'ruins':
-      return <RuinsHomeBackground key="ruins" />;
     case 'deepocean':
       return <DeepOceanHomeBackground key="deepocean" />;
     default:

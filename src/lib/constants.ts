@@ -388,7 +388,6 @@ export const BIOME_CONFIG = {
     'Forest': 'forest',
     'Snow': 'snow',
     'City': 'city',
-    'Ruins': 'ruins',
     'Deep Ocean': 'deepocean',
   } as const,
 
@@ -400,7 +399,6 @@ export const BIOME_CONFIG = {
     'Forest': '🌲',
     'Snow': '❄️',
     'City': '🏙️',
-    'Ruins': '🏛️',
     'Deep Ocean': '🌊',
   } as const,
 } as const;
