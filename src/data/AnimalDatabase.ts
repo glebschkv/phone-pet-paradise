@@ -983,7 +983,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'Golden fields bathed in warm sunset light.',
     animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood', 'wild-horse', 'sea-turtle', 'golden-fox'],
     backgroundImage: '/assets/worlds/autumnbiome1.png',
-    groundLevel: 19
+    groundLevel: 14
   },
   {
     name: 'Night',
@@ -991,7 +991,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A mystical realm under the stars where nocturnal creatures thrive.',
     animals: ['luna-moth', 'star-jelly', 'shadow-cat', 'cute-ghost', 'kitsune-spirit', 'mystic-kitsune', 'vampire-bat'],
     backgroundImage: '/assets/worlds/NIGHT_LAVENDER.png',
-    groundLevel: 19.4
+    groundLevel: 22.5
   },
   {
     name: 'Forest',
@@ -999,7 +999,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'An enchanted forest where elemental spirits dwell.',
     animals: ['flame-spirit', 'aqua-spirit', 'storm-spirit', 'dino-kid', 'dude-monster'],
     backgroundImage: '/assets/worlds/junglerealbackground.png',
-    groundLevel: 17.7
+    groundLevel: 10
   },
   {
     name: 'Snow',
@@ -1007,7 +1007,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A winter wonderland of magical costume characters.',
     animals: ['star-wizard', 'mushroom-kid', 'bunny-hood', 'cat-hood'],
     backgroundImage: '/assets/worlds/snowbiome1.png',
-    groundLevel: 16.1
+    groundLevel: 18
   },
   {
     name: 'City',
@@ -1015,7 +1015,7 @@ export const BIOME_DATABASE: BiomeData[] = [
     description: 'A bustling city where unique characters gather.',
     animals: ['flower-fairy', 'penguin-kid', 'pirate-kid', 'robot-buddy'],
     backgroundImage: '/assets/worlds/CITY_NIGHT.png',
-    groundLevel: 23
+    groundLevel: 18.5
   }
 ];
 
