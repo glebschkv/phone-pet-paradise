@@ -32,6 +32,8 @@ export interface ShopInventory {
   ownedBadges: string[];
   equippedBadge: string | null;
   equippedBackground: string | null;
+  /** Total number of purchases made (includes consumables like boosters, streak freezes) */
+  totalPurchases: number;
 }
 
 interface ShopState extends ShopInventory {
@@ -45,6 +47,8 @@ interface ShopState extends ShopInventory {
   setEquippedBackground: (backgroundId: string | null) => void;
   setInventory: (inventory: Partial<ShopInventory>) => void;
   resetShop: () => void;
+  /** Increment total purchases counter (for tracking consumable purchases like boosters) */
+  incrementPurchaseCount: (count?: number) => void;
 
   // Selectors
   isCharacterOwned: (characterId: string) => boolean;
@@ -58,6 +62,7 @@ const initialState: ShopInventory = {
   ownedBadges: [],
   equippedBadge: null,
   equippedBackground: null,
+  totalPurchases: 0,
 };
 
 export const useShopStore = create<ShopState>()(
@@ -127,6 +132,13 @@ export const useShopStore = create<ShopState>()(
         shopLogger.debug('Shop reset');
       },
 
+      incrementPurchaseCount: (count = 1) => {
+        set((state) => ({
+          totalPurchases: state.totalPurchases + count,
+        }));
+        shopLogger.debug('Purchase count incremented by:', count);
+      },
+
       // Selectors
       isCharacterOwned: (characterId) => get().ownedCharacters.includes(characterId),
       isBackgroundOwned: (backgroundId) => get().ownedBackgrounds.includes(backgroundId),
@@ -148,3 +160,4 @@ export const useShopStore = create<ShopState>()(
 export const useOwnedCharacters = () => useShopStore((state) => state.ownedCharacters);
 export const useOwnedBackgrounds = () => useShopStore((state) => state.ownedBackgrounds);
 export const useEquippedBackground = () => useShopStore((state) => state.equippedBackground);
+export const useTotalPurchases = () => useShopStore((state) => state.totalPurchases);

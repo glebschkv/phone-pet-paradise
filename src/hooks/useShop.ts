@@ -66,6 +66,7 @@ export const useShop = () => {
     ownedBadges,
     equippedBadge,
     equippedBackground,
+    totalPurchases,
   } = useShopStore(
     useShallow((state) => ({
       ownedCharacters: state.ownedCharacters,
@@ -73,6 +74,7 @@ export const useShop = () => {
       ownedBadges: state.ownedBadges,
       equippedBadge: state.equippedBadge,
       equippedBackground: state.equippedBackground,
+      totalPurchases: state.totalPurchases,
     }))
   );
 
@@ -86,6 +88,7 @@ export const useShop = () => {
     storeSetEquippedBadge,
     storeSetEquippedBackground,
     storeResetShop,
+    incrementPurchaseCount,
   } = useShopStore(
     useShallow((state) => ({
       addOwnedCharacter: state.addOwnedCharacter,
@@ -96,6 +99,7 @@ export const useShop = () => {
       storeSetEquippedBadge: state.setEquippedBadge,
       storeSetEquippedBackground: state.setEquippedBackground,
       storeResetShop: state.resetShop,
+      incrementPurchaseCount: state.incrementPurchaseCount,
     }))
   );
 
@@ -109,20 +113,17 @@ export const useShop = () => {
   };
 
   // Track total purchases for achievements
-  const purchaseCountRef = useRef(
-    ownedCharacters.length + ownedBackgrounds.length + ownedBadges.length
-  );
+  const purchaseCountRef = useRef(totalPurchases);
 
   // Track purchase count changes for achievements
   useEffect(() => {
-    const totalItems = ownedCharacters.length + ownedBackgrounds.length + ownedBadges.length;
-    if (totalItems > purchaseCountRef.current) {
-      purchaseCountRef.current = totalItems;
+    if (totalPurchases > purchaseCountRef.current) {
+      purchaseCountRef.current = totalPurchases;
       dispatchAchievementEvent(ACHIEVEMENT_EVENTS.PURCHASE_MADE, {
-        totalPurchases: totalItems,
+        totalPurchases,
       });
     }
-  }, [ownedCharacters.length, ownedBackgrounds.length, ownedBadges.length]);
+  }, [totalPurchases]);
 
   // Check if item is owned
   const isOwned = useCallback((itemId: string, category: ShopCategory): boolean => {
@@ -180,10 +181,11 @@ export const useShop = () => {
     }
 
     config.addOwned(itemId);
+    incrementPurchaseCount();
 
     const itemName = config.getItemName(item);
     return { success: true, message: `${itemName} purchased!`, item: item as unknown as ShopItem | AnimalData };
-  }, [coinSystem]);
+  }, [coinSystem, incrementPurchaseCount]);
 
   /**
    * SECURITY: Purchase a character with server-validated coin spending
@@ -305,11 +307,14 @@ export const useShop = () => {
       }
     }
 
+    // Track the bundle purchase (IAP purchases count too)
+    incrementPurchaseCount();
+
     return {
       success: true,
       message: `${bundle.name} purchased! Received: ${results.join(', ')}`
     };
-  }, [coinSystem, boosterSystem, unlockCharacter, unlockBadge]);
+  }, [coinSystem, boosterSystem, unlockCharacter, unlockBadge, incrementPurchaseCount]);
 
   /**
    * SECURITY: Purchase a background bundle with server-validated coin spending
@@ -339,9 +344,10 @@ export const useShop = () => {
     // Add all backgrounds from the bundle that aren't already owned
     const newBackgrounds = bundle.backgroundIds.filter(id => !ownedBackgrounds.includes(id));
     addOwnedBackgrounds(newBackgrounds);
+    incrementPurchaseCount();
 
     return { success: true, message: `${bundle.name} purchased! ${newBackgrounds.length} backgrounds added!` };
-  }, [ownedBackgrounds, coinSystem, addOwnedBackgrounds]);
+  }, [ownedBackgrounds, coinSystem, addOwnedBackgrounds, incrementPurchaseCount]);
 
   /**
    * SECURITY: Purchase a pet bundle with server-validated coin spending
@@ -371,9 +377,10 @@ export const useShop = () => {
     // Add all pets from the bundle that aren't already owned
     const newPets = bundle.petIds.filter(id => !ownedCharacters.includes(id));
     addOwnedCharacters(newPets);
+    incrementPurchaseCount();
 
     return { success: true, message: `${bundle.name} purchased! ${newPets.length} pets added!` };
-  }, [ownedCharacters, coinSystem, addOwnedCharacters]);
+  }, [ownedCharacters, coinSystem, addOwnedCharacters, incrementPurchaseCount]);
 
   // Check if bundle is owned (all backgrounds in bundle are owned)
   const isBundleOwned = useCallback((bundleId: string): boolean => {
@@ -413,9 +420,10 @@ export const useShop = () => {
     }
 
     boosterSystem.activateBooster(boosterId);
+    incrementPurchaseCount();
 
     return { success: true, message: `${booster.name} activated!` };
-  }, [coinSystem, boosterSystem]);
+  }, [coinSystem, boosterSystem, incrementPurchaseCount]);
 
   /**
    * SECURITY: Purchase streak freeze with server-validated coin spending
@@ -435,9 +443,10 @@ export const useShop = () => {
     for (let i = 0; i < quantity; i++) {
       streakSystem.earnStreakFreeze();
     }
+    incrementPurchaseCount();
 
     return { success: true, message: `${quantity} Streak Freeze${quantity > 1 ? 's' : ''} added!` };
-  }, [coinSystem, streakSystem]);
+  }, [coinSystem, streakSystem, incrementPurchaseCount]);
 
   /**
    * SECURITY: Generic purchase function with server validation
