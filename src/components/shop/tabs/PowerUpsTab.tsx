@@ -16,9 +16,6 @@ interface PowerUpsTabProps {
   setShowPurchaseConfirm: (show: boolean) => void;
   canAfford: (price: number) => boolean;
   isBoosterActive: () => boolean;
-  getTimeRemainingFormatted: () => string;
-  activeBooster: { boosterId: string; multiplier: number; activatedAt: number; expiresAt: number } | null;
-  getCurrentMultiplier: () => number;
 }
 
 export const PowerUpsTab = ({

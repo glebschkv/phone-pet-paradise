@@ -133,9 +133,6 @@ export const Shop = () => {
             setShowPurchaseConfirm={setShowPurchaseConfirm}
             canAfford={canAfford}
             isBoosterActive={isBoosterActive}
-            getTimeRemainingFormatted={getTimeRemainingFormatted}
-            activeBooster={activeBooster}
-            getCurrentMultiplier={getCurrentMultiplier}
           />
         );
       default:

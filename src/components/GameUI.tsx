@@ -9,7 +9,7 @@
  * - RewardModals: Orchestrates all reward-related modals
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useRewardHandlers } from "@/hooks/useRewardHandlers";
 import { TopStatusBar } from "@/components/TopStatusBar";
@@ -25,6 +25,21 @@ export const GameUI = () => {
   // Preload tab components after initial render for faster navigation
   useEffect(() => {
     preloadTabComponents();
+  }, []);
+
+  // Listen for switchToTab events from other components (e.g., PetCollectionGrid navigating to shop)
+  useEffect(() => {
+    const handleSwitchToTab = (event: CustomEvent<string>) => {
+      const validTabs = ['home', 'timer', 'collection', 'challenges', 'shop', 'settings'];
+      if (validTabs.includes(event.detail)) {
+        setCurrentTab(event.detail);
+      }
+    };
+
+    window.addEventListener('switchToTab', handleSwitchToTab as EventListener);
+    return () => {
+      window.removeEventListener('switchToTab', handleSwitchToTab as EventListener);
+    };
   }, []);
 
   const {

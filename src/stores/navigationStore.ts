@@ -15,7 +15,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 
 // Tab types for the main app navigation
-export type MainTab = 'home' | 'timer' | 'collection' | 'shop' | 'settings';
+export type MainTab = 'home' | 'timer' | 'collection' | 'challenges' | 'shop' | 'settings';
 
 // Modal types that can be opened from anywhere
 export type ModalType =
@@ -179,7 +179,7 @@ export function setupLegacyEventBridge(): () => void {
 }
 
 function isValidTab(tab: unknown): tab is MainTab {
-  return ['home', 'timer', 'collection', 'shop', 'settings'].includes(tab as string);
+  return ['home', 'timer', 'collection', 'challenges', 'shop', 'settings'].includes(tab as string);
 }
 
 // ============================================================================
