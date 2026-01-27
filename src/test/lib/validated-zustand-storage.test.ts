@@ -83,7 +83,7 @@ describe('validated-zustand-storage', () => {
         });
       });
 
-      it('should return default state when validation fails', () => {
+      it('should return default state when validation fails', async () => {
         const storage = createValidatedStorage({
           schema: testSchema,
           defaultState,
@@ -96,11 +96,11 @@ describe('validated-zustand-storage', () => {
         };
         localStorage.setItem('test-key', JSON.stringify(invalidData));
 
-        const result = storage.getItem('test-key');
+        const result = await storage.getItem('test-key');
         expect(result?.state).toEqual(defaultState);
       });
 
-      it('should attempt repair when option is enabled', () => {
+      it('should attempt repair when option is enabled', async () => {
         const schemaWithDefaults = z.object({
           count: z.number().default(0),
           name: z.string().default('default'),
@@ -121,12 +121,12 @@ describe('validated-zustand-storage', () => {
         };
         localStorage.setItem('test-key', JSON.stringify(partialData));
 
-        const result = storage.getItem('test-key');
+        const result = await storage.getItem('test-key');
         // Should preserve valid count but use default for invalid name
         expect(result?.state.count).toBe(10);
       });
 
-      it('should preserve XP data during repair', () => {
+      it('should preserve XP data during repair', async () => {
         const xpSchema = z.object({
           currentXP: z.number().default(0),
           currentLevel: z.number().default(1),
@@ -147,7 +147,7 @@ describe('validated-zustand-storage', () => {
         };
         localStorage.setItem('test-key', JSON.stringify(dataWithXP));
 
-        const result = storage.getItem('test-key');
+        const result = await storage.getItem('test-key');
         // Should preserve XP values
         expect(result?.state.currentXP).toBe(5000);
         expect(result?.state.currentLevel).toBe(10);
