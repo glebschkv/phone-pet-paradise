@@ -393,11 +393,11 @@ export default function Auth() {
           <div className="w-full max-w-sm space-y-8">
           {/* Logo/Title */}
           <div className="text-center space-y-2">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-500 flex items-center justify-center shadow-lg" style={{
-              boxShadow: '0 4px 0 hsl(35 80% 35%), inset 0 2px 0 hsl(45 100% 70% / 0.4)'
-            }}>
-              <Sparkles className="w-10 h-10 text-amber-900" />
-            </div>
+            <img
+              src="/app-icon.png"
+              alt="NoMo"
+              className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg"
+            />
             <h1 className="text-2xl font-bold text-foreground">NoMo</h1>
             <p className="text-sm text-muted-foreground">Focus, grow, and collect pets!</p>
           </div>
@@ -662,11 +662,11 @@ export default function Auth() {
           </button>
 
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 flex items-center justify-center" style={{
-              boxShadow: '0 3px 0 hsl(35 80% 35%)'
-            }}>
-              <Sparkles className="w-7 h-7 text-amber-900" />
-            </div>
+            <img
+              src="/app-icon.png"
+              alt="NoMo"
+              className="w-14 h-14 mx-auto mb-4 rounded-xl shadow-md"
+            />
             <h2 className="text-xl font-bold">Create Account</h2>
             <p className="text-sm text-muted-foreground">
               Join NoMo and sync your progress
