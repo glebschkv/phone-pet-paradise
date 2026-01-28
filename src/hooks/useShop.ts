@@ -163,7 +163,13 @@ export const useShop = () => {
     // SECURITY: Server-validated spending
     const spendSuccess = await coinSystem.spendCoins(price, config.spendPurpose, itemId);
     if (!spendSuccess) {
-      return { success: false, message: 'Failed to process payment' };
+      // Trigger a balance refresh so UI updates to show correct balance
+      try {
+        await coinSystem.syncFromServer();
+      } catch {
+        // Silent fail
+      }
+      return { success: false, message: 'Your balance has been updated. Please try again.' };
     }
 
     config.addOwned(itemId);
@@ -281,7 +287,13 @@ export const useShop = () => {
     // SECURITY: Server-validated spending
     const spendSuccess = await coinSystem.spendCoins(bundle.coinPrice, 'cosmetic', bundleId);
     if (!spendSuccess) {
-      return { success: false, message: 'Failed to process payment' };
+      // Trigger a balance refresh so UI updates to show correct balance
+      try {
+        await coinSystem.syncFromServer();
+      } catch {
+        // Silent fail
+      }
+      return { success: false, message: 'Your balance has been updated. Please try again.' };
     }
 
     // Add all backgrounds from the bundle that aren't already owned
@@ -313,7 +325,13 @@ export const useShop = () => {
     // SECURITY: Server-validated spending
     const spendSuccess = await coinSystem.spendCoins(bundle.coinPrice, 'pet_unlock', bundleId);
     if (!spendSuccess) {
-      return { success: false, message: 'Failed to process payment' };
+      // Trigger a balance refresh so UI updates to show correct balance
+      try {
+        await coinSystem.syncFromServer();
+      } catch {
+        // Silent fail
+      }
+      return { success: false, message: 'Your balance has been updated. Please try again.' };
     }
 
     // Add all pets from the bundle that aren't already owned
@@ -357,7 +375,13 @@ export const useShop = () => {
     // SECURITY: Server-validated spending
     const spendSuccess = await coinSystem.spendCoins(booster.coinPrice, 'booster', boosterId);
     if (!spendSuccess) {
-      return { success: false, message: 'Failed to process payment' };
+      // Trigger a balance refresh so UI updates to show correct balance
+      try {
+        await coinSystem.syncFromServer();
+      } catch {
+        // Silent fail
+      }
+      return { success: false, message: 'Your balance has been updated. Please try again.' };
     }
 
     boosterSystem.activateBooster(boosterId);
@@ -376,7 +400,13 @@ export const useShop = () => {
     // SECURITY: Server-validated spending
     const spendSuccess = await coinSystem.spendCoins(price, 'streak_freeze', `streak_freeze_x${quantity}`);
     if (!spendSuccess) {
-      return { success: false, message: 'Failed to process payment' };
+      // Trigger a balance refresh so UI updates to show correct balance
+      try {
+        await coinSystem.syncFromServer();
+      } catch {
+        // Silent fail
+      }
+      return { success: false, message: 'Your balance has been updated. Please try again.' };
     }
 
     // Add streak freezes
