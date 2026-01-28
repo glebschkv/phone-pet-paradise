@@ -8,6 +8,7 @@ import ManagedSettings
  * Manages app blocking using ManagedSettings shield functionality.
  * Handles app selection storage and shield application.
  */
+@available(iOS 15.0, *)
 final class AppBlockingManager: AppBlockingManaging {
 
     // MARK: - Singleton

@@ -60,7 +60,7 @@ final class StoreKitPurchaseService {
             Log.storeKit.info("Purchase pending: \(productId)")
             return .pending
 
-        @unknown default:
+        default:
             throw StoreKitError.purchaseFailed(reason: "Unknown purchase result")
         }
     }

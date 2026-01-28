@@ -7,6 +7,7 @@ import DeviceActivity
  * Manages device activity monitoring using the DeviceActivity framework.
  * Handles monitoring schedules and usage tracking.
  */
+@available(iOS 15.0, *)
 final class ActivityMonitorManager: ActivityMonitorManaging {
 
     // MARK: - Singleton

@@ -7,6 +7,7 @@ import FamilyControls
  * Manages Family Controls authorization for Screen Time API access.
  * Handles permission requests and status checks.
  */
+@available(iOS 15.0, *)
 final class PermissionsManager: PermissionsManaging {
 
     // MARK: - Singleton
@@ -38,7 +39,7 @@ final class PermissionsManager: PermissionsManaging {
             return .denied
         case .approved:
             return .approved
-        @unknown default:
+        default:
             Log.permissions.warning("Unknown authorization status encountered")
             return .denied
         }
@@ -70,6 +71,7 @@ final class PermissionsManager: PermissionsManaging {
 
 // MARK: - Status Response
 
+@available(iOS 15.0, *)
 extension PermissionsManager {
     /// Returns authorization status as a dictionary for plugin response
     var statusResponse: [String: Any] {
