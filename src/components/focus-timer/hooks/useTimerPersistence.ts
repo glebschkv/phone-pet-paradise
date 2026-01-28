@@ -100,43 +100,40 @@ export const useTimerPersistence = (): UseTimerPersistenceReturn => {
           const elapsedMs = now - finalState.startTime;
           const elapsedSeconds = Math.floor(elapsedMs / 1000);
 
-          if (finalState.isCountup) {
-            // For countup mode, calculate total elapsed time
-            if (elapsedSeconds >= 0 && elapsedSeconds <= MAX_COUNTUP_DURATION) {
-              const totalElapsed = Math.min(elapsedSeconds, MAX_COUNTUP_DURATION);
-              finalState = {
-                ...finalState,
-                elapsedTime: totalElapsed,
-                isRunning: totalElapsed < MAX_COUNTUP_DURATION,
-                startTime: totalElapsed < MAX_COUNTUP_DURATION ? finalState.startTime : null
-              };
-            } else {
-              // Invalid elapsed time or exceeded max, reset running state
-              finalState = {
-                ...finalState,
-                isRunning: false,
-                startTime: null,
-                elapsedTime: Math.min(elapsedSeconds, MAX_COUNTUP_DURATION)
-              };
-            }
+          if (elapsedSeconds < 0) {
+            // Clock went backwards (timezone change, etc.) — reset timer
+            finalState = {
+              ...finalState,
+              isRunning: false,
+              startTime: null,
+            };
+          } else if (finalState.isCountup) {
+            // For countup mode, calculate total elapsed time.
+            // Keep isRunning=true even when max is reached so the
+            // countdown tick effect can call handleComplete() and
+            // properly award XP / show the session-complete modal.
+            const totalElapsed = Math.min(elapsedSeconds, MAX_COUNTUP_DURATION);
+            finalState = {
+              ...finalState,
+              elapsedTime: totalElapsed,
+            };
           } else {
-            // For countdown mode, calculate remaining time
-            // Validate elapsed time is reasonable (not negative, not too large)
-            if (elapsedSeconds >= 0 && elapsedSeconds <= TIMER_VALIDATION.MAX_DURATION_SECONDS) {
+            // For countdown mode, calculate remaining time.
+            // Keep isRunning=true even when timeLeft hits 0 so the
+            // countdown tick effect can call handleComplete() and
+            // properly award XP / show the session-complete modal.
+            if (elapsedSeconds <= TIMER_VALIDATION.MAX_DURATION_SECONDS) {
               const newTimeLeft = Math.max(0, finalState.sessionDuration - elapsedSeconds);
-
               finalState = {
                 ...finalState,
                 timeLeft: newTimeLeft,
-                isRunning: newTimeLeft > 0,
-                startTime: newTimeLeft > 0 ? finalState.startTime : null
               };
             } else {
-              // Invalid elapsed time, reset running state
+              // Elapsed time unreasonably large (> 8 hours) — treat as
+              // expired session. Still keep running so completion fires.
               finalState = {
                 ...finalState,
-                isRunning: false,
-                startTime: null
+                timeLeft: 0,
               };
             }
           }
