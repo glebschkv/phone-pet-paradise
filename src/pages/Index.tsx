@@ -11,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
 import { useThemeStore, useShopStore } from "@/stores";
-import { useCoinSystem } from "@/hooks/useCoinSystem";
 
 // Lazy load heavy components to reduce initial bundle size
 const RetroPixelPlatform = lazy(() => import("@/components/retro/RetroPixelPlatform").then(m => ({ default: m.RetroPixelPlatform })));
@@ -50,9 +49,6 @@ const Index = () => {
   const backgroundTheme = useThemeStore((state) => state.homeBackground);
   const setHomeBackground = useThemeStore((state) => state.setHomeBackground);
   const equippedBackground = useShopStore((state) => state.equippedBackground);
-
-  // Debug: coin system for adding gold
-  const coinSystem = useCoinSystem();
 
   // Initialize background theme based on equipped background or biome
   useEffect(() => {
@@ -129,16 +125,6 @@ const Index = () => {
   return (
     <PageErrorBoundary pageName="home page">
       <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
-        {/* Debug Button - Add 100k Gold (development only) */}
-        {import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEBUG_TOOLS === 'true' && (
-          <Button
-            onClick={() => coinSystem.addCoins(100000, 'admin_grant')}
-            className="absolute top-2 left-2 z-50 bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-3 py-1"
-          >
-            +100k Gold (Debug)
-          </Button>
-        )}
-
         {/* Retro Pixel Platform Scene */}
         <ErrorBoundary>
           <Suspense fallback={<LoadingFallback />}>

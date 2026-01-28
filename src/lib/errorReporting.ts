@@ -89,7 +89,6 @@ const initMinimalSentry = (): void => {
   minimalSentry.setTag('appVersion', APP_CONFIG.APP_VERSION);
 
   sentryInitialized = true;
-  console.log('[ErrorReporting] Minimal Sentry initialized');
 };
 
 /**
@@ -292,8 +291,6 @@ export const initializeErrorReporting = (): void => {
   // Attach global handlers (works without Sentry)
   window.onerror = globalErrorHandler;
   window.onunhandledrejection = globalPromiseRejectionHandler;
-
-  console.log('[ErrorReporting] Error handlers initialized');
 };
 
 /**

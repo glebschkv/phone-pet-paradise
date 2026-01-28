@@ -27,11 +27,13 @@ const defaultMetrics: PerformanceMetrics = {
   lastUpdate: Date.now(),
 };
 
+const IS_DEV = import.meta.env.DEV;
+
 const defaultSettings: PerformanceSettings = {
   targetFPS: 60,
   maxMemoryMB: 512,
-  enableMonitoring: true,
-  autoOptimize: true,
+  enableMonitoring: IS_DEV,
+  autoOptimize: IS_DEV,
 };
 
 export const usePerformanceMonitor = () => {
@@ -79,8 +81,8 @@ export const usePerformanceMonitor = () => {
         memoryUsage: Math.round(memoryMB),
       }));
       
-      // Warn if memory usage is high
-      if (memoryMB > settings.maxMemoryMB * 0.8) {
+      // Warn if memory usage is high (development only)
+      if (IS_DEV && memoryMB > settings.maxMemoryMB * 0.8) {
         toast({
           title: "High Memory Usage",
           description: `App is using ${Math.round(memoryMB)}MB of memory`,
