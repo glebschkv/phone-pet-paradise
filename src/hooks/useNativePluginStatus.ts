@@ -32,32 +32,53 @@ export async function safeCallPlugin<T>(
 }
 
 /**
- * Check if a specific plugin is available and responsive
+ * Delay helper
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Check if a specific plugin is available and responsive.
+ * Retries up to maxRetries times with exponential backoff before reporting an error.
  */
 async function checkPluginHealth(
   pluginName: string,
-  testCall: () => Promise<unknown>
+  testCall: () => Promise<unknown>,
+  maxRetries = 2
 ): Promise<{ status: PluginStatus; error?: Error }> {
-  try {
-    await testCall();
-    return { status: 'available' };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
+  let lastError: Error | undefined;
 
-    // Check if plugin is simply not available vs actual error
-    if (
-      err.message.includes('not implemented') ||
-      err.message.includes('not available') ||
-      err.message.includes('Plugin not installed') ||
-      err.message.includes('does not have web implementation')
-    ) {
-      logger.debug(`[${pluginName}] Plugin not available (expected on web)`);
-      return { status: 'unavailable' };
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      await testCall();
+      return { status: 'available' };
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+
+      // Check if plugin is simply not available vs actual error
+      if (
+        err.message.includes('not implemented') ||
+        err.message.includes('not available') ||
+        err.message.includes('Plugin not installed') ||
+        err.message.includes('does not have web implementation')
+      ) {
+        logger.debug(`[${pluginName}] Plugin not available (expected on web)`);
+        return { status: 'unavailable' };
+      }
+
+      lastError = err;
+
+      if (attempt < maxRetries) {
+        const backoff = Math.pow(2, attempt) * 500; // 500ms, 1000ms
+        logger.debug(`[${pluginName}] Health check attempt ${attempt + 1} failed, retrying in ${backoff}ms`);
+        await delay(backoff);
+      }
     }
-
-    logger.error(`[${pluginName}] Plugin error:`, err);
-    return { status: 'error', error: err };
   }
+
+  logger.error(`[${pluginName}] Plugin error after ${maxRetries + 1} attempts:`, lastError);
+  return { status: 'error', error: lastError };
 }
 
 /**
@@ -203,6 +224,18 @@ export const useNativePluginStatus = () => {
   useEffect(() => {
     checkAllPlugins();
   }, [checkAllPlugins]);
+
+  // Auto-retry if critical errors are detected — plugins may need time to initialise
+  useEffect(() => {
+    if (!state.hasCriticalErrors || state.isChecking) return;
+
+    const retryTimer = setTimeout(() => {
+      logger.debug('Auto-retrying plugin health check after critical errors');
+      checkAllPlugins();
+    }, 5000); // Retry after 5 seconds
+
+    return () => clearTimeout(retryTimer);
+  }, [state.hasCriticalErrors, state.isChecking, checkAllPlugins]);
 
   return {
     ...state,

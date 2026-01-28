@@ -261,16 +261,23 @@ export function getAppBaseUrl(): string {
     return envUrl;
   }
 
-  // For Capacitor apps, use a default URL or the Supabase project URL
   if (typeof window !== 'undefined') {
+    // For Capacitor/native apps, use the custom URL scheme for deep-link redirects
+    if (
+      window.location.protocol === 'capacitor:' ||
+      window.location.protocol === 'ionic:'
+    ) {
+      return 'co.nomoinc.nomo://callback';
+    }
+
     // On web, use the current origin
     if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
       return window.location.origin;
     }
   }
 
-  // Fallback for Capacitor/native apps - should be configured via env var
-  return import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '') || '';
+  // Fallback for server-side or unknown environments
+  return 'co.nomoinc.nomo://callback';
 }
 
 /**

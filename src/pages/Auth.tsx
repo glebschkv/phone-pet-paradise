@@ -338,34 +338,43 @@ export default function Auth() {
       toast.error('Authentication is not available. Please try again later.');
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const isNativeIOS = Capacitor.getPlatform() === 'ios';
-      
+
       if (isNativeIOS) {
         // Use native Sign in with Apple for iOS
         const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
-        
-        const options = {
-          clientId: 'co.nomoinc.nomo',
-          redirectURI: getRedirectUrl(),
+
+        // Generate raw nonce and SHA256-hash it for Apple
+        // Apple expects a SHA256-hashed nonce; Supabase needs the raw nonce to verify
+        const rawNonce = crypto.randomUUID();
+        const hashBuffer = await crypto.subtle.digest(
+          'SHA-256',
+          new TextEncoder().encode(rawNonce)
+        );
+        const hashedNonce = Array.from(new Uint8Array(hashBuffer))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
+
+        // On native iOS, omit clientId and redirectURI — the system
+        // uses the app's bundle ID automatically and doesn't redirect
+        const result = await SignInWithApple.authorize({
           scopes: 'email name',
           state: crypto.randomUUID(),
-          nonce: crypto.randomUUID(),
-        };
-        
-        const result = await SignInWithApple.authorize(options);
-        
-        // Use Supabase's signInWithIdToken for native auth
+          nonce: hashedNonce,
+        });
+
+        // Pass the RAW nonce to Supabase — it will hash and verify against the token
         const { error } = await supabase.auth.signInWithIdToken({
           provider: 'apple',
           token: result.response.identityToken,
-          nonce: options.nonce,
+          nonce: rawNonce,
         });
-        
+
         if (error) throw error;
-        
+
         toast.success('Welcome!');
         navigate('/');
       } else {
@@ -376,28 +385,12 @@ export default function Auth() {
             redirectTo: getRedirectUrl(),
           },
         });
-        
+
         if (error) throw error;
       }
     } catch (error: unknown) {
-      // If native fails, try web fallback
-      if (Capacitor.getPlatform() === 'ios') {
-        try {
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'apple',
-            options: {
-              redirectTo: getRedirectUrl(),
-            },
-          });
-          if (error) throw error;
-        } catch (fallbackError) {
-          const message = sanitizeErrorMessage(fallbackError);
-          if (message) toast.error(message);
-        }
-      } else {
-        const message = sanitizeErrorMessage(error);
-        if (message) toast.error(message);
-      }
+      const message = sanitizeErrorMessage(error);
+      if (message) toast.error(message);
     } finally {
       setIsLoading(false);
     }

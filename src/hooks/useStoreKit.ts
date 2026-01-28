@@ -150,7 +150,11 @@ export const useStoreKit = (): UseStoreKitReturn => {
   // Track if plugin has been verified
   const pluginVerifiedRef = useRef(false);
 
-  // Load products from App Store
+  // Track initialization retry count
+  const initRetryCountRef = useRef(0);
+  const MAX_INIT_RETRIES = 3;
+
+  // Load products from App Store with automatic retry on first failure
   const loadProducts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -162,7 +166,17 @@ export const useStoreKit = (): UseStoreKitReturn => {
     );
 
     if (!success) {
-      // Check if this is a plugin availability issue
+      // On first load failure, schedule a retry instead of permanently marking unavailable
+      if (!pluginVerifiedRef.current && initRetryCountRef.current < MAX_INIT_RETRIES) {
+        initRetryCountRef.current += 1;
+        const retryDelay = Math.pow(2, initRetryCountRef.current) * 1000; // 2s, 4s, 8s
+        logger.debug(`StoreKit init failed, scheduling retry ${initRetryCountRef.current}/${MAX_INIT_RETRIES} in ${retryDelay}ms`);
+        setError('Loading products...');
+        setIsLoading(false);
+        setTimeout(() => { loadProducts(); }, retryDelay);
+        return;
+      }
+      // All retries exhausted — mark as unavailable
       if (!pluginVerifiedRef.current) {
         const err = new Error('StoreKit plugin initialization failed');
         setPluginAvailable(false);
@@ -171,6 +185,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setError('Failed to load products. Please try again.');
     } else {
       pluginVerifiedRef.current = true;
+      initRetryCountRef.current = 0;
       setPluginAvailable(true);
       setPluginError(null);
       setProducts(result.products);
