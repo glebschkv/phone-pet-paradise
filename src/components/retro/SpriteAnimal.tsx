@@ -225,8 +225,10 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
 
   if (!spriteConfig || !walkSpritePath) return null;
 
-  // Scale up the sprite
-  const scale = 2.5;
+  // Scale sprites proportionally to viewport width so animals look
+  // correctly sized on both mobile phones and larger screens.
+  // Reference: scale 2.5 at 768px width (tablet), clamped to [1.0, 3.5].
+  const scale = Math.min(Math.max((window.innerWidth / 768) * 2.5, 1.0), 3.5);
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
 
