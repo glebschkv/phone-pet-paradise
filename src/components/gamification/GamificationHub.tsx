@@ -31,7 +31,11 @@ import {
   Gamepad2,
   Star,
   Trophy,
+  Clock,
 } from 'lucide-react';
+
+// Feature flag - set to false when ready to launch Battle Pass
+const BATTLE_PASS_COMING_SOON = true;
 
 interface GamificationHubProps {
   onXPReward?: (amount: number) => void;
@@ -233,45 +237,67 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           </button>
 
           {/* Battle Pass - Season Pass Style */}
-          <button
-            className={cn(
-              "w-full retro-game-card overflow-hidden cursor-pointer transition-all text-left touch-manipulation select-none active:scale-[0.98]",
-              unclaimedBattlePassRewards.length > 0 && "retro-active-challenge"
-            )}
-            onClick={() => setShowBattlePass(true)}
-          >
-            {/* Progress Bar at Top */}
-            <div className="h-2 bg-purple-900/50">
-              <div
-                className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all"
-                style={{ width: `${battlePassProgress.progressPercent}%` }}
-              />
-            </div>
-            <div className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center border-2 border-yellow-400 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
-                  <Crown className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-white retro-pixel-text">
-                    {currentSeason?.name || 'SEASON PASS'}
-                  </h3>
-                  <div className="flex items-center gap-2 text-sm text-purple-300/80">
-                    <span className="retro-neon-yellow">LVL {battlePassProgress.currentTier}</span>
-                    <span>·</span>
-                    <span>{battlePassProgress.daysRemaining} days left</span>
-                  </div>
-                </div>
-                {unclaimedBattlePassRewards.length > 0 && (
-                  <div className="flex items-center gap-1 retro-arcade-btn retro-arcade-btn-yellow px-2 py-1 text-xs">
-                    <Gift className="w-3 h-3" />
-                    {unclaimedBattlePassRewards.length}
-                  </div>
-                )}
-                <ChevronRight className="w-5 h-5 text-purple-400" />
+          <div className="relative">
+            <button
+              className={cn(
+                "w-full retro-game-card overflow-hidden cursor-pointer transition-all text-left touch-manipulation select-none active:scale-[0.98]",
+                !BATTLE_PASS_COMING_SOON && unclaimedBattlePassRewards.length > 0 && "retro-active-challenge",
+                BATTLE_PASS_COMING_SOON && "pointer-events-none"
+              )}
+              onClick={() => !BATTLE_PASS_COMING_SOON && setShowBattlePass(true)}
+              disabled={BATTLE_PASS_COMING_SOON}
+            >
+              {/* Progress Bar at Top */}
+              <div className="h-2 bg-purple-900/50">
+                <div
+                  className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all"
+                  style={{ width: BATTLE_PASS_COMING_SOON ? '0%' : `${battlePassProgress.progressPercent}%` }}
+                />
               </div>
-            </div>
-          </button>
+              <div className={cn("p-4", BATTLE_PASS_COMING_SOON && "opacity-40")}>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center border-2 border-yellow-400 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
+                    <Crown className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-white retro-pixel-text">
+                      {currentSeason?.name || 'SEASON PASS'}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-purple-300/80">
+                      {BATTLE_PASS_COMING_SOON ? (
+                        <span className="text-purple-400">Unlock rewards & exclusive items</span>
+                      ) : (
+                        <>
+                          <span className="retro-neon-yellow">LVL {battlePassProgress.currentTier}</span>
+                          <span>·</span>
+                          <span>{battlePassProgress.daysRemaining} days left</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {!BATTLE_PASS_COMING_SOON && unclaimedBattlePassRewards.length > 0 && (
+                    <div className="flex items-center gap-1 retro-arcade-btn retro-arcade-btn-yellow px-2 py-1 text-xs">
+                      <Gift className="w-3 h-3" />
+                      {unclaimedBattlePassRewards.length}
+                    </div>
+                  )}
+                  <ChevronRight className="w-5 h-5 text-purple-400" />
+                </div>
+              </div>
+            </button>
+
+            {/* Coming Soon Overlay */}
+            {BATTLE_PASS_COMING_SOON && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="coming-soon-badge">
+                  <div className="coming-soon-badge-inner">
+                    <Clock className="w-4 h-4" />
+                    <span>COMING SOON</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Boss Challenges - Boss Battle Style */}
           <button
