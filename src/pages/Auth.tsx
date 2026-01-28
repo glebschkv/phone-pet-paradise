@@ -93,7 +93,8 @@ export default function Auth() {
       });
       setMode('welcome');
     } catch (error: unknown) {
-      toast.error(sanitizeErrorMessage(error));
+      const message = sanitizeErrorMessage(error);
+      if (message) toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +137,8 @@ export default function Auth() {
       toast.success('Welcome back!');
       navigate('/');
     } catch (error: unknown) {
-      toast.error(sanitizeErrorMessage(error));
+      const message = sanitizeErrorMessage(error);
+      if (message) toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -200,7 +202,8 @@ export default function Auth() {
       });
       setMode('welcome');
     } catch (error: unknown) {
-      toast.error(sanitizeErrorMessage(error));
+      const message = sanitizeErrorMessage(error);
+      if (message) toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -244,7 +247,8 @@ export default function Auth() {
       });
       setMode('welcome');
     } catch (error: unknown) {
-      toast.error(sanitizeErrorMessage(error));
+      const message = sanitizeErrorMessage(error);
+      if (message) toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -286,7 +290,8 @@ export default function Auth() {
       navigate('/auth', { replace: true });
       setMode('email-password');
     } catch (error: unknown) {
-      toast.error(sanitizeErrorMessage(error));
+      const message = sanitizeErrorMessage(error);
+      if (message) toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -351,10 +356,12 @@ export default function Auth() {
           });
           if (error) throw error;
         } catch (fallbackError) {
-          toast.error(sanitizeErrorMessage(fallbackError));
+          const message = sanitizeErrorMessage(fallbackError);
+          if (message) toast.error(message);
         }
       } else {
-        toast.error(sanitizeErrorMessage(error));
+        const message = sanitizeErrorMessage(error);
+        if (message) toast.error(message);
       }
     } finally {
       setIsLoading(false);

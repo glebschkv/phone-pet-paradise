@@ -6,6 +6,7 @@ import {
   isValidEmail,
   validatePassword,
   sanitizeErrorMessage,
+  isRequestInterruptedError,
   getAppBaseUrl,
 } from '@/lib/apiUtils';
 
@@ -193,11 +194,53 @@ describe('apiUtils', () => {
     });
   });
 
+  describe('isRequestInterruptedError', () => {
+    it('should return true for "request interrupted" errors', () => {
+      const error = new Error('Request interrupted by user');
+      expect(isRequestInterruptedError(error)).toBe(true);
+    });
+
+    it('should return true for AbortError', () => {
+      const error = new DOMException('Aborted', 'AbortError');
+      expect(isRequestInterruptedError(error)).toBe(true);
+    });
+
+    it('should return true for errors containing "aborted"', () => {
+      const error = new Error('The operation was aborted');
+      expect(isRequestInterruptedError(error)).toBe(true);
+    });
+
+    it('should return false for regular errors', () => {
+      const error = new Error('Something went wrong');
+      expect(isRequestInterruptedError(error)).toBe(false);
+    });
+
+    it('should return false for non-Error objects', () => {
+      expect(isRequestInterruptedError('string error')).toBe(false);
+      expect(isRequestInterruptedError(null)).toBe(false);
+    });
+  });
+
   describe('sanitizeErrorMessage', () => {
+    it('should return null for request interrupted errors', () => {
+      const error = new Error('Request interrupted by user');
+      const result = sanitizeErrorMessage(error);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for AbortError', () => {
+      const error = new DOMException('Aborted', 'AbortError');
+      const result = sanitizeErrorMessage(error);
+
+      expect(result).toBeNull();
+    });
+
     it('should redact Bearer tokens', () => {
       const error = new Error('Auth failed: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9');
       const result = sanitizeErrorMessage(error);
 
+      expect(result).not.toBeNull();
       expect(result).not.toContain('eyJhbGciOiJ');
       expect(result).toContain('[REDACTED]');
     });
@@ -206,6 +249,7 @@ describe('apiUtils', () => {
       const error = new Error('Request failed: api_key=sk-12345abcde');
       const result = sanitizeErrorMessage(error);
 
+      expect(result).not.toBeNull();
       expect(result).not.toContain('sk-12345');
       expect(result).toContain('[REDACTED]');
     });
@@ -214,6 +258,7 @@ describe('apiUtils', () => {
       const error = new Error('Login failed: password=mysecret123');
       const result = sanitizeErrorMessage(error);
 
+      expect(result).not.toBeNull();
       expect(result).not.toContain('mysecret123');
       expect(result).toContain('[REDACTED]');
     });

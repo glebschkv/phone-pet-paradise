@@ -329,10 +329,34 @@ export function validatePassword(password: string): { valid: boolean; message: s
 }
 
 /**
+ * Check if an error is a request interruption error that should be silently ignored
+ * These occur during normal component lifecycle (unmount, navigation, etc.)
+ */
+export function isRequestInterruptedError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    return (
+      message.includes('request interrupted') ||
+      message.includes('aborted') ||
+      message.includes('abort') ||
+      error.name === 'AbortError'
+    );
+  }
+  return false;
+}
+
+/**
  * Sanitize error messages for display to users
  * Removes sensitive information from error messages
+ * Returns null for errors that should be silently ignored
  */
-export function sanitizeErrorMessage(error: unknown): string {
+export function sanitizeErrorMessage(error: unknown): string | null {
+  // Silently ignore request interruption errors - these are normal during component lifecycle
+  if (isRequestInterruptedError(error)) {
+    logger.debug('Request interrupted (normal lifecycle event)', error);
+    return null;
+  }
+
   if (error instanceof Error) {
     const message = error.message;
 
