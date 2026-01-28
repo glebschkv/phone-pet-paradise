@@ -7,6 +7,7 @@ import StoreKit
  * Utility functions for converting StoreKit types to strings.
  * Centralized type conversion logic for consistent output.
  */
+@available(iOS 15.0, *)
 enum StoreKitConverters {
 
     // MARK: - Product Type

@@ -59,68 +59,68 @@ enum PluginError: Error, LocalizedError {
         switch self {
         // Validation
         case .missingParameter(let name):
-            return String(localized: "error.missing_parameter \(name)", defaultValue: "Missing required parameter: \(name)")
+            return "Missing required parameter: \(name)"
         case .invalidParameter(let name, let reason):
-            return String(localized: "error.invalid_parameter \(name) \(reason)", defaultValue: "Invalid parameter '\(name)': \(reason)")
+            return "Invalid parameter '\(name)': \(reason)"
         case .invalidFormat(let field, let expected):
-            return String(localized: "error.invalid_format \(field) \(expected)", defaultValue: "Invalid format for '\(field)'. Expected: \(expected)")
+            return "Invalid format for '\(field)'. Expected: \(expected)"
 
         // Permissions
         case .permissionDenied(let feature):
-            return String(localized: "error.permission_denied \(feature)", defaultValue: "\(feature) permission denied")
+            return "\(feature) permission denied"
         case .permissionNotDetermined(let feature):
-            return String(localized: "error.permission_not_determined \(feature)", defaultValue: "\(feature) permission not yet requested")
+            return "\(feature) permission not yet requested"
         case .permissionRestricted(let feature):
-            return String(localized: "error.permission_restricted \(feature)", defaultValue: "\(feature) is restricted on this device")
+            return "\(feature) is restricted on this device"
 
         // StoreKit
         case .productNotFound(let productId):
-            return String(localized: "error.product_not_found \(productId)", defaultValue: "Product not found: \(productId)")
+            return "Product not found: \(productId)"
         case .purchaseFailed(let reason):
-            return String(localized: "error.purchase_failed \(reason)", defaultValue: "Purchase failed: \(reason)")
+            return "Purchase failed: \(reason)"
         case .purchaseCancelled:
-            return String(localized: "error.purchase_cancelled", defaultValue: "Purchase was cancelled")
+            return "Purchase was cancelled"
         case .purchasePending:
-            return String(localized: "error.purchase_pending", defaultValue: "Purchase is pending approval")
+            return "Purchase is pending approval"
         case .transactionVerificationFailed:
-            return String(localized: "error.transaction_verification_failed", defaultValue: "Transaction verification failed")
+            return "Transaction verification failed"
         case .noActiveSubscription:
-            return String(localized: "error.no_active_subscription", defaultValue: "No active subscription found")
+            return "No active subscription found"
 
         // Device Activity
         case .monitoringFailed(let reason):
-            return String(localized: "error.monitoring_failed \(reason)", defaultValue: "Monitoring failed: \(reason)")
+            return "Monitoring failed: \(reason)"
         case .selectionDecodingFailed:
-            return String(localized: "error.selection_decoding_failed", defaultValue: "Failed to decode app selection")
+            return "Failed to decode app selection"
         case .activitySchedulingFailed(let reason):
-            return String(localized: "error.activity_scheduling_failed \(reason)", defaultValue: "Activity scheduling failed: \(reason)")
+            return "Activity scheduling failed: \(reason)"
 
         // Blocking
         case .blockingNotConfigured:
-            return String(localized: "error.blocking_not_configured", defaultValue: "App blocking is not configured")
+            return "App blocking is not configured"
         case .shieldApplicationFailed(let reason):
-            return String(localized: "error.shield_application_failed \(reason)", defaultValue: "Failed to apply shield: \(reason)")
+            return "Failed to apply shield: \(reason)"
 
         // Storage
         case .sharedContainerUnavailable:
-            return String(localized: "error.shared_container_unavailable", defaultValue: "Shared container is unavailable")
+            return "Shared container is unavailable"
         case .dataEncodingFailed:
-            return String(localized: "error.data_encoding_failed", defaultValue: "Failed to encode data")
+            return "Failed to encode data"
         case .dataDecodingFailed:
-            return String(localized: "error.data_decoding_failed", defaultValue: "Failed to decode data")
+            return "Failed to decode data"
 
         // System
         case .windowSceneUnavailable:
-            return String(localized: "error.window_scene_unavailable", defaultValue: "Window scene is unavailable")
+            return "Window scene is unavailable"
         case .backgroundTaskFailed(let reason):
-            return String(localized: "error.background_task_failed \(reason)", defaultValue: "Background task failed: \(reason)")
+            return "Background task failed: \(reason)"
         case .networkError(let underlying):
             if let error = underlying {
-                return String(localized: "error.network_error", defaultValue: "Network error: \(error.localizedDescription)")
+                return "Network error: \(error.localizedDescription)"
             }
-            return String(localized: "error.network_error_generic", defaultValue: "A network error occurred")
+            return "A network error occurred"
         case .unknownError(let message):
-            return String(localized: "error.unknown \(message)", defaultValue: "An error occurred: \(message)")
+            return "An error occurred: \(message)"
         }
     }
 
