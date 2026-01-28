@@ -95,7 +95,7 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
     // MARK: - Permission Methods
 
-    @objc func requestPermissions(_ call: CAPPluginCall) {
+    @objc override public func requestPermissions(_ call: CAPPluginCall) {
         Task {
             do {
                 try await permissionsManager.requestAuthorization()
@@ -110,7 +110,7 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    @objc func checkPermissions(_ call: CAPPluginCall) {
+    @objc override public func checkPermissions(_ call: CAPPluginCall) {
         call.resolve(permissionsManager.statusResponse)
     }
 
@@ -299,6 +299,9 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     // MARK: - JS Communication
 
     private func notifyJS(_ eventName: String, data: [String: Any]) {
-        bridge?.triggerJSEvent(eventName: eventName, target: "window", data: data)
+        if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            bridge?.triggerJSEvent(eventName: eventName, target: "window", data: jsonString)
+        }
     }
 }

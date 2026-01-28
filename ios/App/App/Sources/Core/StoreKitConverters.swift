@@ -23,7 +23,7 @@ enum StoreKitConverters {
             return "autoRenewable"
         case .nonRenewable:
             return "nonRenewable"
-        @unknown default:
+        default:
             return "unknown"
         }
     }
@@ -41,7 +41,7 @@ enum StoreKitConverters {
             return "month"
         case .year:
             return "year"
-        @unknown default:
+        default:
             return "unknown"
         }
     }
@@ -58,7 +58,7 @@ enum StoreKitConverters {
                 return "production"
             case .xcode:
                 return "sandbox"
-            @unknown default:
+            default:
                 return "production"
             }
         } else {
