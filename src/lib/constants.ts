@@ -526,7 +526,7 @@ export const UI_CONFIG = {
 
 export const IOS_CONFIG = {
   /** Background task identifier */
-  BACKGROUND_TASK_ID: 'app.lovable.354c50c576064f429b59577c9adb3ef7.background-tracking',
+  BACKGROUND_TASK_ID: 'co.nomoinc.nomo.background-tracking',
 
   /** Background refresh interval in minutes */
   BACKGROUND_REFRESH_INTERVAL_MINUTES: 15,

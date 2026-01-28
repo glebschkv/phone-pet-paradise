@@ -43,7 +43,7 @@ enum AppConfig {
     // MARK: - Background Tasks
 
     enum BackgroundTask {
-        static let identifier = "app.lovable.354c50c576064f429b59577c9adb3ef7.background-tracking"
+        static let identifier = "co.nomoinc.nomo.background-tracking"
         static let refreshIntervalMinutes: TimeInterval = 15
         static let refreshIntervalSeconds: TimeInterval = 15 * 60
     }

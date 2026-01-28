@@ -106,5 +106,9 @@
 	<!-- Supports RTL Languages -->
 	<key>UIUserInterfaceLayoutDirection</key>
 	<string>Automatic</string>
+
+	<!-- Export Compliance - App only uses standard HTTPS/TLS (no custom encryption) -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

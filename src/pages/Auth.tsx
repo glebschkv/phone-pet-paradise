@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Mail, Lock, Sparkles, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import { getAppBaseUrl, isValidEmail, validatePassword, sanitizeErrorMessage } from '@/lib/apiUtils';
 import { PageErrorBoundary } from '@/components/PageErrorBoundary';
 import { checkRateLimit, recordRateLimitAttempt, clearRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/security';
