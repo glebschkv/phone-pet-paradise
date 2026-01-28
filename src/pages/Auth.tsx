@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,6 +54,12 @@ export default function Auth() {
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isSupabaseConfigured) {
+      toast.error('Authentication is not available. Please try again later.');
+      return;
+    }
+    
     if (!email) {
       toast.error('Please enter your email');
       return;
@@ -102,6 +108,12 @@ export default function Auth() {
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isSupabaseConfigured) {
+      toast.error('Authentication is not available. Please try again later.');
+      return;
+    }
+    
     if (!email || !password) {
       toast.error('Please fill in all fields');
       return;
@@ -146,6 +158,12 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isSupabaseConfigured) {
+      toast.error('Authentication is not available. Please try again later.');
+      return;
+    }
+    
     if (!email || !password) {
       toast.error('Please fill in all fields');
       return;
@@ -211,6 +229,12 @@ export default function Auth() {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isSupabaseConfigured) {
+      toast.error('Authentication is not available. Please try again later.');
+      return;
+    }
+    
     if (!email) {
       toast.error('Please enter your email');
       return;
@@ -256,6 +280,12 @@ export default function Auth() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isSupabaseConfigured) {
+      toast.error('Authentication is not available. Please try again later.');
+      return;
+    }
+    
     if (!password || !confirmPassword) {
       toast.error('Please fill in all fields');
       return;
@@ -304,6 +334,11 @@ export default function Auth() {
   };
 
   const handleAppleSignIn = async () => {
+    if (!isSupabaseConfigured) {
+      toast.error('Authentication is not available. Please try again later.');
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const isNativeIOS = Capacitor.getPlatform() === 'ios';
