@@ -19,7 +19,6 @@ export type ShopCategory =
   | 'customize'
   | 'powerups'
   | 'backgrounds'
-  | 'badges'
   | 'utilities'
   | 'coins'
   | 'bundles';
@@ -60,14 +59,6 @@ export interface PremiumBackground extends ShopItem {
 }
 
 /**
- * Profile badge item
- */
-export interface ProfileBadge extends ShopItem {
-  category: 'badges';
-  frameStyle: string;
-}
-
-/**
  * Utility item (streak freezes, etc.)
  */
 export interface UtilityItem extends ShopItem {
@@ -98,7 +89,6 @@ export interface StarterBundle extends ShopItem {
     coins: number;
     boosterId?: string;
     characterId?: string;
-    badgeId?: string;
   };
   savings: string;
 }
@@ -200,7 +190,6 @@ export interface ShopCategoryDef {
  */
 export interface OwnedItems {
   backgrounds: string[];
-  badges: string[];
   pets: string[];
   boosters: ActiveBooster[];
   streakFreezes: number;

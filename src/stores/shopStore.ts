@@ -29,8 +29,6 @@ import { shopLogger } from '@/lib/logger';
 export interface ShopInventory {
   ownedCharacters: string[];
   ownedBackgrounds: string[];
-  ownedBadges: string[];
-  equippedBadge: string | null;
   equippedBackground: string | null;
 }
 
@@ -38,10 +36,8 @@ interface ShopState extends ShopInventory {
   // Actions
   addOwnedCharacter: (characterId: string) => void;
   addOwnedBackground: (backgroundId: string) => void;
-  addOwnedBadge: (badgeId: string) => void;
   addOwnedCharacters: (characterIds: string[]) => void;
   addOwnedBackgrounds: (backgroundIds: string[]) => void;
-  setEquippedBadge: (badgeId: string | null) => void;
   setEquippedBackground: (backgroundId: string | null) => void;
   setInventory: (inventory: Partial<ShopInventory>) => void;
   resetShop: () => void;
@@ -49,14 +45,11 @@ interface ShopState extends ShopInventory {
   // Selectors
   isCharacterOwned: (characterId: string) => boolean;
   isBackgroundOwned: (backgroundId: string) => boolean;
-  isBadgeOwned: (badgeId: string) => boolean;
 }
 
 const initialState: ShopInventory = {
   ownedCharacters: [],
   ownedBackgrounds: [],
-  ownedBadges: [],
-  equippedBadge: null,
   equippedBackground: null,
 };
 
@@ -81,14 +74,6 @@ export const useShopStore = create<ShopState>()(
         }
       },
 
-      addOwnedBadge: (badgeId) => {
-        const { ownedBadges } = get();
-        if (!ownedBadges.includes(badgeId)) {
-          set({ ownedBadges: [...ownedBadges, badgeId] });
-          shopLogger.debug('Badge added to inventory:', badgeId);
-        }
-      },
-
       addOwnedCharacters: (characterIds) => {
         const { ownedCharacters } = get();
         const newCharacters = characterIds.filter(id => !ownedCharacters.includes(id));
@@ -105,11 +90,6 @@ export const useShopStore = create<ShopState>()(
           set({ ownedBackgrounds: [...ownedBackgrounds, ...newBackgrounds] });
           shopLogger.debug('Backgrounds added to inventory:', newBackgrounds);
         }
-      },
-
-      setEquippedBadge: (badgeId) => {
-        set({ equippedBadge: badgeId });
-        shopLogger.debug('Badge equipped:', badgeId);
       },
 
       setEquippedBackground: (backgroundId) => {
@@ -130,7 +110,6 @@ export const useShopStore = create<ShopState>()(
       // Selectors
       isCharacterOwned: (characterId) => get().ownedCharacters.includes(characterId),
       isBackgroundOwned: (backgroundId) => get().ownedBackgrounds.includes(backgroundId),
-      isBadgeOwned: (badgeId) => get().ownedBadges.includes(badgeId),
     }),
     {
       name: 'petIsland_shopInventory',

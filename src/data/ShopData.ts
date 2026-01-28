@@ -4,7 +4,6 @@ import type {
   ShopCategory,
   ShopItem,
   PremiumBackground,
-  ProfileBadge,
   UtilityItem,
   CoinPack,
   StarterBundle,
@@ -17,7 +16,6 @@ export type {
   ShopCategory,
   ShopItem,
   PremiumBackground,
-  ProfileBadge,
   UtilityItem,
   CoinPack,
   StarterBundle,
@@ -187,73 +185,6 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PROFILE BADGES
-// ═══════════════════════════════════════════════════════════════════════════
-
-export const PROFILE_BADGES: ProfileBadge[] = [
-  {
-    id: 'badge-bronze-star',
-    name: 'Bronze Star',
-    description: 'A shiny bronze frame for your profile.',
-    category: 'badges',
-    coinPrice: 300,
-    icon: '⭐',
-    rarity: 'common',
-    frameStyle: 'bronze',
-  },
-  {
-    id: 'badge-silver-crown',
-    name: 'Silver Crown',
-    description: 'Show your royal dedication with this silver crown frame.',
-    category: 'badges',
-    coinPrice: 600,
-    icon: '👑',
-    rarity: 'rare',
-    frameStyle: 'silver-crown',
-  },
-  {
-    id: 'badge-gold-flame',
-    name: 'Golden Flame',
-    description: 'A fiery golden frame for the most dedicated focusers.',
-    category: 'badges',
-    coinPrice: 1000,
-    icon: '🔥',
-    rarity: 'epic',
-    frameStyle: 'gold-flame',
-  },
-  {
-    id: 'badge-diamond',
-    name: 'Diamond Elite',
-    description: 'The ultimate badge of prestige and dedication.',
-    category: 'badges',
-    coinPrice: 2500,
-    icon: '💎',
-    rarity: 'legendary',
-    frameStyle: 'diamond',
-  },
-  {
-    id: 'badge-rainbow',
-    name: 'Rainbow Aura',
-    description: 'A magical rainbow frame that shifts colors.',
-    category: 'badges',
-    coinPrice: 1500,
-    icon: '🌈',
-    rarity: 'epic',
-    frameStyle: 'rainbow',
-  },
-  {
-    id: 'badge-cosmic',
-    name: 'Cosmic Ring',
-    description: 'A frame with swirling galaxies and stars.',
-    category: 'badges',
-    coinPrice: 2000,
-    icon: '🌟',
-    rarity: 'legendary',
-    frameStyle: 'cosmic',
-  },
-];
-
-// ═══════════════════════════════════════════════════════════════════════════
 // UTILITY ITEMS (Streak Freezes, etc.)
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -379,7 +310,6 @@ export const STARTER_BUNDLES: StarterBundle[] = [
       coins: 5000,
       boosterId: 'super_boost',
       characterId: 'kitsune-spirit', // Legendary Kitsune Spirit
-      badgeId: 'badge-gold-flame',
     },
     savings: '60%',
   },
@@ -491,7 +421,6 @@ export const PET_BUNDLES: PetBundle[] = [
 export const getAllShopItems = (): ShopItem[] => {
   return [
     ...PREMIUM_BACKGROUNDS,
-    ...PROFILE_BADGES,
     ...UTILITY_ITEMS,
     ...COIN_PACKS,
     ...STARTER_BUNDLES,
@@ -528,8 +457,7 @@ export const getShopItemsByCategory = (category: ShopCategory): ShopItem[] => {
         rarity: animal.rarity,
       }));
     case 'customize':
-      // Combine backgrounds and badges
-      return [...PREMIUM_BACKGROUNDS, ...PROFILE_BADGES];
+      return [...PREMIUM_BACKGROUNDS];
     case 'powerups': {
       // Combine boosters, utility items, and coins
       const boosters = BOOSTER_TYPES.map(booster => ({
@@ -558,10 +486,6 @@ export const getShopItemById = (itemId: string): ShopItem | undefined => {
 
 export const getBackgroundById = (backgroundId: string): PremiumBackground | undefined => {
   return PREMIUM_BACKGROUNDS.find(bg => bg.id === backgroundId);
-};
-
-export const getBadgeById = (badgeId: string): ProfileBadge | undefined => {
-  return PROFILE_BADGES.find(badge => badge.id === badgeId);
 };
 
 export const getCoinPackById = (packId: string): CoinPack | undefined => {

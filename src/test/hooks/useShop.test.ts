@@ -39,8 +39,6 @@ const setShopState = (inventory: Partial<ShopInventory>) => {
   useShopStore.setState({
     ownedCharacters: inventory.ownedCharacters ?? [],
     ownedBackgrounds: inventory.ownedBackgrounds ?? [],
-    ownedBadges: inventory.ownedBadges ?? [],
-    equippedBadge: inventory.equippedBadge ?? null,
     equippedBackground: inventory.equippedBackground ?? null,
   });
 };
@@ -101,14 +99,6 @@ vi.mock('@/data/ShopData', () => ({
       category: 'backgrounds',
     },
   ],
-  PROFILE_BADGES: [
-    {
-      id: 'badge-gold',
-      name: 'Gold Badge',
-      coinPrice: 300,
-      category: 'badges',
-    },
-  ],
   UTILITY_ITEMS: [
     {
       id: 'streak-freeze-1',
@@ -141,7 +131,6 @@ vi.mock('@/data/ShopData', () => ({
         coins: 500,
         boosterId: 'boost-2x',
         characterId: 'dog',
-        badgeId: 'badge-gold',
       },
     },
   ],
@@ -156,8 +145,6 @@ describe('useShop', () => {
     useShopStore.setState({
       ownedCharacters: [],
       ownedBackgrounds: [],
-      ownedBadges: [],
-      equippedBadge: null,
       equippedBackground: null,
     });
 
@@ -179,8 +166,6 @@ describe('useShop', () => {
       expect(result.current.inventory).toEqual({
         ownedCharacters: [],
         ownedBackgrounds: [],
-        ownedBadges: [],
-        equippedBadge: null,
         equippedBackground: null,
       });
     });
@@ -189,8 +174,6 @@ describe('useShop', () => {
       const savedInventory: ShopInventory = {
         ownedCharacters: ['dog'],
         ownedBackgrounds: ['bg-ocean'],
-        ownedBadges: ['badge-gold'],
-        equippedBadge: 'badge-gold',
         equippedBackground: 'bg-ocean',
       };
 
@@ -219,7 +202,6 @@ describe('useShop', () => {
 
       expect(result.current.inventory.ownedCharacters).toEqual(['dog']);
       expect(result.current.inventory.ownedBackgrounds).toEqual([]);
-      expect(result.current.inventory.ownedBadges).toEqual([]);
     });
   });
 
@@ -244,16 +226,6 @@ describe('useShop', () => {
 
       expect(result.current.isOwned('bg-ocean', 'customize')).toBe(true);
       expect(result.current.isOwned('bg-forest', 'customize')).toBe(false);
-    });
-
-    it('should correctly identify owned badges', () => {
-      setShopState({
-        ownedBadges: ['badge-gold'],
-      });
-
-      const { result } = renderHook(() => useShop());
-
-      expect(result.current.isOwned('badge-gold', 'customize')).toBe(true);
     });
   });
 
@@ -290,23 +262,6 @@ describe('useShop', () => {
       });
       expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(200, 'cosmetic', 'bg-ocean');
       expect(result.current.inventory.ownedBackgrounds).toContain('bg-ocean');
-    });
-
-    it('should successfully purchase a badge', async () => {
-      const { result } = renderHook(() => useShop());
-
-      let purchaseResult;
-      await act(async () => {
-        purchaseResult = await result.current.purchaseBadge('badge-gold');
-      });
-
-      expect(purchaseResult).toEqual({
-        success: true,
-        message: 'Gold Badge purchased!',
-        item: expect.objectContaining({ id: 'badge-gold', name: 'Gold Badge' }),
-      });
-      expect(mockCoinSystem.spendCoins).toHaveBeenCalledWith(300, 'cosmetic', 'badge-gold');
-      expect(result.current.inventory.ownedBadges).toContain('badge-gold');
     });
 
     it('should successfully purchase streak freeze', async () => {
@@ -461,53 +416,6 @@ describe('useShop', () => {
     });
   });
 
-  describe('equipBadge Function', () => {
-    it('should successfully equip owned badge', () => {
-      setShopState({
-        ownedBadges: ['badge-gold'],
-      });
-
-      const { result } = renderHook(() => useShop());
-
-      let success;
-      act(() => {
-        success = result.current.equipBadge('badge-gold');
-      });
-
-      expect(success).toBe(true);
-      expect(result.current.inventory.equippedBadge).toBe('badge-gold');
-    });
-
-    it('should fail to equip unowned badge', () => {
-      const { result } = renderHook(() => useShop());
-
-      let success;
-      act(() => {
-        success = result.current.equipBadge('badge-gold');
-      });
-
-      expect(success).toBe(false);
-      expect(result.current.inventory.equippedBadge).toBeNull();
-    });
-
-    it('should allow unequipping badge by passing null', () => {
-      setShopState({
-        ownedBadges: ['badge-gold'],
-        equippedBadge: 'badge-gold',
-      });
-
-      const { result } = renderHook(() => useShop());
-
-      let success;
-      act(() => {
-        success = result.current.equipBadge(null);
-      });
-
-      expect(success).toBe(true);
-      expect(result.current.inventory.equippedBadge).toBeNull();
-    });
-  });
-
   describe('equipBackground Function', () => {
     it('should successfully equip owned background', () => {
       setShopState({
@@ -555,7 +463,7 @@ describe('useShop', () => {
     });
   });
 
-  describe('unlockCharacter and unlockBadge', () => {
+  describe('unlockCharacter', () => {
     it('should unlock character without payment', () => {
       const { result } = renderHook(() => useShop());
 
@@ -566,19 +474,6 @@ describe('useShop', () => {
 
       expect(success).toBe(true);
       expect(result.current.inventory.ownedCharacters).toContain('dog');
-      expect(mockCoinSystem.spendCoins).not.toHaveBeenCalled();
-    });
-
-    it('should unlock badge without payment', () => {
-      const { result } = renderHook(() => useShop());
-
-      let success;
-      act(() => {
-        success = result.current.unlockBadge('badge-gold');
-      });
-
-      expect(success).toBe(true);
-      expect(result.current.inventory.ownedBadges).toContain('badge-gold');
       expect(mockCoinSystem.spendCoins).not.toHaveBeenCalled();
     });
 
@@ -635,8 +530,6 @@ describe('useShop', () => {
       setShopState({
         ownedCharacters: ['dog'],
         ownedBackgrounds: ['bg-ocean'],
-        ownedBadges: ['badge-gold'],
-        equippedBadge: 'badge-gold',
         equippedBackground: 'bg-ocean',
       });
 
@@ -649,8 +542,6 @@ describe('useShop', () => {
       expect(result.current.inventory).toEqual({
         ownedCharacters: [],
         ownedBackgrounds: [],
-        ownedBadges: [],
-        equippedBadge: null,
         equippedBackground: null,
       });
     });

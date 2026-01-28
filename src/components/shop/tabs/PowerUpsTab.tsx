@@ -1,17 +1,15 @@
-import { Coins, Check, Palette } from "lucide-react";
+import { Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ShopItem, getShopItemsByCategory, COIN_PACKS, PROFILE_BADGES, CoinPack } from "@/data/ShopData";
+import { ShopItem, getShopItemsByCategory, COIN_PACKS, CoinPack } from "@/data/ShopData";
 import type { ShopInventory } from "@/hooks/useShop";
 import { AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
-import { RARITY_BG, RARITY_BORDER } from "../styles";
 import type { ShopCategory } from "@/data/ShopData";
 import { useStoreKit } from "@/hooks/useStoreKit";
 
 interface PowerUpsTabProps {
   inventory: ShopInventory;
   isOwned: (itemId: string, category: ShopCategory) => boolean;
-  equipBadge: (badgeId: string | null) => void;
   setSelectedItem: (item: ShopItem | AnimalData | null) => void;
   setShowPurchaseConfirm: (show: boolean) => void;
   canAfford: (price: number) => boolean;
@@ -22,9 +20,6 @@ interface PowerUpsTabProps {
 }
 
 export const PowerUpsTab = ({
-  inventory,
-  isOwned,
-  equipBadge,
   setSelectedItem,
   setShowPurchaseConfirm,
   canAfford,
@@ -53,18 +48,6 @@ export const PowerUpsTab = ({
       }
     } catch (_error) {
       toast.error("Unable to complete purchase");
-    }
-  };
-
-  const handleEquipBadge = (badgeId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (inventory.equippedBadge === badgeId) {
-      // Unequip
-      equipBadge(null);
-      toast.success("Badge unequipped");
-    } else {
-      equipBadge(badgeId);
-      toast.success("Badge equipped!");
     }
   };
 
@@ -143,67 +126,6 @@ export const PowerUpsTab = ({
                   <Coins className="w-3 h-3" />
                   {item.coinPrice?.toLocaleString()}
                 </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Profile Badges */}
-      <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>🏅</span> Profile Badges
-        </h4>
-        <div className="grid grid-cols-3 gap-2">
-          {PROFILE_BADGES.map((badge) => {
-            const owned = isOwned(badge.id, 'customize');
-            const affordable = canAfford(badge.coinPrice || 0);
-            const isEquipped = inventory.equippedBadge === badge.id;
-            return (
-              <button
-                key={badge.id}
-                onClick={() => {
-                  if (owned) {
-                    handleEquipBadge(badge.id, { stopPropagation: () => {} } as React.MouseEvent);
-                  } else {
-                    setSelectedItem(badge);
-                    setShowPurchaseConfirm(true);
-                  }
-                }}
-                className={cn(
-                  "relative p-2 rounded-xl border-2 text-center transition-all active:scale-95",
-                  isEquipped
-                    ? "bg-purple-50 dark:bg-purple-900/20 border-purple-400 ring-2 ring-purple-300"
-                    : owned
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-300"
-                    : RARITY_BG[badge.rarity || 'common'],
-                  !owned && RARITY_BORDER[badge.rarity || 'common']
-                )}
-              >
-                {isEquipped ? (
-                  <div className="absolute top-1 right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
-                    <Palette className="w-2.5 h-2.5 text-white" />
-                  </div>
-                ) : owned && (
-                  <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                    <Check className="w-2.5 h-2.5 text-white" />
-                  </div>
-                )}
-                <span className="text-2xl block mb-1">{badge.icon}</span>
-                <span className="text-[10px] font-bold block leading-tight">{badge.name}</span>
-                {owned ? (
-                  <div className="text-[8px] font-medium mt-1 text-purple-600 dark:text-purple-400">
-                    {isEquipped ? "Unequip" : "Equip"}
-                  </div>
-                ) : (
-                  <div className={cn(
-                    "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
-                    affordable ? "text-amber-600" : "text-red-500"
-                  )}>
-                    <Coins className="w-2.5 h-2.5" />
-                    {badge.coinPrice?.toLocaleString()}
-                  </div>
-                )}
               </button>
             );
           })}

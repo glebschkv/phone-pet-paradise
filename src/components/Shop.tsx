@@ -37,7 +37,6 @@ export const Shop = () => {
     purchaseBackgroundBundle,
     purchasePetBundle,
     purchaseStarterBundle,
-    equipBadge,
     equipBackground,
     coinBalance,
     canAfford,
@@ -128,7 +127,6 @@ export const Shop = () => {
           <PowerUpsTab
             inventory={inventory}
             isOwned={isOwned}
-            equipBadge={equipBadge}
             setSelectedItem={setSelectedItem}
             setShowPurchaseConfirm={setShowPurchaseConfirm}
             canAfford={canAfford}

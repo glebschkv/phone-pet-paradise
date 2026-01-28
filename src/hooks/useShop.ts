@@ -7,7 +7,6 @@ import {
   ShopItem,
   ShopCategory,
   PREMIUM_BACKGROUNDS,
-  PROFILE_BADGES,
   UTILITY_ITEMS,
   BACKGROUND_BUNDLES,
   STARTER_BUNDLES,
@@ -48,8 +47,6 @@ interface PurchaseConfig<T> {
 export interface ShopInventory {
   ownedCharacters: string[];
   ownedBackgrounds: string[];
-  ownedBadges: string[];
-  equippedBadge: string | null;
   equippedBackground: string | null;
 }
 
@@ -63,15 +60,11 @@ export const useShop = () => {
   const {
     ownedCharacters,
     ownedBackgrounds,
-    ownedBadges,
-    equippedBadge,
     equippedBackground,
   } = useShopStore(
     useShallow((state) => ({
       ownedCharacters: state.ownedCharacters,
       ownedBackgrounds: state.ownedBackgrounds,
-      ownedBadges: state.ownedBadges,
-      equippedBadge: state.equippedBadge,
       equippedBackground: state.equippedBackground,
     }))
   );
@@ -80,20 +73,16 @@ export const useShop = () => {
   const {
     addOwnedCharacter,
     addOwnedBackground,
-    addOwnedBadge,
     addOwnedCharacters,
     addOwnedBackgrounds,
-    storeSetEquippedBadge,
     storeSetEquippedBackground,
     storeResetShop,
   } = useShopStore(
     useShallow((state) => ({
       addOwnedCharacter: state.addOwnedCharacter,
       addOwnedBackground: state.addOwnedBackground,
-      addOwnedBadge: state.addOwnedBadge,
       addOwnedCharacters: state.addOwnedCharacters,
       addOwnedBackgrounds: state.addOwnedBackgrounds,
-      storeSetEquippedBadge: state.setEquippedBadge,
       storeSetEquippedBackground: state.setEquippedBackground,
       storeResetShop: state.resetShop,
     }))
@@ -103,26 +92,24 @@ export const useShop = () => {
   const inventory: ShopInventory = {
     ownedCharacters,
     ownedBackgrounds,
-    ownedBadges,
-    equippedBadge,
     equippedBackground,
   };
 
   // Track total purchases for achievements
   const purchaseCountRef = useRef(
-    ownedCharacters.length + ownedBackgrounds.length + ownedBadges.length
+    ownedCharacters.length + ownedBackgrounds.length
   );
 
   // Track purchase count changes for achievements
   useEffect(() => {
-    const totalItems = ownedCharacters.length + ownedBackgrounds.length + ownedBadges.length;
+    const totalItems = ownedCharacters.length + ownedBackgrounds.length;
     if (totalItems > purchaseCountRef.current) {
       purchaseCountRef.current = totalItems;
       dispatchAchievementEvent(ACHIEVEMENT_EVENTS.PURCHASE_MADE, {
         totalPurchases: totalItems,
       });
     }
-  }, [ownedCharacters.length, ownedBackgrounds.length, ownedBadges.length]);
+  }, [ownedCharacters.length, ownedBackgrounds.length]);
 
   // Check if item is owned
   const isOwned = useCallback((itemId: string, category: ShopCategory): boolean => {
@@ -130,11 +117,11 @@ export const useShop = () => {
       case 'pets':
         return ownedCharacters.includes(itemId);
       case 'customize':
-        return ownedBackgrounds.includes(itemId) || ownedBadges.includes(itemId);
+        return ownedBackgrounds.includes(itemId);
       default:
         return false;
     }
-  }, [ownedCharacters, ownedBackgrounds, ownedBadges]);
+  }, [ownedCharacters, ownedBackgrounds]);
 
   /**
    * SECURITY: Generic purchase function with server-validated coin spending
@@ -216,21 +203,6 @@ export const useShop = () => {
     });
   }, [genericPurchase, ownedBackgrounds, addOwnedBackground]);
 
-  /**
-   * SECURITY: Purchase a badge with server-validated coin spending
-   */
-  const purchaseBadge = useCallback(async (badgeId: string): Promise<PurchaseResult> => {
-    return genericPurchase(badgeId, {
-      getItem: (id) => PROFILE_BADGES.find(b => b.id === id),
-      itemTypeName: 'Badge',
-      ownedItems: ownedBadges,
-      addOwned: addOwnedBadge,
-      getPrice: (badge) => badge.coinPrice,
-      spendPurpose: 'cosmetic',
-      getItemName: (badge) => badge.name,
-    });
-  }, [genericPurchase, ownedBadges, addOwnedBadge]);
-
   // Unlock a character (without payment - used for bundles and rewards)
   const unlockCharacter = useCallback((characterId: string): boolean => {
     const animal = getAnimalById(characterId);
@@ -245,21 +217,6 @@ export const useShop = () => {
     addOwnedCharacter(characterId);
     return true;
   }, [ownedCharacters, addOwnedCharacter]);
-
-  // Unlock a badge (without payment - used for bundles and rewards)
-  const unlockBadge = useCallback((badgeId: string): boolean => {
-    const badge = PROFILE_BADGES.find(b => b.id === badgeId);
-    if (!badge) {
-      return false;
-    }
-
-    if (ownedBadges.includes(badgeId)) {
-      return true; // Already owned
-    }
-
-    addOwnedBadge(badgeId);
-    return true;
-  }, [ownedBadges, addOwnedBadge]);
 
   // Purchase a starter bundle (IAP simulation - grants all contents)
   const purchaseStarterBundle = useCallback((bundleId: string): PurchaseResult => {
@@ -296,20 +253,11 @@ export const useShop = () => {
       }
     }
 
-    // Unlock badge
-    if (bundle.contents.badgeId) {
-      const badge = PROFILE_BADGES.find(b => b.id === bundle.contents.badgeId);
-      if (badge) {
-        unlockBadge(bundle.contents.badgeId);
-        results.push(badge.name);
-      }
-    }
-
     return {
       success: true,
       message: `${bundle.name} purchased! Received: ${results.join(', ')}`
     };
-  }, [coinSystem, boosterSystem, unlockCharacter, unlockBadge]);
+  }, [coinSystem, boosterSystem, unlockCharacter]);
 
   /**
    * SECURITY: Purchase a background bundle with server-validated coin spending
@@ -449,11 +397,7 @@ export const useShop = () => {
       case 'pets':
         return purchaseCharacter(itemId);
       case 'customize':
-        // Try background first, then badge
-        if (itemId.startsWith('bg-')) {
-          return purchaseBackground(itemId);
-        }
-        return purchaseBadge(itemId);
+        return purchaseBackground(itemId);
       case 'powerups': {
         // Handle boosters and utility items
         if (itemId.includes('boost') || itemId.includes('pass')) {
@@ -468,16 +412,7 @@ export const useShop = () => {
       default:
         return { success: false, message: 'Invalid category' };
     }
-  }, [purchaseCharacter, purchaseBackground, purchaseBadge, purchaseBooster, purchaseStreakFreeze]);
-
-  // Equip a badge
-  const equipBadge = useCallback((badgeId: string | null) => {
-    if (badgeId && !ownedBadges.includes(badgeId)) {
-      return false;
-    }
-    storeSetEquippedBadge(badgeId);
-    return true;
-  }, [ownedBadges, storeSetEquippedBadge]);
+  }, [purchaseCharacter, purchaseBackground, purchaseBooster, purchaseStreakFreeze]);
 
   // Equip a background
   const equipBackground = useCallback((backgroundId: string | null) => {
@@ -504,12 +439,9 @@ export const useShop = () => {
     purchaseBackgroundBundle,
     purchasePetBundle,
     purchaseStarterBundle,
-    purchaseBadge,
     purchaseBooster,
     purchaseStreakFreeze,
     unlockCharacter,
-    unlockBadge,
-    equipBadge,
     equipBackground,
     resetShop,
     coinBalance: coinSystem.balance,

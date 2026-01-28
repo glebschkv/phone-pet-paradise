@@ -109,8 +109,6 @@ describe('useCollection', () => {
     useShopStore.setState({
       ownedCharacters: [],
       ownedBackgrounds: [],
-      ownedBadges: [],
-      equippedBadge: null,
       equippedBackground: null,
     });
   });

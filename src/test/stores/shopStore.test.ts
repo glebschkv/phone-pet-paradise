@@ -28,8 +28,6 @@ describe('shopStore', () => {
     useShopStore.setState({
       ownedCharacters: [],
       ownedBackgrounds: [],
-      ownedBadges: [],
-      equippedBadge: null,
       equippedBackground: null,
     });
   });
@@ -43,12 +41,10 @@ describe('shopStore', () => {
       const state = useShopStore.getState();
       expect(state.ownedCharacters).toEqual([]);
       expect(state.ownedBackgrounds).toEqual([]);
-      expect(state.ownedBadges).toEqual([]);
     });
 
     it('should initialize with no equipped items', () => {
       const state = useShopStore.getState();
-      expect(state.equippedBadge).toBeNull();
       expect(state.equippedBackground).toBeNull();
     });
 
@@ -56,16 +52,13 @@ describe('shopStore', () => {
       const state = useShopStore.getState();
       expect(typeof state.addOwnedCharacter).toBe('function');
       expect(typeof state.addOwnedBackground).toBe('function');
-      expect(typeof state.addOwnedBadge).toBe('function');
       expect(typeof state.addOwnedCharacters).toBe('function');
       expect(typeof state.addOwnedBackgrounds).toBe('function');
-      expect(typeof state.setEquippedBadge).toBe('function');
       expect(typeof state.setEquippedBackground).toBe('function');
       expect(typeof state.setInventory).toBe('function');
       expect(typeof state.resetShop).toBe('function');
       expect(typeof state.isCharacterOwned).toBe('function');
       expect(typeof state.isBackgroundOwned).toBe('function');
-      expect(typeof state.isBadgeOwned).toBe('function');
     });
   });
 
@@ -133,31 +126,6 @@ describe('shopStore', () => {
 
       const state = useShopStore.getState();
       expect(state.ownedBackgrounds.filter(b => b === 'sunset-beach')).toHaveLength(1);
-    });
-  });
-
-  describe('addOwnedBadge', () => {
-    it('should add a badge to owned badges', () => {
-      const { addOwnedBadge } = useShopStore.getState();
-
-      act(() => {
-        addOwnedBadge('focus-master');
-      });
-
-      const state = useShopStore.getState();
-      expect(state.ownedBadges).toContain('focus-master');
-    });
-
-    it('should not add duplicate badges', () => {
-      const { addOwnedBadge } = useShopStore.getState();
-
-      act(() => {
-        addOwnedBadge('focus-master');
-        addOwnedBadge('focus-master');
-      });
-
-      const state = useShopStore.getState();
-      expect(state.ownedBadges.filter(b => b === 'focus-master')).toHaveLength(1);
     });
   });
 
@@ -242,43 +210,6 @@ describe('shopStore', () => {
     });
   });
 
-  describe('setEquippedBadge', () => {
-    it('should set the equipped badge', () => {
-      const { setEquippedBadge } = useShopStore.getState();
-
-      act(() => {
-        setEquippedBadge('premium-badge');
-      });
-
-      const state = useShopStore.getState();
-      expect(state.equippedBadge).toBe('premium-badge');
-    });
-
-    it('should allow unequipping badge with null', () => {
-      const { setEquippedBadge } = useShopStore.getState();
-
-      act(() => {
-        setEquippedBadge('premium-badge');
-        setEquippedBadge(null);
-      });
-
-      const state = useShopStore.getState();
-      expect(state.equippedBadge).toBeNull();
-    });
-
-    it('should allow changing equipped badge', () => {
-      const { setEquippedBadge } = useShopStore.getState();
-
-      act(() => {
-        setEquippedBadge('badge-1');
-        setEquippedBadge('badge-2');
-      });
-
-      const state = useShopStore.getState();
-      expect(state.equippedBadge).toBe('badge-2');
-    });
-  });
-
   describe('setEquippedBackground', () => {
     it('should set the equipped background', () => {
       const { setEquippedBackground } = useShopStore.getState();
@@ -311,13 +242,11 @@ describe('shopStore', () => {
       act(() => {
         setInventory({
           ownedCharacters: ['char-1', 'char-2'],
-          equippedBadge: 'badge-1',
         });
       });
 
       const state = useShopStore.getState();
       expect(state.ownedCharacters).toEqual(['char-1', 'char-2']);
-      expect(state.equippedBadge).toBe('badge-1');
       // Unspecified fields should remain at defaults
       expect(state.ownedBackgrounds).toEqual([]);
     });
@@ -328,8 +257,6 @@ describe('shopStore', () => {
       const fullInventory: ShopInventory = {
         ownedCharacters: ['char-1'],
         ownedBackgrounds: ['bg-1'],
-        ownedBadges: ['badge-1'],
-        equippedBadge: 'badge-1',
         equippedBackground: 'bg-1',
       };
 
@@ -340,21 +267,17 @@ describe('shopStore', () => {
       const state = useShopStore.getState();
       expect(state.ownedCharacters).toEqual(['char-1']);
       expect(state.ownedBackgrounds).toEqual(['bg-1']);
-      expect(state.ownedBadges).toEqual(['badge-1']);
-      expect(state.equippedBadge).toBe('badge-1');
       expect(state.equippedBackground).toBe('bg-1');
     });
   });
 
   describe('resetShop', () => {
     it('should reset all shop state to initial values', () => {
-      const { addOwnedCharacter, addOwnedBackground, addOwnedBadge, setEquippedBadge, setEquippedBackground, resetShop } = useShopStore.getState();
+      const { addOwnedCharacter, addOwnedBackground, setEquippedBackground, resetShop } = useShopStore.getState();
 
       act(() => {
         addOwnedCharacter('char-1');
         addOwnedBackground('bg-1');
-        addOwnedBadge('badge-1');
-        setEquippedBadge('badge-1');
         setEquippedBackground('bg-1');
       });
 
@@ -368,8 +291,6 @@ describe('shopStore', () => {
       const state = useShopStore.getState();
       expect(state.ownedCharacters).toEqual([]);
       expect(state.ownedBackgrounds).toEqual([]);
-      expect(state.ownedBadges).toEqual([]);
-      expect(state.equippedBadge).toBeNull();
       expect(state.equippedBackground).toBeNull();
     });
   });
@@ -411,23 +332,6 @@ describe('shopStore', () => {
       });
     });
 
-    describe('isBadgeOwned', () => {
-      it('should return true for owned badges', () => {
-        const { addOwnedBadge } = useShopStore.getState();
-
-        act(() => {
-          addOwnedBadge('focus-master');
-        });
-
-        const state = useShopStore.getState();
-        expect(state.isBadgeOwned('focus-master')).toBe(true);
-      });
-
-      it('should return false for unowned badges', () => {
-        const state = useShopStore.getState();
-        expect(state.isBadgeOwned('not-owned')).toBe(false);
-      });
-    });
   });
 
   describe('Selector Hooks', () => {
@@ -480,11 +384,11 @@ describe('shopStore', () => {
 
   describe('Persistence', () => {
     it('should persist state to localStorage', async () => {
-      const { addOwnedCharacter, setEquippedBadge } = useShopStore.getState();
+      const { addOwnedCharacter, setEquippedBackground } = useShopStore.getState();
 
       act(() => {
         addOwnedCharacter('persisted-cat');
-        setEquippedBadge('persisted-badge');
+        setEquippedBackground('persisted-bg');
       });
 
       // Wait for persistence
@@ -495,7 +399,7 @@ describe('shopStore', () => {
 
       const parsed = JSON.parse(saved!);
       expect(parsed.state.ownedCharacters).toContain('persisted-cat');
-      expect(parsed.state.equippedBadge).toBe('persisted-badge');
+      expect(parsed.state.equippedBackground).toBe('persisted-bg');
     });
   });
 

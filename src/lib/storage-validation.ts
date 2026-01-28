@@ -126,7 +126,7 @@ const questObjectiveSchema = z.object({
 });
 
 const questRewardSchema = z.object({
-  type: z.enum(['xp', 'coins', 'item', 'badge']),
+  type: z.enum(['xp', 'coins', 'item']),
   amount: safeNonNegativeInt.optional(),
   itemId: safeString(100).optional(),
 });
@@ -225,8 +225,6 @@ export type ValidatedFocusMode = z.infer<typeof focusModeSchema>;
 export const shopInventorySchema = z.object({
   ownedCharacters: safeArray(safeString(100), 200).default([]),
   ownedBackgrounds: safeArray(safeString(100), 100).default([]),
-  ownedBadges: safeArray(safeString(100), 100).default([]),
-  equippedBadge: z.union([safeString(100), z.null()]).default(null),
   equippedBackground: z.union([safeString(100), z.null()]).default(null),
 });
 
