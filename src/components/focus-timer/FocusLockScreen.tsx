@@ -55,7 +55,7 @@ export const FocusLockScreen = ({
             }} />
           </div>
 
-          <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-12">
+          <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 pt-safe pb-safe">
             {/* Shield Icon */}
             <motion.div
               initial={{ scale: 0 }}
@@ -183,7 +183,7 @@ export const FocusLockScreen = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="absolute bottom-8 left-0 right-0 text-center text-white/30 text-xs px-8"
+              className="absolute bottom-safe left-0 right-0 text-center text-white/30 text-xs px-8 pb-4"
             >
               "The secret of getting ahead is getting started."
             </motion.p>

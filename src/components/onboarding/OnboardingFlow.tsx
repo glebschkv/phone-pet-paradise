@@ -430,7 +430,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       {/* Main content */}
       <div className="relative h-full flex flex-col items-center justify-center p-6 max-w-md mx-auto">
         {/* Step dots - top */}
-        <div className="absolute top-safe-top pt-8">
+        <div className="absolute top-safe pt-8">
           <StepDots current={currentStep} total={steps.length} />
         </div>
 
@@ -480,7 +480,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
         </AnimatePresence>
 
         {/* Navigation buttons - bottom */}
-        <div className="absolute bottom-safe-bottom pb-8 left-6 right-6">
+        <div className="absolute bottom-safe pb-8 left-6 right-6">
           <div className="flex justify-between items-center gap-4">
             <Button
               variant="ghost"
