@@ -307,8 +307,6 @@ test.describe('Performance Edge Cases', () => {
       localStorage.setItem('petIsland_shopInventory', JSON.stringify({
         ownedCharacters: manyCharacters,
         ownedBackgrounds: manyBackgrounds,
-        ownedBadges: [],
-        equippedBadge: null,
         equippedBackground: null,
       }));
     });

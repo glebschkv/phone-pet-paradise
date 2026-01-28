@@ -182,14 +182,10 @@ export interface NavigationState {
 export interface CollectionState {
   ownedPets: string[];
   ownedBackgrounds: string[];
-  ownedBadges: string[];
   activePetId: string | null;
   activeBackgroundId: string | null;
-  activeBadgeId: string | null;
   addPet: (petId: string) => void;
   addBackground: (backgroundId: string) => void;
-  addBadge: (badgeId: string) => void;
   setActivePet: (petId: string) => void;
   setActiveBackground: (backgroundId: string) => void;
-  setActiveBadge: (badgeId: string) => void;
 }

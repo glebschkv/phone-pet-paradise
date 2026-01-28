@@ -180,8 +180,7 @@ export const FeaturedTab = ({
           {STARTER_BUNDLES.map((bundle) => {
             // Check if user already has all bundle contents
             const hasCharacter = bundle.contents.characterId ? inventory.ownedCharacters.includes(bundle.contents.characterId) : true;
-            const hasBadge = bundle.contents.badgeId ? inventory.ownedBadges.includes(bundle.contents.badgeId) : true;
-            const alreadyPurchased = hasCharacter && hasBadge;
+            const alreadyPurchased = hasCharacter;
 
             return (
               <button

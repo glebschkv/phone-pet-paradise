@@ -159,7 +159,6 @@ export type {
   ShopCategory,
   ShopItem,
   PremiumBackground,
-  ProfileBadge,
   UtilityItem,
   CoinPack,
   StarterBundle,

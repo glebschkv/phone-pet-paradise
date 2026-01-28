@@ -243,16 +243,12 @@ export const createShopInventoryState = (
   options: {
     ownedCharacters?: string[];
     ownedBackgrounds?: string[];
-    ownedBadges?: string[];
-    equippedBadge?: string | null;
     equippedBackground?: string | null;
   } = {}
 ): string => {
   return JSON.stringify({
     ownedCharacters: options.ownedCharacters ?? [],
     ownedBackgrounds: options.ownedBackgrounds ?? [],
-    ownedBadges: options.ownedBadges ?? [],
-    equippedBadge: options.equippedBadge ?? null,
     equippedBackground: options.equippedBackground ?? null,
   });
 };

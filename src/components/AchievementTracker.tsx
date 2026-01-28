@@ -181,8 +181,7 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
     prevCoinsRef.current = coinSystem?.totalEarned || 0;
     prevPurchasesRef.current =
       (inventory?.ownedCharacters?.length || 0) +
-      (inventory?.ownedBackgrounds?.length || 0) +
-      (inventory?.ownedBadges?.length || 0);
+      (inventory?.ownedBackgrounds?.length || 0);
 
     // Track initial state
     if (currentLevel > 0) {
