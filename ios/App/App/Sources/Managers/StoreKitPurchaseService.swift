@@ -7,6 +7,7 @@ import UIKit
  *
  * Handles purchase flow, restoration, and subscription management.
  */
+@available(iOS 15.0, *)
 final class StoreKitPurchaseService {
 
     // MARK: - Singleton
@@ -170,12 +171,14 @@ final class StoreKitPurchaseService {
 
 // MARK: - Result Types
 
+@available(iOS 15.0, *)
 enum PurchaseResult {
     case success(PurchaseSuccess)
     case cancelled
     case pending
 }
 
+@available(iOS 15.0, *)
 struct PurchaseSuccess {
     let transaction: Transaction
     let jwsRepresentation: String

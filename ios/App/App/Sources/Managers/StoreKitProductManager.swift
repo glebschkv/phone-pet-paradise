@@ -7,6 +7,7 @@ import StoreKit
  * Manages StoreKit product fetching and caching.
  * Uses retry logic for network resilience.
  */
+@available(iOS 15.0, *)
 final class StoreKitProductManager {
 
     // MARK: - Singleton

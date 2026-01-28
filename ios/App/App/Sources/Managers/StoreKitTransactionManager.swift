@@ -7,6 +7,7 @@ import StoreKit
  * Manages StoreKit transaction listening, verification, and finishing.
  * Handles the continuous stream of transaction updates.
  */
+@available(iOS 15.0, *)
 final class StoreKitTransactionManager {
 
     // MARK: - Singleton
@@ -132,6 +133,7 @@ final class StoreKitTransactionManager {
 
 // MARK: - Verified Transaction Wrapper
 
+@available(iOS 15.0, *)
 struct VerifiedTransaction {
     let transaction: Transaction
     let jwsRepresentation: String

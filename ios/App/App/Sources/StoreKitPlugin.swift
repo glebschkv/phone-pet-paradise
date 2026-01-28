@@ -8,6 +8,7 @@ import StoreKit
  * Capacitor plugin for StoreKit 2 in-app purchases.
  * Thin coordinator that delegates to focused managers.
  */
+@available(iOS 15.0, *)
 @objc(StoreKitPlugin)
 public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
 
