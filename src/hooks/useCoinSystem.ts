@@ -281,6 +281,72 @@ export const useCoinSystem = () => {
   const storeResetCoins = useCoinStore((s) => s.resetCoins);
   const storeSyncFromServer = useCoinStore((s) => s.syncFromServer);
 
+  // Sync balance from server
+  const syncFromServer = useCallback(async (): Promise<void> => {
+    const response = await serverGetBalance();
+    if (response.success && response.newBalance !== undefined) {
+      storeSyncFromServer(
+        response.newBalance,
+        response.totalEarned || totalEarned,
+        response.totalSpent || totalSpent
+      );
+      coinLogger.debug('Synced balance from server:', response.newBalance);
+    }
+  }, [storeSyncFromServer, totalEarned, totalSpent]);
+
+  // PHASE 1: Initial coin sync on authentication
+  useEffect(() => {
+    const initSync = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await syncFromServer();
+          coinLogger.debug('Initial coin sync completed on mount');
+        }
+      } catch (err) {
+        coinLogger.debug('Initial coin sync skipped:', err);
+      }
+    };
+
+    initSync();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          // Use setTimeout to avoid potential deadlock
+          setTimeout(() => {
+            syncFromServer().catch((err) => {
+              coinLogger.debug('Auth sync failed:', err);
+            });
+          }, 0);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [syncFromServer]);
+
+  // PHASE 4: Periodic background sync every 5 minutes
+  useEffect(() => {
+    const SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+    const interval = setInterval(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await syncFromServer();
+          coinLogger.debug('Periodic coin sync completed');
+        }
+      } catch {
+        // Silent fail - just log
+        coinLogger.debug('Periodic sync failed');
+      }
+    }, SYNC_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [syncFromServer]);
+
   // Listen for bonus coin grants from subscription purchase
   useEffect(() => {
     const handleBonusCoins = (event: Event) => {
@@ -556,24 +622,6 @@ export const useCoinSystem = () => {
   const resetProgress = useCallback(() => {
     storeResetCoins();
   }, [storeResetCoins]);
-
-  /**
-   * SECURITY: Sync balance from server
-   *
-   * Fetches the authoritative balance from the server and updates local state.
-   * Call this periodically or after authentication to ensure consistency.
-   */
-  const syncFromServer = useCallback(async (): Promise<void> => {
-    const response = await serverGetBalance();
-    if (response.success && response.newBalance !== undefined) {
-      storeSyncFromServer(
-        response.newBalance,
-        response.totalEarned || totalEarned,
-        response.totalSpent || totalSpent
-      );
-      coinLogger.debug('Synced balance from server:', response.newBalance);
-    }
-  }, [storeSyncFromServer, totalEarned, totalSpent]);
 
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => ({

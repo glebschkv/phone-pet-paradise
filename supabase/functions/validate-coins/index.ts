@@ -15,8 +15,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
 // SECURITY: Rate limiting - separate limits for earn vs spend
 const rateLimitMap = new Map<string, { earnCount: number; spendCount: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
-const RATE_LIMIT_MAX_EARN = 5; // Max earn operations per minute
+const RATE_LIMIT_MAX_EARN = 15; // Max earn operations per minute (increased to handle reward bursts)
 const RATE_LIMIT_MAX_SPEND = 20; // Max spend operations per minute
+
+// PHASE 2: Sources that bypass rate limiting (trusted game events)
+const RATE_EXEMPT_SOURCES = ['daily_reward', 'achievement', 'quest_reward', 'subscription_bonus'] as const;
+type RateExemptSource = typeof RATE_EXEMPT_SOURCES[number];
 
 function checkRateLimit(
   userId: string,
@@ -236,16 +240,24 @@ serve(async (req) => {
       });
     }
 
-    // Rate limit check
-    const rateLimit = checkRateLimit(user.id, body.operation);
-    if (!rateLimit.allowed) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'Rate limit exceeded. Please try again later.',
-      }), {
-        status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(rateLimit.retryAfter || 60) },
-      });
+    // Rate limit check - exempt trusted sources from rate limiting
+    const isEarnExempt = body.operation === 'earn' && 
+      RATE_EXEMPT_SOURCES.includes((body as EarnRequest).source as RateExemptSource);
+    
+    if (!isEarnExempt) {
+      const rateLimit = checkRateLimit(user.id, body.operation);
+      if (!rateLimit.allowed) {
+        console.log(`[RATE_LIMIT] User ${user.id} exceeded ${body.operation} limit. Source: ${body.operation === 'earn' ? (body as EarnRequest).source : (body as SpendRequest).purpose}`);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Rate limit exceeded. Please try again later.',
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(rateLimit.retryAfter || 60) },
+        });
+      }
+    } else {
+      console.log(`[RATE_EXEMPT] User ${user.id} earn operation exempt from rate limit. Source: ${(body as EarnRequest).source}`);
     }
 
     // Validate amount
@@ -368,6 +380,9 @@ serve(async (req) => {
         metadata: body.metadata || null,
       });
 
+      // PHASE 5: Add detailed logging for debugging
+      console.log(`[COIN_EARN] User: ${user.id}, Amount: ${amount}, Source: ${body.source}, New Balance: ${newBalance}`);
+
       return new Response(JSON.stringify({
         success: true,
         operation: 'earn',
@@ -461,6 +476,9 @@ serve(async (req) => {
         item_id: body.itemId || null,
         metadata: body.metadata || null,
       });
+
+      // PHASE 5: Add detailed logging for debugging
+      console.log(`[COIN_SPEND] User: ${user.id}, Amount: ${amount}, Purpose: ${body.purpose}, Item: ${body.itemId || 'N/A'}, New Balance: ${newBalance}`);
 
       return new Response(JSON.stringify({
         success: true,
