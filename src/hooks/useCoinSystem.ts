@@ -40,7 +40,7 @@ import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchieve
 import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from './usePremiumStatus';
 import { coinLogger } from '@/lib/logger';
 import { COIN_CONFIG, RATE_LIMIT_CONFIG } from '@/lib/constants';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import {
   validateCoinTransaction,
   validateMultiplier,
@@ -296,6 +296,12 @@ export const useCoinSystem = () => {
 
   // PHASE 1: Initial coin sync on authentication
   useEffect(() => {
+    // Skip if Supabase is not configured (guest mode)
+    if (!isSupabaseConfigured) {
+      coinLogger.debug('Supabase not configured, skipping auth sync');
+      return;
+    }
+
     const initSync = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -329,6 +335,11 @@ export const useCoinSystem = () => {
 
   // PHASE 4: Periodic background sync every 5 minutes
   useEffect(() => {
+    // Skip if Supabase is not configured (guest mode)
+    if (!isSupabaseConfigured) {
+      return;
+    }
+
     const SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
     const interval = setInterval(async () => {
