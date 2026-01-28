@@ -56,10 +56,10 @@ export default function Auth() {
     e.preventDefault();
     
     if (!isSupabaseConfigured) {
-      toast.error('Authentication is not available. Please try again later.');
+      toast.error('Authentication service is not configured. Please check environment variables.');
       return;
     }
-    
+
     if (!email) {
       toast.error('Please enter your email');
       return;
@@ -110,7 +110,7 @@ export default function Auth() {
     e.preventDefault();
     
     if (!isSupabaseConfigured) {
-      toast.error('Authentication is not available. Please try again later.');
+      toast.error('Authentication service is not configured. Please check environment variables.');
       return;
     }
     
@@ -160,7 +160,7 @@ export default function Auth() {
     e.preventDefault();
     
     if (!isSupabaseConfigured) {
-      toast.error('Authentication is not available. Please try again later.');
+      toast.error('Authentication service is not configured. Please check environment variables.');
       return;
     }
     
@@ -231,7 +231,7 @@ export default function Auth() {
     e.preventDefault();
     
     if (!isSupabaseConfigured) {
-      toast.error('Authentication is not available. Please try again later.');
+      toast.error('Authentication service is not configured. Please check environment variables.');
       return;
     }
     
@@ -282,7 +282,7 @@ export default function Auth() {
     e.preventDefault();
     
     if (!isSupabaseConfigured) {
-      toast.error('Authentication is not available. Please try again later.');
+      toast.error('Authentication service is not configured. Please check environment variables.');
       return;
     }
     
@@ -335,7 +335,7 @@ export default function Auth() {
 
   const handleAppleSignIn = async () => {
     if (!isSupabaseConfigured) {
-      toast.error('Authentication is not available. Please try again later.');
+      toast.error('Authentication service is not configured. Please check environment variables.');
       return;
     }
     
