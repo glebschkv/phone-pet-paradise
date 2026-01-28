@@ -144,22 +144,13 @@ export const useNotifications = () => {
       await setupNotificationListeners();
 
       setIsInitialized(true);
-
-      toast({
-        title: "Notifications Ready",
-        description: "You'll receive helpful reminders and rewards notifications",
-      });
+      logger.debug('Notifications initialized successfully');
 
     } catch (error) {
       logger.error('Error initializing notifications:', error);
-      toast({
-        title: "Notification Setup Failed",
-        description: "Some notification features may not work",
-        variant: "destructive",
-      });
       setIsInitialized(true);
     }
-  }, [isInitialized, toast, setupNotificationListeners]);
+  }, [isInitialized, setupNotificationListeners]);
 
   const scheduleLocalNotification = useCallback(async (options: NotificationOptions) => {
     if (!permissions.localEnabled) {
