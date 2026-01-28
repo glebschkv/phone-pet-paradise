@@ -51,7 +51,13 @@ final class PermissionsManager: PermissionsManaging {
         Log.permissions.operationStart("requestAuthorization")
 
         do {
-            try await authorizationCenter.requestAuthorization(for: .individual)
+            if #available(iOS 16.0, *) {
+                try await authorizationCenter.requestAuthorization(for: .individual)
+            } else {
+                // On iOS 15, authorization is requested via the system
+                // when first accessing Family Controls features
+                Log.permissions.info("iOS 15: Authorization handled by system prompt")
+            }
             Log.permissions.success("Authorization granted")
         } catch {
             Log.permissions.failure("Authorization request failed", error: error)

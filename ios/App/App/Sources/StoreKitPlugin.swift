@@ -98,14 +98,14 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                     call.resolve([
                         "success": false,
                         "cancelled": true,
-                        "message": Strings.StoreKit.purchaseCancelled
+                        "message": Strings.StoreKitStrings.purchaseCancelled
                     ])
 
                 case .pending:
                     call.resolve([
                         "success": false,
                         "pending": true,
-                        "message": Strings.StoreKit.purchasePending
+                        "message": Strings.StoreKitStrings.purchasePending
                     ])
                 }
             } catch {
