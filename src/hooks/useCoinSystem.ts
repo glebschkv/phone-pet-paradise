@@ -114,6 +114,13 @@ async function serverEarnCoins(
     });
 
     if (error) {
+      // When edge function returns non-2xx, the response body is in error.context
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorContext = (error as any).context;
+      if (errorContext && typeof errorContext === 'object' && 'success' in errorContext) {
+        coinLogger.warn('Server earn rejected:', errorContext.error);
+        return errorContext as ServerCoinResponse;
+      }
       coinLogger.error('Server earn validation failed:', error);
       return { success: false, error: error.message, retry: true };
     }
@@ -150,6 +157,13 @@ async function serverSpendCoins(
     });
 
     if (error) {
+      // When edge function returns non-2xx, the response body is in error.context
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorContext = (error as any).context;
+      if (errorContext && typeof errorContext === 'object' && 'success' in errorContext) {
+        coinLogger.warn('Server spend rejected:', errorContext.error);
+        return errorContext as ServerCoinResponse;
+      }
       coinLogger.error('Server spend validation failed:', error);
       return { success: false, error: error.message, retry: true };
     }
