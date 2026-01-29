@@ -34,13 +34,24 @@ export interface StopBlockingResult {
   shieldAttempts: number;
 }
 
+// Permission check response
+export interface PermissionStatus {
+  status: 'granted' | 'denied' | 'notDetermined';
+  familyControlsEnabled: boolean;
+  rawStatus?: string;
+  lastError?: string;
+}
+
 export interface DeviceActivityPlugin {
   // Diagnostic methods
   echo(): Promise<{ pluginLoaded: boolean; platform: string; timestamp: number }>;
 
   // Permission methods
-  requestPermissions(): Promise<{ status: string; familyControlsEnabled: boolean }>;
-  checkPermissions(): Promise<{ status: string; familyControlsEnabled: boolean }>;
+  requestPermissions(): Promise<PermissionStatus>;
+  checkPermissions(): Promise<PermissionStatus>;
+
+  // Settings
+  openSettings(): Promise<{ success: boolean }>;
 
   // App selection methods
   openAppPicker(): Promise<{ success: boolean }>;

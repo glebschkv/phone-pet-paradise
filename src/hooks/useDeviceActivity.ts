@@ -196,22 +196,29 @@ export const useDeviceActivity = () => {
     }
   }, []);
 
+  // Open device Settings (for re-enabling denied permissions)
+  const openSettings = useCallback(async () => {
+    await safePluginCall(
+      () => DeviceActivity.openSettings(),
+      { success: false },
+      'openSettings'
+    );
+  }, []);
+
   // Request permissions
   const requestPermissions = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
-      // Attempt to request permissions — may reject on older native builds
-      // where Apple's API throws on user denial. We don't bail on failure
-      // because the status may still have been updated by the system.
-      await safePluginCall(
+      // Attempt to request permissions — the native side now returns
+      // detailed status including rawStatus and any error from Apple's API.
+      const { result: requestResult } = await safePluginCall(
         () => DeviceActivity.requestPermissions(),
         { status: 'denied' as const, familyControlsEnabled: false },
         'requestPermissions'
       );
 
-      // Always check the actual status after the request attempt,
-      // regardless of whether requestPermissions resolved or rejected.
+      // Also check via checkPermissions for consistency
       const { result: currentStatus } = await safePluginCall(
         () => DeviceActivity.checkPermissions(),
         { status: 'denied' as const, familyControlsEnabled: false },
@@ -219,6 +226,12 @@ export const useDeviceActivity = () => {
       );
 
       const isGranted = currentStatus.status === 'granted';
+      const rawStatus = requestResult.rawStatus || currentStatus.status;
+      const lastError = requestResult.lastError;
+
+      deviceActivityLogger.info(
+        `Permission result: status=${currentStatus.status}, rawStatus=${rawStatus}, lastError=${lastError || 'none'}`
+      );
 
       setState(prev => ({
         ...prev,
@@ -241,10 +254,22 @@ export const useDeviceActivity = () => {
           title: "Screen Time Access Granted",
           description: "You can now block distracting apps during focus sessions!",
         });
-      } else {
+      } else if (currentStatus.status === 'notDetermined') {
+        // Status is still notDetermined after request — the authorization
+        // dialog likely never appeared. This usually means the Family Controls
+        // entitlement is missing from the provisioning profile.
+        const errorDetail = lastError ? ` (${lastError})` : '';
         toast({
-          title: "Permissions Denied",
-          description: "App blocking requires Screen Time permissions. Enable it in Settings > Screen Time.",
+          title: "Permission Not Available",
+          description: `Screen Time permission dialog did not appear${errorDetail}. Try deleting and reinstalling the app, or check that Family Controls is enabled in Xcode.`,
+          variant: "destructive",
+        });
+      } else {
+        // Status is "denied" — user explicitly denied, or system blocked it.
+        // They need to go to Settings to re-enable.
+        toast({
+          title: "Permission Denied",
+          description: "Screen Time access was denied. Open Settings to enable Screen Time for this app, then try again.",
           variant: "destructive",
         });
       }
@@ -255,7 +280,7 @@ export const useDeviceActivity = () => {
       }
       toast({
         title: "Permission Error",
-        description: "Failed to request Screen Time permissions",
+        description: "Failed to request Screen Time permissions. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -594,6 +619,7 @@ export const useDeviceActivity = () => {
 
     // Permission methods
     requestPermissions,
+    openSettings,
     initialize,
 
     // App blocking methods

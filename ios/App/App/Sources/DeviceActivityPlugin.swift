@@ -33,6 +33,7 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "checkPermissions", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "echo", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "openAppPicker", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "openSettings", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setSelectedApps", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getSelectedApps", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearSelectedApps", returnType: CAPPluginReturnPromise),
@@ -104,9 +105,25 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
             // requestAuthorization no longer throws — it always completes
             // and we check the resulting status afterwards
             try? await permissionsManager.requestAuthorization()
-            let response = safePermissionsCheck()
+            let response = safeDetailedPermissionsCheck()
             await MainActor.run {
                 call.resolve(response)
+            }
+        }
+    }
+
+    /// Opens the app's Settings page where users can re-enable permissions
+    @objc func openSettings(_ call: CAPPluginCall) {
+        Task { @MainActor in
+            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
+                call.resolveFailure(message: "Could not create Settings URL")
+                return
+            }
+            if UIApplication.shared.canOpenURL(settingsUrl) {
+                await UIApplication.shared.open(settingsUrl)
+                call.resolveSuccess()
+            } else {
+                call.resolveFailure(message: "Cannot open Settings")
             }
         }
     }
@@ -114,15 +131,16 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     /// Safely checks permissions status, returning a safe default if anything fails.
     /// This prevents the plugin from crashing if FamilyControls is unavailable.
     private func safePermissionsCheck() -> [String: Any] {
-        // Try to get the actual status from PermissionsManager
-        // If this crashes (e.g., entitlement issue), the Capacitor bridge
-        // will catch the ObjC exception and reject the promise.
-        // To be extra safe, we access AuthorizationCenter directly with a fallback.
         let status = permissionsManager.authorizationStatus
         return [
             "status": status.isGranted ? "granted" : (status == .notDetermined ? "notDetermined" : "denied"),
             "familyControlsEnabled": status.isGranted
         ]
+    }
+
+    /// Detailed permissions check with diagnostics for requestPermissions responses
+    private func safeDetailedPermissionsCheck() -> [String: Any] {
+        return permissionsManager.detailedStatusResponse
     }
 
     // MARK: - App Selection Methods
