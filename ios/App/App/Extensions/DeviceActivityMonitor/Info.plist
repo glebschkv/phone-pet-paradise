@@ -28,6 +28,6 @@
 		<string>$(PRODUCT_MODULE_NAME).DeviceActivityMonitorExtension</string>
 	</dict>
 	<key>MinimumOSVersion</key>
-	<string>15.0</string>
+	<string>16.0</string>
 </dict>
 </plist>

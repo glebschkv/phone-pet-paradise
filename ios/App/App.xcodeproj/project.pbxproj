@@ -16,6 +16,30 @@
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
+		DA0200000000000000000002 /* DeviceActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000002 /* DeviceActivityPlugin.swift */; };
+		DA0200000000000000000003 /* DeviceActivityPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000003 /* DeviceActivityPlugin.m */; };
+		DA0200000000000000000004 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000004 /* AppConfig.swift */; };
+		DA0200000000000000000005 /* AppReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000005 /* AppReviewPlugin.swift */; };
+		DA0200000000000000000006 /* StoreKitPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000006 /* StoreKitPlugin.swift */; };
+		DA0200000000000000000007 /* WidgetDataPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000007 /* WidgetDataPlugin.swift */; };
+		DA0200000000000000000008 /* WidgetDataPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000008 /* WidgetDataPlugin.m */; };
+		DA0200000000000000000009 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000009 /* Logger.swift */; };
+		DA020000000000000000000A /* PluginError.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA010000000000000000000A /* PluginError.swift */; };
+		DA020000000000000000000B /* PluginValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA010000000000000000000B /* PluginValidation.swift */; };
+		DA020000000000000000000C /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA010000000000000000000C /* Protocols.swift */; };
+		DA020000000000000000000D /* StoreKitConverters.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA010000000000000000000D /* StoreKitConverters.swift */; };
+		DA020000000000000000000E /* StoreKitError.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA010000000000000000000E /* StoreKitError.swift */; };
+		DA020000000000000000000F /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA010000000000000000000F /* Strings.swift */; };
+		DA0200000000000000000010 /* ActivityMonitorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000010 /* ActivityMonitorManager.swift */; };
+		DA0200000000000000000011 /* AppBlockingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000011 /* AppBlockingManager.swift */; };
+		DA0200000000000000000012 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000012 /* BackgroundTaskManager.swift */; };
+		DA0200000000000000000013 /* FocusDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000013 /* FocusDataManager.swift */; };
+		DA0200000000000000000014 /* HapticFeedbackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000014 /* HapticFeedbackManager.swift */; };
+		DA0200000000000000000015 /* PermissionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000015 /* PermissionsManager.swift */; };
+		DA0200000000000000000016 /* StoreKitProductManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000016 /* StoreKitProductManager.swift */; };
+		DA0200000000000000000017 /* StoreKitPurchaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000017 /* StoreKitPurchaseService.swift */; };
+		DA0200000000000000000018 /* StoreKitTransactionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000018 /* StoreKitTransactionManager.swift */; };
+		DA0200000000000000000019 /* WidgetDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0100000000000000000019 /* WidgetDataManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +56,31 @@
 		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
+		DA0100000000000000000001 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		DA0100000000000000000002 /* DeviceActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityPlugin.swift; sourceTree = "<group>"; };
+		DA0100000000000000000003 /* DeviceActivityPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DeviceActivityPlugin.m; sourceTree = "<group>"; };
+		DA0100000000000000000004 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		DA0100000000000000000005 /* AppReviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppReviewPlugin.swift; sourceTree = "<group>"; };
+		DA0100000000000000000006 /* StoreKitPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPlugin.swift; sourceTree = "<group>"; };
+		DA0100000000000000000007 /* WidgetDataPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataPlugin.swift; sourceTree = "<group>"; };
+		DA0100000000000000000008 /* WidgetDataPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WidgetDataPlugin.m; sourceTree = "<group>"; };
+		DA0100000000000000000009 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		DA010000000000000000000A /* PluginError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginError.swift; sourceTree = "<group>"; };
+		DA010000000000000000000B /* PluginValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginValidation.swift; sourceTree = "<group>"; };
+		DA010000000000000000000C /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
+		DA010000000000000000000D /* StoreKitConverters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitConverters.swift; sourceTree = "<group>"; };
+		DA010000000000000000000E /* StoreKitError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitError.swift; sourceTree = "<group>"; };
+		DA010000000000000000000F /* Strings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Strings.swift; sourceTree = "<group>"; };
+		DA0100000000000000000010 /* ActivityMonitorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityMonitorManager.swift; sourceTree = "<group>"; };
+		DA0100000000000000000011 /* AppBlockingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingManager.swift; sourceTree = "<group>"; };
+		DA0100000000000000000012 /* BackgroundTaskManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskManager.swift; sourceTree = "<group>"; };
+		DA0100000000000000000013 /* FocusDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusDataManager.swift; sourceTree = "<group>"; };
+		DA0100000000000000000014 /* HapticFeedbackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticFeedbackManager.swift; sourceTree = "<group>"; };
+		DA0100000000000000000015 /* PermissionsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsManager.swift; sourceTree = "<group>"; };
+		DA0100000000000000000016 /* StoreKitProductManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitProductManager.swift; sourceTree = "<group>"; };
+		DA0100000000000000000017 /* StoreKitPurchaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPurchaseService.swift; sourceTree = "<group>"; };
+		DA0100000000000000000018 /* StoreKitTransactionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitTransactionManager.swift; sourceTree = "<group>"; };
+		DA0100000000000000000019 /* WidgetDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +124,8 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				DA0100000000000000000001 /* App.entitlements */,
+				DA0300000000000000000001 /* Sources */,
 				SHARED0001000000000002 /* Shared */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
@@ -86,6 +137,53 @@
 				50B271D01FEDC1A000F3C39B /* public */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		DA0300000000000000000001 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				DA0300000000000000000002 /* Core */,
+				DA0300000000000000000003 /* Managers */,
+				DA0100000000000000000004 /* AppConfig.swift */,
+				DA0100000000000000000005 /* AppReviewPlugin.swift */,
+				DA0100000000000000000002 /* DeviceActivityPlugin.swift */,
+				DA0100000000000000000003 /* DeviceActivityPlugin.m */,
+				DA0100000000000000000006 /* StoreKitPlugin.swift */,
+				DA0100000000000000000007 /* WidgetDataPlugin.swift */,
+				DA0100000000000000000008 /* WidgetDataPlugin.m */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		DA0300000000000000000002 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				DA0100000000000000000009 /* Logger.swift */,
+				DA010000000000000000000A /* PluginError.swift */,
+				DA010000000000000000000B /* PluginValidation.swift */,
+				DA010000000000000000000C /* Protocols.swift */,
+				DA010000000000000000000D /* StoreKitConverters.swift */,
+				DA010000000000000000000E /* StoreKitError.swift */,
+				DA010000000000000000000F /* Strings.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		DA0300000000000000000003 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				DA0100000000000000000010 /* ActivityMonitorManager.swift */,
+				DA0100000000000000000011 /* AppBlockingManager.swift */,
+				DA0100000000000000000012 /* BackgroundTaskManager.swift */,
+				DA0100000000000000000013 /* FocusDataManager.swift */,
+				DA0100000000000000000014 /* HapticFeedbackManager.swift */,
+				DA0100000000000000000015 /* PermissionsManager.swift */,
+				DA0100000000000000000016 /* StoreKitProductManager.swift */,
+				DA0100000000000000000017 /* StoreKitPurchaseService.swift */,
+				DA0100000000000000000018 /* StoreKitTransactionManager.swift */,
+				DA0100000000000000000019 /* WidgetDataManager.swift */,
+			);
+			path = Managers;
 			sourceTree = "<group>";
 		};
 		SHARED0001000000000002 /* Shared */ = {
@@ -140,6 +238,14 @@
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.FamilyControls = {
+								enabled = 1;
+							};
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -222,6 +328,30 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				SHARED0001000000000001 /* SharedConstants.swift in Sources */,
+				DA0200000000000000000002 /* DeviceActivityPlugin.swift in Sources */,
+				DA0200000000000000000003 /* DeviceActivityPlugin.m in Sources */,
+				DA0200000000000000000004 /* AppConfig.swift in Sources */,
+				DA0200000000000000000005 /* AppReviewPlugin.swift in Sources */,
+				DA0200000000000000000006 /* StoreKitPlugin.swift in Sources */,
+				DA0200000000000000000007 /* WidgetDataPlugin.swift in Sources */,
+				DA0200000000000000000008 /* WidgetDataPlugin.m in Sources */,
+				DA0200000000000000000009 /* Logger.swift in Sources */,
+				DA020000000000000000000A /* PluginError.swift in Sources */,
+				DA020000000000000000000B /* PluginValidation.swift in Sources */,
+				DA020000000000000000000C /* Protocols.swift in Sources */,
+				DA020000000000000000000D /* StoreKitConverters.swift in Sources */,
+				DA020000000000000000000E /* StoreKitError.swift in Sources */,
+				DA020000000000000000000F /* Strings.swift in Sources */,
+				DA0200000000000000000010 /* ActivityMonitorManager.swift in Sources */,
+				DA0200000000000000000011 /* AppBlockingManager.swift in Sources */,
+				DA0200000000000000000012 /* BackgroundTaskManager.swift in Sources */,
+				DA0200000000000000000013 /* FocusDataManager.swift in Sources */,
+				DA0200000000000000000014 /* HapticFeedbackManager.swift in Sources */,
+				DA0200000000000000000015 /* PermissionsManager.swift in Sources */,
+				DA0200000000000000000016 /* StoreKitProductManager.swift in Sources */,
+				DA0200000000000000000017 /* StoreKitPurchaseService.swift in Sources */,
+				DA0200000000000000000018 /* StoreKitTransactionManager.swift in Sources */,
+				DA0200000000000000000019 /* WidgetDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,7 +425,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -346,7 +476,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -359,10 +489,11 @@
 			baseConfigurationReference = FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = App/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
@@ -379,10 +510,11 @@
 			baseConfigurationReference = AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = App/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = co.nomoinc.nomo;

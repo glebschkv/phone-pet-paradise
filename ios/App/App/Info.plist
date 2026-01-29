@@ -72,7 +72,7 @@
 
 	<!-- Minimum iOS Version -->
 	<key>MinimumOSVersion</key>
-	<string>15.0</string>
+	<string>16.0</string>
 
 	<!-- Accessibility Features -->
 	<!--
