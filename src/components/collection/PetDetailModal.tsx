@@ -50,13 +50,22 @@ export const PetDetailModal = ({
           <div className="p-6 text-center" style={{
             background: 'linear-gradient(180deg, hsl(45 80% 90%) 0%, hsl(var(--card)) 100%)'
           }}>
-            {/* Show animated sprite for unlocked pets, emoji for locked */}
+            {/* Show animated sprite for unlocked pets, silhouette for locked */}
             {isUnlocked && pet.spriteConfig ? (
               <div className="mb-3 flex items-center justify-center h-[180px] overflow-hidden">
                 <SpritePreview
                   animal={pet}
                   scale={Math.min(4, 180 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
                 />
+              </div>
+            ) : !isUnlocked && pet.spriteConfig ? (
+              <div className="mb-3 flex items-center justify-center h-[180px] overflow-hidden relative">
+                <div style={{ filter: 'brightness(0) opacity(0.4)' }}>
+                  <SpritePreview
+                    animal={pet}
+                    scale={Math.min(4, 180 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
+                  />
+                </div>
               </div>
             ) : (
               <div className="text-5xl mb-3">
@@ -189,8 +198,8 @@ export const PetDetailModal = ({
                 <div className="w-14 h-14 mx-auto mb-3 retro-stat-pill rounded-full flex items-center justify-center">
                   <Lock className="w-7 h-7 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  This pet is locked
+                <p className="text-sm text-muted-foreground mb-1">
+                  Keep leveling up to unlock this pet!
                 </p>
                 <div className="retro-level-badge inline-block px-4 py-2 text-sm font-bold">
                   Reach Level {pet.unlockLevel}

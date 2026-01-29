@@ -107,10 +107,21 @@ export const PetCard = memo(({
 
       {/* Sprite or Lock */}
       <div className={cn(
-        "mb-1.5 h-12 flex items-center justify-center overflow-hidden",
-        (showAsLocked || showAsStudyHours) && "opacity-30 grayscale"
+        "mb-1.5 h-12 flex items-center justify-center overflow-hidden relative",
+        (showAsLocked || showAsStudyHours) && "opacity-60"
       )}>
-        {(showAsLocked || showAsStudyHours) ? (
+        {(showAsLocked || showAsStudyHours) && pet.spriteConfig ? (
+          // Silhouette preview for locked pets - shows shape without details
+          <>
+            <div style={{ filter: 'brightness(0) opacity(0.5)' }}>
+              <SpritePreview
+                animal={pet}
+                scale={Math.min(1.5, 48 / pet.spriteConfig.frameHeight)}
+              />
+            </div>
+            <Lock className="w-4 h-4 text-muted-foreground absolute bottom-0 right-0 drop-shadow-md" />
+          </>
+        ) : (showAsLocked || showAsStudyHours) ? (
           <Lock className="w-7 h-7 text-muted-foreground" />
         ) : pet.spriteConfig ? (
           <SpritePreview
