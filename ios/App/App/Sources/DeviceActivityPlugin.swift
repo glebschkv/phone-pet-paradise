@@ -248,20 +248,14 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
                 Log.app.info("[openAppPicker] VC found: \(type(of: viewController)), presentedVC: \(String(describing: viewController.presentedViewController))")
 
-                // Availability check needed again inside @escaping closure
-                // since Swift doesn't propagate availability context into escaping closures
-                if #available(iOS 16.0, *) {
-                    // Dismiss any existing presentation first
-                    if viewController.presentedViewController != nil {
-                        Log.app.info("[openAppPicker] Dismissing existing presented VC first")
-                        viewController.dismiss(animated: false) { [weak self] in
-                            if #available(iOS 16.0, *) {
-                                self?.presentAppPicker(from: viewController, call: call)
-                            }
-                        }
-                    } else {
-                        self.presentAppPicker(from: viewController, call: call)
+                // Dismiss any existing presentation first
+                if viewController.presentedViewController != nil {
+                    Log.app.info("[openAppPicker] Dismissing existing presented VC first")
+                    viewController.dismiss(animated: false) { [weak self] in
+                        self?.presentAppPicker(from: viewController, call: call)
                     }
+                } else {
+                    self.presentAppPicker(from: viewController, call: call)
                 }
             }
         } else {
@@ -497,6 +491,38 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         if let jsonData = try? JSONSerialization.data(withJSONObject: data),
            let jsonString = String(data: jsonData, encoding: .utf8) {
             bridge?.triggerJSEvent(eventName: eventName, target: "window", data: jsonString)
+        }
+    }
+}
+
+// MARK: - App Picker View
+
+/// SwiftUI wrapper around Apple's FamilyActivityPicker.
+/// Presented modally from the Capacitor plugin when the user taps "Select Apps to Block".
+@available(iOS 16.0, *)
+private struct AppPickerView: View {
+    @State var selection: FamilyActivitySelection
+    let onDone: (FamilyActivitySelection) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationView {
+            FamilyActivityPicker(selection: $selection)
+                .navigationTitle("Block Apps")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            onCancel()
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            onDone(selection)
+                        }
+                        .fontWeight(.semibold)
+                    }
+                }
         }
     }
 }

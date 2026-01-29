@@ -33,7 +33,6 @@
 		SRC00200000000000000001 /* StoreKitPurchaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00200000000000000000 /* StoreKitPurchaseService.swift */; };
 		SRC00210000000000000001 /* StoreKitTransactionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00210000000000000000 /* StoreKitTransactionManager.swift */; };
 		SRC00220000000000000001 /* WidgetDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00220000000000000000 /* WidgetDataManager.swift */; };
-		SRC00230000000000000001 /* AppPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00230000000000000000 /* AppPickerView.swift */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
@@ -67,7 +66,6 @@
 		SRC00200000000000000000 /* StoreKitPurchaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPurchaseService.swift; sourceTree = "<group>"; };
 		SRC00210000000000000000 /* StoreKitTransactionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitTransactionManager.swift; sourceTree = "<group>"; };
 		SRC00220000000000000000 /* WidgetDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataManager.swift; sourceTree = "<group>"; };
-		SRC00230000000000000000 /* AppPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPickerView.swift; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -148,7 +146,6 @@
 			children = (
 				SRCGRP0020000000000000 /* Core */,
 				SRCGRP0030000000000000 /* Managers */,
-				SRCGRP0040000000000000 /* Views */,
 				SRC00010000000000000000 /* AppConfig.swift */,
 				SRC00020000000000000000 /* AppReviewPlugin.swift */,
 				SRC00030000000000000000 /* DeviceActivityPlugin.swift */,
@@ -156,14 +153,6 @@
 				SRC00050000000000000000 /* WidgetDataPlugin.swift */,
 			);
 			path = Sources;
-			sourceTree = "<group>";
-		};
-		SRCGRP0040000000000000 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				SRC00230000000000000000 /* AppPickerView.swift */,
-			);
-			path = Views;
 			sourceTree = "<group>";
 		};
 		SRCGRP0020000000000000 /* Core */ = {
@@ -345,7 +334,6 @@
 				SRC00200000000000000001 /* StoreKitPurchaseService.swift in Sources */,
 				SRC00210000000000000001 /* StoreKitTransactionManager.swift in Sources */,
 				SRC00220000000000000001 /* WidgetDataManager.swift in Sources */,
-				SRC00230000000000000001 /* AppPickerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
