@@ -9,6 +9,7 @@ import { OfflineProvider } from "@/contexts/OfflineContext";
 import { PluginUnavailableBanner } from "@/components/PluginUnavailableBanner";
 import { lazy, Suspense } from "react";
 import { SplashScreen } from "@/components/SplashScreen";
+import { VersionNotice } from "@/components/VersionNotice";
 
 // Lazy load pages for better initial bundle size
 const Index = lazy(() => import("./pages/Index"));
@@ -28,6 +29,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <PluginUnavailableBanner className="fixed top-0 left-0 right-0 z-50" />
+            <VersionNotice />
             <BrowserRouter>
               <Suspense fallback={<SplashScreen />}>
                 <Routes>
