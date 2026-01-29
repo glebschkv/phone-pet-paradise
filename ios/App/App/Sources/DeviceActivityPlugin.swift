@@ -101,16 +101,12 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc override public func requestPermissions(_ call: CAPPluginCall) {
         Task {
-            do {
-                try await permissionsManager.requestAuthorization()
-                let response = safePermissionsCheck()
-                await MainActor.run {
-                    call.resolve(response)
-                }
-            } catch {
-                await MainActor.run {
-                    call.reject(with: error as? PluginError ?? .permissionDenied(feature: "Family Controls"))
-                }
+            // requestAuthorization no longer throws — it always completes
+            // and we check the resulting status afterwards
+            try? await permissionsManager.requestAuthorization()
+            let response = safePermissionsCheck()
+            await MainActor.run {
+                call.resolve(response)
             }
         }
     }

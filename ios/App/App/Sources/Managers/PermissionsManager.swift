@@ -50,18 +50,20 @@ final class PermissionsManager: PermissionsManaging {
     func requestAuthorization() async throws {
         Log.permissions.operationStart("requestAuthorization")
 
-        do {
-            if #available(iOS 16.0, *) {
+        if #available(iOS 16.0, *) {
+            do {
                 try await authorizationCenter.requestAuthorization(for: .individual)
-            } else {
-                // On iOS 15, authorization is requested via the system
-                // when first accessing Family Controls features
-                Log.permissions.info("iOS 15: Authorization handled by system prompt")
+                Log.permissions.success("Authorization granted")
+            } catch {
+                // Apple throws when the user denies or when there's a system issue.
+                // Don't re-throw — let the caller check the resulting status instead.
+                // This avoids treating user denial as a hard error.
+                Log.permissions.info("Authorization request completed with result: \(error.localizedDescription)")
             }
-            Log.permissions.success("Authorization granted")
-        } catch {
-            Log.permissions.failure("Authorization request failed", error: error)
-            throw PluginError.permissionDenied(feature: "Family Controls")
+        } else {
+            // On iOS 15, authorization is requested via the system
+            // when first accessing Family Controls features
+            Log.permissions.info("iOS 15: Authorization handled by system prompt")
         }
     }
 
