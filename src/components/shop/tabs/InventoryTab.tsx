@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 import { useStreakFreezeCount } from "@/stores/streakStore";
 import { useOwnedBackgrounds, useOwnedCharacters, useEquippedBackground } from "@/stores/shopStore";
 import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
-import { getAnimalById, getCoinExclusiveAnimals } from "@/data/AnimalDatabase";
+import { getCoinExclusiveAnimals } from "@/data/AnimalDatabase";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
-import { useShopStore } from "@/stores";
+
 
 interface InventoryTabProps {
   equipBackground: (backgroundId: string | null) => boolean;
