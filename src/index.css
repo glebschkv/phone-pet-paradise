@@ -1467,6 +1467,224 @@
     animation: wheel-spin 0.5s linear infinite;
   }
 
+  /* ── Wheel pointer tick animation (simulates peg clicks) ── */
+  @keyframes pointer-tick {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    15% {
+      transform: rotate(-8deg);
+    }
+    30% {
+      transform: rotate(5deg);
+    }
+    50% {
+      transform: rotate(-3deg);
+    }
+    70% {
+      transform: rotate(2deg);
+    }
+  }
+
+  .wheel-pointer-ticking {
+    animation: pointer-tick 0.15s ease-out infinite;
+    transform-origin: center top;
+  }
+
+  .wheel-pointer-svg {
+    filter: drop-shadow(0 2px 6px rgba(251, 191, 36, 0.7));
+  }
+
+  /* ── Chasing lights during spin ── */
+  @keyframes light-chase {
+    0% {
+      background-color: hsl(330 90% 60%);
+      box-shadow: 0 0 12px hsl(330 90% 60% / 0.9);
+      transform: scale(1.2);
+    }
+    33% {
+      background-color: hsl(185 90% 60%);
+      box-shadow: 0 0 12px hsl(185 90% 60% / 0.9);
+      transform: scale(0.8);
+    }
+    66% {
+      background-color: hsl(50 100% 60%);
+      box-shadow: 0 0 12px hsl(50 100% 60% / 0.9);
+      transform: scale(1.1);
+    }
+    100% {
+      background-color: hsl(330 90% 60%);
+      box-shadow: 0 0 12px hsl(330 90% 60% / 0.9);
+      transform: scale(1.2);
+    }
+  }
+
+  .wheel-light-chasing {
+    animation: light-chase 0.6s ease-in-out infinite;
+  }
+
+  /* ── Winning segment flash ── */
+  @keyframes segment-flash {
+    0% { opacity: 0.7; }
+    50% { opacity: 0; }
+    100% { opacity: 0.5; }
+  }
+
+  .wheel-segment-flash {
+    animation: segment-flash 0.4s ease-in-out infinite;
+  }
+
+  /* ── Wheel section background ── */
+  .wheel-section-bg {
+    background:
+      radial-gradient(ellipse at center, hsl(270 60% 20% / 0.6) 0%, transparent 70%),
+      linear-gradient(180deg, hsl(270 50% 12%) 0%, transparent 100%);
+  }
+
+  .wheel-section-spinning {
+    background:
+      radial-gradient(ellipse at center, hsl(270 70% 25% / 0.8) 0%, transparent 70%),
+      linear-gradient(180deg, hsl(270 50% 15%) 0%, transparent 100%);
+  }
+
+  /* ── Background glow behind wheel ── */
+  .wheel-bg-glow {
+    background: radial-gradient(
+      circle at 50% 55%,
+      hsl(50 100% 50% / 0.15) 0%,
+      hsl(280 80% 50% / 0.1) 40%,
+      transparent 70%
+    );
+  }
+
+  /* ── Outer decorative ring ── */
+  .wheel-outer-ring {
+    background: conic-gradient(
+      from 0deg,
+      hsl(30 80% 35%) 0deg,
+      hsl(45 90% 55%) 20deg,
+      hsl(30 80% 35%) 40deg,
+      hsl(45 90% 55%) 60deg,
+      hsl(30 80% 35%) 80deg,
+      hsl(45 90% 55%) 100deg,
+      hsl(30 80% 35%) 120deg,
+      hsl(45 90% 55%) 140deg,
+      hsl(30 80% 35%) 160deg,
+      hsl(45 90% 55%) 180deg,
+      hsl(30 80% 35%) 200deg,
+      hsl(45 90% 55%) 220deg,
+      hsl(30 80% 35%) 240deg,
+      hsl(45 90% 55%) 260deg,
+      hsl(30 80% 35%) 280deg,
+      hsl(45 90% 55%) 300deg,
+      hsl(30 80% 35%) 320deg,
+      hsl(45 90% 55%) 340deg,
+      hsl(30 80% 35%) 360deg
+    );
+    box-shadow:
+      0 0 15px hsl(50 100% 50% / 0.3),
+      inset 0 0 8px hsl(0 0% 0% / 0.4);
+  }
+
+  /* ── Result overlay ── */
+  @keyframes result-overlay-in {
+    from {
+      background-color: hsl(270 50% 10% / 0);
+    }
+    to {
+      background-color: hsl(270 50% 10% / 0.95);
+    }
+  }
+
+  @keyframes result-card-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.85) translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .wheel-result-overlay {
+    animation: result-overlay-in 0.2s ease-out forwards;
+  }
+
+  .wheel-result-card {
+    animation: result-card-in 0.25s ease-out 0.1s both;
+  }
+
+  /* ── Rarity-specific result effects ── */
+  @keyframes legendary-glow-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 20px hsl(50 100% 50% / 0.5),
+        0 0 40px hsl(50 100% 50% / 0.3),
+        inset 0 0 20px hsl(50 100% 50% / 0.1);
+    }
+    50% {
+      box-shadow:
+        0 0 30px hsl(50 100% 50% / 0.8),
+        0 0 60px hsl(50 100% 50% / 0.4),
+        inset 0 0 30px hsl(50 100% 50% / 0.15);
+    }
+  }
+
+  @keyframes epic-glow-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 15px hsl(280 100% 60% / 0.4),
+        0 0 30px hsl(280 100% 60% / 0.2);
+    }
+    50% {
+      box-shadow:
+        0 0 25px hsl(280 100% 60% / 0.6),
+        0 0 50px hsl(280 100% 60% / 0.3);
+    }
+  }
+
+  .wheel-result-legendary {
+    animation: result-card-in 0.25s ease-out 0.1s both, legendary-glow-pulse 1.5s ease-in-out 0.3s infinite;
+  }
+
+  .wheel-result-epic {
+    animation: result-card-in 0.25s ease-out 0.1s both, epic-glow-pulse 1.5s ease-in-out 0.3s infinite;
+  }
+
+  /* ── Celebration burst for epic/legendary ── */
+  @keyframes celebration-burst {
+    0% {
+      opacity: 1;
+      background: radial-gradient(circle at 50% 55%, hsl(50 100% 70% / 0.6) 0%, transparent 30%);
+    }
+    100% {
+      opacity: 0;
+      background: radial-gradient(circle at 50% 55%, hsl(50 100% 70% / 0) 0%, transparent 60%);
+    }
+  }
+
+  .wheel-celebration-burst {
+    animation: celebration-burst 0.8s ease-out forwards;
+  }
+
+  /* ── Screen shake for legendary ── */
+  @keyframes screen-shake {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-3px, 2px); }
+    20% { transform: translate(3px, -2px); }
+    30% { transform: translate(-2px, -1px); }
+    40% { transform: translate(2px, 1px); }
+    50% { transform: translate(-1px, 2px); }
+    60% { transform: translate(1px, -1px); }
+    70% { transform: translate(-1px, 0px); }
+    80% { transform: translate(1px, 0px); }
+  }
+
+  .wheel-screen-shake {
+    animation: screen-shake 0.5s ease-out;
+  }
+
   /* Battle pass tier unlock animation */
   @keyframes tier-unlock {
     0% {
@@ -1948,16 +2166,15 @@
 
   /* Retro Wheel */
   .retro-wheel {
-    border: 6px solid hsl(50 100% 50%);
+    border: 5px solid hsl(45 100% 55%);
     border-radius: 50%;
     box-shadow:
-      0 0 0 4px hsl(30 80% 40%),
-      0 0 30px hsl(50 100% 50% / 0.5),
-      inset 0 0 30px hsl(0 0% 0% / 0.3);
-  }
-
-  .retro-wheel-pointer {
-    filter: drop-shadow(0 0 10px hsl(50 100% 50%));
+      0 0 0 3px hsl(30 80% 30%),
+      0 0 0 6px hsl(35 70% 45%),
+      0 0 25px hsl(50 100% 50% / 0.4),
+      0 0 50px hsl(50 100% 50% / 0.15),
+      inset 0 0 20px hsl(0 0% 0% / 0.4);
+    transition: box-shadow 0.5s ease;
   }
 
   /* Retro Combo Counter */
