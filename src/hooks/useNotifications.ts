@@ -25,12 +25,16 @@ interface NotificationOptions {
   }>;
 }
 
+// Module-level flag to ensure notifications are only initialized once
+// across all component instances and remounts.
+let globalNotificationsInitialized = false;
+
 export const useNotifications = () => {
   const [permissions, setPermissions] = useState<NotificationPermissions>({
     pushEnabled: false,
     localEnabled: false,
   });
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(globalNotificationsInitialized);
   const { toast } = useToast();
 
   // Store listener cleanup functions
@@ -102,7 +106,11 @@ export const useNotifications = () => {
   }, [toast]);
 
   const initializeNotifications = useCallback(async () => {
-    if (isInitialized) return;
+    // Check module-level flag to prevent re-initialization across remounts
+    if (isInitialized || globalNotificationsInitialized) {
+      if (!isInitialized) setIsInitialized(true);
+      return;
+    }
 
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -114,6 +122,7 @@ export const useNotifications = () => {
             localEnabled: permission === 'granted',
           });
         }
+        globalNotificationsInitialized = true;
         setIsInitialized(true);
         return;
       }
@@ -143,20 +152,12 @@ export const useNotifications = () => {
       // Setup notification listeners
       await setupNotificationListeners();
 
+      globalNotificationsInitialized = true;
       setIsInitialized(true);
-
-      toast({
-        title: "Notifications Ready",
-        description: "You'll receive helpful reminders and rewards notifications",
-      });
 
     } catch (error) {
       logger.error('Error initializing notifications:', error);
-      toast({
-        title: "Notification Setup Failed",
-        description: "Some notification features may not work",
-        variant: "destructive",
-      });
+      globalNotificationsInitialized = true;
       setIsInitialized(true);
     }
   }, [isInitialized, toast, setupNotificationListeners]);
