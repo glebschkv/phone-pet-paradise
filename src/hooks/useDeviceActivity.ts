@@ -267,9 +267,10 @@ export const useDeviceActivity = () => {
       } else {
         // Status is "denied" — user explicitly denied, or system blocked it.
         // They need to go to Settings to re-enable.
+        const errorDetail = lastError ? ` Error: ${lastError}` : '';
         toast({
           title: "Permission Denied",
-          description: "Screen Time access was denied. Open Settings to enable Screen Time for this app, then try again.",
+          description: `Screen Time access was denied. Tap "Open Settings" below to enable it for this app.${errorDetail}`,
           variant: "destructive",
         });
       }
