@@ -20,6 +20,7 @@ import { PetsTab } from "@/components/shop/tabs/PetsTab";
 import { PowerUpsTab } from "@/components/shop/tabs/PowerUpsTab";
 import { BundlesTab } from "@/components/shop/tabs/BundlesTab";
 import { PurchaseConfirmDialog } from "@/components/shop/PurchaseConfirmDialog";
+import { CharacterUnlockModal } from "@/components/shop/CharacterUnlockModal";
 
 const CATEGORY_ICONS: Record<ShopCategory, React.ComponentType<{ className?: string }>> = {
   featured: Star,
@@ -34,6 +35,7 @@ export const Shop = () => {
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [unlockedAnimal, setUnlockedAnimal] = useState<AnimalData | null>(null);
 
   const {
     inventory,
@@ -91,8 +93,13 @@ export const Shop = () => {
       }
 
       if (result.success) {
-        toast.success(result.message);
         setShowPurchaseConfirm(false);
+        // Show unlock celebration for character purchases
+        if ('biome' in selectedItem) {
+          setUnlockedAnimal(selectedItem as AnimalData);
+        } else {
+          toast.success(result.message);
+        }
         setSelectedItem(null);
       } else {
         toast.error(result.message);
@@ -247,6 +254,13 @@ export const Shop = () => {
         canAfford={canAfford}
         coinBalance={coinBalance}
         isPurchasing={isPurchasing}
+      />
+
+      {/* Character Unlock Celebration Modal */}
+      <CharacterUnlockModal
+        animal={unlockedAnimal}
+        open={!!unlockedAnimal}
+        onClose={() => setUnlockedAnimal(null)}
       />
 
       {/* Premium Subscription Modal */}
