@@ -168,11 +168,16 @@ export const PetCollectionGrid = memo(() => {
           const bOwned = isAnimalUnlocked(b.id) ? 0 : 1;
           return aOwned - bOwned;
         }
+        case "favorites": {
+          const aFav = isAnimalFavorite(a.id) ? 0 : 1;
+          const bFav = isAnimalFavorite(b.id) ? 0 : 1;
+          return aFav - bFav;
+        }
         default:
           return 0;
       }
     });
-  }, [searchQuery, sortOption, filterAnimals, isAnimalUnlocked]);
+  }, [searchQuery, sortOption, filterAnimals, isAnimalUnlocked, isAnimalFavorite]);
 
   // Memoize handler to avoid recreating on every render
   const handlePetClick = useCallback((pet: AnimalData) => {

@@ -3,13 +3,14 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { CollectionStats } from "./CollectionStats";
 
-export type PetSortOption = "default" | "name" | "rarity" | "owned";
+export type PetSortOption = "default" | "name" | "rarity" | "owned" | "favorites";
 
 const SORT_OPTIONS: { value: PetSortOption; label: string }[] = [
   { value: "default", label: "Default" },
   { value: "name", label: "Name" },
   { value: "rarity", label: "Rarity" },
   { value: "owned", label: "Owned" },
+  { value: "favorites", label: "Favorites" },
 ];
 
 interface CollectionFiltersProps {
