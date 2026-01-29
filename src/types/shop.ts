@@ -21,7 +21,8 @@ export type ShopCategory =
   | 'backgrounds'
   | 'utilities'
   | 'coins'
-  | 'bundles';
+  | 'bundles'
+  | 'inventory';
 
 // ============================================================================
 // Base Shop Item Types

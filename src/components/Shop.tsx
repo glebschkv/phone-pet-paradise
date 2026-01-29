@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Coins, ShoppingBag, Zap, Clock, Star, PawPrint, Gift } from "lucide-react";
+import { Coins, ShoppingBag, Zap, Clock, Star, PawPrint, Gift, Backpack } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
@@ -19,6 +19,7 @@ import { FeaturedTab } from "@/components/shop/tabs/FeaturedTab";
 import { PetsTab } from "@/components/shop/tabs/PetsTab";
 import { PowerUpsTab } from "@/components/shop/tabs/PowerUpsTab";
 import { BundlesTab } from "@/components/shop/tabs/BundlesTab";
+import { InventoryTab } from "@/components/shop/tabs/InventoryTab";
 import { PurchaseConfirmDialog } from "@/components/shop/PurchaseConfirmDialog";
 import { CharacterUnlockModal } from "@/components/shop/CharacterUnlockModal";
 
@@ -38,6 +39,7 @@ export const Shop = () => {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [unlockedAnimal, setUnlockedAnimal] = useState<AnimalData | null>(null);
+  const [showInventory, setShowInventory] = useState(false);
 
   const {
     inventory,
@@ -191,11 +193,30 @@ export const Shop = () => {
             </div>
           </div>
 
-          <div className="retro-coin-display">
-            <Coins className="w-5 h-5 text-amber-600" />
-            <span className="font-black text-amber-700 dark:text-amber-400">
-              {coinBalance.toLocaleString()}
-            </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowInventory(!showInventory)}
+              className={cn(
+                "w-9 h-9 rounded-xl flex items-center justify-center border-2 transition-all active:scale-95",
+                showInventory
+                  ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-300 dark:border-emerald-600"
+                  : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+              )}
+              aria-label="My Items"
+            >
+              <Backpack className={cn(
+                "w-5 h-5 transition-colors",
+                showInventory
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-gray-500 dark:text-gray-400"
+              )} />
+            </button>
+            <div className="retro-coin-display">
+              <Coins className="w-5 h-5 text-amber-600" />
+              <span className="font-black text-amber-700 dark:text-amber-400">
+                {coinBalance.toLocaleString()}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -216,35 +237,51 @@ export const Shop = () => {
         )}
       </div>
 
-      {/* Category tabs */}
-      <div className="mx-3 mt-3">
-        <div className="flex gap-2 pb-2">
-          {SHOP_CATEGORIES.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setActiveCategory(category.id)}
-              className={cn(
-                "retro-category-tab",
-                activeCategory === category.id && "retro-category-tab-active"
-              )}
-            >
-              <div className={`retro-category-icon retro-category-icon-${category.id}`}>
-                {(() => {
-                  const Icon = CATEGORY_ICONS[category.id];
-                   if (!Icon) return null;
-                   return <Icon className="w-[18px] h-[18px] text-white drop-shadow-sm" />;
-                })()}
-              </div>
-              <span className="retro-category-tab-label">{category.name}</span>
-            </button>
-          ))}
+      {/* Category tabs - hidden when viewing inventory */}
+      {!showInventory && (
+        <div className="mx-3 mt-3">
+          <div className="flex gap-2 pb-2">
+            {SHOP_CATEGORIES.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setActiveCategory(category.id)}
+                className={cn(
+                  "retro-category-tab",
+                  activeCategory === category.id && "retro-category-tab-active"
+                )}
+              >
+                <div className={`retro-category-icon retro-category-icon-${category.id}`}>
+                  {(() => {
+                    const Icon = CATEGORY_ICONS[category.id];
+                     if (!Icon) return null;
+                     return <Icon className="w-[18px] h-[18px] text-white drop-shadow-sm" />;
+                  })()}
+                </div>
+                <span className="retro-category-tab-label">{category.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Inventory header when viewing items */}
+      {showInventory && (
+        <div className="mx-3 mt-3 flex items-center gap-2 px-1">
+          <Backpack className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <h2 className="text-sm font-black uppercase tracking-tight text-emerald-700 dark:text-emerald-300">
+            My Items
+          </h2>
+        </div>
+      )}
 
       {/* Content - Scrollable area that stops at taskbar */}
       <ScrollArea className="flex-1 min-h-0">
         <div className="px-3 pt-3 pb-6">
-          {renderContent()}
+          {showInventory ? (
+            <InventoryTab equipBackground={equipBackground} />
+          ) : (
+            renderContent()
+          )}
         </div>
       </ScrollArea>
 
