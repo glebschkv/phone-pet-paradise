@@ -42,44 +42,14 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "triggerHapticFeedback", returnType: CAPPluginReturnPromise)
     ]
 
-    // MARK: - Managers
+    // MARK: - Managers (lazy to avoid crashes if entitlements are missing)
 
-    private let permissionsManager: PermissionsManager
-    private let blockingManager: AppBlockingManager
-    private let monitorManager: ActivityMonitorManager
-    private let backgroundManager: BackgroundTaskManager
-    private let hapticManager: HapticFeedbackManager
-    private let focusDataManager: FocusDataManager
-
-    // MARK: - Initialization
-
-    public override init() {
-        self.permissionsManager = .shared
-        self.blockingManager = .shared
-        self.monitorManager = .shared
-        self.backgroundManager = .shared
-        self.hapticManager = .shared
-        self.focusDataManager = .shared
-        super.init()
-    }
-
-    /// Designated initializer for testing with injected dependencies
-    init(
-        permissionsManager: PermissionsManager,
-        blockingManager: AppBlockingManager,
-        monitorManager: ActivityMonitorManager,
-        backgroundManager: BackgroundTaskManager,
-        hapticManager: HapticFeedbackManager,
-        focusDataManager: FocusDataManager
-    ) {
-        self.permissionsManager = permissionsManager
-        self.blockingManager = blockingManager
-        self.monitorManager = monitorManager
-        self.backgroundManager = backgroundManager
-        self.hapticManager = hapticManager
-        self.focusDataManager = focusDataManager
-        super.init()
-    }
+    private lazy var permissionsManager: PermissionsManager = .shared
+    private lazy var blockingManager: AppBlockingManager = .shared
+    private lazy var monitorManager: ActivityMonitorManager = .shared
+    private lazy var backgroundManager: BackgroundTaskManager = .shared
+    private lazy var hapticManager: HapticFeedbackManager = .shared
+    private lazy var focusDataManager: FocusDataManager = .shared
 
     // MARK: - Lifecycle
 
@@ -264,34 +234,25 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc private func appDidEnterBackground() {
-        monitorManager.recordActiveTime()
         backgroundManager.appDidEnterBackground()
-
         notifyJS("appLifecycleChange", data: [
             "state": "background",
-            "timestamp": Date().timeIntervalSince1970,
-            "lastActiveTime": monitorManager.getUsageData().lastActiveTime
+            "timestamp": Date().timeIntervalSince1970
         ])
     }
 
     @objc private func appWillEnterForeground() {
         backgroundManager.appWillEnterForeground()
-
         notifyJS("appLifecycleChange", data: [
             "state": "foreground",
-            "timestamp": Date().timeIntervalSince1970,
-            "lastActiveTime": monitorManager.getUsageData().lastActiveTime
+            "timestamp": Date().timeIntervalSince1970
         ])
     }
 
     @objc private func appDidBecomeActive() {
-        let timeAway = monitorManager.updateActiveTime()
-
         notifyJS("appLifecycleChange", data: [
             "state": "active",
             "timestamp": Date().timeIntervalSince1970,
-            "timeAwayMinutes": timeAway / 60.0,
-            "lastActiveTime": monitorManager.getUsageData().lastActiveTime,
             "shieldAttempts": focusDataManager.shieldAttempts
         ])
     }
