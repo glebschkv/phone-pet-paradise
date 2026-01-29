@@ -225,8 +225,8 @@ export const SpriteAnimal = memo(({ animal, animalId, position, speed, positionR
 
   if (!spriteConfig || !walkSpritePath) return null;
 
-  // Scale up the sprite
-  const scale = 2.5;
+  // Scale up the sprite (larger for better mobile visibility)
+  const scale = 3.0;
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
 

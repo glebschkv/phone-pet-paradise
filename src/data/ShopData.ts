@@ -36,6 +36,7 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'sky-islands',
     previewImage: '/assets/worlds/SKYBUNDLE1.png',
     bundleId: 'bundle-sky-realms',
+    comingSoon: true,
   },
   {
     id: 'bg-calm-seas',
@@ -48,6 +49,7 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'calm-seas',
     previewImage: '/assets/worlds/SKYBUNDLE2.png',
     bundleId: 'bundle-sky-realms',
+    comingSoon: true,
   },
   {
     id: 'bg-twilight-clouds',
@@ -60,6 +62,7 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'twilight-clouds',
     previewImage: '/assets/worlds/SKYBUNDLE3.png',
     bundleId: 'bundle-sky-realms',
+    comingSoon: true,
   },
   {
     id: 'bg-aurora-horizon',
@@ -72,6 +75,7 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'aurora-horizon',
     previewImage: '/assets/worlds/SKYBUNDLE4.png',
     bundleId: 'bundle-sky-realms',
+    comingSoon: true,
   },
   {
     id: 'bg-sunset-clouds',
@@ -84,6 +88,7 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'sunset-clouds',
     previewImage: '/assets/worlds/SKYBUNDLE5.png',
     bundleId: 'bundle-sky-realms',
+    comingSoon: true,
   },
 ];
 
@@ -99,6 +104,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: '🌸',
     rarity: 'rare',
     theme: 'sakura',
+    comingSoon: true,
   },
   {
     id: 'bg-cyberpunk',
@@ -109,6 +115,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: '🌃',
     rarity: 'epic',
     theme: 'cyberpunk',
+    comingSoon: true,
   },
   {
     id: 'bg-aurora',
@@ -119,6 +126,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: '🌌',
     rarity: 'epic',
     theme: 'aurora',
+    comingSoon: true,
   },
   {
     id: 'bg-crystal-cave',
@@ -129,6 +137,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: '💎',
     rarity: 'rare',
     theme: 'crystal',
+    comingSoon: true,
   },
   {
     id: 'bg-volcano',
@@ -139,6 +148,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: '🌋',
     rarity: 'legendary',
     theme: 'volcano',
+    comingSoon: true,
   },
   {
     id: 'bg-space',
@@ -149,6 +159,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: '🚀',
     rarity: 'legendary',
     theme: 'space',
+    comingSoon: true,
   },
   {
     id: 'bg-underwater',
@@ -159,6 +170,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: '🐠',
     rarity: 'rare',
     theme: 'underwater',
+    comingSoon: true,
   },
   {
     id: 'bg-halloween',
@@ -170,6 +182,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     rarity: 'epic',
     isLimited: true,
     theme: 'halloween',
+    comingSoon: true,
   },
   {
     id: 'bg-winter-wonderland',
@@ -181,6 +194,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     rarity: 'epic',
     isLimited: true,
     theme: 'winter',
+    comingSoon: true,
   },
 ];
 

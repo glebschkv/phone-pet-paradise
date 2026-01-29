@@ -152,10 +152,12 @@ export const PetsTab = ({
               const owned = isOwned(bg.id, 'customize');
               const affordable = canAfford(bg.coinPrice || 0);
               const isEquipped = inventory.equippedBackground === bg.id;
+              const isComingSoon = bg.comingSoon && !owned;
               return (
                 <button
                   key={bg.id}
                   onClick={() => {
+                    if (isComingSoon) return;
                     if (owned) {
                       handleEquipBackground(bg.id, { stopPropagation: () => {} } as React.MouseEvent);
                     } else {
@@ -164,18 +166,28 @@ export const PetsTab = ({
                     }
                   }}
                   className={cn(
-                    "relative rounded-xl border-2 overflow-hidden transition-all active:scale-95",
-                    isEquipped
+                    "relative rounded-xl border-2 overflow-hidden transition-all",
+                    isComingSoon
+                      ? "border-gray-300 dark:border-gray-600 opacity-80"
+                      : "active:scale-95",
+                    !isComingSoon && isEquipped
                       ? "border-purple-400 dark:border-purple-500 ring-2 ring-purple-300"
-                      : owned
+                      : !isComingSoon && owned
                       ? "border-green-300 dark:border-green-700"
-                      : RARITY_BORDER[bg.rarity || 'common']
+                      : !isComingSoon && RARITY_BORDER[bg.rarity || 'common']
                   )}
                 >
                   {/* Background Preview Image */}
                   <div className="relative h-20 overflow-hidden">
                     <BackgroundPreview imagePath={bg.previewImage!} size="large" className="border-0 rounded-none" />
-                    {isEquipped && (
+                    {isComingSoon && (
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                        <div className="bg-amber-500 border-2 border-amber-600 rounded-lg px-3 py-1 shadow-lg transform -rotate-3">
+                          <span className="text-[10px] font-black text-white uppercase tracking-wide drop-shadow-sm">Coming Soon</span>
+                        </div>
+                      </div>
+                    )}
+                    {isEquipped && !isComingSoon && (
                       <div className="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
                         <div className="bg-purple-500 rounded-full px-2 py-0.5 flex items-center gap-1">
                           <Palette className="w-3 h-3 text-white" />
@@ -183,14 +195,14 @@ export const PetsTab = ({
                         </div>
                       </div>
                     )}
-                    {owned && !isEquipped && (
+                    {owned && !isEquipped && !isComingSoon && (
                       <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
                         <div className="bg-green-500 rounded-full p-1">
                           <Check className="w-4 h-4 text-white" />
                         </div>
                       </div>
                     )}
-                    {bg.bundleId && !owned && (
+                    {bg.bundleId && !owned && !isComingSoon && (
                       <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-sky-500 text-white text-[8px] font-bold rounded">
                         BUNDLE
                       </div>
@@ -205,11 +217,17 @@ export const PetsTab = ({
                   {/* Info */}
                   <div className={cn(
                     "p-2",
+                    isComingSoon ? "bg-gray-100 dark:bg-gray-800/40" :
                     isEquipped ? "bg-purple-50 dark:bg-purple-900/20" :
                     owned ? "bg-green-50 dark:bg-green-900/20" : RARITY_BG[bg.rarity || 'common']
                   )}>
                     <span className="text-[10px] font-bold block leading-tight truncate">{bg.name}</span>
-                    {owned ? (
+                    {isComingSoon ? (
+                      <div className="flex items-center justify-center gap-1 mt-1 text-[9px] font-bold text-gray-400 dark:text-gray-500">
+                        <Clock className="w-2.5 h-2.5" />
+                        Coming Soon
+                      </div>
+                    ) : owned ? (
                       <div className="text-[9px] font-medium text-center mt-1 text-purple-600 dark:text-purple-400">
                         {isEquipped ? "Tap to unequip" : "Tap to equip"}
                       </div>

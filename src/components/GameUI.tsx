@@ -70,8 +70,9 @@ export const GameUI = () => {
         {currentTab !== "home" && (
           <div
             className={`absolute inset-0 pointer-events-auto overflow-auto pt-safe pb-24 ${
-              currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" : "bg-background"
+              currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" : currentTab === "collection" ? "" : "bg-background"
             }`}
+            style={currentTab === "collection" ? { background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)' } : undefined}
           >
             <TabContent
               currentTab={currentTab}

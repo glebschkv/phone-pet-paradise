@@ -254,7 +254,11 @@ export const Shop = () => {
                   {(() => {
                     const Icon = CATEGORY_ICONS[category.id];
                      if (!Icon) return null;
-                     return <Icon className="w-[18px] h-[18px] text-white drop-shadow-sm" />;
+                     const isActive = activeCategory === category.id;
+                     return <Icon className={cn(
+                       "w-[18px] h-[18px]",
+                       isActive ? "text-white drop-shadow-sm" : "text-gray-400 dark:text-gray-500"
+                     )} />;
                   })()}
                 </div>
                 <span className="retro-category-tab-label">{category.name}</span>

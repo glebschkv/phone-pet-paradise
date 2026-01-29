@@ -1,9 +1,14 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { cn } from '@/lib/utils';
-import { Sparkles, Clock, History, Gift, Star, Zap } from 'lucide-react';
+import { Sparkles, Clock, History, Gift, Zap } from 'lucide-react';
 import { LuckyWheelPrize } from '@/data/GamificationData';
+
+// Single source of truth for animation timing
+const SPIN_DURATION_MS = 6500;
+const SPIN_FULL_ROTATIONS = 3;
+const SPIN_EASING = 'cubic-bezier(0.12, 0.8, 0.18, 1)';
 
 interface LuckyWheelModalProps {
   isOpen: boolean;
@@ -27,6 +32,9 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
   const [currentPrize, setCurrentPrize] = useState<LuckyWheelPrize | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [localSpinning, setLocalSpinning] = useState(false);
+  const [highlightSegment, setHighlightSegment] = useState<number | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const wheelRef = useRef<HTMLDivElement>(null);
 
   const wheelConfig = getWheelConfig();
   const stats = getStats();
@@ -34,7 +42,42 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
   const timeUntilNext = getTimeUntilNextSpin();
   const canSpin = canSpinToday() && !isSpinning && !localSpinning;
 
-  // Memoize expensive SVG path calculations - only recalculate when wheelConfig changes
+  // Listen for transitionend to precisely sync reward reveal
+  useEffect(() => {
+    const el = wheelRef.current;
+    if (!el) return;
+
+    const handleTransitionEnd = (e: TransitionEvent) => {
+      if (e.propertyName !== 'transform') return;
+      if (!localSpinning || !currentPrize) return;
+
+      // Brief highlight of winning segment before overlay
+      const prizeIndex = prizes.findIndex(p => p.id === currentPrize.id);
+      setHighlightSegment(prizeIndex);
+
+      const isSpecial = currentPrize.rarity === 'legendary' || currentPrize.rarity === 'epic';
+      const highlightDelay = isSpecial ? 800 : 400;
+
+      if (isSpecial) {
+        setShowCelebration(true);
+      }
+
+      setTimeout(() => {
+        setShowResult(true);
+        setLocalSpinning(false);
+        setHighlightSegment(null);
+        setShowCelebration(false);
+        if (onPrizeWon) {
+          onPrizeWon(currentPrize);
+        }
+      }, highlightDelay);
+    };
+
+    el.addEventListener('transitionend', handleTransitionEnd);
+    return () => el.removeEventListener('transitionend', handleTransitionEnd);
+  }, [localSpinning, currentPrize, prizes, onPrizeWon]);
+
+  // Memoize expensive SVG path calculations
   const wheelPaths = useMemo(() => {
     return wheelConfig.segments.map((segment, index) => {
       const angle = 360 / wheelConfig.segmentCount;
@@ -56,12 +99,20 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
       const textY = 50 + 32 * Math.sin(midAngle);
       const textRotation = (startAngle + endAngle) / 2;
 
+      // Peg positions at segment boundaries (outer edge)
+      const pegX = 50 + 47 * Math.cos(startRad);
+      const pegY = 50 + 47 * Math.sin(startRad);
+
       return {
         segment,
+        index,
         path: `M50,50 L${x1},${y1} A50,50 0 ${largeArc},1 ${x2},${y2} Z`,
         textX,
         textY,
         textRotation,
+        pegX,
+        pegY,
+        gradientId: `seg-grad-${index}`,
       };
     });
   }, [wheelConfig]);
@@ -72,6 +123,8 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
     setLocalSpinning(true);
     setShowResult(false);
     setCurrentPrize(null);
+    setHighlightSegment(null);
+    setShowCelebration(false);
 
     try {
       const prize = await spin();
@@ -81,31 +134,22 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
       const segmentAngle = 360 / prizes.length;
       const targetAngle = 360 - (prizeIndex * segmentAngle) - (segmentAngle / 2);
 
-      // Add multiple full rotations for effect
-      const fullRotations = 5 * 360;
+      // Fewer rotations + longer duration = readable, satisfying spin
+      const fullRotations = SPIN_FULL_ROTATIONS * 360;
       const newRotation = rotation + fullRotations + targetAngle;
 
       setRotation(newRotation);
       setCurrentPrize(prize);
-
-      // Show result after animation
-      setTimeout(() => {
-        setShowResult(true);
-        setLocalSpinning(false);
-        if (onPrizeWon) {
-          onPrizeWon(prize);
-        }
-      }, 4000);
     } catch {
       setLocalSpinning(false);
     }
-  }, [canSpin, spin, rotation, prizes, onPrizeWon]);
+  }, [canSpin, spin, rotation, prizes]);
 
   const getRarityGlow = (rarity: string) => {
     switch (rarity) {
-      case 'legendary': return 'shadow-[0_0_30px_rgba(251,191,36,0.8)]';
-      case 'epic': return 'shadow-[0_0_20px_rgba(168,85,247,0.6)]';
-      case 'rare': return 'shadow-[0_0_15px_rgba(59,130,246,0.5)]';
+      case 'legendary': return 'shadow-[0_0_40px_rgba(251,191,36,0.9),0_0_80px_rgba(251,191,36,0.4)]';
+      case 'epic': return 'shadow-[0_0_30px_rgba(168,85,247,0.7),0_0_60px_rgba(168,85,247,0.3)]';
+      case 'rare': return 'shadow-[0_0_20px_rgba(59,130,246,0.6)]';
       default: return '';
     }
   };
@@ -117,6 +161,23 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
       case 'rare': return 'border-blue-400';
       default: return 'border-purple-600/50';
     }
+  };
+
+  // Lighten a hex color for segment gradient highlights
+  const lightenColor = (hex: string, amount: number): string => {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, (num >> 16) + amount);
+    const g = Math.min(255, ((num >> 8) & 0x00FF) + amount);
+    const b = Math.min(255, (num & 0x0000FF) + amount);
+    return `rgb(${r},${g},${b})`;
+  };
+
+  const darkenColor = (hex: string, amount: number): string => {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.max(0, (num >> 16) - amount);
+    const g = Math.max(0, ((num >> 8) & 0x00FF) - amount);
+    const b = Math.max(0, (num & 0x0000FF) - amount);
+    return `rgb(${r},${g},${b})`;
   };
 
   return (
@@ -138,70 +199,201 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
         </div>
 
         {/* Wheel Section */}
-        <div className="relative p-6 flex flex-col items-center bg-gradient-to-b from-purple-900/50 to-transparent">
+        <div className={cn(
+          "relative p-6 flex flex-col items-center",
+          "wheel-section-bg",
+          localSpinning && "wheel-section-spinning"
+        )}>
+          {/* Background glow behind wheel */}
+          <div className={cn(
+            "absolute inset-0 transition-opacity duration-1000",
+            "wheel-bg-glow",
+            localSpinning ? "opacity-100" : "opacity-30"
+          )} />
+
+          {/* Celebration burst for epic/legendary */}
+          {showCelebration && (
+            <div className="absolute inset-0 z-20 pointer-events-none wheel-celebration-burst" />
+          )}
+
           {/* Decorative Lights */}
-          <div className="absolute top-4 left-0 right-0 flex justify-center gap-3">
+          <div className="absolute top-4 left-0 right-0 flex justify-center gap-3 z-10">
             {[...Array(7)].map((_, i) => (
               <div
                 key={i}
                 className={cn(
-                  "w-3 h-3 rounded-full",
+                  "w-3 h-3 rounded-full transition-all duration-300",
                   localSpinning
-                    ? "animate-pulse bg-yellow-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]"
-                    : i % 2 === 0
+                    ? "wheel-light-chasing"
+                    : i % 3 === 0
                     ? "bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]"
-                    : "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                    : i % 3 === 1
+                    ? "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                    : "bg-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]"
                 )}
-                style={{ animationDelay: `${i * 0.1}s` }}
+                style={{
+                  animationDelay: localSpinning ? `${i * 0.12}s` : undefined,
+                }}
               />
             ))}
           </div>
 
-          {/* Pointer */}
-          <div className="absolute top-12 z-10 retro-wheel-pointer">
-            <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-yellow-400" />
-            <Star className="absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-5 text-yellow-300" />
+          {/* SVG Pointer - proper arrowhead with depth */}
+          <div className={cn(
+            "absolute top-12 z-10",
+            localSpinning && "wheel-pointer-ticking"
+          )}>
+            <svg width="32" height="36" viewBox="0 0 32 36" className="wheel-pointer-svg">
+              <defs>
+                <linearGradient id="pointerGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#fde047" />
+                  <stop offset="50%" stopColor="#fbbf24" />
+                  <stop offset="100%" stopColor="#d97706" />
+                </linearGradient>
+                <linearGradient id="pointerShadowGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#b45309" />
+                  <stop offset="100%" stopColor="#92400e" />
+                </linearGradient>
+                <filter id="pointerGlow">
+                  <feGaussianBlur stdDeviation="2" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              {/* Shadow layer */}
+              <polygon points="16,34 6,6 26,6" fill="url(#pointerShadowGrad)" opacity="0.5" transform="translate(1, 1)" />
+              {/* Main pointer */}
+              <polygon points="16,34 4,4 28,4" fill="url(#pointerGrad)" stroke="#fbbf24" strokeWidth="1" filter="url(#pointerGlow)" />
+              {/* Highlight edge */}
+              <polygon points="16,30 8,6 16,4" fill="rgba(255,255,255,0.25)" />
+              {/* Center dot */}
+              <circle cx="16" cy="12" r="3.5" fill="#fef3c7" stroke="#fbbf24" strokeWidth="1" />
+              <circle cx="16" cy="12" r="1.5" fill="#fbbf24" />
+            </svg>
           </div>
 
           {/* Wheel Container */}
-          <div className="relative w-60 h-60 mt-6">
+          <div className={cn(
+            "relative w-64 h-64 mt-6",
+            showCelebration && currentPrize?.rarity === 'legendary' && "wheel-screen-shake"
+          )}>
+            {/* Outer decorative ring */}
+            <div className="absolute -inset-2 rounded-full wheel-outer-ring" />
+
             <div
+              ref={wheelRef}
               className={cn(
                 "w-full h-full rounded-full overflow-hidden retro-wheel",
-                "transition-transform duration-[4000ms] ease-out",
-                getRarityGlow(currentPrize?.rarity || '')
+                getRarityGlow(showResult ? (currentPrize?.rarity || '') : '')
               )}
-              style={{ transform: `rotate(${rotation}deg)` }}
+              style={{
+                transform: `rotate(${rotation}deg)`,
+                transition: localSpinning
+                  ? `transform ${SPIN_DURATION_MS}ms ${SPIN_EASING}`
+                  : 'none',
+              }}
             >
               <svg viewBox="0 0 100 100" className="w-full h-full">
-                {wheelPaths.map(({ segment, path, textX, textY, textRotation }) => (
+                <defs>
+                  {/* Segment gradients for 3D depth */}
+                  {wheelPaths.map(({ segment, gradientId }) => (
+                    <linearGradient key={gradientId} id={gradientId} x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor={lightenColor(segment.color, 30)} />
+                      <stop offset="60%" stopColor={segment.color} />
+                      <stop offset="100%" stopColor={darkenColor(segment.color, 40)} />
+                    </linearGradient>
+                  ))}
+                  {/* Inner shadow overlay for curvature */}
+                  <radialGradient id="wheelInnerShadow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="rgba(255,255,255,0.08)" />
+                    <stop offset="60%" stopColor="rgba(0,0,0,0)" />
+                    <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
+                  </radialGradient>
+                  {/* Highlight overlay for top-light effect */}
+                  <radialGradient id="wheelHighlight" cx="40%" cy="30%" r="60%">
+                    <stop offset="0%" stopColor="rgba(255,255,255,0.12)" />
+                    <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                  </radialGradient>
+                  <radialGradient id="centerGradient">
+                    <stop offset="0%" stopColor="#fef3c7" />
+                    <stop offset="40%" stopColor="#fbbf24" />
+                    <stop offset="100%" stopColor="#d97706" />
+                  </radialGradient>
+                  <radialGradient id="centerHighlight" cx="40%" cy="35%" r="50%">
+                    <stop offset="0%" stopColor="rgba(255,255,255,0.6)" />
+                    <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+                  </radialGradient>
+                  <filter id="segmentGlow">
+                    <feGaussianBlur stdDeviation="1.5" />
+                  </filter>
+                </defs>
+
+                {/* Segments with gradient fills */}
+                {wheelPaths.map(({ segment, path, textX, textY, textRotation, gradientId, index }) => (
                   <g key={segment.id}>
                     <path
                       d={path}
-                      fill={segment.color}
-                      stroke="rgba(255,255,255,0.3)"
-                      strokeWidth="0.5"
+                      fill={`url(#${gradientId})`}
+                      stroke="rgba(255,255,255,0.15)"
+                      strokeWidth="0.3"
                     />
+                    {/* Segment separator lines - gold */}
+                    <path
+                      d={path}
+                      fill="none"
+                      stroke="rgba(251,191,36,0.3)"
+                      strokeWidth="0.6"
+                    />
+                    {/* Highlight flash on winning segment */}
+                    {highlightSegment === index && (
+                      <path
+                        d={path}
+                        fill="rgba(255,255,255,0.5)"
+                        className="wheel-segment-flash"
+                      />
+                    )}
+                    {/* Emoji */}
                     <text
                       x={textX}
                       y={textY}
                       textAnchor="middle"
                       dominantBaseline="middle"
                       className="text-[10px] fill-white font-bold"
+                      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
                       transform={`rotate(${textRotation}, ${textX}, ${textY})`}
                     >
                       {segment.emoji}
                     </text>
                   </g>
                 ))}
-                {/* Center Hub */}
-                <circle cx="50" cy="50" r="10" fill="url(#centerGradient)" stroke="#fbbf24" strokeWidth="3" />
-                <defs>
-                  <radialGradient id="centerGradient">
-                    <stop offset="0%" stopColor="#fbbf24" />
-                    <stop offset="100%" stopColor="#f59e0b" />
-                  </radialGradient>
-                </defs>
+
+                {/* Inner shadow overlay for 3D curvature */}
+                <circle cx="50" cy="50" r="50" fill="url(#wheelInnerShadow)" />
+                {/* Top-light highlight */}
+                <circle cx="50" cy="50" r="50" fill="url(#wheelHighlight)" />
+
+                {/* Pegs at segment boundaries */}
+                {wheelPaths.map(({ pegX, pegY }, i) => (
+                  <g key={`peg-${i}`}>
+                    <circle cx={pegX} cy={pegY} r="1.8" fill="#d97706" />
+                    <circle cx={pegX} cy={pegY} r="1.3" fill="#fbbf24" />
+                    <circle cx={pegX - 0.3} cy={pegY - 0.3} r="0.5" fill="#fef3c7" opacity="0.7" />
+                  </g>
+                ))}
+
+                {/* Center Hub - layered for depth */}
+                {/* Outer ring */}
+                <circle cx="50" cy="50" r="12" fill="#92400e" />
+                <circle cx="50" cy="50" r="11" fill="url(#centerGradient)" stroke="#fbbf24" strokeWidth="1.5" />
+                {/* Inner ring */}
+                <circle cx="50" cy="50" r="7" fill="#d97706" stroke="#fbbf24" strokeWidth="0.8" />
+                {/* Highlight */}
+                <circle cx="50" cy="50" r="7" fill="url(#centerHighlight)" />
+                {/* Center bolt */}
+                <circle cx="50" cy="50" r="3" fill="#fef3c7" />
+                <circle cx="49" cy="49" r="1.2" fill="rgba(255,255,255,0.6)" />
               </svg>
             </div>
           </div>
@@ -209,10 +401,14 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
           {/* Result Overlay */}
           {showResult && currentPrize && (
             <div className={cn(
-              "absolute inset-0 bg-purple-950/95 flex flex-col items-center justify-center",
-              "animate-in fade-in zoom-in duration-300"
+              "absolute inset-0 flex flex-col items-center justify-center z-30",
+              "wheel-result-overlay"
             )}>
-              <div className="retro-game-card p-6 text-center">
+              <div className={cn(
+                "retro-game-card p-6 text-center wheel-result-card",
+                currentPrize.rarity === 'legendary' && "wheel-result-legendary",
+                currentPrize.rarity === 'epic' && "wheel-result-epic"
+              )}>
                 <div className={cn(
                   "text-6xl mb-3",
                   currentPrize.rarity === 'legendary' && "animate-bounce"
