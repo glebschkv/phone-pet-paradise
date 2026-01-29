@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { XPReward } from "@/hooks/useXPSystem";
@@ -18,10 +19,16 @@ export const XPRewardModal = ({
   newLevel,
   levelProgress
 }: XPRewardModalProps) => {
-  if (!reward) return null;
+  // Cache last valid reward so content persists during Dialog close animation
+  // (prevents abrupt unmount that can leave stale overlay in DOM)
+  const lastRewardRef = useRef<XPReward | null>(null);
+  if (reward) lastRewardRef.current = reward;
+  const displayReward = reward || lastRewardRef.current;
+
+  if (!displayReward) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen && !!reward} onOpenChange={onClose}>
       <DialogContent className="max-w-sm mx-auto retro-card border-2 border-border max-h-[90vh] overflow-y-auto p-0">
         {/* Header */}
         <div className="bg-gradient-to-b from-primary/20 to-transparent p-6 text-center">
@@ -40,13 +47,13 @@ export const XPRewardModal = ({
           {/* XP Gained - Big emphasis */}
           <div className="retro-stat-pill p-4 text-center">
             {/* Bonus XP Badge */}
-            {reward.hasBonusXP && (
+            {displayReward.hasBonusXP && (
               <div
                 className="inline-flex items-center gap-1 px-3 py-1 rounded-full mb-2 text-xs font-bold animate-pulse"
                 style={{
-                  background: reward.bonusType === 'jackpot'
+                  background: displayReward.bonusType === 'jackpot'
                     ? 'linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24)'
-                    : reward.bonusType === 'super_lucky'
+                    : displayReward.bonusType === 'super_lucky'
                     ? 'linear-gradient(90deg, #a855f7, #8b5cf6, #a855f7)'
                     : 'linear-gradient(90deg, #22c55e, #16a34a, #22c55e)',
                   color: 'white',
@@ -54,21 +61,21 @@ export const XPRewardModal = ({
                 }}
               >
                 <Flame className="w-3 h-3" />
-                {reward.bonusType === 'jackpot' && 'JACKPOT! 2x XP'}
-                {reward.bonusType === 'super_lucky' && 'SUPER LUCKY! 1.5x XP'}
-                {reward.bonusType === 'lucky' && 'LUCKY! +25% XP'}
+                {displayReward.bonusType === 'jackpot' && 'JACKPOT! 2x XP'}
+                {displayReward.bonusType === 'super_lucky' && 'SUPER LUCKY! 1.5x XP'}
+                {displayReward.bonusType === 'lucky' && 'LUCKY! +25% XP'}
               </div>
             )}
             <div className="flex items-center justify-center gap-2 mb-1">
               <Star className="w-5 h-5 text-yellow-500" />
               <span className="text-2xl font-bold tabular-nums">
-                +{reward.xpGained}
+                +{displayReward.xpGained}
               </span>
               <span className="text-sm font-semibold text-muted-foreground">XP</span>
             </div>
-            {reward.hasBonusXP && reward.bonusXP > 0 && (
+            {displayReward.hasBonusXP && displayReward.bonusXP > 0 && (
               <p className="text-xs text-green-500 font-semibold">
-                (+{reward.bonusXP} bonus XP!)
+                (+{displayReward.bonusXP} bonus XP!)
               </p>
             )}
             <p className="text-xs text-muted-foreground">
@@ -99,7 +106,7 @@ export const XPRewardModal = ({
           </div>
 
           {/* Level Up Celebration */}
-          {reward.leveledUp && (
+          {displayReward.leveledUp && (
             <div className="relative overflow-hidden rounded-lg p-4 text-center"
               style={{
                 background: 'linear-gradient(180deg, hsl(45 100% 60%) 0%, hsl(40 90% 50%) 100%)',
@@ -114,13 +121,13 @@ export const XPRewardModal = ({
                 </span>
               </div>
               <p className="text-sm text-amber-800 font-medium">
-                You reached Level {reward.newLevel}!
+                You reached Level {displayReward.newLevel}!
               </p>
             </div>
           )}
 
           {/* Unlocked Rewards */}
-          {reward.unlockedRewards.length > 0 && (
+          {displayReward.unlockedRewards.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Gift className="w-4 h-4 text-primary" />
@@ -128,7 +135,7 @@ export const XPRewardModal = ({
               </div>
 
               <div className="space-y-2">
-                {reward.unlockedRewards.map((unlock, index) => (
+                {displayReward.unlockedRewards.map((unlock, index) => (
                   <div
                     key={index}
                     className="retro-stat-pill p-3"

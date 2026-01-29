@@ -35,7 +35,14 @@ export const useAppStateTracking = () => {
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
-        setAppState(prev => ({ ...prev, ...parsed }));
+        // Never restore modal state from storage - it's transient UI state
+        // that should not persist across sessions (prevents stale black overlay)
+        setAppState(prev => ({
+          ...prev,
+          ...parsed,
+          showRewardModal: false,
+          currentReward: null,
+        }));
       } catch (error) {
         logger.error('Failed to parse saved app state:', error);
       }
