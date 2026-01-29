@@ -178,9 +178,7 @@ export const PetCollectionGrid = memo(() => {
   }, [selectedBackground, handleEquipBackground]);
 
   return (
-    <div className="h-full flex flex-col" style={{
-      background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-    }}>
+    <div className="h-full flex flex-col">
       {/* Header */}
       <CollectionFilters
         activeTab={activeTab}
