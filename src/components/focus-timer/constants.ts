@@ -1,4 +1,4 @@
-import { Clock, Brain, Coffee, Sun, Sunset, Moon, TreePine, Snowflake, Timer, LucideIcon } from "lucide-react";
+import { Clock, Brain, Coffee, Sun, Sunset, Moon, TreePine, Snowflake, Timer, Building2, LucideIcon } from "lucide-react";
 import { FocusCategory, SessionType } from "@/types/analytics";
 
 // Re-export SessionType for consumers that import from constants
@@ -15,11 +15,12 @@ export interface BackgroundTheme {
 }
 
 export const BACKGROUND_THEMES: BackgroundTheme[] = [
-  { id: 'sky', name: 'Day', icon: Sun, unlockLevel: 1 },
-  { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 3 },
-  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 5 },
-  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 8 },
-  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 12 },
+  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 1 },
+  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 3 },
+  { id: 'sky', name: 'Meadow', icon: Sun, unlockLevel: 5 },
+  { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 8 },
+  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 12 },
+  { id: 'city', name: 'City', icon: Building2, unlockLevel: 15 },
 ];
 
 export interface TimerState {

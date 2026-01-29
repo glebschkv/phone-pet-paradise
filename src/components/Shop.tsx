@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Coins, ShoppingBag, Zap, Clock } from "lucide-react";
+import { Coins, ShoppingBag, Zap, Clock, Star, PawPrint, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
@@ -20,6 +20,13 @@ import { PetsTab } from "@/components/shop/tabs/PetsTab";
 import { PowerUpsTab } from "@/components/shop/tabs/PowerUpsTab";
 import { BundlesTab } from "@/components/shop/tabs/BundlesTab";
 import { PurchaseConfirmDialog } from "@/components/shop/PurchaseConfirmDialog";
+
+const CATEGORY_ICONS: Record<ShopCategory, React.ComponentType<{ className?: string }>> = {
+  featured: Star,
+  pets: PawPrint,
+  bundles: Gift,
+  powerups: Zap,
+};
 
 export const Shop = () => {
   const [activeCategory, setActiveCategory] = useState<ShopCategory>("featured");
@@ -186,7 +193,7 @@ export const Shop = () => {
         )}
       </div>
 
-      {/* Category tabs - Now just 4 clean tabs */}
+      {/* Category tabs */}
       <div className="mx-3 mt-3">
         <div className="flex gap-2 pb-2">
           {SHOP_CATEGORIES.map((category) => (
@@ -194,14 +201,17 @@ export const Shop = () => {
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
               className={cn(
-                "flex-1 py-2.5 px-3 rounded-xl flex flex-col items-center gap-1 transition-all",
-                activeCategory === category.id
-                  ? "bg-amber-500 text-white shadow-lg"
-                  : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                "retro-category-tab",
+                activeCategory === category.id && "retro-category-tab-active"
               )}
             >
-              <span className="text-lg">{category.icon}</span>
-              <span className="text-[10px] font-bold uppercase tracking-tight">{category.name}</span>
+              <div className={`retro-category-icon retro-category-icon-${category.id}`}>
+                {(() => {
+                  const Icon = CATEGORY_ICONS[category.id];
+                  return <Icon className="w-[18px] h-[18px] text-white drop-shadow-sm" />;
+                })()}
+              </div>
+              <span className="retro-category-tab-label">{category.name}</span>
             </button>
           ))}
         </div>

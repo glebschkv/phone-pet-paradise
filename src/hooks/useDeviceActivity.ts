@@ -93,6 +93,10 @@ export const useDeviceActivity = () => {
   // Track plugin initialization errors
   const pluginErrorRef = useRef<Error | null>(null);
 
+  // Track initialization retries
+  const initRetryCountRef = useRef(0);
+  const MAX_INIT_RETRIES = 3;
+
   // Web simulation state for app selection
   const [simulatedApps, setSimulatedApps] = useState<SimulatedBlockedApp[]>(() => {
     try {
@@ -111,7 +115,7 @@ export const useDeviceActivity = () => {
   // Check if we're on native platform
   const isNative = Capacitor.isNativePlatform();
 
-  // Initialize device activity monitoring
+  // Initialize device activity monitoring (with automatic retry on failure)
   const initialize = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
@@ -156,8 +160,23 @@ export const useDeviceActivity = () => {
       );
 
       if (!permissionSuccess) {
+        // Retry before giving up
+        if (initRetryCountRef.current < MAX_INIT_RETRIES) {
+          initRetryCountRef.current += 1;
+          const retryDelay = Math.pow(2, initRetryCountRef.current) * 1000; // 2s, 4s, 8s
+          deviceActivityLogger.debug(
+            `DeviceActivity init failed, scheduling retry ${initRetryCountRef.current}/${MAX_INIT_RETRIES} in ${retryDelay}ms`
+          );
+          setState(prev => ({ ...prev, isLoading: false }));
+          setTimeout(() => { initialize(); }, retryDelay);
+          return;
+        }
+        // All retries exhausted — still keep plugin available so user can try requesting permissions
         deviceActivityLogger.warn('checkPermissions failed - treating as notDetermined, user can still request permissions');
       }
+
+      // Plugin responded — reset retry counter
+      initRetryCountRef.current = 0;
 
       const isGranted = permissions.status === 'granted';
 

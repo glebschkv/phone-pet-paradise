@@ -154,13 +154,14 @@ export const useNotifications = () => {
 
       globalNotificationsInitialized = true;
       setIsInitialized(true);
+      logger.debug('Notifications initialized successfully');
 
     } catch (error) {
       logger.error('Error initializing notifications:', error);
       globalNotificationsInitialized = true;
       setIsInitialized(true);
     }
-  }, [isInitialized, toast, setupNotificationListeners]);
+  }, [isInitialized, setupNotificationListeners]);
 
   const scheduleLocalNotification = useCallback(async (options: NotificationOptions) => {
     if (!permissions.localEnabled) {

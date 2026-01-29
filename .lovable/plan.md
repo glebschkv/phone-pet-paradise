@@ -1,113 +1,71 @@
 
-# Fix: Auth Page Shows "Supabase is not configured" Error
 
-## Problem Explained
+# Reorder Background Theme Unlock Progression
 
-When you click "Sign In" on the Auth page, you see this error:
-```
-Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY environment variables.
-```
+## Overview
 
-**Why this happens:** The Auth page calls `supabase.auth.signInWithPassword()` directly without first checking if Supabase is configured. The Supabase client uses a special "Proxy" pattern that throws this error when you try to use it without configuration.
+You want to change the order in which background themes are unlocked. The City background also needs to be added to the unlock progression since it currently exists but isn't in the unlockable themes list.
 
-Even though your `.env` file has the credentials, the console log `[Auth] Supabase not configured, using guest mode` suggests the environment variables aren't being read properly at runtime.
+## Current vs New Unlock Order
 
----
+| Unlock # | Current | New |
+|----------|---------|-----|
+| 1st (Level 1) | Day (Meadow) | Snow |
+| 2nd (Level 3) | Sunset | Night |
+| 3rd (Level 5) | Night | Meadow (Day) |
+| 4th (Level 8) | Forest | Sunset |
+| 5th (Level 12) | Snow | Forest |
+| 6th (NEW) | - | City |
 
-## Root Cause
-
-The Auth page imports `supabase` but **not** `isSupabaseConfigured`:
-
-```typescript
-// Line 3 - Missing isSupabaseConfigured check
-import { supabase } from '@/integrations/supabase/client';
-```
-
-All the sign-in functions (`handleEmailSignIn`, `handleMagicLink`, `handleSignUp`, etc.) directly call `supabase.auth.*` methods without checking if Supabase is available first.
-
----
-
-## Solution
-
-Add proper guard checks to the Auth page:
-
-1. Import `isSupabaseConfigured` from the Supabase client
-2. Show a helpful message if Supabase isn't configured instead of allowing sign-in attempts
-3. Add guard checks to each authentication function
-
----
-
-## Files to Modify
+## File to Modify
 
 | File | Change |
 |------|--------|
-| `src/pages/Auth.tsx` | Add `isSupabaseConfigured` import and guard checks |
-
----
+| `src/components/focus-timer/constants.ts` | Reorder `BACKGROUND_THEMES` array and add City |
 
 ## Implementation Details
 
-### 1. Update Import Statement
+**Lines 17-23 in `constants.ts`:**
 
 ```typescript
-// Before (Line 3)
-import { supabase } from '@/integrations/supabase/client';
+// Before
+export const BACKGROUND_THEMES: BackgroundTheme[] = [
+  { id: 'sky', name: 'Day', icon: Sun, unlockLevel: 1 },
+  { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 3 },
+  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 5 },
+  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 8 },
+  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 12 },
+];
 
 // After
-import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+export const BACKGROUND_THEMES: BackgroundTheme[] = [
+  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 1 },
+  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 3 },
+  { id: 'sky', name: 'Meadow', icon: Sun, unlockLevel: 5 },
+  { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 8 },
+  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 12 },
+  { id: 'city', name: 'City', icon: Building2, unlockLevel: 15 },
+];
 ```
 
-### 2. Add Guard to Each Auth Function
+**Import update (Line 1):**
 
-For `handleEmailSignIn` (and similar for all auth functions):
+Add `Building2` to the lucide-react imports for the City icon.
 
-```typescript
-const handleEmailSignIn = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  // Guard check - show helpful message if Supabase not configured
-  if (!isSupabaseConfigured) {
-    toast.error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY environment variables.');
-    return;
-  }
-  
-  // ... rest of the function
-};
-```
+## Technical Notes
 
-### 3. Functions That Need Guards
+- The `id` values (`sky`, `snow`, `night`, etc.) must match the theme switch cases in `RetroBackground.tsx` - these are already correct
+- Renamed "Day" to "Meadow" to better match the biome naming convention
+- City added at level 15 as the final unlock (you can adjust this level if needed)
+- `Building2` icon is the standard city/building icon from lucide-react
 
-All 6 authentication functions:
-- `handleMagicLink` (Line 55)
-- `handleEmailSignIn` (Line 103)
-- `handleSignUp` (Line 147)
-- `handleForgotPassword` (Line 212)
-- `handleResetPassword` (Line 257)
-- `handleAppleSignIn` (Line 306)
+## Verification
 
----
+After this change:
+1. Level 1 users start with Snow background
+2. Level 3 unlocks Night
+3. Level 5 unlocks Meadow (previously Day)
+4. Level 8 unlocks Sunset
+5. Level 12 unlocks Forest
+6. Level 15 unlocks City (new)
 
-## Why This Fixes the Issue
-
-1. **Graceful Error Handling**: Instead of throwing an uncaught error from the Proxy, we show a toast message
-2. **Clear Feedback**: The user sees a helpful message explaining what's wrong
-3. **No Crash**: The app continues to work (guest mode still available)
-4. **Consistent Pattern**: Matches how other hooks handle Supabase availability
-
----
-
-## Technical Note
-
-The underlying issue is that `import.meta.env.VITE_SUPABASE_URL` may not be loading correctly at runtime. This fix ensures the app handles that gracefully. If the credentials in `.env` should be working, you may also need to:
-- Restart the development server
-- Clear browser cache
-- Check that the `.env` file is in the project root
-
----
-
-## Verification Steps
-
-After implementation:
-1. Attempt sign-in - should show a toast error instead of crashing
-2. Guest mode should still work normally
-3. If Supabase IS configured properly, authentication should work

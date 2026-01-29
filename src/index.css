@@ -2398,42 +2398,185 @@
     border-color: hsl(270 50% 50%);
   }
 
-  /* Category tabs */
+  /* Category tabs - vertical layout with icon containers */
   .retro-category-tab {
+    flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 6px;
-    padding: 10px 16px;
+    padding: 10px 6px 8px;
     background: linear-gradient(180deg,
-      hsl(var(--card)) 0%,
-      hsl(var(--muted) / 0.5) 100%
+      hsl(0 0% 100%) 0%,
+      hsl(var(--muted) / 0.4) 100%
     );
-    border: 2px solid hsl(var(--border));
-    border-radius: 10px;
-    font-weight: 600;
+    border: 2px solid hsl(var(--border) / 0.7);
+    border-radius: 14px;
+    font-weight: 700;
     white-space: nowrap;
-    transition: all 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow:
-      0 2px 0 hsl(var(--border) / 0.5),
-      inset 0 1px 0 hsl(0 0% 100% / 0.1);
+      0 2px 0 hsl(var(--border) / 0.4),
+      inset 0 1px 0 hsl(0 0% 100% / 0.6);
+    cursor: pointer;
+    position: relative;
   }
 
   .retro-category-tab:active {
-    transform: translateY(2px);
-    box-shadow: none;
+    transform: translateY(2px) scale(0.97);
+    box-shadow:
+      0 0 0 hsl(var(--border) / 0.4),
+      inset 0 1px 2px hsl(0 0% 0% / 0.08);
   }
 
   .retro-category-tab-active {
     background: linear-gradient(180deg,
-      hsl(45 90% 60%) 0%,
-      hsl(35 85% 50%) 100%
+      hsl(45 90% 65%) 0%,
+      hsl(35 85% 52%) 100%
     );
     border-color: hsl(30 80% 45%);
     color: hsl(30 60% 15%);
     box-shadow:
-      0 2px 0 hsl(30 80% 35%),
+      0 3px 0 hsl(30 80% 38%),
       0 4px 12px hsl(45 90% 50% / 0.3),
-      inset 0 2px 4px hsl(50 100% 80% / 0.4);
+      inset 0 2px 4px hsl(50 100% 85% / 0.5);
+  }
+
+  .retro-category-tab-active:active {
+    transform: translateY(2px) scale(0.97);
+    box-shadow:
+      0 0 0 hsl(30 80% 38%),
+      inset 0 1px 2px hsl(30 60% 30% / 0.15);
+  }
+
+  /* Category tab label */
+  .retro-category-tab-label {
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    text-align: center;
+    color: hsl(var(--foreground) / 0.7);
+  }
+
+  .retro-category-tab-active .retro-category-tab-label {
+    color: hsl(30 60% 15%);
+  }
+
+  /* Category icon containers */
+  .retro-category-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+  }
+
+  /* Per-category icon backgrounds */
+  .retro-category-icon-featured {
+    background: linear-gradient(145deg, hsl(42 92% 68%) 0%, hsl(36 88% 55%) 100%);
+    box-shadow:
+      0 2px 0 hsl(34 80% 42%),
+      inset 0 1px 0 hsl(48 100% 82% / 0.5);
+    border: 1.5px solid hsl(34 75% 48%);
+  }
+
+  .retro-category-icon-pets {
+    background: linear-gradient(145deg, hsl(268 45% 68%) 0%, hsl(258 42% 55%) 100%);
+    box-shadow:
+      0 2px 0 hsl(258 42% 42%),
+      inset 0 1px 0 hsl(278 70% 82% / 0.4);
+    border: 1.5px solid hsl(258 40% 50%);
+  }
+
+  .retro-category-icon-bundles {
+    background: linear-gradient(145deg, hsl(348 65% 64%) 0%, hsl(340 58% 52%) 100%);
+    box-shadow:
+      0 2px 0 hsl(340 55% 40%),
+      inset 0 1px 0 hsl(355 80% 82% / 0.4);
+    border: 1.5px solid hsl(340 50% 48%);
+  }
+
+  .retro-category-icon-powerups {
+    background: linear-gradient(145deg, hsl(24 82% 62%) 0%, hsl(16 78% 50%) 100%);
+    box-shadow:
+      0 2px 0 hsl(16 75% 38%),
+      inset 0 1px 0 hsl(30 100% 82% / 0.4);
+    border: 1.5px solid hsl(16 70% 46%);
+  }
+
+  /* Active state: brighten icon containers */
+  .retro-category-tab-active .retro-category-icon {
+    box-shadow:
+      0 2px 0 hsl(30 70% 35% / 0.4),
+      inset 0 1px 0 hsl(0 0% 100% / 0.5);
+    border-color: hsl(30 60% 40% / 0.5);
+    filter: brightness(1.1) saturate(0.9);
+  }
+
+  /* Dark mode adjustments */
+  .dark .retro-category-tab {
+    background: linear-gradient(180deg,
+      hsl(220 20% 16%) 0%,
+      hsl(220 20% 12%) 100%
+    );
+    border-color: hsl(220 15% 25%);
+    box-shadow:
+      0 2px 0 hsl(220 15% 10%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.04);
+  }
+
+  .dark .retro-category-tab-active {
+    background: linear-gradient(180deg,
+      hsl(45 70% 45%) 0%,
+      hsl(35 65% 35%) 100%
+    );
+    border-color: hsl(30 60% 30%);
+    box-shadow:
+      0 3px 0 hsl(30 60% 22%),
+      0 4px 12px hsl(45 70% 40% / 0.2),
+      inset 0 2px 4px hsl(50 80% 60% / 0.2);
+  }
+
+  .dark .retro-category-tab-label {
+    color: hsl(var(--foreground) / 0.6);
+  }
+
+  .dark .retro-category-tab-active .retro-category-tab-label {
+    color: hsl(48 90% 92%);
+  }
+
+  .dark .retro-category-icon-featured {
+    background: linear-gradient(145deg, hsl(42 70% 48%) 0%, hsl(36 65% 38%) 100%);
+    border-color: hsl(34 55% 32%);
+    box-shadow: 0 2px 0 hsl(34 60% 25%), inset 0 1px 0 hsl(48 80% 65% / 0.2);
+  }
+
+  .dark .retro-category-icon-pets {
+    background: linear-gradient(145deg, hsl(268 35% 48%) 0%, hsl(258 32% 38%) 100%);
+    border-color: hsl(258 30% 32%);
+    box-shadow: 0 2px 0 hsl(258 32% 25%), inset 0 1px 0 hsl(278 50% 65% / 0.15);
+  }
+
+  .dark .retro-category-icon-bundles {
+    background: linear-gradient(145deg, hsl(348 50% 48%) 0%, hsl(340 45% 38%) 100%);
+    border-color: hsl(340 40% 32%);
+    box-shadow: 0 2px 0 hsl(340 42% 25%), inset 0 1px 0 hsl(355 60% 65% / 0.15);
+  }
+
+  .dark .retro-category-icon-powerups {
+    background: linear-gradient(145deg, hsl(24 65% 48%) 0%, hsl(16 60% 38%) 100%);
+    border-color: hsl(16 55% 32%);
+    box-shadow: 0 2px 0 hsl(16 58% 25%), inset 0 1px 0 hsl(30 80% 65% / 0.15);
+  }
+
+  .dark .retro-category-tab-active .retro-category-icon {
+    filter: brightness(1.15) saturate(0.85);
+    border-color: hsl(30 40% 30% / 0.5);
   }
 
   /* Shop cards */
