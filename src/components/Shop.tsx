@@ -22,7 +22,9 @@ import { BundlesTab } from "@/components/shop/tabs/BundlesTab";
 import { PurchaseConfirmDialog } from "@/components/shop/PurchaseConfirmDialog";
 import { CharacterUnlockModal } from "@/components/shop/CharacterUnlockModal";
 
-const CATEGORY_ICONS: Record<ShopCategory, React.ComponentType<{ className?: string }>> = {
+const CATEGORY_ICONS: Partial<
+  Record<ShopCategory, React.ComponentType<{ className?: string }>>
+> = {
   featured: Star,
   pets: PawPrint,
   bundles: Gift,
@@ -229,7 +231,8 @@ export const Shop = () => {
               <div className={`retro-category-icon retro-category-icon-${category.id}`}>
                 {(() => {
                   const Icon = CATEGORY_ICONS[category.id];
-                  return <Icon className="w-[18px] h-[18px] text-white drop-shadow-sm" />;
+                   if (!Icon) return null;
+                   return <Icon className="w-[18px] h-[18px] text-white drop-shadow-sm" />;
                 })()}
               </div>
               <span className="retro-category-tab-label">{category.name}</span>
