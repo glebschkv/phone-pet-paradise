@@ -201,22 +201,24 @@ export const useDeviceActivity = () => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
-      const { result, success } = await safePluginCall(
+      // Attempt to request permissions — may reject on older native builds
+      // where Apple's API throws on user denial. We don't bail on failure
+      // because the status may still have been updated by the system.
+      await safePluginCall(
         () => DeviceActivity.requestPermissions(),
         { status: 'denied' as const, familyControlsEnabled: false },
         'requestPermissions'
       );
 
-      if (!success) {
-        toast({
-          title: "Permission Error",
-          description: "Failed to request Screen Time permissions. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Always check the actual status after the request attempt,
+      // regardless of whether requestPermissions resolved or rejected.
+      const { result: currentStatus } = await safePluginCall(
+        () => DeviceActivity.checkPermissions(),
+        { status: 'denied' as const, familyControlsEnabled: false },
+        'checkPermissions-afterRequest'
+      );
 
-      const isGranted = result.status === 'granted';
+      const isGranted = currentStatus.status === 'granted';
 
       setState(prev => ({
         ...prev,
@@ -242,7 +244,7 @@ export const useDeviceActivity = () => {
       } else {
         toast({
           title: "Permissions Denied",
-          description: "App blocking requires Screen Time permissions",
+          description: "App blocking requires Screen Time permissions. Enable it in Settings > Screen Time.",
           variant: "destructive",
         });
       }
