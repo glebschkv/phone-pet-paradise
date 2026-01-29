@@ -17,7 +17,9 @@
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "cap:copy:ios": "npx cap copy ios && node scripts/patch-ios-config.cjs",
+    "ios": "npm run build && npm run cap:copy:ios"
   },
   "dependencies": {
     "@capacitor-community/apple-sign-in": "^7.1.0",
