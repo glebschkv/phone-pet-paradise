@@ -12,6 +12,7 @@ import {
   Image,
   Check,
   Palette,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PREMIUM_BACKGROUNDS, PremiumBackground } from "@/data/ShopData";
@@ -30,6 +31,7 @@ export const BackgroundGrid = memo(({
   onSelectBackground,
 }: BackgroundGridProps) => {
   const handleClick = useCallback((bg: PremiumBackground, owned: boolean) => {
+    if (bg.comingSoon && !owned) return;
     if (owned) {
       onEquipBackground(bg.id);
     } else {
@@ -84,16 +86,21 @@ const BackgroundCard = memo(({
   isEquipped,
   onClick,
 }: BackgroundCardProps) => {
+  const isComingSoon = bg.comingSoon && !owned;
+
   return (
     <button
       onClick={onClick}
       className={cn(
-        "relative rounded-xl border-2 overflow-hidden transition-all active:scale-95",
-        isEquipped
+        "relative rounded-xl border-2 overflow-hidden transition-all",
+        isComingSoon
+          ? "border-gray-300 dark:border-gray-600 opacity-80"
+          : "active:scale-95",
+        !isComingSoon && isEquipped
           ? "border-purple-400 ring-2 ring-purple-300"
-          : owned
+          : !isComingSoon && owned
           ? "border-green-400"
-          : "border-border"
+          : !isComingSoon ? "border-border" : ""
       )}
     >
       {/* Background Preview */}
@@ -113,7 +120,14 @@ const BackgroundCard = memo(({
         )}
 
         {/* Status overlay */}
-        {isEquipped && (
+        {isComingSoon && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+            <div className="bg-amber-500 border-2 border-amber-600 rounded-lg px-3 py-1 shadow-lg transform -rotate-3">
+              <span className="text-[10px] font-black text-white uppercase tracking-wide drop-shadow-sm">Coming Soon</span>
+            </div>
+          </div>
+        )}
+        {isEquipped && !isComingSoon && (
           <div className="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
             <div className="bg-purple-500 rounded-full px-2 py-0.5 flex items-center gap-1">
               <Palette className="w-3 h-3 text-white" />
@@ -121,14 +135,14 @@ const BackgroundCard = memo(({
             </div>
           </div>
         )}
-        {owned && !isEquipped && (
+        {owned && !isEquipped && !isComingSoon && (
           <div className="absolute top-1 right-1">
             <div className="bg-green-500 rounded-full p-0.5">
               <Check className="w-3 h-3 text-white" />
             </div>
           </div>
         )}
-        {!owned && (
+        {!owned && !isComingSoon && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <div className="bg-gradient-to-r from-amber-400 to-orange-400 text-white px-2 py-0.5 rounded-full flex items-center gap-1">
               <ShoppingBag className="w-3 h-3" />
@@ -149,13 +163,19 @@ const BackgroundCard = memo(({
       {/* Info */}
       <div className={cn(
         "p-2 text-left",
+        isComingSoon ? "bg-gray-100 dark:bg-gray-800/40" :
         isEquipped ? "bg-purple-50 dark:bg-purple-900/20" :
         owned ? "bg-green-50 dark:bg-green-900/20" : "bg-card"
       )}>
         <span className="text-[11px] font-bold block leading-tight truncate">
           {bg.name}
         </span>
-        {owned ? (
+        {isComingSoon ? (
+          <div className="flex items-center gap-1 text-[9px] font-bold text-gray-400 dark:text-gray-500">
+            <Clock className="w-2.5 h-2.5" />
+            Coming Soon
+          </div>
+        ) : owned ? (
           <span className="text-[9px] text-purple-600 dark:text-purple-400 font-medium">
             {isEquipped ? "Tap to unequip" : "Tap to equip"}
           </span>
