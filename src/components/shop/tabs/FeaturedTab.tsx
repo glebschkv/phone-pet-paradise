@@ -1,4 +1,5 @@
 import { Crown, ChevronRight, Check, Coins } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { BackgroundBundle, ShopItem, COIN_PACKS } from "@/data/ShopData";
 import { BACKGROUND_BUNDLES, STARTER_BUNDLES } from "@/data/ShopData";
@@ -107,7 +108,7 @@ export const FeaturedTab = ({
       {/* Background Bundles */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>🖼️</span> Background Bundles
+          <PixelIcon name="picture-frame" size={16} /> Background Bundles
         </h4>
         <div className="space-y-2">
           {BACKGROUND_BUNDLES.map((bundle) => {
@@ -174,7 +175,7 @@ export const FeaturedTab = ({
       {/* Special Bundles */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>🎁</span> Special Bundles
+          <PixelIcon name="gift" size={16} /> Special Bundles
         </h4>
         <div className="space-y-2">
           {STARTER_BUNDLES.map((bundle) => {
@@ -205,7 +206,7 @@ export const FeaturedTab = ({
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">{bundle.icon}</span>
+                  <PixelIcon name={bundle.icon} size={30} />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-bold">{bundle.name}</span>
@@ -238,14 +239,14 @@ export const FeaturedTab = ({
       {/* Best Selling Coin Pack */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>💰</span> Best Value
+          <PixelIcon name="money-bag" size={16} /> Best Value
         </h4>
         <button
           onClick={handlePurchaseMegaPack}
           className="w-full p-4 rounded-xl text-left bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-3">
-            <span className="text-4xl">🏆</span>
+            <PixelIcon name="trophy" size={36} />
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-bold">Mega Pack</span>
@@ -270,7 +271,7 @@ export const FeaturedTab = ({
       <div>
         <div className="flex items-center justify-between mb-2 px-1">
           <h4 className="text-sm font-bold flex items-center gap-2">
-            <span>🔥</span> Popular Pets
+            <PixelIcon name="fire" size={16} /> Popular Pets
           </h4>
           <button
             onClick={() => setActiveCategory('pets')}

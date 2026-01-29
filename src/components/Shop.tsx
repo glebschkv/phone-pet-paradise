@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Coins, ShoppingBag, Zap, Clock, Star, PawPrint, Gift, Backpack } from "lucide-react";
+import { Coins, ShoppingBag, Zap, Clock, Backpack } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
@@ -23,13 +24,11 @@ import { InventoryTab } from "@/components/shop/tabs/InventoryTab";
 import { PurchaseConfirmDialog } from "@/components/shop/PurchaseConfirmDialog";
 import { CharacterUnlockModal } from "@/components/shop/CharacterUnlockModal";
 
-const CATEGORY_ICONS: Partial<
-  Record<ShopCategory, React.ComponentType<{ className?: string }>>
-> = {
-  featured: Star,
-  pets: PawPrint,
-  bundles: Gift,
-  powerups: Zap,
+const CATEGORY_ICON_NAMES: Partial<Record<ShopCategory, string>> = {
+  featured: 'star',
+  pets: 'paw',
+  bundles: 'gift',
+  powerups: 'lightning',
 };
 
 export const Shop = () => {
@@ -252,13 +251,16 @@ export const Shop = () => {
               >
                 <div className={`retro-category-icon retro-category-icon-${category.id}`}>
                   {(() => {
-                    const Icon = CATEGORY_ICONS[category.id];
-                     if (!Icon) return null;
-                     const isActive = activeCategory === category.id;
-                     return <Icon className={cn(
-                       "w-[18px] h-[18px]",
-                       isActive ? "text-white drop-shadow-sm" : "text-gray-400 dark:text-gray-500"
-                     )} />;
+                    const iconName = CATEGORY_ICON_NAMES[category.id];
+                    if (!iconName) return null;
+                    const isActive = activeCategory === category.id;
+                    return <PixelIcon
+                      name={iconName}
+                      size={18}
+                      className={cn(
+                        isActive ? "opacity-100 drop-shadow-sm" : "opacity-40"
+                      )}
+                    />;
                   })()}
                 </div>
                 <span className="retro-category-tab-label">{category.name}</span>
