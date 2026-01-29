@@ -43,6 +43,7 @@ export interface ShopItem {
   rarity?: Rarity;
   isLimited?: boolean;
   limitedUntil?: string;
+  comingSoon?: boolean;
 }
 
 // ============================================================================
