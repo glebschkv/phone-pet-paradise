@@ -173,6 +173,26 @@ serve(async (req) => {
       console.error('Error deleting pets:', petsError);
     }
 
+    // Delete coin transactions
+    const { error: coinTxError } = await supabaseAdmin
+      .from('coin_transactions')
+      .delete()
+      .eq('user_id', user.id);
+
+    if (coinTxError) {
+      console.error('Error deleting coin transactions:', coinTxError);
+    }
+
+    // Delete subscriptions
+    const { error: subsError } = await supabaseAdmin
+      .from('user_subscriptions')
+      .delete()
+      .eq('user_id', user.id);
+
+    if (subsError) {
+      console.error('Error deleting subscriptions:', subsError);
+    }
+
     // Delete user progress
     const { error: progressError } = await supabaseAdmin
       .from('user_progress')
