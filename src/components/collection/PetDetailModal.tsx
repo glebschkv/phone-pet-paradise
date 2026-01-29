@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Heart, Lock, Home, Star, ShoppingBag, Coins } from "lucide-react";
+import { Heart, Lock, Home, Star, ShoppingBag, Coins, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimalData } from "@/data/AnimalDatabase";
 import { SpritePreview } from "./SpritePreview";
@@ -17,6 +17,8 @@ interface PetDetailModalProps {
   onOpenChange: (open: boolean) => void;
   isUnlocked: boolean;
   isShopExclusive: boolean;
+  isStudyHoursGated: boolean;
+  totalStudyHours: number;
   isFavorite: boolean;
   isHomeActive: boolean;
   onToggleFavorite: () => void;
@@ -30,6 +32,8 @@ export const PetDetailModal = ({
   onOpenChange,
   isUnlocked,
   isShopExclusive,
+  isStudyHoursGated,
+  totalStudyHours,
   isFavorite,
   isHomeActive,
   onToggleFavorite,
@@ -159,6 +163,34 @@ export const PetDetailModal = ({
                   <ShoppingBag className="w-4 h-4" />
                   Buy from Shop
                 </button>
+              </div>
+            ) : isStudyHoursGated && pet.requiredStudyHours ? (
+              // Study hours locked pet
+              <div className="text-center py-4">
+                <p className="text-sm text-muted-foreground mb-3">
+                  {pet.description}
+                </p>
+                <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-full flex items-center justify-center border-2 border-blue-300">
+                  <Clock className="w-7 h-7 text-blue-600" />
+                </div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Unlock by studying
+                </p>
+                <div className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border-2 border-blue-300 inline-block px-4 py-2 rounded-lg mb-3">
+                  <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                    {Math.floor(totalStudyHours)}h / {pet.requiredStudyHours}h studied
+                  </span>
+                </div>
+                {/* Progress bar */}
+                <div className="w-full max-w-[200px] mx-auto bg-muted rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-blue-400 to-indigo-500 h-full rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (totalStudyHours / pet.requiredStudyHours) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {Math.max(0, Math.ceil(pet.requiredStudyHours - totalStudyHours))}h remaining
+                </p>
               </div>
             ) : (
               // Level-locked pet
