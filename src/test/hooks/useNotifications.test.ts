@@ -45,16 +45,20 @@ vi.mock('@/lib/logger', () => ({
 import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
+import { __resetNotificationsForTesting } from '@/hooks/useNotifications';
 
 describe('useNotifications', () => {
   const mockRemove = vi.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
+    // Reset the module-level globalNotificationsInitialized flag between tests
+    __resetNotificationsForTesting();
+
     // Default to web platform
     (Capacitor.isNativePlatform as Mock).mockReturnValue(false);
-    
+
     // Setup default listener mocks
     (PushNotifications.addListener as Mock).mockResolvedValue({ remove: mockRemove });
     (LocalNotifications.addListener as Mock).mockResolvedValue({ remove: mockRemove });

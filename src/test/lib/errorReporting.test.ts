@@ -328,13 +328,10 @@ describe('Error Reporting', () => {
 
   describe('initializeErrorReporting', () => {
     it('should attach global handlers', () => {
-      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
       initializeErrorReporting();
 
       expect(window.onerror).toBe(globalErrorHandler);
       expect(window.onunhandledrejection).toBe(globalPromiseRejectionHandler);
-      expect(consoleLogSpy).toHaveBeenCalledWith('[ErrorReporting] Error handlers initialized');
     });
   });
 

@@ -29,6 +29,11 @@ interface NotificationOptions {
 // across all component instances and remounts.
 let globalNotificationsInitialized = false;
 
+// Reset module-level state (for testing only)
+export const __resetNotificationsForTesting = () => {
+  globalNotificationsInitialized = false;
+};
+
 export const useNotifications = () => {
   const [permissions, setPermissions] = useState<NotificationPermissions>({
     pushEnabled: false,

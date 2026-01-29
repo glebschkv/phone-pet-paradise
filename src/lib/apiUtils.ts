@@ -102,6 +102,9 @@ export class RequestManager {
  * Check if an error is an abort error
  */
 export function isAbortError(error: unknown): boolean {
+  if (error instanceof DOMException) {
+    return error.name === 'AbortError';
+  }
   return error instanceof Error && error.name === 'AbortError';
 }
 
@@ -340,6 +343,10 @@ export function validatePassword(password: string): { valid: boolean; message: s
  * These occur during normal component lifecycle (unmount, navigation, etc.)
  */
 export function isRequestInterruptedError(error: unknown): boolean {
+  // DOMException may not extend Error in all environments (e.g. Node.js/jsdom)
+  if (error instanceof DOMException) {
+    return error.name === 'AbortError';
+  }
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
     return (
