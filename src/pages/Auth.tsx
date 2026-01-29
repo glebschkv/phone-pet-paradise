@@ -358,9 +358,11 @@ export default function Auth() {
           .map(b => b.toString(16).padStart(2, '0'))
           .join('');
 
-        // On native iOS, omit clientId and redirectURI — the system
-        // uses the app's bundle ID automatically and doesn't redirect
+        // On native iOS, clientId and redirectURI are required by the type
+        // but the system uses the app's bundle ID automatically
         const result = await SignInWithApple.authorize({
+          clientId: '', // Not used on native iOS, but required by type
+          redirectURI: '', // Not used on native iOS, but required by type
           scopes: 'email name',
           state: crypto.randomUUID(),
           nonce: hashedNonce,
