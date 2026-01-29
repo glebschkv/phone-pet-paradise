@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { AnimalData, getAnimalById, getUnlockedAnimals, getAnimalsByBiome, ANIMAL_DATABASE, getXPUnlockableAnimals } from '@/data/AnimalDatabase';
+import { AnimalData, getAnimalById, getUnlockedAnimals, getAnimalsByBiome, ANIMAL_DATABASE, getXPUnlockableAnimals, isStudyHoursAnimal, getStudyHoursAnimals } from '@/data/AnimalDatabase';
 import { useXPSystem } from '@/hooks/useXPSystem';
 import { useCollectionStore, useShopStore } from '@/stores';
 
@@ -23,6 +23,7 @@ interface UseCollectionReturn {
   favorites: Set<string>;
   activeHomePets: Set<string>;
   stats: CollectionStats;
+  totalStudyHours: number;
 
   // Actions
   toggleFavorite: (animalId: string) => void;
@@ -31,6 +32,7 @@ interface UseCollectionReturn {
   isAnimalFavorite: (animalId: string) => boolean;
   isAnimalHomeActive: (animalId: string) => boolean;
   isShopExclusive: (animalId: string) => boolean;
+  isStudyHoursGated: (animalId: string) => boolean;
   getAnimalData: (animalId: string) => AnimalData | undefined;
   getActiveHomePetsData: () => AnimalData[];
 
@@ -41,7 +43,8 @@ interface UseCollectionReturn {
 export const useCollection = (): UseCollectionReturn => {
   // Use the unified XP system - it handles local/backend sync internally
   const xpSystem = useXPSystem();
-  const { currentLevel, unlockedAnimals, currentBiome, availableBiomes } = xpSystem;
+  const { currentLevel, unlockedAnimals, currentBiome, availableBiomes, totalStudyMinutes } = xpSystem;
+  const totalStudyHours = (totalStudyMinutes || 0) / 60;
 
   // Use Zustand stores instead of local state + events
   const favoritesArray = useCollectionStore((state) => state.favorites);
@@ -56,7 +59,7 @@ export const useCollection = (): UseCollectionReturn => {
   const favorites = useMemo(() => new Set(favoritesArray), [favoritesArray]);
   const activeHomePets = useMemo(() => new Set(activeHomePetsArray), [activeHomePetsArray]);
 
-  // Get unlocked animals data (level-based + purchased coin-exclusive)
+  // Get unlocked animals data (level-based + purchased coin-exclusive + study-hours)
   const unlockedAnimalsData = useMemo(() => {
     const levelUnlocked = getUnlockedAnimals(currentLevel);
 
@@ -69,8 +72,15 @@ export const useCollection = (): UseCollectionReturn => {
       !levelUnlocked.some(a => a.id === animal.id)
     );
 
-    return [...levelUnlocked, ...purchasedAnimals];
-  }, [currentLevel, unlockedAnimals, shopOwnedCharacters]);
+    // Include study-hours animals that have met their hour requirement
+    const studyHoursUnlocked = getStudyHoursAnimals().filter(animal =>
+      totalStudyHours >= (animal.requiredStudyHours || 0) &&
+      !levelUnlocked.some(a => a.id === animal.id) &&
+      !purchasedAnimals.some(a => a.id === animal.id)
+    );
+
+    return [...levelUnlocked, ...purchasedAnimals, ...studyHoursUnlocked];
+  }, [currentLevel, unlockedAnimals, shopOwnedCharacters, totalStudyHours]);
 
   // Get animals for current biome
   const currentBiomeAnimals = getAnimalsByBiome(currentBiome);
@@ -127,6 +137,15 @@ export const useCollection = (): UseCollectionReturn => {
     const animal = getAnimalById(animalId);
     if (!animal) return false;
 
+    // Study hours animals: check if enough hours studied
+    if (isStudyHoursAnimal(animal)) {
+      if (totalStudyHours >= (animal.requiredStudyHours || 0)) return true;
+      // Also check backward-compat: if already in saved unlocked list
+      if (unlockedAnimals.includes(animal.name)) return true;
+      if (shopOwnedCharacters.includes(animalId)) return true;
+      return false;
+    }
+
     // Check if unlocked by level
     if (animal.unlockLevel <= currentLevel) return true;
 
@@ -137,7 +156,7 @@ export const useCollection = (): UseCollectionReturn => {
     if (unlockedAnimals.includes(animal.name)) return true;
 
     return false;
-  }, [currentLevel, unlockedAnimals, shopOwnedCharacters]);
+  }, [currentLevel, unlockedAnimals, shopOwnedCharacters, totalStudyHours]);
 
   const isAnimalFavorite = useCallback((animalId: string): boolean => {
     return favorites.has(animalId);
@@ -157,11 +176,17 @@ export const useCollection = (): UseCollectionReturn => {
       .map(id => getAnimalById(id))
       .filter((animal): animal is AnimalData => {
         if (!animal || !animal.spriteConfig) return false;
+        // Study hours animals: check hours
+        if (isStudyHoursAnimal(animal)) {
+          return totalStudyHours >= (animal.requiredStudyHours || 0) ||
+                 unlockedAnimals.includes(animal.name) ||
+                 shopOwnedCharacters.includes(animal.id);
+        }
         return animal.unlockLevel <= currentLevel ||
                shopOwnedCharacters.includes(animal.id) ||
                unlockedAnimals.includes(animal.name);
       });
-  }, [activeHomePets, currentLevel, unlockedAnimals, shopOwnedCharacters]);
+  }, [activeHomePets, currentLevel, unlockedAnimals, shopOwnedCharacters, totalStudyHours]);
 
   // Filter animals based on search, rarity, and biome
   const filterAnimals = useCallback((searchQuery: string, rarity?: string, biome?: string): AnimalData[] => {
@@ -180,6 +205,12 @@ export const useCollection = (): UseCollectionReturn => {
     return animal?.isExclusive === true && animal?.coinPrice !== undefined;
   }, []);
 
+  // Check if an animal is gated by study hours
+  const isStudyHoursGated = useCallback((animalId: string): boolean => {
+    const animal = getAnimalById(animalId);
+    return animal ? isStudyHoursAnimal(animal) : false;
+  }, []);
+
   return {
     allAnimals: ANIMAL_DATABASE,
     unlockedAnimalsData,
@@ -187,12 +218,14 @@ export const useCollection = (): UseCollectionReturn => {
     favorites,
     activeHomePets,
     stats,
+    totalStudyHours,
     toggleFavorite,
     toggleHomeActive,
     isAnimalUnlocked,
     isAnimalFavorite,
     isAnimalHomeActive,
     isShopExclusive,
+    isStudyHoursGated,
     getAnimalData,
     getActiveHomePetsData,
     filterAnimals

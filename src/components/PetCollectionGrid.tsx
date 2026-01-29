@@ -41,6 +41,7 @@ const PetGrid = memo(({
   pets,
   isAnimalUnlocked,
   isShopExclusive,
+  isStudyHoursGated,
   isAnimalFavorite,
   isAnimalHomeActive,
   onPetClick,
@@ -48,6 +49,7 @@ const PetGrid = memo(({
   pets: AnimalData[];
   isAnimalUnlocked: (id: string) => boolean;
   isShopExclusive: (id: string) => boolean;
+  isStudyHoursGated: (id: string) => boolean;
   isAnimalFavorite: (id: string) => boolean;
   isAnimalHomeActive: (id: string) => boolean;
   onPetClick: (pet: AnimalData) => void;
@@ -60,6 +62,7 @@ const PetGrid = memo(({
           pet={pet}
           isLocked={!isAnimalUnlocked(pet.id)}
           isShopPet={isShopExclusive(pet.id)}
+          isStudyHoursGated={isStudyHoursGated(pet.id)}
           isFavorited={isAnimalFavorite(pet.id)}
           isHomeActive={isAnimalHomeActive(pet.id)}
           onClick={() => onPetClick(pet)}
@@ -80,12 +83,14 @@ export const PetCollectionGrid = memo(() => {
 
   const {
     stats,
+    totalStudyHours,
     toggleFavorite,
     toggleHomeActive,
     isAnimalUnlocked,
     isAnimalFavorite,
     isAnimalHomeActive,
     isShopExclusive,
+    isStudyHoursGated,
     filterAnimals
   } = useCollection();
 
@@ -194,6 +199,7 @@ export const PetCollectionGrid = memo(() => {
               pets={filteredPets}
               isAnimalUnlocked={isAnimalUnlocked}
               isShopExclusive={isShopExclusive}
+              isStudyHoursGated={isStudyHoursGated}
               isAnimalFavorite={isAnimalFavorite}
               isAnimalHomeActive={isAnimalHomeActive}
               onPetClick={handlePetClick}
@@ -240,6 +246,8 @@ export const PetCollectionGrid = memo(() => {
         onOpenChange={() => setSelectedPet(null)}
         isUnlocked={selectedPet ? isAnimalUnlocked(selectedPet.id) : false}
         isShopExclusive={selectedPet ? isShopExclusive(selectedPet.id) : false}
+        isStudyHoursGated={selectedPet ? isStudyHoursGated(selectedPet.id) : false}
+        totalStudyHours={totalStudyHours}
         isFavorite={selectedPet ? isAnimalFavorite(selectedPet.id) : false}
         isHomeActive={selectedPet ? isAnimalHomeActive(selectedPet.id) : false}
         onToggleFavorite={() => selectedPet && toggleFavorite(selectedPet.id)}
