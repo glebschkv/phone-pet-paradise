@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
+import { SplashScreen } from "@/components/SplashScreen";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
@@ -80,18 +81,9 @@ const Index = () => {
     autoBackup();
   }, [autoBackup]);
 
-  // Show loading state while checking auth
+  // Show splash screen while checking auth
   if (isLoading) {
-    return (
-      <PageErrorBoundary pageName="home page">
-        <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading NoMo...</p>
-          </div>
-        </div>
-      </PageErrorBoundary>
-    );
+    return <SplashScreen />;
   }
 
   // Show auth button if not authenticated
