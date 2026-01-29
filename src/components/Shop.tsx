@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Coins, ShoppingBag, Zap, Clock } from "lucide-react";
+import { Coins, ShoppingBag, Zap, Clock, Star, PawPrint, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
@@ -20,6 +20,13 @@ import { PetsTab } from "@/components/shop/tabs/PetsTab";
 import { PowerUpsTab } from "@/components/shop/tabs/PowerUpsTab";
 import { BundlesTab } from "@/components/shop/tabs/BundlesTab";
 import { PurchaseConfirmDialog } from "@/components/shop/PurchaseConfirmDialog";
+
+const CATEGORY_ICONS: Record<ShopCategory, React.ComponentType<{ className?: string }>> = {
+  featured: Star,
+  pets: PawPrint,
+  bundles: Gift,
+  powerups: Zap,
+};
 
 export const Shop = () => {
   const [activeCategory, setActiveCategory] = useState<ShopCategory>("featured");
@@ -199,7 +206,10 @@ export const Shop = () => {
               )}
             >
               <div className={`retro-category-icon retro-category-icon-${category.id}`}>
-                {category.icon}
+                {(() => {
+                  const Icon = CATEGORY_ICONS[category.id];
+                  return <Icon className="w-[18px] h-[18px] text-white drop-shadow-sm" />;
+                })()}
               </div>
               <span className="retro-category-tab-label">{category.name}</span>
             </button>
