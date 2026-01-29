@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DailyReward } from "@/hooks/useDailyLoginRewards";
 import { Gift, Star, Snowflake, Sparkles, Calendar } from "lucide-react";
@@ -19,7 +20,12 @@ export const DailyLoginRewardModal = ({
   currentStreak,
   allRewards,
 }: DailyLoginRewardModalProps) => {
-  if (!reward) return null;
+  // Cache last valid reward so content persists during Dialog close animation
+  const lastRewardRef = useRef<DailyReward | null>(null);
+  if (reward) lastRewardRef.current = reward;
+  const displayReward = reward || lastRewardRef.current;
+
+  if (!displayReward) return null;
 
   const currentDayInCycle = (currentStreak % 7) + 1;
 
@@ -44,7 +50,7 @@ export const DailyLoginRewardModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onDismiss}>
+    <Dialog open={isOpen && !!reward} onOpenChange={onDismiss}>
       <DialogContent className="max-w-sm mx-auto retro-card border-2 border-border max-h-[90vh] overflow-y-auto p-0">
         {/* Header */}
         <div
@@ -54,7 +60,7 @@ export const DailyLoginRewardModal = ({
           }}
         >
           <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-4xl animate-bounce">
-            {reward.icon}
+            {displayReward.icon}
           </div>
 
           <DialogHeader>
@@ -88,16 +94,16 @@ export const DailyLoginRewardModal = ({
                 Day {currentDayInCycle}
               </p>
               <p className="text-lg font-bold text-amber-900 mb-2">
-                {reward.label}
+                {displayReward.label}
               </p>
               <div className="flex items-center justify-center gap-2 mb-2">
-                {getRewardIcon(reward.type)}
+                {getRewardIcon(displayReward.type)}
                 <span className="text-3xl font-bold text-amber-900">
-                  {getRewardValue(reward)}
+                  {getRewardValue(displayReward)}
                 </span>
               </div>
               <p className="text-sm text-amber-800">
-                {reward.description}
+                {displayReward.description}
               </p>
             </div>
           </div>
