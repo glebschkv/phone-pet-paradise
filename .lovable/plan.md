@@ -1,71 +1,183 @@
 
+# Production Readiness Audit Report
 
-# Reorder Background Theme Unlock Progression
+## Executive Summary
 
-## Overview
+Your app is **almost ready for launch** with a few issues that need fixing. The database trigger for new users is now working, authentication is properly configured, and edge functions are deployed. However, there are some missing pieces that could cause problems.
 
-You want to change the order in which background themes are unlocked. The City background also needs to be added to the unlock progression since it currently exists but isn't in the unlockable themes list.
+---
 
-## Current vs New Unlock Order
+## ✅ What's Working Well
 
-| Unlock # | Current | New |
-|----------|---------|-----|
-| 1st (Level 1) | Day (Meadow) | Snow |
-| 2nd (Level 3) | Sunset | Night |
-| 3rd (Level 5) | Night | Meadow (Day) |
-| 4th (Level 8) | Forest | Sunset |
-| 5th (Level 12) | Snow | Forest |
-| 6th (NEW) | - | City |
+| Area | Status | Notes |
+|------|--------|-------|
+| Database trigger (`handle_new_user`) | ✅ Fixed | Now has `SET search_path = public` |
+| User initialization tables | ✅ Synced | All 3 users have profiles, progress, and settings |
+| RLS enabled on all tables | ✅ Secure | All 9 tables have RLS enabled |
+| Edge functions deployed | ✅ Ready | 5 functions: calculate-xp, process-achievements, validate-receipt, validate-coins, delete-account |
+| Apple Sign-In | ✅ Configured | Native iOS + web OAuth working |
+| Email authentication | ✅ Working | Magic link, password, signup all functional |
+| Guest mode fallback | ✅ Implemented | Works when Supabase unavailable |
+| Coin validation (server-side) | ✅ Secure | All earn/spend validated via edge function |
+| Receipt validation (IAP) | ✅ Secure | JWS verification with Apple certificates |
+| Rate limiting | ✅ Implemented | On all edge functions |
 
-## File to Modify
+---
+
+## ⚠️ Issues to Fix Before Launch
+
+### 1. Build Error - Unused Imports (CRITICAL)
+The app won't build due to TypeScript errors.
+
+**File:** `src/components/shop/tabs/InventoryTab.tsx`
+
+| Issue | Line | Fix |
+|-------|------|-----|
+| Unused import `getAnimalById` | 6 | Remove from import |
+| Unused import `useShopStore` | 8 | Remove entire line |
+
+---
+
+### 2. Delete Account Missing Tables (HIGH)
+The `delete-account` edge function doesn't delete `coin_transactions` or `user_subscriptions`, violating GDPR requirements.
+
+**Missing deletions:**
+- `coin_transactions` (13 records exist)
+- `user_subscriptions` (0 records currently, but will have data)
+
+**Fix:** Add these deletions to `supabase/functions/delete-account/index.ts`:
+```typescript
+// Add BEFORE deleting user_progress
+
+// Delete coin transactions
+const { error: coinTxError } = await supabaseAdmin
+  .from('coin_transactions')
+  .delete()
+  .eq('user_id', user.id);
+
+if (coinTxError) {
+  console.error('Error deleting coin transactions:', coinTxError);
+}
+
+// Delete subscriptions
+const { error: subsError } = await supabaseAdmin
+  .from('user_subscriptions')
+  .delete()
+  .eq('user_id', user.id);
+
+if (subsError) {
+  console.error('Error deleting subscriptions:', subsError);
+}
+```
+
+---
+
+### 3. Database Functions Missing Search Path (MEDIUM)
+4 functions are missing `SET search_path = public` which can cause issues:
+
+| Function | Risk |
+|----------|------|
+| `deactivate_expired_subscriptions` | May fail if called from different schema context |
+| `get_user_subscription_tier` | May fail if called from different schema context |
+| `verify_coin_balance` | May fail if called from different schema context |
+| `update_updated_at_column` | Trigger may fail |
+
+**Fix:** Run migration to add `SET search_path = public` to all 4 functions.
+
+---
+
+### 4. RLS Policy with `true` Check (LOW)
+The `coin_transactions` table has an INSERT policy with `WITH CHECK (true)` which is flagged by the linter. However, this is **intentional** for the service role to insert transactions.
+
+**Status:** Can be ignored - this policy is used by the validate-coins edge function which uses service role.
+
+---
+
+### 5. Data Stored Only in localStorage (INFO)
+These data types are NOT synced to the database and will be lost if users switch devices:
+
+| Data | Store | Risk |
+|------|-------|------|
+| Shop inventory (owned characters/backgrounds) | `shopStore` | ❌ Lost on device switch |
+| Equipped background | `shopStore` | ❌ Lost on device switch |
+| Streak data | `streakStore` | ⚠️ Partially in user_progress |
+| Collection favorites | `collectionStore` | ❌ Lost on device switch |
+| Sound settings | `soundStore` | ⚠️ In user_settings but not synced |
+| Focus mode settings | `focusStore` | ❌ Lost on device switch |
+| Coin boosters | `coinStore` | ❌ Lost on device switch |
+
+**Recommendation:** For v1 launch, this is acceptable. For a future update, create `user_inventory` and `user_boosters` tables.
+
+---
+
+### 6. Supabase Security Recommendations (INFO)
+From the linter - these are optional but recommended:
+
+| Issue | Recommendation |
+|-------|----------------|
+| Auth OTP long expiry | Reduce OTP expiry time in Supabase dashboard |
+| Leaked password protection disabled | Enable in Supabase dashboard |
+| Postgres version has security patches | Schedule upgrade in Supabase dashboard |
+
+---
+
+## Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/components/focus-timer/constants.ts` | Reorder `BACKGROUND_THEMES` array and add City |
+| `src/components/shop/tabs/InventoryTab.tsx` | Remove unused imports (build fix) |
+| `supabase/functions/delete-account/index.ts` | Add coin_transactions and user_subscriptions deletion |
 
-## Implementation Details
+**Optional (recommended):**
+| File | Change |
+|------|--------|
+| New migration | Fix search_path on 4 database functions |
 
-**Lines 17-23 in `constants.ts`:**
+---
 
-```typescript
-// Before
-export const BACKGROUND_THEMES: BackgroundTheme[] = [
-  { id: 'sky', name: 'Day', icon: Sun, unlockLevel: 1 },
-  { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 3 },
-  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 5 },
-  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 8 },
-  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 12 },
-];
+## Database Health Summary
 
-// After
-export const BACKGROUND_THEMES: BackgroundTheme[] = [
-  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 1 },
-  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 3 },
-  { id: 'sky', name: 'Meadow', icon: Sun, unlockLevel: 5 },
-  { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 8 },
-  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 12 },
-  { id: 'city', name: 'City', icon: Building2, unlockLevel: 15 },
-];
-```
+| Table | Rows | RLS | Policies |
+|-------|------|-----|----------|
+| profiles | 3 | ✅ | SELECT, INSERT, UPDATE |
+| user_progress | 3 | ✅ | SELECT, INSERT, UPDATE |
+| user_settings | 3 | ✅ | SELECT, INSERT, UPDATE, DELETE |
+| user_subscriptions | 0 | ✅ | SELECT only (edge function handles writes) |
+| coin_transactions | 13 | ✅ | SELECT, INSERT (service role) |
+| focus_sessions | 1 | ✅ | SELECT, INSERT |
+| achievements | 1 | ✅ | SELECT, INSERT |
+| pets | 0 | ✅ | SELECT, INSERT, UPDATE |
+| quests | 726 | ✅ | SELECT, INSERT, UPDATE |
 
-**Import update (Line 1):**
+---
 
-Add `Building2` to the lucide-react imports for the City icon.
+## Edge Functions Health
 
-## Technical Notes
+| Function | JWT Verification | Rate Limiting | CORS |
+|----------|------------------|---------------|------|
+| validate-receipt | ✅ Required | ✅ 20/min | ✅ Strict |
+| validate-coins | ❌ Manual auth | ✅ 15-20/min | ✅ Flexible |
+| delete-account | ✅ Required | ✅ 3/10min | ✅ Strict |
+| calculate-xp | ✅ Required | - | - |
+| process-achievements | ✅ Required | - | - |
 
-- The `id` values (`sky`, `snow`, `night`, etc.) must match the theme switch cases in `RetroBackground.tsx` - these are already correct
-- Renamed "Day" to "Meadow" to better match the biome naming convention
-- City added at level 15 as the final unlock (you can adjust this level if needed)
-- `Building2` icon is the standard city/building icon from lucide-react
+---
 
-## Verification
+## Launch Checklist
 
-After this change:
-1. Level 1 users start with Snow background
-2. Level 3 unlocks Night
-3. Level 5 unlocks Meadow (previously Day)
-4. Level 8 unlocks Sunset
-5. Level 12 unlocks Forest
-6. Level 15 unlocks City (new)
+1. [ ] Fix build error (remove unused imports)
+2. [ ] Update delete-account to delete all user data
+3. [ ] Test new user signup (Apple + Email)
+4. [ ] Test account deletion
+5. [ ] Enable leaked password protection in Supabase
+6. [ ] Add production domain to ALLOWED_ORIGINS secret
+7. [ ] Set ENVIRONMENT secret to `production`
 
+---
+
+## Verification Steps After Fix
+
+1. **Sign up with Apple ID** → Should create profile, progress, and settings rows
+2. **Sign up with email** → Same as above
+3. **Delete account** → Should remove ALL data including coin_transactions
+4. **Guest mode** → Should work without database errors
