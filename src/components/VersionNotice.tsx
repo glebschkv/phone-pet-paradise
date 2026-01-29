@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Info, Bug, Heart, ExternalLink } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { Mail } from 'lucide-react';
 
 const VERSION_NOTICE_KEY = 'version-notice-v1-dismissed';
 
@@ -23,65 +23,75 @@ export const VersionNotice = () => {
   return (
     <Dialog open={isOpen} onOpenChange={handleDismiss}>
       <DialogContent className="max-w-sm mx-auto retro-card border-2 border-border max-h-[90vh] overflow-y-auto p-0">
+        <VisuallyHidden>
+          <DialogTitle>Version 1.0</DialogTitle>
+        </VisuallyHidden>
+
         {/* Header */}
         <div
           className="p-6 pb-4 text-center"
           style={{
-            background: 'linear-gradient(180deg, hsl(220 70% 50% / 0.2) 0%, transparent 100%)',
+            background: 'linear-gradient(180deg, hsl(280 70% 50% / 0.3) 0%, transparent 100%)',
           }}
         >
-          <div className="mx-auto w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center mb-3">
-            <Info className="w-7 h-7 text-blue-500" />
+          <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-3 text-4xl">
+            🐾
           </div>
 
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center">
-              Welcome to Version 1.0
-            </DialogTitle>
-            <DialogDescription className="text-center text-muted-foreground mt-1">
-              Thanks for being an early user!
-            </DialogDescription>
-          </DialogHeader>
+          <h2 className="text-xl font-bold">
+            Welcome to v1.0!
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Thanks for being an early adopter!
+          </p>
         </div>
 
-        {/* Body */}
-        <div className="px-6 pb-2 space-y-4">
+        <div className="px-5 pb-5 space-y-3">
           {/* Indie dev message */}
-          <div className="flex items-start gap-3 bg-muted/50 rounded-xl p-3">
-            <Heart className="w-5 h-5 text-pink-500 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-muted-foreground">
-              This app is built by a <span className="font-semibold text-foreground">solo indie developer</span>.
-              We apologise if you run into any bugs or rough edges — your patience means the world!
-            </p>
+          <div className="retro-stat-pill p-3">
+            <div className="flex items-start gap-3">
+              <span className="text-xl flex-shrink-0">💜</span>
+              <p className="text-sm text-muted-foreground">
+                This app is made by a <span className="font-bold text-foreground">solo indie developer</span>.
+                We apologise if you run into any bugs or rough edges — your patience means the world!
+              </p>
+            </div>
           </div>
 
           {/* Bug report section */}
-          <div className="flex items-start gap-3 bg-muted/50 rounded-xl p-3">
-            <Bug className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-muted-foreground">
-              <p className="font-semibold text-foreground mb-1">Found a bug?</p>
-              <p>
-                Please report any issues or feedback so we can make the app better for everyone.
-              </p>
-              <a
-                href="mailto:report@nomoinc.co?subject=Bug%20Report%20-%20v1.0"
-                className="inline-flex items-center gap-1.5 mt-2 text-blue-500 hover:text-blue-600 font-medium transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Send Bug Report
-              </a>
+          <div className="retro-stat-pill p-3">
+            <div className="flex items-start gap-3">
+              <span className="text-xl flex-shrink-0">🐛</span>
+              <div className="text-sm text-muted-foreground">
+                <p className="font-bold text-foreground mb-1">Spotted a bug?</p>
+                <p>
+                  Let us know so we can squash it and make things better for everyone!
+                </p>
+                <a
+                  href="mailto:report@nomoinc.co?subject=Bug%20Report%20-%20v1.0"
+                  className="inline-flex items-center gap-1.5 mt-2 font-bold text-primary hover:opacity-80 transition-opacity"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  report@nomoinc.co
+                </a>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
-          <Button
+          {/* Version badge */}
+          <div className="flex justify-center">
+            <div className="retro-level-badge px-3 py-1 text-xs rounded">
+              v1.0
+            </div>
+          </div>
+
+          {/* Dismiss button */}
+          <button
             onClick={handleDismiss}
-            className="w-full"
+            className="w-full py-3.5 rounded-lg font-bold text-sm retro-arcade-btn retro-arcade-btn-green transition-all active:scale-95 touch-manipulation"
           >
-            Got it, let's go!
-          </Button>
+            Let's Go!
+          </button>
         </div>
       </DialogContent>
     </Dialog>
