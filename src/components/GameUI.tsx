@@ -27,6 +27,18 @@ export const GameUI = () => {
     preloadTabComponents();
   }, []);
 
+  // Listen for programmatic tab switches (e.g. from collection "Buy from Shop" button)
+  useEffect(() => {
+    const handleSwitchToTab = (event: CustomEvent<string>) => {
+      const tab = event.detail;
+      if (tab) setCurrentTab(tab);
+    };
+    window.addEventListener('switchToTab', handleSwitchToTab as EventListener);
+    return () => {
+      window.removeEventListener('switchToTab', handleSwitchToTab as EventListener);
+    };
+  }, []);
+
   const {
     currentLevel,
     showRewardModal,
