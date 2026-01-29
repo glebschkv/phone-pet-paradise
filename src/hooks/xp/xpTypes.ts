@@ -32,6 +32,7 @@ export interface XPSystemState {
   unlockedAnimals: string[];
   currentBiome: string;
   availableBiomes: string[];
+  totalStudyMinutes: number;
 }
 
 export interface BonusResult {

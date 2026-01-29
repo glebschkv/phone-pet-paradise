@@ -21,6 +21,8 @@ export interface AnimalData {
   // Coin-exclusive properties
   coinPrice?: number;
   isExclusive?: boolean;
+  // Study hours unlock requirement (hours of focus time needed)
+  requiredStudyHours?: number;
   // Positioning adjustment
   groundOffset?: number;
 }
@@ -757,7 +759,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Playful Cat',
     emoji: '🐱',
     rarity: 'rare',
-    unlockLevel: 21,
+    unlockLevel: 99,
+    requiredStudyHours: 10,
     description: 'A mischievous cat with silky fur who loves to jump and play during your focus sessions.',
     abilities: ['Cat Nap', 'Playful Pounce', 'Whisker Wisdom'],
     biome: 'Meadow',
@@ -795,7 +798,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Happy Doggo',
     emoji: '🐕',
     rarity: 'common',
-    unlockLevel: 22,
+    unlockLevel: 99,
+    requiredStudyHours: 5,
     description: 'An energetic pup that jumps for joy and keeps your spirits high.',
     abilities: ['Tail Wag', 'Joyful Jump', 'Loyal Friend'],
     biome: 'Meadow',
@@ -871,7 +875,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
     name: 'Sea Turtle',
     emoji: '🐢',
     rarity: 'common',
-    unlockLevel: 27,
+    unlockLevel: 99,
+    requiredStudyHours: 50,
     description: 'A wise turtle that swims through the currents of time with patience and grace.',
     abilities: ['Shell Shield', 'Ocean Wisdom', 'Calm Swim'],
     biome: 'Sunset',
@@ -1046,6 +1051,16 @@ export const getXPUnlockableAnimals = (): AnimalData[] => {
 
 export const getShopExclusiveAnimals = (): AnimalData[] => {
   return ANIMAL_DATABASE.filter(animal => animal.isExclusive);
+};
+
+// Get animals that require study hours to unlock
+export const getStudyHoursAnimals = (): AnimalData[] => {
+  return ANIMAL_DATABASE.filter(animal => animal.requiredStudyHours !== undefined && animal.requiredStudyHours > 0);
+};
+
+// Check if an animal is gated by study hours
+export const isStudyHoursAnimal = (animal: AnimalData): boolean => {
+  return animal.requiredStudyHours !== undefined && animal.requiredStudyHours > 0;
 };
 
 // Alias for backward compatibility

@@ -91,7 +91,7 @@ const LEGACY_KEY = 'petIsland_xpSystem';
 /**
  * Attempts to extract XP data from a storage object (handles both direct and Zustand formats)
  */
-const extractXPData = (data: unknown): { xp: number; level: number; animals?: string[]; biome?: string } | null => {
+const extractXPData = (data: unknown): { xp: number; level: number; animals?: string[]; biome?: string; totalStudyMinutes?: number } | null => {
   if (!data || typeof data !== 'object') return null;
 
   // Handle Zustand's wrapped format { state: {...}, version: ... }
@@ -110,6 +110,7 @@ const extractXPData = (data: unknown): { xp: number; level: number; animals?: st
     level: validateLevel(stateData.currentLevel),
     animals: Array.isArray(stateData.unlockedAnimals) ? stateData.unlockedAnimals as string[] : undefined,
     biome: typeof stateData.currentBiome === 'string' ? stateData.currentBiome : undefined,
+    totalStudyMinutes: typeof stateData.totalStudyMinutes === 'number' ? stateData.totalStudyMinutes : undefined,
   };
 };
 
@@ -125,6 +126,7 @@ const loadXPState = (defaultAnimals: string[]): XPSystemState => {
     unlockedAnimals: defaultAnimals,
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
+    totalStudyMinutes: 0,
   };
 
   // Try primary key first, then legacy key
@@ -185,6 +187,7 @@ const loadXPState = (defaultAnimals: string[]): XPSystemState => {
     unlockedAnimals: allAnimals,
     currentBiome,
     availableBiomes,
+    totalStudyMinutes: bestData.totalStudyMinutes ?? 0,
   };
 
   // Save to primary key for consistency
@@ -214,6 +217,7 @@ export const useXPSystem = () => {
     unlockedAnimals: startingAnimals,
     currentBiome: 'Meadow',
     availableBiomes: ['Meadow'],
+    totalStudyMinutes: 0,
   });
 
   // Sync state from backend when authenticated and progress loads
@@ -252,6 +256,7 @@ export const useXPSystem = () => {
           unlockedAnimals,
           currentBiome,
           availableBiomes,
+          totalStudyMinutes: currentLocal?.totalStudyMinutes ?? 0,
         };
 
         setXPState(newState);
@@ -493,6 +498,8 @@ export const useXPSystem = () => {
     const newlyUnlockedBiome = newBiomes.find(b => !oldBiomes.includes(b));
     const newCurrentBiome = newlyUnlockedBiome || xpState.currentBiome;
 
+    const newTotalStudyMinutes = (xpState.totalStudyMinutes || 0) + validMinutes;
+
     saveState({
       currentXP: newTotalXP,
       currentLevel: newLevel,
@@ -501,6 +508,7 @@ export const useXPSystem = () => {
       unlockedAnimals: newAnimals,
       currentBiome: newCurrentBiome,
       availableBiomes: newBiomes,
+      totalStudyMinutes: newTotalStudyMinutes,
     });
 
     // SECURITY: Sync to backend asynchronously with server validation
@@ -659,6 +667,7 @@ export const useXPSystem = () => {
       unlockedAnimals: startingAnimals,
       currentBiome: 'Meadow',
       availableBiomes: ['Meadow'],
+      totalStudyMinutes: 0,
     };
     setXPState(resetState);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(resetState));
