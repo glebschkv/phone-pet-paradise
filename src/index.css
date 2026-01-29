@@ -2408,15 +2408,15 @@
     padding: 10px 6px 8px;
     background: linear-gradient(180deg,
       hsl(0 0% 100%) 0%,
-      hsl(var(--muted) / 0.4) 100%
+      hsl(40 30% 90%) 100%
     );
-    border: 2px solid hsl(var(--border) / 0.7);
+    border: 2px solid hsl(var(--border));
     border-radius: 14px;
     font-weight: 700;
     white-space: nowrap;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow:
-      0 2px 0 hsl(var(--border) / 0.4),
+      0 2px 0 hsl(var(--border) / 0.6),
       inset 0 1px 0 hsl(0 0% 100% / 0.6);
     cursor: pointer;
     position: relative;
@@ -2457,7 +2457,7 @@
     letter-spacing: 0.02em;
     line-height: 1.1;
     text-align: center;
-    color: hsl(var(--foreground) / 0.7);
+    color: hsl(var(--foreground) / 0.85);
   }
 
   .retro-category-tab-active .retro-category-tab-label {
