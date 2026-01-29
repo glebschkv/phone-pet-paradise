@@ -125,6 +125,23 @@ export const useDeviceActivity = () => {
 
       if (echoSuccess) {
         deviceActivityLogger.debug(`Plugin bridge OK: platform=${echoResult.platform}, loaded=${echoResult.pluginLoaded}`);
+        // Log entitlement diagnostic info
+        const diag = echoResult as Record<string, unknown>;
+        if (diag.familyControlsEntitlementInProfile !== undefined) {
+          deviceActivityLogger.info(
+            `[DIAG] Family Controls entitlement in provisioning profile: ${diag.familyControlsEntitlementInProfile ? 'YES' : 'NO ❌'}`
+          );
+          deviceActivityLogger.info(
+            `[DIAG] Initial auth status: ${diag.initialAuthStatus}, Bundle ID: ${diag.bundleId}`
+          );
+          if (!diag.familyControlsEntitlementInProfile) {
+            deviceActivityLogger.error(
+              '[DIAG] Family Controls entitlement is MISSING from provisioning profile! ' +
+              'Screen Time permissions will always fail. Fix: In Xcode, toggle "Automatically manage signing" off then on, ' +
+              'or manually create a profile in the Apple Developer Portal.'
+            );
+          }
+        }
       } else {
         deviceActivityLogger.warn('Plugin echo failed - native bridge may not be available');
       }

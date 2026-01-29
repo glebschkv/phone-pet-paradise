@@ -74,6 +74,46 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
         pluginLoadedSuccessfully = true
         Log.app.info("DeviceActivityPlugin loaded successfully")
+
+        // Diagnostic: check Family Controls entitlement status at startup
+        diagnoseEntitlement()
+    }
+
+    /// Checks if the Family Controls entitlement is properly configured
+    /// by reading the embedded provisioning profile and checking initial auth status.
+    private func diagnoseEntitlement() {
+        Log.app.info("=== FAMILY CONTROLS DIAGNOSTIC ===")
+
+        // Check 1: Initial authorization status from AuthorizationCenter
+        if #available(iOS 16.0, *) {
+            let rawStatus = FamilyControls.AuthorizationCenter.shared.authorizationStatus
+            Log.app.info("[DIAG] AuthorizationCenter.authorizationStatus = \(rawStatus)")
+            Log.app.info("[DIAG] Raw value description: \(String(describing: rawStatus))")
+        }
+
+        // Check 2: Look for Family Controls entitlement in embedded profile
+        if let profilePath = Bundle.main.path(forResource: "embedded", ofType: "mobileprovision"),
+           let profileData = try? Data(contentsOf: URL(fileURLWithPath: profilePath)) {
+            let profileString = String(data: profileData, encoding: .ascii) ?? ""
+            let hasFamilyControls = profileString.contains("com.apple.developer.family-controls")
+            Log.app.info("[DIAG] Provisioning profile found: YES")
+            Log.app.info("[DIAG] Family Controls entitlement in profile: \(hasFamilyControls ? "YES ✅" : "NO ❌ — This is the problem!")")
+
+            if !hasFamilyControls {
+                Log.app.info("[DIAG] FIX: In Xcode, remove and re-add the Family Controls capability,")
+                Log.app.info("[DIAG]       then toggle 'Automatically manage signing' off and on.")
+                Log.app.info("[DIAG]       Or manually create a provisioning profile in the Apple Developer Portal.")
+            }
+        } else {
+            Log.app.info("[DIAG] Provisioning profile found: NO (simulator build or missing)")
+        }
+
+        // Check 3: Check the entitlements file
+        let entitlements = Bundle.main.infoDictionary
+        Log.app.info("[DIAG] Bundle ID: \(Bundle.main.bundleIdentifier ?? "unknown")")
+        Log.app.info("[DIAG] Info.plist keys: \(entitlements?.keys.sorted().joined(separator: ", ") ?? "none")")
+
+        Log.app.info("=== END DIAGNOSTIC ===")
     }
 
     deinit {
@@ -85,10 +125,32 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     /// Simple echo method to verify the native plugin bridge is working.
     /// Returns immediately without accessing any managers or entitlements.
     @objc func echo(_ call: CAPPluginCall) {
+        // Include entitlement diagnostic in echo response
+        var hasEntitlementInProfile = false
+        if let profilePath = Bundle.main.path(forResource: "embedded", ofType: "mobileprovision"),
+           let profileData = try? Data(contentsOf: URL(fileURLWithPath: profilePath)) {
+            let profileString = String(data: profileData, encoding: .ascii) ?? ""
+            hasEntitlementInProfile = profileString.contains("com.apple.developer.family-controls")
+        }
+
+        var initialAuthStatus = "unknown"
+        if #available(iOS 16.0, *) {
+            let status = FamilyControls.AuthorizationCenter.shared.authorizationStatus
+            switch status {
+            case .notDetermined: initialAuthStatus = "notDetermined"
+            case .denied: initialAuthStatus = "denied"
+            case .approved: initialAuthStatus = "approved"
+            @unknown default: initialAuthStatus = "unknown(\(status))"
+            }
+        }
+
         call.resolve([
             "pluginLoaded": pluginLoadedSuccessfully,
             "platform": "ios",
-            "timestamp": Date().timeIntervalSince1970
+            "timestamp": Date().timeIntervalSince1970,
+            "familyControlsEntitlementInProfile": hasEntitlementInProfile,
+            "initialAuthStatus": initialAuthStatus,
+            "bundleId": Bundle.main.bundleIdentifier ?? "unknown"
         ])
     }
 
