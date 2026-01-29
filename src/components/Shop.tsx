@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Coins, ShoppingBag, Zap, Clock, Star, PawPrint, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -57,6 +57,20 @@ export const Shop = () => {
   } = useCoinBooster();
 
   const { isPremium, currentPlan } = usePremiumStatus();
+
+  // Listen for external navigation requests (e.g. from collection "Buy from Shop")
+  useEffect(() => {
+    const handleNavigate = (event: CustomEvent<ShopCategory>) => {
+      const category = event.detail;
+      if (category && SHOP_CATEGORIES.some(c => c.id === category)) {
+        setActiveCategory(category);
+      }
+    };
+    window.addEventListener('navigateToShopCategory', handleNavigate as EventListener);
+    return () => {
+      window.removeEventListener('navigateToShopCategory', handleNavigate as EventListener);
+    };
+  }, []);
 
   const handlePurchase = async () => {
     if (!selectedItem || isPurchasing) return;

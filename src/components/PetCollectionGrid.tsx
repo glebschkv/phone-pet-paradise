@@ -132,9 +132,10 @@ export const PetCollectionGrid = memo(() => {
     setHomeBackground(backgroundTheme);
   }, [switchBiome, equippedBackground, setEquippedBackground, setHomeBackground]);
 
-  // Handle navigation to shop tab
+  // Handle navigation to shop tab (switches to shop and opens the pets category)
   const handleNavigateToShop = useCallback(() => {
     window.dispatchEvent(new CustomEvent('switchToTab', { detail: 'shop' }));
+    window.dispatchEvent(new CustomEvent('navigateToShopCategory', { detail: 'pets' }));
   }, []);
 
   // Memoize filtered pets to avoid recalculating on every render
