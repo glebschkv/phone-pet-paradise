@@ -2509,6 +2509,14 @@
     border: 1.5px solid hsl(16 70% 46%);
   }
 
+  .retro-category-icon-inventory {
+    background: linear-gradient(145deg, hsl(152 55% 55%) 0%, hsl(160 50% 42%) 100%);
+    box-shadow:
+      0 2px 0 hsl(160 48% 32%),
+      inset 0 1px 0 hsl(145 70% 75% / 0.4);
+    border: 1.5px solid hsl(160 45% 38%);
+  }
+
   /* Active state: brighten icon containers */
   .retro-category-tab-active .retro-category-icon {
     box-shadow:
@@ -2572,6 +2580,12 @@
     background: linear-gradient(145deg, hsl(24 65% 48%) 0%, hsl(16 60% 38%) 100%);
     border-color: hsl(16 55% 32%);
     box-shadow: 0 2px 0 hsl(16 58% 25%), inset 0 1px 0 hsl(30 80% 65% / 0.15);
+  }
+
+  .dark .retro-category-icon-inventory {
+    background: linear-gradient(145deg, hsl(152 40% 40%) 0%, hsl(160 38% 32%) 100%);
+    border-color: hsl(160 35% 26%);
+    box-shadow: 0 2px 0 hsl(160 38% 20%), inset 0 1px 0 hsl(145 55% 55% / 0.15);
   }
 
   .dark .retro-category-tab-active .retro-category-icon {

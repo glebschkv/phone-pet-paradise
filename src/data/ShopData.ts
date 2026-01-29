@@ -506,4 +506,5 @@ export const SHOP_CATEGORIES: { id: ShopCategory; name: string; icon: string }[]
   { id: 'pets', name: 'Collection', icon: '🐾' },
   { id: 'bundles', name: 'Bundles', icon: '🎁' },
   { id: 'powerups', name: 'Power-Ups', icon: '⚡' },
+  { id: 'inventory', name: 'My Items', icon: '🎒' },
 ];
