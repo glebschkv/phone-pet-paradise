@@ -1,6 +1,7 @@
 import Foundation
 import Capacitor
 import UIKit
+import SwiftUI
 import FamilyControls
 
 /**
@@ -208,9 +209,55 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     // MARK: - App Selection Methods
 
     @objc func openAppPicker(_ call: CAPPluginCall) {
-        Task { @MainActor in
-            notifyJS("showAppPicker", data: [:])
-            call.resolveSuccess()
+        if #available(iOS 16.0, *) {
+            Task { @MainActor in
+                guard let viewController = self.bridge?.viewController else {
+                    call.reject("No view controller available")
+                    return
+                }
+
+                // Load existing selection so the picker starts with current state
+                let existingSelection = blockingManager.loadActivitySelection() ?? FamilyActivitySelection()
+
+                let pickerView = AppPickerView(
+                    selection: existingSelection,
+                    onDone: { [weak self] selection in
+                        viewController.dismiss(animated: true) {
+                            guard let self = self else { return }
+                            do {
+                                try self.blockingManager.saveActivitySelection(selection)
+                                let apps = selection.applicationTokens.count
+                                let categories = selection.categoryTokens.count
+                                let domains = selection.webDomainTokens.count
+                                call.resolve([
+                                    "success": true,
+                                    "appsSelected": apps,
+                                    "categoriesSelected": categories,
+                                    "domainsSelected": domains,
+                                    "hasSelection": apps > 0 || categories > 0 || domains > 0
+                                ])
+                            } catch {
+                                Log.app.failure("Failed to save app selection", error: error)
+                                call.reject("Failed to save selection: \(error.localizedDescription)")
+                            }
+                        }
+                    },
+                    onCancel: {
+                        viewController.dismiss(animated: true) {
+                            call.resolve([
+                                "success": false,
+                                "cancelled": true
+                            ])
+                        }
+                    }
+                )
+
+                let hostingController = UIHostingController(rootView: pickerView)
+                hostingController.modalPresentationStyle = .formSheet
+                viewController.present(hostingController, animated: true)
+            }
+        } else {
+            call.reject("FamilyActivityPicker requires iOS 16+")
         }
     }
 

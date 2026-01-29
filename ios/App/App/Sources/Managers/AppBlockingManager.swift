@@ -179,6 +179,24 @@ final class AppBlockingManager: AppBlockingManaging {
         Log.blocking.info("Selection saved")
     }
 
+    /// Saves a FamilyActivitySelection as encoded Data (used by native picker)
+    func saveActivitySelection(_ selection: FamilyActivitySelection) throws {
+        guard let userDefaults = userDefaults else {
+            throw PluginError.sharedContainerUnavailable
+        }
+        let data = try JSONEncoder().encode(selection)
+        userDefaults.set(data, forKey: AppConfig.StorageKeys.blockedAppsSelection)
+        Log.blocking.info("Activity selection saved: \(selection.applicationTokens.count) apps, \(selection.categoryTokens.count) categories, \(selection.webDomainTokens.count) domains")
+    }
+
+    /// Loads the saved FamilyActivitySelection (used by native picker to restore state)
+    func loadActivitySelection() -> FamilyActivitySelection? {
+        guard let data = userDefaults?.data(forKey: AppConfig.StorageKeys.blockedAppsSelection) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(FamilyActivitySelection.self, from: data)
+    }
+
     func loadSelection() -> String? {
         userDefaults?.string(forKey: AppConfig.StorageKeys.blockedAppsSelection)
     }
