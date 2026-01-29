@@ -4,6 +4,7 @@ import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { cn } from '@/lib/utils';
 import { Sparkles, Clock, History, Gift, Zap } from 'lucide-react';
 import { LuckyWheelPrize } from '@/data/GamificationData';
+import { WheelPrizeIcon, WheelPrizeIconSVG } from './WheelPrizeIcon';
 
 // Single source of truth for animation timing
 const SPIN_DURATION_MS = 6500;
@@ -354,18 +355,19 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                         className="wheel-segment-flash"
                       />
                     )}
-                    {/* Emoji */}
-                    <text
-                      x={textX}
-                      y={textY}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      className="text-[10px] fill-white font-bold"
-                      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
+                    {/* Prize Icon */}
+                    <foreignObject
+                      x={textX - 5}
+                      y={textY - 5}
+                      width="10"
+                      height="10"
                       transform={`rotate(${textRotation}, ${textX}, ${textY})`}
+                      style={{ overflow: 'visible' }}
                     >
-                      {segment.emoji}
-                    </text>
+                      <div style={{ width: 10, height: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}>
+                        <WheelPrizeIconSVG prizeId={segment.id} size={10} />
+                      </div>
+                    </foreignObject>
                   </g>
                 ))}
 
@@ -410,10 +412,10 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                 currentPrize.rarity === 'epic' && "wheel-result-epic"
               )}>
                 <div className={cn(
-                  "text-6xl mb-3",
+                  "mb-3 flex items-center justify-center",
                   currentPrize.rarity === 'legendary' && "animate-bounce"
                 )}>
-                  {currentPrize.emoji}
+                  <WheelPrizeIcon prizeId={currentPrize.id} size={64} />
                 </div>
                 <h3 className="text-xl font-bold text-white retro-pixel-text">
                   {currentPrize.name}
@@ -493,7 +495,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                     getRarityBorder(result.prize.rarity)
                   )}
                 >
-                  {result.prize.emoji}
+                  <WheelPrizeIcon prizeId={result.prize.id} size={28} />
                 </div>
               ))
             ) : (
