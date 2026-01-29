@@ -29,6 +29,11 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
   private isBlocking = false;
   private shieldAttempts = 0;
 
+  // Diagnostic methods
+  async echo(): Promise<{ pluginLoaded: boolean; platform: string; timestamp: number }> {
+    return { pluginLoaded: true, platform: 'web', timestamp: Date.now() };
+  }
+
   // Permission methods
   async requestPermissions(): Promise<{ status: string; familyControlsEnabled: boolean }> {
     log('Permissions requested (simulation)');

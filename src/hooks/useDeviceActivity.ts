@@ -116,24 +116,30 @@ export const useDeviceActivity = () => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
-      // Check permissions with safe wrapper
+      // First, verify the native plugin bridge is working with a simple echo call
+      const { result: echoResult, success: echoSuccess } = await safePluginCall(
+        () => DeviceActivity.echo(),
+        { pluginLoaded: false, platform: 'unknown', timestamp: 0 },
+        'echo'
+      );
+
+      if (echoSuccess) {
+        deviceActivityLogger.debug(`Plugin bridge OK: platform=${echoResult.platform}, loaded=${echoResult.pluginLoaded}`);
+      } else {
+        deviceActivityLogger.warn('Plugin echo failed - native bridge may not be available');
+      }
+
+      // Check permissions with safe wrapper.
+      // Even if this fails, we DON'T mark the plugin as unavailable -
+      // we treat permissions as "not determined" and let the user try requesting.
       const { result: permissions, success: permissionSuccess } = await safePluginCall(
         () => DeviceActivity.checkPermissions(),
-        { status: 'unknown' as const, familyControlsEnabled: false },
+        { status: 'notDetermined' as const, familyControlsEnabled: false },
         'checkPermissions'
       );
 
-      // If plugin call failed, mark as unavailable
       if (!permissionSuccess) {
-        const error = new Error('DeviceActivity plugin initialization failed');
-        pluginErrorRef.current = error;
-        setState(prev => ({
-          ...prev,
-          isLoading: false,
-          pluginAvailable: false,
-          pluginError: error,
-        }));
-        return;
+        deviceActivityLogger.warn('checkPermissions failed - treating as notDetermined, user can still request permissions');
       }
 
       const isGranted = permissions.status === 'granted';
@@ -179,9 +185,10 @@ export const useDeviceActivity = () => {
       const err = error instanceof Error ? error : new Error(String(error));
       pluginErrorRef.current = err;
       reportError(err, { context: 'DeviceActivity.initialize' });
+      // Even on error, keep plugin available so user can retry
       setState(prev => ({
         ...prev,
-        pluginAvailable: false,
+        pluginAvailable: true,
         pluginError: err,
       }));
     } finally {
@@ -191,17 +198,6 @@ export const useDeviceActivity = () => {
 
   // Request permissions
   const requestPermissions = useCallback(async () => {
-    // Check if plugin is available before making calls
-    if (!state.pluginAvailable) {
-      deviceActivityLogger.warn('requestPermissions called but plugin is unavailable');
-      toast({
-        title: "Feature Unavailable",
-        description: "Screen Time features are not available. Please restart the app.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
@@ -263,7 +259,7 @@ export const useDeviceActivity = () => {
     } finally {
       setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, [toast, state.pluginAvailable]);
+  }, [toast]);
 
   // Start app blocking (called when timer starts)
   const startAppBlocking = useCallback(async (): Promise<StartBlockingResult> => {

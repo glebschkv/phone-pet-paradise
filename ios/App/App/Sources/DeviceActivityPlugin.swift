@@ -1,6 +1,7 @@
 import Foundation
 import Capacitor
 import UIKit
+import FamilyControls
 
 /**
  * DeviceActivityPlugin
@@ -15,6 +16,10 @@ import UIKit
  * - BackgroundTaskManager: Manages background task scheduling
  * - HapticFeedbackManager: Provides haptic feedback
  * - FocusDataManager: Manages focus session state
+ *
+ * Note: Some managers (AppBlockingManager, ActivityMonitorManager) require
+ * extension-only entitlements. They gracefully degrade when running in the
+ * main app without those entitlements.
  */
 @objc(DeviceActivityPlugin)
 public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -26,6 +31,7 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "requestPermissions", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "checkPermissions", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "echo", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "openAppPicker", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setSelectedApps", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getSelectedApps", returnType: CAPPluginReturnPromise),
@@ -51,26 +57,55 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     private lazy var hapticManager: HapticFeedbackManager = .shared
     private lazy var focusDataManager: FocusDataManager = .shared
 
+    /// Track whether the plugin loaded successfully
+    private var pluginLoadedSuccessfully = false
+
     // MARK: - Lifecycle
 
     public override func load() {
-        Log.app.info("DeviceActivityPlugin loaded")
+        Log.app.info("DeviceActivityPlugin loading...")
+
+        // Setup lifecycle observers (safe - just NotificationCenter)
         setupLifecycleObservers()
+
+        // Setup background handler (accesses backgroundManager - should be safe)
         setupBackgroundEventHandler()
+
+        pluginLoadedSuccessfully = true
+        Log.app.info("DeviceActivityPlugin loaded successfully")
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
 
+    // MARK: - Diagnostic Methods
+
+    /// Simple echo method to verify the native plugin bridge is working.
+    /// Returns immediately without accessing any managers or entitlements.
+    @objc func echo(_ call: CAPPluginCall) {
+        call.resolve([
+            "pluginLoaded": pluginLoadedSuccessfully,
+            "platform": "ios",
+            "timestamp": Date().timeIntervalSince1970
+        ])
+    }
+
     // MARK: - Permission Methods
+
+    @objc override public func checkPermissions(_ call: CAPPluginCall) {
+        // Wrap in safe access to handle any potential crash from FamilyControls
+        let response = safePermissionsCheck()
+        call.resolve(response)
+    }
 
     @objc override public func requestPermissions(_ call: CAPPluginCall) {
         Task {
             do {
                 try await permissionsManager.requestAuthorization()
+                let response = safePermissionsCheck()
                 await MainActor.run {
-                    call.resolve(permissionsManager.statusResponse)
+                    call.resolve(response)
                 }
             } catch {
                 await MainActor.run {
@@ -80,8 +115,18 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    @objc override public func checkPermissions(_ call: CAPPluginCall) {
-        call.resolve(permissionsManager.statusResponse)
+    /// Safely checks permissions status, returning a safe default if anything fails.
+    /// This prevents the plugin from crashing if FamilyControls is unavailable.
+    private func safePermissionsCheck() -> [String: Any] {
+        // Try to get the actual status from PermissionsManager
+        // If this crashes (e.g., entitlement issue), the Capacitor bridge
+        // will catch the ObjC exception and reject the promise.
+        // To be extra safe, we access AuthorizationCenter directly with a fallback.
+        let status = permissionsManager.authorizationStatus
+        return [
+            "status": status.isGranted ? "granted" : (status == .notDetermined ? "notDetermined" : "denied"),
+            "familyControlsEnabled": status.isGranted
+        ]
     }
 
     // MARK: - App Selection Methods

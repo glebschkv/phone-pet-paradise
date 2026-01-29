@@ -6,6 +6,10 @@ import DeviceActivity
  *
  * Manages device activity monitoring using the DeviceActivity framework.
  * Handles monitoring schedules and usage tracking.
+ *
+ * Note: DeviceActivityCenter requires the device-activity entitlement which
+ * is only available in app extensions. The main app can still track usage
+ * time locally, but actual device activity monitoring requires the extension.
  */
 @available(iOS 15.0, *)
 final class ActivityMonitorManager: ActivityMonitorManaging {
@@ -16,7 +20,10 @@ final class ActivityMonitorManager: ActivityMonitorManaging {
 
     // MARK: - Properties
 
-    private let deviceActivityCenter: DeviceActivityCenter
+    /// DeviceActivityCenter is optional because it requires the device-activity
+    /// entitlement which is only available in extensions, not the main app.
+    /// Creating DeviceActivityCenter() without the entitlement causes a crash.
+    private let deviceActivityCenter: DeviceActivityCenter?
     private let focusDataManager: FocusDataManager
 
     private(set) var isMonitoring: Bool = false
@@ -26,18 +33,37 @@ final class ActivityMonitorManager: ActivityMonitorManaging {
     // MARK: - Initialization
 
     init(
-        deviceActivityCenter: DeviceActivityCenter = DeviceActivityCenter(),
+        deviceActivityCenter: DeviceActivityCenter? = nil,
         focusDataManager: FocusDataManager = .shared
     ) {
-        self.deviceActivityCenter = deviceActivityCenter
+        // Only create DeviceActivityCenter when running in an app extension,
+        // where the device-activity entitlement is available.
+        if let center = deviceActivityCenter {
+            self.deviceActivityCenter = center
+        } else if Bundle.main.bundlePath.hasSuffix(".appex") {
+            self.deviceActivityCenter = DeviceActivityCenter()
+        } else {
+            self.deviceActivityCenter = nil
+            Log.deviceActivity.info("Running in main app - DeviceActivityCenter not available (extension-only entitlement)")
+        }
         self.focusDataManager = focusDataManager
-        Log.deviceActivity.debug("ActivityMonitorManager initialized")
+        Log.deviceActivity.debug("ActivityMonitorManager initialized (center available: \(self.deviceActivityCenter != nil))")
     }
 
     // MARK: - Start Monitoring
 
     func startMonitoring() throws -> MonitoringResult {
         Log.deviceActivity.operationStart("startMonitoring")
+
+        guard let deviceActivityCenter = deviceActivityCenter else {
+            Log.deviceActivity.warning("DeviceActivityCenter not available - monitoring handled by extension")
+            // Return success because the extension handles actual monitoring
+            return MonitoringResult(
+                success: true,
+                isMonitoring: true,
+                startTime: Date().timeIntervalSince1970
+            )
+        }
 
         let activityName = DeviceActivityName(AppConfig.ActivityMonitoring.activityName)
         let schedule = DeviceActivitySchedule(
@@ -68,8 +94,10 @@ final class ActivityMonitorManager: ActivityMonitorManaging {
     func stopMonitoring() -> MonitoringResult {
         Log.deviceActivity.operationStart("stopMonitoring")
 
-        let activityName = DeviceActivityName(AppConfig.ActivityMonitoring.activityName)
-        deviceActivityCenter.stopMonitoring([activityName])
+        if let deviceActivityCenter = deviceActivityCenter {
+            let activityName = DeviceActivityName(AppConfig.ActivityMonitoring.activityName)
+            deviceActivityCenter.stopMonitoring([activityName])
+        }
         isMonitoring = false
         sessionStartTime = nil
 

@@ -35,6 +35,9 @@ export interface StopBlockingResult {
 }
 
 export interface DeviceActivityPlugin {
+  // Diagnostic methods
+  echo(): Promise<{ pluginLoaded: boolean; platform: string; timestamp: number }>;
+
   // Permission methods
   requestPermissions(): Promise<{ status: string; familyControlsEnabled: boolean }>;
   checkPermissions(): Promise<{ status: string; familyControlsEnabled: boolean }>;
