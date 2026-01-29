@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDeviceActivity } from '@/hooks/useDeviceActivity';
-import { Shield, ShieldCheck, ShieldOff, ChevronDown, ChevronUp, Lock, Sparkles, AlertTriangle, Smartphone, Plus } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldOff, ChevronDown, ChevronUp, Lock, Sparkles, AlertTriangle, Smartphone, Plus, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Capacitor } from '@capacitor/core';
 
@@ -23,14 +23,23 @@ export const AppBlockingSection = ({
     shieldAttempts,
     isLoading,
     requestPermissions,
+    openSettings,
     openAppPicker,
   } = useDeviceActivity();
+
+  const [hasAttemptedPermission, setHasAttemptedPermission] = useState(false);
 
   const isNativePlatform = Capacitor.isNativePlatform();
 
   // Handle permission request
   const handleRequestPermission = async () => {
+    setHasAttemptedPermission(true);
     await requestPermissions();
+  };
+
+  // Handle open settings
+  const handleOpenSettings = async () => {
+    await openSettings();
   };
 
   // Handle opening native app picker (iOS only)
@@ -55,7 +64,10 @@ export const AppBlockingSection = ({
           </div>
 
           <p className="text-sm text-white/70 mb-4">
-            Enable Screen Time access to automatically block apps during focus sessions and earn bonus rewards!
+            {hasAttemptedPermission
+              ? "Screen Time permission is needed. If you previously denied it, open Settings to enable it for this app."
+              : "Enable Screen Time access to automatically block apps during focus sessions and earn bonus rewards!"
+            }
           </p>
 
           <button
@@ -71,8 +83,24 @@ export const AppBlockingSection = ({
             )}
           >
             <Lock className="w-4 h-4" />
-            {isLoading ? 'Requesting...' : 'Enable Focus Shield'}
+            {isLoading ? 'Requesting...' : hasAttemptedPermission ? 'Try Again' : 'Enable Focus Shield'}
           </button>
+
+          {hasAttemptedPermission && (
+            <button
+              onClick={handleOpenSettings}
+              className={cn(
+                "w-full mt-2 py-3 px-4 rounded-xl font-bold text-sm transition-all",
+                "bg-white/10 border border-white/20",
+                "hover:bg-white/15",
+                "active:scale-[0.98]",
+                "text-white flex items-center justify-center gap-2"
+              )}
+            >
+              <Settings className="w-4 h-4" />
+              Open Settings
+            </button>
+          )}
         </div>
       </div>
     );

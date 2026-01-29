@@ -19,6 +19,15 @@ const AppleIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// SHA-256 hash a string and return hex-encoded result (needed for Apple Sign In nonce)
+async function sha256(plain: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hash));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot-password' | 'reset-password';
 
 export default function Auth() {
@@ -347,22 +356,13 @@ export default function Auth() {
         // Use native Sign in with Apple for iOS
         const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
 
-        // Generate raw nonce and SHA256-hash it for Apple
-        // Apple expects a SHA256-hashed nonce; Supabase needs the raw nonce to verify
+        // Generate nonce: Apple needs SHA-256 hash, Supabase needs raw nonce
         const rawNonce = crypto.randomUUID();
-        const hashBuffer = await crypto.subtle.digest(
-          'SHA-256',
-          new TextEncoder().encode(rawNonce)
-        );
-        const hashedNonce = Array.from(new Uint8Array(hashBuffer))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join('');
+        const hashedNonce = await sha256(rawNonce);
 
-        // On native iOS, clientId and redirectURI are required by the type
-        // but the system uses the app's bundle ID automatically
         const result = await SignInWithApple.authorize({
-          clientId: '', // Not used on native iOS, but required by type
-          redirectURI: '', // Not used on native iOS, but required by type
+          clientId: 'co.nomoinc.nomo',
+          redirectURI: 'https://nomoinc.co',
           scopes: 'email name',
           state: crypto.randomUUID(),
           nonce: hashedNonce,

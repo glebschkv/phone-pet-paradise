@@ -6,7 +6,8 @@ import type {
   ShieldAttempts,
   AppSelection,
   StartBlockingResult,
-  StopBlockingResult
+  StopBlockingResult,
+  PermissionStatus
 } from './definitions';
 
 // Simple inline logger for the plugin (avoiding circular dependencies)
@@ -29,14 +30,24 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
   private isBlocking = false;
   private shieldAttempts = 0;
 
+  // Diagnostic methods
+  async echo(): Promise<{ pluginLoaded: boolean; platform: string; timestamp: number }> {
+    return { pluginLoaded: true, platform: 'web', timestamp: Date.now() };
+  }
+
   // Permission methods
-  async requestPermissions(): Promise<{ status: string; familyControlsEnabled: boolean }> {
+  async requestPermissions(): Promise<PermissionStatus> {
     log('Permissions requested (simulation)');
     return { status: 'granted', familyControlsEnabled: false };
   }
 
-  async checkPermissions(): Promise<{ status: string; familyControlsEnabled: boolean }> {
+  async checkPermissions(): Promise<PermissionStatus> {
     return { status: 'granted', familyControlsEnabled: false };
+  }
+
+  async openSettings(): Promise<{ success: boolean }> {
+    log('Open settings requested (web simulation - not available)');
+    return { success: false };
   }
 
   // App selection methods (web simulation)

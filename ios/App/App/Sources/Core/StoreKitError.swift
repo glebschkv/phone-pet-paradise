@@ -21,7 +21,7 @@ enum StoreKitError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .transactionVerificationFailed:
-            return Strings.StoreKit.transactionVerificationFailed
+            return Strings.StoreKitStrings.transactionVerificationFailed
         case .productNotFound(let productId):
             return "Product not found: \(productId)"
         case .purchaseFailed(let reason):
@@ -57,7 +57,7 @@ enum StoreKitError: Error, LocalizedError {
 
 // MARK: - Strings Extension
 
-private extension Strings.StoreKit {
+private extension Strings.StoreKitStrings {
     static var transactionVerificationFailed: String {
         NSLocalizedString("storekit.transaction_verification_failed",
                          value: "Transaction verification failed",

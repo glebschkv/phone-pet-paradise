@@ -8,7 +8,7 @@ import { NativePluginProvider } from "@/contexts/NativePluginContext";
 import { OfflineProvider } from "@/contexts/OfflineContext";
 import { PluginUnavailableBanner } from "@/components/PluginUnavailableBanner";
 import { lazy, Suspense } from "react";
-import { HomePageSkeleton } from "@/components/ui/skeleton-loaders";
+import { SplashScreen } from "@/components/SplashScreen";
 
 // Lazy load pages for better initial bundle size
 const Index = lazy(() => import("./pages/Index"));
@@ -16,13 +16,6 @@ const Auth = lazy(() => import("./pages/Auth"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-
-// Page loading fallback with skeleton for better perceived performance
-const PageLoadingFallback = () => (
-  <div className="min-h-screen bg-background">
-    <HomePageSkeleton className="h-screen" />
-  </div>
-);
 
 const queryClient = new QueryClient();
 
@@ -36,7 +29,7 @@ const App = () => (
             <Sonner />
             <PluginUnavailableBanner className="fixed top-0 left-0 right-0 z-50" />
             <BrowserRouter>
-              <Suspense fallback={<PageLoadingFallback />}>
+              <Suspense fallback={<SplashScreen />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />

@@ -83,7 +83,7 @@ final class FocusDataManager {
         shieldAttempts += 1
         lastShieldAttemptTimestamp = Date().timeIntervalSince1970
 
-        Log.focus.info("Shield attempt recorded: \(shieldAttempts) total")
+        Log.focus.info("Shield attempt recorded: \(self.shieldAttempts) total")
         notificationCenter.post(
             name: Self.shieldAttemptRecordedNotification,
             object: self,

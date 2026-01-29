@@ -176,9 +176,15 @@ export const useStoreKit = (): UseStoreKitReturn => {
         setTimeout(() => { loadProducts(); }, retryDelay);
         return;
       }
-      // All retries exhausted — mark as unavailable
-      if (!pluginVerifiedRef.current) {
-        const err = new Error('StoreKit plugin initialization failed');
+      // On native platforms, the StoreKit plugin bridge is always available —
+      // a product fetch failure just means products aren't configured in
+      // App Store Connect yet or there's a transient network issue.
+      if (Capacitor.isNativePlatform()) {
+        logger.warn('Product fetch failed on native — plugin is still available for purchase attempts');
+        pluginVerifiedRef.current = true;
+        setPluginAvailable(true);
+      } else if (!pluginVerifiedRef.current) {
+        const err = new Error('StoreKit plugin not available on this platform');
         setPluginAvailable(false);
         setPluginError(err);
       }

@@ -33,4 +33,10 @@ const initializeTheme = () => {
 
 initializeTheme();
 
+// Remove the inline HTML splash screen once React takes over
+const splashEl = document.getElementById('splash-screen');
+if (splashEl) {
+  splashEl.remove();
+}
+
 createRoot(document.getElementById("root")!).render(<App />);

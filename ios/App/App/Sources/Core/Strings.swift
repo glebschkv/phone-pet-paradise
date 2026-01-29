@@ -168,7 +168,7 @@ enum Strings {
 
     // MARK: - StoreKit
 
-    enum StoreKit {
+    enum StoreKitStrings {
         static var purchaseSuccess: String {
             localized("storekit.purchase_success", comment: "Purchase success message")
         }

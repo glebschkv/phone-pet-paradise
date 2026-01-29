@@ -7,7 +7,12 @@ import ManagedSettings
  *
  * Manages app blocking using ManagedSettings shield functionality.
  * Handles app selection storage and shield application.
+ *
+ * Note: ManagedSettingsStore requires the managed-settings entitlement which
+ * is only available in app extensions. The main app creates this manager but
+ * the store may be nil if the entitlement is missing. All store access is guarded.
  */
+@available(iOS 15.0, *)
 final class AppBlockingManager: AppBlockingManaging {
 
     // MARK: - Singleton
@@ -16,21 +21,35 @@ final class AppBlockingManager: AppBlockingManaging {
 
     // MARK: - Properties
 
-    private let store: ManagedSettingsStore
+    /// ManagedSettingsStore is optional because it requires the managed-settings
+    /// entitlement which is only available in app extensions, not the main app.
+    /// Creating ManagedSettingsStore() without the entitlement causes a crash,
+    /// so we only create it when running inside an extension.
+    private var store: ManagedSettingsStore?
     private let focusDataManager: FocusDataManager
     private let userDefaults: UserDefaults?
 
     // MARK: - Initialization
 
     init(
-        store: ManagedSettingsStore = ManagedSettingsStore(),
+        store: ManagedSettingsStore? = nil,
         focusDataManager: FocusDataManager = .shared,
         userDefaults: UserDefaults? = nil
     ) {
-        self.store = store
+        // Only create ManagedSettingsStore when running in an app extension,
+        // where the managed-settings entitlement is available.
+        // The main app (.app bundle) does not have this entitlement.
+        if let store = store {
+            self.store = store
+        } else if Bundle.main.bundlePath.hasSuffix(".appex") {
+            self.store = ManagedSettingsStore()
+        } else {
+            self.store = nil
+            Log.blocking.info("Running in main app - ManagedSettingsStore not available (extension-only entitlement)")
+        }
         self.focusDataManager = focusDataManager
         self.userDefaults = userDefaults ?? AppConfig.sharedUserDefaults
-        Log.blocking.debug("AppBlockingManager initialized")
+        Log.blocking.debug("AppBlockingManager initialized (store available: \(self.store != nil))")
     }
 
     // MARK: - Blocking Status
@@ -40,7 +59,8 @@ final class AppBlockingManager: AppBlockingManaging {
     }
 
     var hasAppsConfigured: Bool {
-        guard let apps = store.shield.applications else { return false }
+        guard let store = store,
+              let apps = store.shield.applications else { return false }
         return !apps.isEmpty
     }
 
@@ -51,6 +71,18 @@ final class AppBlockingManager: AppBlockingManaging {
 
         // Start focus session
         focusDataManager.startSession()
+
+        guard let store = store else {
+            Log.blocking.warning("ManagedSettingsStore not available - entitlement may be missing")
+            return BlockingResult(
+                success: false,
+                appsBlocked: 0,
+                categoriesBlocked: 0,
+                domainsBlocked: 0,
+                shieldAttempts: 0,
+                note: "ManagedSettings not available in main app"
+            )
+        }
 
         // Load and apply selection
         guard let selectionData = userDefaults?.data(forKey: AppConfig.StorageKeys.blockedAppsSelection) else {
@@ -67,7 +99,7 @@ final class AppBlockingManager: AppBlockingManaging {
 
         do {
             let selection = try JSONDecoder().decode(FamilyActivitySelection.self, from: selectionData)
-            return applyShields(selection: selection)
+            return applyShields(store: store, selection: selection)
         } catch {
             Log.blocking.warning("Failed to decode selection, continuing without shields: \(error)")
             return BlockingResult(
@@ -81,7 +113,7 @@ final class AppBlockingManager: AppBlockingManaging {
         }
     }
 
-    private func applyShields(selection: FamilyActivitySelection) -> BlockingResult {
+    private func applyShields(store: ManagedSettingsStore, selection: FamilyActivitySelection) -> BlockingResult {
         store.shield.applications = selection.applicationTokens
         store.shield.applicationCategories = .specific(selection.categoryTokens)
         store.shield.webDomains = selection.webDomainTokens
@@ -119,6 +151,7 @@ final class AppBlockingManager: AppBlockingManaging {
     }
 
     private func clearShields() {
+        guard let store = store else { return }
         store.shield.applications = nil
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
@@ -144,6 +177,24 @@ final class AppBlockingManager: AppBlockingManaging {
         }
         userDefaults.set(data, forKey: AppConfig.StorageKeys.blockedAppsSelection)
         Log.blocking.info("Selection saved")
+    }
+
+    /// Saves a FamilyActivitySelection as encoded Data (used by native picker)
+    func saveActivitySelection(_ selection: FamilyActivitySelection) throws {
+        guard let userDefaults = userDefaults else {
+            throw PluginError.sharedContainerUnavailable
+        }
+        let data = try JSONEncoder().encode(selection)
+        userDefaults.set(data, forKey: AppConfig.StorageKeys.blockedAppsSelection)
+        Log.blocking.info("Activity selection saved: \(selection.applicationTokens.count) apps, \(selection.categoryTokens.count) categories, \(selection.webDomainTokens.count) domains")
+    }
+
+    /// Loads the saved FamilyActivitySelection (used by native picker to restore state)
+    func loadActivitySelection() -> FamilyActivitySelection? {
+        guard let data = userDefaults?.data(forKey: AppConfig.StorageKeys.blockedAppsSelection) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(FamilyActivitySelection.self, from: data)
     }
 
     func loadSelection() -> String? {

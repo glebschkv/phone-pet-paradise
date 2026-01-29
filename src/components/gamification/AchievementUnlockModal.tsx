@@ -78,20 +78,22 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
     }, 400);
   };
 
+  const handleDismiss = () => {
+    dismissPendingUnlock();
+  };
+
   if (!pendingUnlock) return null;
 
   const { achievement, rewards } = pendingUnlock;
   const style = tierStyles[achievement.tier];
 
   return (
-    <Dialog open={!!pendingUnlock} onOpenChange={() => {}}>
+    <Dialog open={!!pendingUnlock} onOpenChange={(open) => { if (!open) handleDismiss(); }}>
       <DialogContent
         className={cn(
           "max-w-[340px] p-0 overflow-hidden border-0 rounded-xl",
           "retro-arcade-container retro-modal"
         )}
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <VisuallyHidden>
           <DialogTitle>Achievement Unlocked</DialogTitle>

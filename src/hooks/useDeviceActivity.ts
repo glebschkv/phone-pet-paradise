@@ -120,15 +120,47 @@ export const useDeviceActivity = () => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
-      // Check permissions with safe wrapper
+      // First, verify the native plugin bridge is working with a simple echo call
+      const { result: echoResult, success: echoSuccess } = await safePluginCall(
+        () => DeviceActivity.echo(),
+        { pluginLoaded: false, platform: 'unknown', timestamp: 0 },
+        'echo'
+      );
+
+      if (echoSuccess) {
+        deviceActivityLogger.debug(`Plugin bridge OK: platform=${echoResult.platform}, loaded=${echoResult.pluginLoaded}`);
+        // Log entitlement diagnostic info
+        const diag = echoResult as Record<string, unknown>;
+        if (diag.familyControlsEntitlementInProfile !== undefined) {
+          deviceActivityLogger.info(
+            `[DIAG] Family Controls entitlement in provisioning profile: ${diag.familyControlsEntitlementInProfile ? 'YES' : 'NO ❌'}`
+          );
+          deviceActivityLogger.info(
+            `[DIAG] Initial auth status: ${diag.initialAuthStatus}, Bundle ID: ${diag.bundleId}`
+          );
+          if (!diag.familyControlsEntitlementInProfile) {
+            deviceActivityLogger.error(
+              '[DIAG] Family Controls entitlement is MISSING from provisioning profile! ' +
+              'Screen Time permissions will always fail. Fix: In Xcode, toggle "Automatically manage signing" off then on, ' +
+              'or manually create a profile in the Apple Developer Portal.'
+            );
+          }
+        }
+      } else {
+        deviceActivityLogger.warn('Plugin echo failed - native bridge may not be available');
+      }
+
+      // Check permissions with safe wrapper.
+      // Even if this fails, we DON'T mark the plugin as unavailable -
+      // we treat permissions as "not determined" and let the user try requesting.
       const { result: permissions, success: permissionSuccess } = await safePluginCall(
         () => DeviceActivity.checkPermissions(),
-        { status: 'unknown' as const, familyControlsEnabled: false },
+        { status: 'notDetermined' as const, familyControlsEnabled: false },
         'checkPermissions'
       );
 
-      // If plugin call failed, retry before permanently marking unavailable
       if (!permissionSuccess) {
+        // Retry before giving up
         if (initRetryCountRef.current < MAX_INIT_RETRIES) {
           initRetryCountRef.current += 1;
           const retryDelay = Math.pow(2, initRetryCountRef.current) * 1000; // 2s, 4s, 8s
@@ -139,15 +171,8 @@ export const useDeviceActivity = () => {
           setTimeout(() => { initialize(); }, retryDelay);
           return;
         }
-        const error = new Error('DeviceActivity plugin initialization failed');
-        pluginErrorRef.current = error;
-        setState(prev => ({
-          ...prev,
-          isLoading: false,
-          pluginAvailable: false,
-          pluginError: error,
-        }));
-        return;
+        // All retries exhausted — still keep plugin available so user can try requesting permissions
+        deviceActivityLogger.warn('checkPermissions failed - treating as notDetermined, user can still request permissions');
       }
 
       // Plugin responded — reset retry counter
@@ -196,9 +221,10 @@ export const useDeviceActivity = () => {
       const err = error instanceof Error ? error : new Error(String(error));
       pluginErrorRef.current = err;
       reportError(err, { context: 'DeviceActivity.initialize' });
+      // Even on error, keep plugin available so user can retry
       setState(prev => ({
         ...prev,
-        pluginAvailable: false,
+        pluginAvailable: true,
         pluginError: err,
       }));
     } finally {
@@ -206,38 +232,42 @@ export const useDeviceActivity = () => {
     }
   }, []);
 
+  // Open device Settings (for re-enabling denied permissions)
+  const openSettings = useCallback(async () => {
+    await safePluginCall(
+      () => DeviceActivity.openSettings(),
+      { success: false },
+      'openSettings'
+    );
+  }, []);
+
   // Request permissions
   const requestPermissions = useCallback(async () => {
-    // Check if plugin is available before making calls
-    if (!state.pluginAvailable) {
-      deviceActivityLogger.warn('requestPermissions called but plugin is unavailable');
-      toast({
-        title: "Feature Unavailable",
-        description: "Screen Time features are not available. Please restart the app.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
-      const { result, success } = await safePluginCall(
+      // Attempt to request permissions — the native side now returns
+      // detailed status including rawStatus and any error from Apple's API.
+      const { result: requestResult } = await safePluginCall(
         () => DeviceActivity.requestPermissions(),
         { status: 'denied' as const, familyControlsEnabled: false },
         'requestPermissions'
       );
 
-      if (!success) {
-        toast({
-          title: "Permission Error",
-          description: "Failed to request Screen Time permissions. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Also check via checkPermissions for consistency
+      const { result: currentStatus } = await safePluginCall(
+        () => DeviceActivity.checkPermissions(),
+        { status: 'denied' as const, familyControlsEnabled: false },
+        'checkPermissions-afterRequest'
+      );
 
-      const isGranted = result.status === 'granted';
+      const isGranted = currentStatus.status === 'granted';
+      const rawStatus = requestResult.rawStatus || currentStatus.status;
+      const lastError = requestResult.lastError;
+
+      deviceActivityLogger.info(
+        `Permission result: status=${currentStatus.status}, rawStatus=${rawStatus}, lastError=${lastError || 'none'}`
+      );
 
       setState(prev => ({
         ...prev,
@@ -260,10 +290,23 @@ export const useDeviceActivity = () => {
           title: "Screen Time Access Granted",
           description: "You can now block distracting apps during focus sessions!",
         });
-      } else {
+      } else if (currentStatus.status === 'notDetermined') {
+        // Status is still notDetermined after request — the authorization
+        // dialog likely never appeared. This usually means the Family Controls
+        // entitlement is missing from the provisioning profile.
+        const errorDetail = lastError ? ` (${lastError})` : '';
         toast({
-          title: "Permissions Denied",
-          description: "App blocking requires Screen Time permissions",
+          title: "Permission Not Available",
+          description: `Screen Time permission dialog did not appear${errorDetail}. Try deleting and reinstalling the app, or check that Family Controls is enabled in Xcode.`,
+          variant: "destructive",
+        });
+      } else {
+        // Status is "denied" — user explicitly denied, or system blocked it.
+        // They need to go to Settings to re-enable.
+        const errorDetail = lastError ? ` Error: ${lastError}` : '';
+        toast({
+          title: "Permission Denied",
+          description: `Screen Time access was denied. Tap "Open Settings" below to enable it for this app.${errorDetail}`,
           variant: "destructive",
         });
       }
@@ -274,13 +317,13 @@ export const useDeviceActivity = () => {
       }
       toast({
         title: "Permission Error",
-        description: "Failed to request Screen Time permissions",
+        description: "Failed to request Screen Time permissions. Please try again.",
         variant: "destructive",
       });
     } finally {
       setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, [toast, state.pluginAvailable]);
+  }, [toast]);
 
   // Start app blocking (called when timer starts)
   const startAppBlocking = useCallback(async (): Promise<StartBlockingResult> => {
@@ -443,11 +486,35 @@ export const useDeviceActivity = () => {
       return;
     }
 
-    await safePluginCall(
+    const { result, success } = await safePluginCall(
       () => DeviceActivity.openAppPicker(),
-      undefined,
+      { success: false },
       'openAppPicker'
     );
+
+    if (success && result?.success) {
+      deviceActivityLogger.info(
+        `App picker done: ${result.appsSelected ?? 0} apps, ${result.categoriesSelected ?? 0} categories`
+      );
+      // Refresh blocking status after selection change
+      const { result: status } = await safePluginCall(
+        () => DeviceActivity.getBlockingStatus(),
+        {
+          isBlocking: false,
+          focusSessionActive: false,
+          shieldAttempts: 0,
+          lastShieldAttemptTimestamp: 0,
+          hasAppsConfigured: false,
+        } as BlockingStatus,
+        'getBlockingStatus-afterPicker'
+      );
+      setState(prev => ({
+        ...prev,
+        hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
+      }));
+    } else if (result?.cancelled) {
+      deviceActivityLogger.info('App picker cancelled by user');
+    }
   }, [state.pluginAvailable]);
 
   // Update simulated app selection (for web)
@@ -613,6 +680,7 @@ export const useDeviceActivity = () => {
 
     // Permission methods
     requestPermissions,
+    openSettings,
     initialize,
 
     // App blocking methods

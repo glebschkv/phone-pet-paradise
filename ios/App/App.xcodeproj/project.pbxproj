@@ -11,6 +11,28 @@
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
 		SHARED0001000000000001 /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHARED0001000000000000 /* SharedConstants.swift */; };
+		SRC00010000000000000001 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00010000000000000000 /* AppConfig.swift */; };
+		SRC00020000000000000001 /* AppReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00020000000000000000 /* AppReviewPlugin.swift */; };
+		SRC00030000000000000001 /* DeviceActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00030000000000000000 /* DeviceActivityPlugin.swift */; };
+		SRC00040000000000000001 /* StoreKitPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00040000000000000000 /* StoreKitPlugin.swift */; };
+		SRC00050000000000000001 /* WidgetDataPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00050000000000000000 /* WidgetDataPlugin.swift */; };
+		SRC00060000000000000001 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00060000000000000000 /* Logger.swift */; };
+		SRC00070000000000000001 /* PluginError.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00070000000000000000 /* PluginError.swift */; };
+		SRC00080000000000000001 /* PluginValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00080000000000000000 /* PluginValidation.swift */; };
+		SRC00090000000000000001 /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00090000000000000000 /* Protocols.swift */; };
+		SRC00100000000000000001 /* StoreKitConverters.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00100000000000000000 /* StoreKitConverters.swift */; };
+		SRC00110000000000000001 /* StoreKitError.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00110000000000000000 /* StoreKitError.swift */; };
+		SRC00120000000000000001 /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00120000000000000000 /* Strings.swift */; };
+		SRC00130000000000000001 /* ActivityMonitorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00130000000000000000 /* ActivityMonitorManager.swift */; };
+		SRC00140000000000000001 /* AppBlockingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00140000000000000000 /* AppBlockingManager.swift */; };
+		SRC00150000000000000001 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00150000000000000000 /* BackgroundTaskManager.swift */; };
+		SRC00160000000000000001 /* FocusDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00160000000000000000 /* FocusDataManager.swift */; };
+		SRC00170000000000000001 /* HapticFeedbackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00170000000000000000 /* HapticFeedbackManager.swift */; };
+		SRC00180000000000000001 /* PermissionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00180000000000000000 /* PermissionsManager.swift */; };
+		SRC00190000000000000001 /* StoreKitProductManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00190000000000000000 /* StoreKitProductManager.swift */; };
+		SRC00200000000000000001 /* StoreKitPurchaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00200000000000000000 /* StoreKitPurchaseService.swift */; };
+		SRC00210000000000000001 /* StoreKitTransactionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00210000000000000000 /* StoreKitTransactionManager.swift */; };
+		SRC00220000000000000001 /* WidgetDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00220000000000000000 /* WidgetDataManager.swift */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
@@ -22,6 +44,28 @@
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		SHARED0001000000000000 /* SharedConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedConstants.swift; sourceTree = "<group>"; };
+		SRC00010000000000000000 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		SRC00020000000000000000 /* AppReviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppReviewPlugin.swift; sourceTree = "<group>"; };
+		SRC00030000000000000000 /* DeviceActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityPlugin.swift; sourceTree = "<group>"; };
+		SRC00040000000000000000 /* StoreKitPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPlugin.swift; sourceTree = "<group>"; };
+		SRC00050000000000000000 /* WidgetDataPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataPlugin.swift; sourceTree = "<group>"; };
+		SRC00060000000000000000 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		SRC00070000000000000000 /* PluginError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginError.swift; sourceTree = "<group>"; };
+		SRC00080000000000000000 /* PluginValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginValidation.swift; sourceTree = "<group>"; };
+		SRC00090000000000000000 /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
+		SRC00100000000000000000 /* StoreKitConverters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitConverters.swift; sourceTree = "<group>"; };
+		SRC00110000000000000000 /* StoreKitError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitError.swift; sourceTree = "<group>"; };
+		SRC00120000000000000000 /* Strings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Strings.swift; sourceTree = "<group>"; };
+		SRC00130000000000000000 /* ActivityMonitorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityMonitorManager.swift; sourceTree = "<group>"; };
+		SRC00140000000000000000 /* AppBlockingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingManager.swift; sourceTree = "<group>"; };
+		SRC00150000000000000000 /* BackgroundTaskManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskManager.swift; sourceTree = "<group>"; };
+		SRC00160000000000000000 /* FocusDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusDataManager.swift; sourceTree = "<group>"; };
+		SRC00170000000000000000 /* HapticFeedbackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticFeedbackManager.swift; sourceTree = "<group>"; };
+		SRC00180000000000000000 /* PermissionsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsManager.swift; sourceTree = "<group>"; };
+		SRC00190000000000000000 /* StoreKitProductManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitProductManager.swift; sourceTree = "<group>"; };
+		SRC00200000000000000000 /* StoreKitPurchaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPurchaseService.swift; sourceTree = "<group>"; };
+		SRC00210000000000000000 /* StoreKitTransactionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitTransactionManager.swift; sourceTree = "<group>"; };
+		SRC00220000000000000000 /* WidgetDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataManager.swift; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -76,6 +120,7 @@
 			isa = PBXGroup;
 			children = (
 				SHARED0001000000000002 /* Shared */,
+				SRCGRP0010000000000000 /* Sources */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
@@ -94,6 +139,51 @@
 				SHARED0001000000000000 /* SharedConstants.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		SRCGRP0010000000000000 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				SRCGRP0020000000000000 /* Core */,
+				SRCGRP0030000000000000 /* Managers */,
+				SRC00010000000000000000 /* AppConfig.swift */,
+				SRC00020000000000000000 /* AppReviewPlugin.swift */,
+				SRC00030000000000000000 /* DeviceActivityPlugin.swift */,
+				SRC00040000000000000000 /* StoreKitPlugin.swift */,
+				SRC00050000000000000000 /* WidgetDataPlugin.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		SRCGRP0020000000000000 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				SRC00060000000000000000 /* Logger.swift */,
+				SRC00070000000000000000 /* PluginError.swift */,
+				SRC00080000000000000000 /* PluginValidation.swift */,
+				SRC00090000000000000000 /* Protocols.swift */,
+				SRC00100000000000000000 /* StoreKitConverters.swift */,
+				SRC00110000000000000000 /* StoreKitError.swift */,
+				SRC00120000000000000000 /* Strings.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		SRCGRP0030000000000000 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				SRC00130000000000000000 /* ActivityMonitorManager.swift */,
+				SRC00140000000000000000 /* AppBlockingManager.swift */,
+				SRC00150000000000000000 /* BackgroundTaskManager.swift */,
+				SRC00160000000000000000 /* FocusDataManager.swift */,
+				SRC00170000000000000000 /* HapticFeedbackManager.swift */,
+				SRC00180000000000000000 /* PermissionsManager.swift */,
+				SRC00190000000000000000 /* StoreKitProductManager.swift */,
+				SRC00200000000000000000 /* StoreKitPurchaseService.swift */,
+				SRC00210000000000000000 /* StoreKitTransactionManager.swift */,
+				SRC00220000000000000000 /* WidgetDataManager.swift */,
+			);
+			path = Managers;
 			sourceTree = "<group>";
 		};
 		7F8756D8B27F46E3366F6CEA /* Pods */ = {
@@ -222,6 +312,28 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				SHARED0001000000000001 /* SharedConstants.swift in Sources */,
+				SRC00010000000000000001 /* AppConfig.swift in Sources */,
+				SRC00020000000000000001 /* AppReviewPlugin.swift in Sources */,
+				SRC00030000000000000001 /* DeviceActivityPlugin.swift in Sources */,
+				SRC00040000000000000001 /* StoreKitPlugin.swift in Sources */,
+				SRC00050000000000000001 /* WidgetDataPlugin.swift in Sources */,
+				SRC00060000000000000001 /* Logger.swift in Sources */,
+				SRC00070000000000000001 /* PluginError.swift in Sources */,
+				SRC00080000000000000001 /* PluginValidation.swift in Sources */,
+				SRC00090000000000000001 /* Protocols.swift in Sources */,
+				SRC00100000000000000001 /* StoreKitConverters.swift in Sources */,
+				SRC00110000000000000001 /* StoreKitError.swift in Sources */,
+				SRC00120000000000000001 /* Strings.swift in Sources */,
+				SRC00130000000000000001 /* ActivityMonitorManager.swift in Sources */,
+				SRC00140000000000000001 /* AppBlockingManager.swift in Sources */,
+				SRC00150000000000000001 /* BackgroundTaskManager.swift in Sources */,
+				SRC00160000000000000001 /* FocusDataManager.swift in Sources */,
+				SRC00170000000000000001 /* HapticFeedbackManager.swift in Sources */,
+				SRC00180000000000000001 /* PermissionsManager.swift in Sources */,
+				SRC00190000000000000001 /* StoreKitProductManager.swift in Sources */,
+				SRC00200000000000000001 /* StoreKitPurchaseService.swift in Sources */,
+				SRC00210000000000000001 /* StoreKitTransactionManager.swift in Sources */,
+				SRC00220000000000000001 /* WidgetDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -359,6 +471,7 @@
 			baseConfigurationReference = FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = App/Info.plist;
@@ -379,6 +492,7 @@
 			baseConfigurationReference = AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = App/Info.plist;
