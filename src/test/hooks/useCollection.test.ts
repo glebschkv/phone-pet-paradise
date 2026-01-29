@@ -10,6 +10,7 @@ vi.mock('@/hooks/useXPSystem', () => ({
     unlockedAnimals: ['Dewdrop Frog'],
     currentBiome: 'forest',
     availableBiomes: ['forest'],
+    totalStudyMinutes: 0,
     isLoading: false,
   }),
 }));
@@ -93,6 +94,11 @@ vi.mock('@/data/AnimalDatabase', () => ({
     { id: 'dewdrop-frog', name: 'Dewdrop Frog', rarity: 'common' },
     { id: 'moss-turtle', name: 'Moss Turtle', rarity: 'common' },
     { id: 'crystal-dragon', name: 'Crystal Dragon', rarity: 'epic' },
+  ]),
+  getStudyHoursAnimals: vi.fn(() => []),
+  isStudyHoursAnimal: vi.fn(() => false),
+  getCoinExclusiveAnimals: vi.fn(() => [
+    { id: 'golden-phoenix', name: 'Golden Phoenix', rarity: 'legendary', biome: 'volcano', unlockLevel: 99, isExclusive: true, coinPrice: 5000, spriteConfig: { idle: 'sprite.png' } },
   ]),
 }));
 

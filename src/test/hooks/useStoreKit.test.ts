@@ -366,29 +366,39 @@ describe('useStoreKit', () => {
     });
 
     it('should handle error when fetching products fails', async () => {
+      vi.useFakeTimers();
       mockGetProducts.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useStoreKit());
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
+      // Advance through all retry attempts (3 retries with exponential backoff)
+      for (let i = 0; i < 4; i++) {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(10000);
+        });
+      }
 
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Failed to load products. Please try again.');
       expect(result.current.products).toEqual([]);
+      vi.useRealTimers();
     });
 
     it('should clear error on successful reload', async () => {
-      // First set up to always reject
+      vi.useFakeTimers();
       mockGetProducts.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useStoreKit());
 
-      // Wait for the error to be set after failed load
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.error).toBe('Failed to load products. Please try again.');
-      });
+      // Advance through all retry attempts
+      for (let i = 0; i < 4; i++) {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(10000);
+        });
+      }
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe('Failed to load products. Please try again.');
 
       // Reset mock to succeed for retry
       mockGetProducts.mockResolvedValue({ products: mockProducts });
@@ -399,6 +409,7 @@ describe('useStoreKit', () => {
 
       expect(result.current.error).toBeNull();
       expect(result.current.products).toEqual(mockProducts);
+      vi.useRealTimers();
     });
   });
 
@@ -1124,16 +1135,23 @@ describe('useStoreKit', () => {
 
   describe('Error Handling for Network Failures', () => {
     it('should handle network timeout on getProducts', async () => {
+      vi.useFakeTimers();
       mockGetProducts.mockRejectedValue(new Error('Network timeout'));
 
       const { result } = renderHook(() => useStoreKit());
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
+      // Advance through all retry attempts
+      for (let i = 0; i < 4; i++) {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(10000);
+        });
+      }
 
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Failed to load products. Please try again.');
       expect(result.current.products).toEqual([]);
+
+      vi.useRealTimers();
     });
 
     it('should handle network failure on purchase', async () => {
@@ -1177,16 +1195,21 @@ describe('useStoreKit', () => {
     });
 
     it('should allow retry after network failure', async () => {
+      vi.useFakeTimers();
       // First set up to always reject
       mockGetProducts.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useStoreKit());
 
-      // Wait for error to be set after failed load
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.error).toBe('Failed to load products. Please try again.');
-      });
+      // Advance through all retry attempts
+      for (let i = 0; i < 4; i++) {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(10000);
+        });
+      }
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe('Failed to load products. Please try again.');
 
       // Reset mock to succeed for retry
       mockGetProducts.mockResolvedValue({ products: mockProducts });
@@ -1197,6 +1220,8 @@ describe('useStoreKit', () => {
 
       expect(result.current.error).toBeNull();
       expect(result.current.products).toEqual(mockProducts);
+
+      vi.useRealTimers();
     });
   });
 

@@ -6,7 +6,6 @@ import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
 import { getCoinExclusiveAnimals } from "@/data/AnimalDatabase";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
 
-
 interface InventoryTabProps {
   equipBackground: (backgroundId: string | null) => boolean;
 }

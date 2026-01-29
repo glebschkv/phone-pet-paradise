@@ -375,7 +375,7 @@ describe('useShop', () => {
 
       expect(purchaseResult).toEqual({
         success: false,
-        message: 'Failed to process payment',
+        message: 'Your balance has been updated. Please try again.',
       });
     });
 
