@@ -54,7 +54,15 @@ export interface DeviceActivityPlugin {
   openSettings(): Promise<{ success: boolean }>;
 
   // App selection methods
-  openAppPicker(): Promise<{ success: boolean }>;
+  openAppPicker(): Promise<{
+    success: boolean;
+    cancelled?: boolean;
+    appsSelected?: number;
+    categoriesSelected?: number;
+    domainsSelected?: number;
+    hasSelection?: boolean;
+    reason?: string;
+  }>;
   setSelectedApps(options: { selection: string }): Promise<{ success: boolean; message: string }>;
   getSelectedApps(): Promise<AppSelection>;
   clearSelectedApps(): Promise<{ success: boolean }>;

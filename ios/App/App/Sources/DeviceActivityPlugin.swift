@@ -208,56 +208,122 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
     // MARK: - App Selection Methods
 
+    /// Reference to the pending picker call so it stays alive during presentation
+    private var pendingPickerCall: CAPPluginCall?
+
     @objc func openAppPicker(_ call: CAPPluginCall) {
+        Log.app.info("[openAppPicker] Method called")
+
+        // CRITICAL: Tell Capacitor to keep this call alive.
+        // Without this, Capacitor auto-resolves with {"success":true} when
+        // the method returns (before the async picker presentation completes).
+        call.keepAlive = true
+
         if #available(iOS 16.0, *) {
-            Task { @MainActor in
+            // Prevent multiple simultaneous picker presentations
+            if pendingPickerCall != nil {
+                Log.app.info("[openAppPicker] Picker already open, ignoring")
+                call.keepAlive = false
+                call.resolve(["success": false, "reason": "pickerAlreadyOpen"])
+                return
+            }
+
+            pendingPickerCall = call
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else {
+                    Log.app.info("[openAppPicker] Self deallocated")
+                    call.keepAlive = false
+                    call.reject("Plugin deallocated")
+                    return
+                }
+
                 guard let viewController = self.bridge?.viewController else {
+                    Log.app.info("[openAppPicker] No view controller available (bridge=\(String(describing: self.bridge)))")
+                    self.pendingPickerCall = nil
+                    call.keepAlive = false
                     call.reject("No view controller available")
                     return
                 }
 
-                // Load existing selection so the picker starts with current state
-                let existingSelection = blockingManager.loadActivitySelection() ?? FamilyActivitySelection()
+                Log.app.info("[openAppPicker] VC found: \(type(of: viewController)), presentedVC: \(String(describing: viewController.presentedViewController))")
 
-                let pickerView = AppPickerView(
-                    selection: existingSelection,
-                    onDone: { [weak self] selection in
-                        viewController.dismiss(animated: true) {
-                            guard let self = self else { return }
-                            do {
-                                try self.blockingManager.saveActivitySelection(selection)
-                                let apps = selection.applicationTokens.count
-                                let categories = selection.categoryTokens.count
-                                let domains = selection.webDomainTokens.count
-                                call.resolve([
-                                    "success": true,
-                                    "appsSelected": apps,
-                                    "categoriesSelected": categories,
-                                    "domainsSelected": domains,
-                                    "hasSelection": apps > 0 || categories > 0 || domains > 0
-                                ])
-                            } catch {
-                                Log.app.failure("Failed to save app selection", error: error)
-                                call.reject("Failed to save selection: \(error.localizedDescription)")
+                // Availability check needed again inside @escaping closure
+                // since Swift doesn't propagate availability context into escaping closures
+                if #available(iOS 16.0, *) {
+                    // Dismiss any existing presentation first
+                    if viewController.presentedViewController != nil {
+                        Log.app.info("[openAppPicker] Dismissing existing presented VC first")
+                        viewController.dismiss(animated: false) { [weak self] in
+                            if #available(iOS 16.0, *) {
+                                self?.presentAppPicker(from: viewController, call: call)
                             }
                         }
-                    },
-                    onCancel: {
-                        viewController.dismiss(animated: true) {
-                            call.resolve([
-                                "success": false,
-                                "cancelled": true
-                            ])
-                        }
+                    } else {
+                        self.presentAppPicker(from: viewController, call: call)
                     }
-                )
-
-                let hostingController = UIHostingController(rootView: pickerView)
-                hostingController.modalPresentationStyle = .formSheet
-                viewController.present(hostingController, animated: true)
+                }
             }
         } else {
+            Log.app.info("[openAppPicker] iOS 16+ not available")
+            call.keepAlive = false
             call.reject("FamilyActivityPicker requires iOS 16+")
+        }
+    }
+
+    @available(iOS 16.0, *)
+    private func presentAppPicker(from viewController: UIViewController, call: CAPPluginCall) {
+        Log.app.info("[openAppPicker] Presenting picker...")
+
+        // Load existing selection so the picker starts with current state
+        let existingSelection = blockingManager.loadActivitySelection() ?? FamilyActivitySelection()
+        Log.app.info("[openAppPicker] Existing selection: \(existingSelection.applicationTokens.count) apps, \(existingSelection.categoryTokens.count) categories")
+
+        let pickerView = AppPickerView(
+            selection: existingSelection,
+            onDone: { [weak self] selection in
+                Log.app.info("[openAppPicker] User tapped Done with \(selection.applicationTokens.count) apps")
+                viewController.dismiss(animated: true) {
+                    guard let self = self else { return }
+                    self.pendingPickerCall = nil
+                    do {
+                        try self.blockingManager.saveActivitySelection(selection)
+                        let apps = selection.applicationTokens.count
+                        let categories = selection.categoryTokens.count
+                        let domains = selection.webDomainTokens.count
+                        Log.app.info("[openAppPicker] Selection saved: \(apps) apps, \(categories) categories, \(domains) domains")
+                        call.keepAlive = false
+                        call.resolve([
+                            "success": true,
+                            "appsSelected": apps,
+                            "categoriesSelected": categories,
+                            "domainsSelected": domains,
+                            "hasSelection": apps > 0 || categories > 0 || domains > 0
+                        ])
+                    } catch {
+                        Log.app.failure("Failed to save app selection", error: error)
+                        call.keepAlive = false
+                        call.reject("Failed to save selection: \(error.localizedDescription)")
+                    }
+                }
+            },
+            onCancel: { [weak self] in
+                Log.app.info("[openAppPicker] User tapped Cancel")
+                viewController.dismiss(animated: true) {
+                    self?.pendingPickerCall = nil
+                    call.keepAlive = false
+                    call.resolve([
+                        "success": false,
+                        "cancelled": true
+                    ])
+                }
+            }
+        )
+
+        let hostingController = UIHostingController(rootView: pickerView)
+        hostingController.modalPresentationStyle = .formSheet
+        viewController.present(hostingController, animated: true) {
+            Log.app.info("[openAppPicker] Picker presented successfully")
         }
     }
 

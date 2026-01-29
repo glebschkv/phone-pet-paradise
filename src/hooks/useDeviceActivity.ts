@@ -467,11 +467,35 @@ export const useDeviceActivity = () => {
       return;
     }
 
-    await safePluginCall(
+    const { result, success } = await safePluginCall(
       () => DeviceActivity.openAppPicker(),
-      undefined,
+      { success: false },
       'openAppPicker'
     );
+
+    if (success && result?.success) {
+      deviceActivityLogger.info(
+        `App picker done: ${result.appsSelected ?? 0} apps, ${result.categoriesSelected ?? 0} categories`
+      );
+      // Refresh blocking status after selection change
+      const { result: status } = await safePluginCall(
+        () => DeviceActivity.getBlockingStatus(),
+        {
+          isBlocking: false,
+          focusSessionActive: false,
+          shieldAttempts: 0,
+          lastShieldAttemptTimestamp: 0,
+          hasAppsConfigured: false,
+        } as BlockingStatus,
+        'getBlockingStatus-afterPicker'
+      );
+      setState(prev => ({
+        ...prev,
+        hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
+      }));
+    } else if (result?.cancelled) {
+      deviceActivityLogger.info('App picker cancelled by user');
+    }
   }, [state.pluginAvailable]);
 
   // Update simulated app selection (for web)
