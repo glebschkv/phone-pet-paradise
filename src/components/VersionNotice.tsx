@@ -64,7 +64,7 @@ export const VersionNotice = () => {
                 Please report any issues or feedback so we can make the app better for everyone.
               </p>
               <a
-                href="mailto:support@phonepetparadise.com?subject=Bug%20Report%20-%20v1.0"
+                href="mailto:report@nomoinc.co?subject=Bug%20Report%20-%20v1.0"
                 className="inline-flex items-center gap-1.5 mt-2 text-blue-500 hover:text-blue-600 font-medium transition-colors"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
