@@ -39,10 +39,10 @@ export const VersionNotice = () => {
           </div>
 
           <h2 className="text-xl font-bold">
-            Welcome to v1.0!
+            Version 1.0
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Thanks for being an early adopter!
+            Thanks for downloading!
           </p>
         </div>
 
@@ -52,8 +52,8 @@ export const VersionNotice = () => {
             <div className="flex items-start gap-3">
               <span className="text-xl flex-shrink-0">💜</span>
               <p className="text-sm text-muted-foreground">
-                This app is made by a <span className="font-bold text-foreground">solo indie developer</span>.
-                We apologise if you run into any bugs or rough edges — your patience means the world!
+                This app is built by a <span className="font-bold text-foreground">solo indie developer</span>.
+                Sorry if you run into any bugs or rough edges — it's still early days and things are actively being improved.
               </p>
             </div>
           </div>
@@ -63,9 +63,9 @@ export const VersionNotice = () => {
             <div className="flex items-start gap-3">
               <span className="text-xl flex-shrink-0">🐛</span>
               <div className="text-sm text-muted-foreground">
-                <p className="font-bold text-foreground mb-1">Spotted a bug?</p>
+                <p className="font-bold text-foreground mb-1">Report a bug</p>
                 <p>
-                  Let us know so we can squash it and make things better for everyone!
+                  If something isn't working right, send us an email and we'll look into it.
                 </p>
                 <a
                   href="mailto:report@nomoinc.co?subject=Bug%20Report%20-%20v1.0"
@@ -90,7 +90,7 @@ export const VersionNotice = () => {
             onClick={handleDismiss}
             className="w-full py-3.5 rounded-lg font-bold text-sm retro-arcade-btn retro-arcade-btn-green transition-all active:scale-95 touch-manipulation"
           >
-            Let's Go!
+            Got it
           </button>
         </div>
       </DialogContent>
