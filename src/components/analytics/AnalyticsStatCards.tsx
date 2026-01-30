@@ -29,38 +29,41 @@ export const AnalyticsStatCards = ({
   };
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-2.5">
       {/* Today's Focus */}
       <div className="retro-card p-3 text-center">
-        <div className="w-8 h-8 mx-auto mb-1.5 retro-level-badge rounded-lg flex items-center justify-center">
+        <div className="w-9 h-9 mx-auto mb-2 retro-level-badge rounded-lg flex items-center justify-center">
           <Clock className="w-4 h-4" />
         </div>
-        <div className="text-lg font-bold leading-tight">
+        <div className="text-base font-extrabold leading-tight tabular-nums">
           {formatDuration(todayFocusTime)}
         </div>
-        <div className="text-[10px] text-muted-foreground font-medium">Today</div>
+        <div className="text-[10px] text-muted-foreground font-semibold mt-0.5 uppercase tracking-wider">Today</div>
       </div>
 
       {/* Current Streak */}
       <div className="retro-card p-3 text-center">
-        <div className="w-8 h-8 mx-auto mb-1.5 bg-gradient-to-b from-orange-400 to-orange-500 rounded-lg flex items-center justify-center text-white shadow-sm">
+        <div className="w-9 h-9 mx-auto mb-2 bg-gradient-to-b from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white shadow-sm">
           <Flame className="w-4 h-4" />
         </div>
-        <div className="text-lg font-bold leading-tight">{currentStreak}</div>
-        <div className="text-[10px] text-muted-foreground font-medium">Day Streak</div>
+        <div className="text-base font-extrabold leading-tight tabular-nums">{currentStreak}</div>
+        <div className="text-[10px] text-muted-foreground font-semibold mt-0.5 uppercase tracking-wider">Streak</div>
       </div>
 
       {/* Weekly Focus */}
       <div className="retro-card p-3 text-center">
-        <div className="w-8 h-8 mx-auto mb-1.5 retro-stat-pill rounded-lg flex items-center justify-center">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
+        <div className="w-9 h-9 mx-auto mb-2 bg-gradient-to-b from-primary/80 to-primary rounded-lg flex items-center justify-center text-white shadow-sm">
+          <Calendar className="w-4 h-4" />
         </div>
-        <div className="text-lg font-bold leading-tight">
+        <div className="text-base font-extrabold leading-tight tabular-nums">
           {formatDuration(weeklyFocusTime)}
         </div>
-        <div className={cn("text-[10px] font-medium flex items-center justify-center gap-0.5", getTrendColor())}>
+        <div className={cn(
+          "text-[10px] font-bold flex items-center justify-center gap-0.5 mt-0.5",
+          getTrendColor()
+        )}>
           {getTrendIcon()}
-          {Math.abs(weekOverWeekChange)}%
+          {weekOverWeekChange > 0 ? "+" : ""}{Math.abs(weekOverWeekChange)}%
         </div>
       </div>
     </div>
