@@ -73,7 +73,7 @@ export const AnalyticsComparison = ({ thisWeek, lastWeek, formatDuration }: Comp
         <span className="text-sm font-bold">Week vs Week</span>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-2">
         {comparisons.map((item) => {
           const indicator = getChangeIndicator(item.change);
           const IndicatorIcon = indicator.icon;
@@ -81,27 +81,26 @@ export const AnalyticsComparison = ({ thisWeek, lastWeek, formatDuration }: Comp
           return (
             <div
               key={item.label}
-              className="flex items-center justify-between p-2 rounded-lg bg-muted/30"
+              className="p-2.5 rounded-lg bg-muted/20"
             >
-              <div className="flex-1">
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
                   {item.label}
                 </div>
-                <div className="flex items-baseline gap-2 mt-0.5">
-                  <span className="text-sm font-bold">{item.thisWeek}</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    vs {item.lastWeek}
-                  </span>
+                <div className={cn(
+                  "flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold",
+                  indicator.bgColor,
+                  indicator.color
+                )}>
+                  <IndicatorIcon className="w-2.5 h-2.5" />
+                  {indicator.label}
                 </div>
               </div>
-
-              <div className={cn(
-                "flex items-center gap-0.5 px-2 py-1 rounded-md text-xs font-semibold",
-                indicator.bgColor,
-                indicator.color
-              )}>
-                <IndicatorIcon className="w-3 h-3" />
-                {indicator.label}
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-sm font-extrabold tabular-nums">{item.thisWeek}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  vs {item.lastWeek}
+                </span>
               </div>
             </div>
           );

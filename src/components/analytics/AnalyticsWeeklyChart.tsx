@@ -47,17 +47,17 @@ export const AnalyticsWeeklyChart = ({ dailyStats, dailyGoalMinutes }: WeeklyCha
       <SimpleBarChart data={chartData} />
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mt-2 text-[10px] text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-sm bg-primary" />
+      <div className="flex items-center justify-center gap-3 mt-3 pt-2 border-t border-border/30 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded bg-primary" />
           <span>Focus Time</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-sm bg-green-500" />
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded bg-green-500" />
           <span>Goal Met</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 border-t border-dashed border-primary/50" />
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 border-t-2 border-dashed border-primary/40" />
           <span>Daily Goal</span>
         </div>
       </div>

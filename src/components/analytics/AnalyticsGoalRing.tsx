@@ -18,8 +18,8 @@ export const AnalyticsGoalRing = ({
   const isGoalMet = currentMinutes >= goalMinutes;
 
   // SVG circle parameters
-  const size = 120;
-  const strokeWidth = 10;
+  const size = 128;
+  const strokeWidth = 12;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
@@ -30,14 +30,14 @@ export const AnalyticsGoalRing = ({
         <Target className="w-4 h-4 text-primary" />
         <span className="text-sm font-bold">Daily Goal</span>
         {goalStreak > 0 && (
-          <div className="ml-auto flex items-center gap-1 text-orange-500">
+          <div className="ml-auto flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500">
             <Flame className="w-3.5 h-3.5" />
             <span className="text-xs font-bold">{goalStreak} day streak</span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-5">
         {/* Progress Ring */}
         <div className="relative flex-shrink-0">
           <svg width={size} height={size} className="transform -rotate-90">
@@ -49,7 +49,7 @@ export const AnalyticsGoalRing = ({
               strokeWidth={strokeWidth}
               stroke="currentColor"
               fill="none"
-              className="text-muted/20"
+              className="text-muted/30"
             />
             {/* Progress circle */}
             <circle
@@ -63,37 +63,40 @@ export const AnalyticsGoalRing = ({
               strokeDasharray={circumference}
               strokeDashoffset={offset}
               className={cn(
-                "transition-all duration-500",
+                "transition-all duration-700",
                 isGoalMet ? "text-green-500" : "text-primary"
               )}
+              style={{
+                filter: isGoalMet ? "drop-shadow(0 0 6px hsl(142 71% 45% / 0.4))" : undefined,
+              }}
             />
           </svg>
           {/* Center text */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className={cn(
-              "text-2xl font-bold",
-              isGoalMet && "text-green-500"
+              "text-2xl font-extrabold tabular-nums",
+              isGoalMet ? "text-green-500" : ""
             )}>
               {percentage}%
             </span>
             {isGoalMet && (
-              <span className="text-[10px] text-green-500 font-semibold">COMPLETE</span>
+              <span className="text-[10px] text-green-600 font-bold tracking-wide">COMPLETE</span>
             )}
           </div>
         </div>
 
         {/* Stats */}
-        <div className="flex-1 space-y-2">
-          <div>
-            <div className="text-xs text-muted-foreground">Progress</div>
-            <div className="text-base font-bold">
-              {formatDuration(currentMinutes * 60)} / {formatDuration(goalMinutes * 60)}
+        <div className="flex-1 space-y-3">
+          <div className="p-2.5 rounded-lg bg-muted/20">
+            <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Progress</div>
+            <div className="text-sm font-bold mt-0.5">
+              {formatDuration(currentMinutes * 60)} <span className="text-muted-foreground font-normal">/</span> {formatDuration(goalMinutes * 60)}
             </div>
           </div>
-          <div>
-            <div className="text-xs text-muted-foreground">Remaining</div>
+          <div className="p-2.5 rounded-lg bg-muted/20">
+            <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Remaining</div>
             <div className={cn(
-              "text-base font-bold",
+              "text-sm font-bold mt-0.5",
               isGoalMet ? "text-green-500" : ""
             )}>
               {isGoalMet ? "Goal reached!" : formatDuration(Math.max(0, goalMinutes - currentMinutes) * 60)}
