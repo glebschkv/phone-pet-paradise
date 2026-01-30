@@ -77,10 +77,6 @@ export const useSettings = () => {
       if (newSettings.theme) {
         applyTheme(newSettings.theme);
       }
-
-      toast.success("Settings Saved", {
-        description: "Your preferences have been updated.",
-      });
     } catch (error) {
       settingsLogger.error('Failed to save settings:', error);
       toast.error("Save Error", {

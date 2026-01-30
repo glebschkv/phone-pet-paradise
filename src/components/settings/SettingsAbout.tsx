@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 export const SettingsAbout = () => {
   const navigate = useNavigate();
   const appVersion = "1.0.0";
-  const buildDate = new Date().toLocaleDateString();
 
   const openLink = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -14,30 +13,43 @@ export const SettingsAbout = () => {
   return (
     <div className="space-y-3">
       {/* App Info */}
-      <div className="retro-card p-4 overflow-hidden">
-        <div className="text-center py-4" style={{
-          background: 'linear-gradient(180deg, hsl(45 80% 90%) 0%, transparent 100%)',
-          margin: '-1rem -1rem 1rem -1rem',
-          padding: '1.5rem 1rem'
+      <div className="retro-card p-0 overflow-hidden">
+        <div className="text-center px-4 pt-6 pb-4" style={{
+          background: 'linear-gradient(180deg, hsl(45 80% 85%) 0%, hsl(35 60% 88%) 60%, hsl(var(--card)) 100%)',
         }}>
-          <div className="text-5xl mb-3">📵</div>
-          <h2 className="text-lg font-bold">NoMo Phone</h2>
-          <p className="text-xs text-muted-foreground mt-1">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3"
+            style={{
+              background: 'linear-gradient(145deg, hsl(260 55% 58%) 0%, hsl(260 50% 45%) 100%)',
+              border: '3px solid hsl(260 45% 38%)',
+              boxShadow: '0 4px 0 hsl(260 45% 30%), inset 0 2px 0 hsl(260 60% 75% / 0.4)',
+            }}
+          >
+            <span className="text-3xl">📵</span>
+          </div>
+          <h2 className="text-lg font-black uppercase tracking-tight">NoMo Phone</h2>
+          <p className="text-xs text-muted-foreground mt-1 font-medium">
             Put down your phone, grow your island
           </p>
           <div className="flex items-center justify-center gap-2 mt-3">
-            <Badge className="retro-stat-pill text-[10px] font-bold px-2 py-1">
+            <Badge className="text-[10px] font-bold px-2.5 py-1 rounded-md"
+              style={{
+                background: 'linear-gradient(180deg, hsl(45 90% 65%) 0%, hsl(35 85% 52%) 100%)',
+                border: '2px solid hsl(30 80% 45%)',
+                color: 'hsl(30 60% 15%)',
+                boxShadow: '0 2px 0 hsl(30 80% 38%), inset 0 1px 0 hsl(50 100% 85% / 0.5)',
+              }}
+            >
               v{appVersion}
-            </Badge>
-            <Badge variant="outline" className="text-[10px] font-medium px-2 py-1">
-              {buildDate}
             </Badge>
           </div>
         </div>
-
-        <p className="text-xs text-muted-foreground text-center">
-          Stay focused, earn rewards, and grow your island.
-        </p>
+        <div className="px-4 py-3 text-center" style={{
+          borderTop: '2px solid hsl(var(--border) / 0.3)',
+        }}>
+          <p className="text-xs text-muted-foreground font-medium">
+            Stay focused, earn rewards, and grow your island.
+          </p>
+        </div>
       </div>
 
       {/* Legal */}
@@ -76,7 +88,13 @@ export const SettingsAbout = () => {
 
           <button
             onClick={() => openLink('https://nomoinc.co')}
-            className="w-full p-3 rounded-lg flex items-center gap-3 transition-all active:scale-95 bg-gradient-to-b from-blue-400 to-blue-500 text-white border-2 border-blue-600"
+            className="w-full p-3 rounded-lg flex items-center gap-3 transition-all active:scale-95"
+            style={{
+              background: 'linear-gradient(180deg, hsl(210 70% 55%) 0%, hsl(210 65% 45%) 100%)',
+              border: '2px solid hsl(210 60% 38%)',
+              color: 'white',
+              boxShadow: '0 3px 0 hsl(210 60% 30%), inset 0 1px 0 hsl(210 80% 70% / 0.4)',
+            }}
           >
             <Heart className="w-5 h-5" />
             <span className="text-sm font-bold flex-1 text-left">Visit NoMo Inc.</span>
