@@ -1,6 +1,7 @@
 import { FocusCategory, FOCUS_CATEGORIES } from "@/types/analytics";
 import { cn } from "@/lib/utils";
 import { LayoutGrid } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
 const CATEGORY_COLORS: Record<string, { bar: string; bg: string; text: string }> = {
   work: { bar: "bg-blue-500", bg: "bg-blue-500/10", text: "text-blue-600" },
@@ -57,7 +58,7 @@ export const AnalyticsCategoryBreakdown = ({
                   "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-base",
                   colors.bg,
                 )}>
-                  {cat.emoji}
+                  <PixelIcon name={cat.icon} size={20} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
