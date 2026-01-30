@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useSettings } from "@/hooks/useSettings";
 import { SettingsAppearance } from "@/components/settings/SettingsAppearance";
 import { SettingsTimer } from "@/components/settings/SettingsTimer";
@@ -10,45 +10,25 @@ import { SettingsAccount } from "@/components/settings/SettingsAccount";
 import { SettingsProfile } from "@/components/settings/SettingsProfile";
 import { SettingsAnalytics } from "@/components/settings/SettingsAnalytics";
 import { SettingsFocusMode } from "@/components/settings/SettingsFocusMode";
-import { Loader2, Palette, Clock, Volume2, Gamepad2, Database, Heart, Settings as SettingsIcon, UserCircle, BarChart3, Shield } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, Clock, Database, Heart, Settings as SettingsIcon, UserCircle, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { id: "account", label: "Account", icon: UserCircle },
-  { id: "appearance", label: "Theme", icon: Palette },
-  { id: "timer", label: "Timer", icon: Clock },
-  { id: "focus", label: "Focus", icon: Shield },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "sound", label: "Sound", icon: Volume2 },
-  { id: "game", label: "Game", icon: Gamepad2 },
-  { id: "data", label: "Data", icon: Database },
+  { id: "general", label: "General", icon: SlidersHorizontal },
+  { id: "timer", label: "Timer & Focus", icon: Clock },
+  { id: "data", label: "Data & Privacy", icon: Database },
   { id: "about", label: "About", icon: Heart },
 ];
 
 export const Settings = () => {
   const { settings, isLoading, updateSettings, resetSettings, exportSettings, importSettings } = useSettings();
   const [activeTab, setActiveTab] = useState("account");
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const activeTabRef = useRef<HTMLButtonElement>(null);
-
-  // Scroll active tab into view
-  useEffect(() => {
-    if (activeTabRef.current && tabsRef.current) {
-      const container = tabsRef.current;
-      const tab = activeTabRef.current;
-      const containerRect = container.getBoundingClientRect();
-      const tabRect = tab.getBoundingClientRect();
-
-      const scrollLeft = tab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
-      container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-    }
-  }, [activeTab]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{
-        background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-      }}>
+      <div className="retro-shop-container h-full flex items-center justify-center">
         <div className="retro-card p-6 flex items-center gap-3">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
           <span className="text-sm font-medium">Loading settings...</span>
@@ -58,49 +38,47 @@ export const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen pb-24" style={{
-      background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-    }}>
+    <div className="retro-shop-container h-full flex flex-col">
+      <div className="retro-corner retro-corner-tl" />
+      <div className="retro-corner retro-corner-tr" />
+
       {/* Header */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 retro-level-badge rounded-xl flex items-center justify-center">
-            <SettingsIcon className="w-5 h-5" />
+      <div className="retro-shop-header mx-3 mt-3">
+        <div className="flex items-center gap-3 p-4">
+          <div className="retro-shop-icon">
+            <SettingsIcon className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Settings</h1>
-            <p className="text-xs text-muted-foreground">Customize your experience</p>
+            <h1 className="text-lg font-black uppercase tracking-tight">Settings</h1>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+              Customize Your Experience
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Scrollable Tab Navigation */}
-      <div className="px-3 pb-3">
-        <div
-          ref={tabsRef}
-          className="flex gap-2 overflow-x-auto scrollbar-hide py-1 -mx-1 px-1"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
+      {/* Tab Navigation */}
+      <div className="mx-3 mt-3">
+        <div className="flex gap-2 pb-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
-                ref={isActive ? activeTabRef : null}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap transition-all active:scale-95 flex-shrink-0",
-                  isActive
-                    ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 shadow-md"
-                    : "retro-card text-muted-foreground"
+                  "retro-category-tab",
+                  isActive && "retro-category-tab-active"
                 )}
-                style={isActive ? {
-                  boxShadow: '0 3px 0 hsl(35 80% 35%), inset 0 1px 0 hsl(45 100% 70% / 0.3)'
-                } : {}}
               >
-                <Icon className="w-4 h-4" />
-                <span className="text-sm font-semibold">{tab.label}</span>
+                <div className="retro-category-icon">
+                  <Icon className={cn(
+                    "w-4 h-4",
+                    isActive ? "opacity-100 drop-shadow-sm" : "opacity-40"
+                  )} />
+                </div>
+                <span className="retro-category-tab-label">{tab.label}</span>
               </button>
             );
           })}
@@ -108,64 +86,60 @@ export const Settings = () => {
       </div>
 
       {/* Content */}
-      <div className="px-3">
-        {activeTab === "account" && (
-          <div className="space-y-3">
-            <SettingsProfile />
-            <SettingsAccount />
-          </div>
-        )}
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="px-3 pt-3 pb-6">
+          {activeTab === "account" && (
+            <div className="space-y-3">
+              <SettingsProfile />
+              <SettingsAccount />
+            </div>
+          )}
 
-        {activeTab === "appearance" && (
-          <SettingsAppearance
-            settings={settings}
-            onUpdate={updateSettings}
-          />
-        )}
+          {activeTab === "general" && (
+            <div className="space-y-3">
+              <SettingsAppearance
+                settings={settings}
+                onUpdate={updateSettings}
+              />
+              <SettingsSound
+                settings={settings}
+                onUpdate={updateSettings}
+              />
+              <SettingsGame
+                settings={settings}
+                onUpdate={updateSettings}
+              />
+            </div>
+          )}
 
-        {activeTab === "timer" && (
-          <SettingsTimer
-            settings={settings}
-            onUpdate={updateSettings}
-          />
-        )}
+          {activeTab === "timer" && (
+            <div className="space-y-3">
+              <SettingsTimer
+                settings={settings}
+                onUpdate={updateSettings}
+              />
+              <SettingsFocusMode />
+            </div>
+          )}
 
-        {activeTab === "focus" && (
-          <SettingsFocusMode />
-        )}
+          {activeTab === "data" && (
+            <div className="space-y-3">
+              <SettingsAnalytics />
+              <SettingsData
+                settings={settings}
+                onUpdate={updateSettings}
+                onReset={resetSettings}
+                onExport={exportSettings}
+                onImport={importSettings}
+              />
+            </div>
+          )}
 
-        {activeTab === "analytics" && (
-          <SettingsAnalytics />
-        )}
-
-        {activeTab === "sound" && (
-          <SettingsSound
-            settings={settings}
-            onUpdate={updateSettings}
-          />
-        )}
-
-        {activeTab === "game" && (
-          <SettingsGame
-            settings={settings}
-            onUpdate={updateSettings}
-          />
-        )}
-
-        {activeTab === "data" && (
-          <SettingsData
-            settings={settings}
-            onUpdate={updateSettings}
-            onReset={resetSettings}
-            onExport={exportSettings}
-            onImport={importSettings}
-          />
-        )}
-
-        {activeTab === "about" && (
-          <SettingsAbout />
-        )}
-      </div>
+          {activeTab === "about" && (
+            <SettingsAbout />
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 };
