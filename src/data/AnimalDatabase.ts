@@ -906,7 +906,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 72,
       frameHeight: 72,
       animationSpeed: 10,
-      walkRows: 1
+      walkRows: 1,
+      facesLeft: true
     }
   },
   {
@@ -927,7 +928,8 @@ export const ANIMAL_DATABASE: AnimalData[] = [
       frameWidth: 72,
       frameHeight: 72,
       animationSpeed: 8,
-      walkRows: 1
+      walkRows: 1,
+      facesLeft: true
     }
   },
   {
