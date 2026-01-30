@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { Crown, ChevronRight, Check, Coins } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
-import { BackgroundBundle, ShopItem, COIN_PACKS } from "@/data/ShopData";
+import { BackgroundBundle, ShopItem, COIN_PACKS, StarterBundle, CoinPack } from "@/data/ShopData";
 import { BACKGROUND_BUNDLES, STARTER_BUNDLES } from "@/data/ShopData";
 import type { ShopInventory } from "@/hooks/useShop";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
 import { SpritePreview, BundlePreviewCarousel } from "../ShopPreviewComponents";
+import { BundleConfirmDialog } from "../BundleConfirmDialog";
 import type { ShopCategory } from "@/data/ShopData";
 import { useStoreKit } from "@/hooks/useStoreKit";
 
@@ -41,30 +43,62 @@ export const FeaturedTab = ({
 }: FeaturedTabProps) => {
   const bestSellingPets = getCoinExclusiveAnimals().slice(0, 2);
   const storeKit = useStoreKit();
-  const megaPack = COIN_PACKS.find(pack => pack.id === 'coins-mega');
+  const bestValuePack = COIN_PACKS.find(pack => pack.isBestValue) || COIN_PACKS[COIN_PACKS.length - 1];
 
-  const handlePurchaseMegaPack = async () => {
-    if (!megaPack?.iapProductId) {
+  // State for IAP bundle confirmation dialog
+  const [selectedBundle, setSelectedBundle] = useState<StarterBundle | CoinPack | null>(null);
+  const [showBundleConfirm, setShowBundleConfirm] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
+  const handleIAPPurchase = async () => {
+    if (!selectedBundle?.iapProductId) {
       toast.error("Product not available");
       return;
     }
 
+    setIsPurchasing(true);
     try {
-      const result = await storeKit.purchaseProduct(megaPack.iapProductId);
+      // Check if it's a starter bundle (has contents to grant)
+      const isStarterBundle = 'contents' in selectedBundle;
+
+      const result = await storeKit.purchaseProduct(selectedBundle.iapProductId);
       if (result.success) {
-        toast.success(`Successfully purchased ${megaPack.name}!`);
+        // For starter bundles, also grant the in-app contents
+        if (isStarterBundle) {
+          const grantResult = await purchaseStarterBundle(selectedBundle.id);
+          toast.success(grantResult.message || `Successfully purchased ${selectedBundle.name}!`);
+        } else {
+          toast.success(`Successfully purchased ${selectedBundle.name}!`);
+        }
+        setShowBundleConfirm(false);
       } else if (result.cancelled) {
-        // User cancelled - no toast needed
+        // User cancelled — no toast needed
       } else {
         toast.error(result.message || "Purchase failed");
       }
     } catch (_error) {
       toast.error("Unable to complete purchase");
+    } finally {
+      setIsPurchasing(false);
     }
   };
 
   return (
     <div className="space-y-4">
+      {/* IAP Bundle Confirmation Dialog */}
+      <BundleConfirmDialog
+        open={showBundleConfirm}
+        onOpenChange={(open) => {
+          if (!isPurchasing) {
+            setShowBundleConfirm(open);
+            if (!open) setSelectedBundle(null);
+          }
+        }}
+        bundle={selectedBundle}
+        onPurchase={handleIAPPurchase}
+        isPurchasing={isPurchasing}
+      />
+
       {/* Premium Hero Card - Clean and Focused */}
       {!isPremium ? (
         <button
@@ -186,17 +220,13 @@ export const FeaturedTab = ({
             return (
               <button
                 key={bundle.id}
-                onClick={async () => {
+                onClick={() => {
                   if (alreadyPurchased) {
                     toast.info("You already have all items from this bundle!");
                     return;
                   }
-                  const result = await purchaseStarterBundle(bundle.id);
-                  if (result.success) {
-                    toast.success(result.message);
-                  } else {
-                    toast.error(result.message);
-                  }
+                  setSelectedBundle(bundle);
+                  setShowBundleConfirm(true);
                 }}
                 className={cn(
                   "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2",
@@ -236,32 +266,37 @@ export const FeaturedTab = ({
         </div>
       </div>
 
-      {/* Best Selling Coin Pack */}
+      {/* Best Value Coin Pack */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
           <PixelIcon name="money-bag" size={16} /> Best Value
         </h4>
         <button
-          onClick={handlePurchaseMegaPack}
+          onClick={() => {
+            setSelectedBundle(bestValuePack);
+            setShowBundleConfirm(true);
+          }}
           className="w-full p-4 rounded-xl text-left bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-3">
             <PixelIcon name="trophy" size={36} />
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-bold">Mega Pack</span>
+                <span className="font-bold">{bestValuePack.name}</span>
                 <span className="px-2 py-0.5 bg-amber-500 text-white text-[9px] font-bold rounded-full">
                   BEST VALUE
                 </span>
               </div>
               <div className="flex items-center gap-1 mt-1">
                 <Coins className="w-4 h-4 text-amber-500" />
-                <span className="text-amber-600 dark:text-amber-400 font-bold">15,000</span>
-                <span className="text-green-600 dark:text-green-400 font-bold text-sm">+2,500 bonus</span>
+                <span className="text-amber-600 dark:text-amber-400 font-bold">{bestValuePack.coinAmount.toLocaleString()}</span>
+                {bestValuePack.bonusCoins && bestValuePack.bonusCoins > 0 && (
+                  <span className="text-green-600 dark:text-green-400 font-bold text-sm">+{bestValuePack.bonusCoins.toLocaleString()} bonus</span>
+                )}
               </div>
             </div>
             <span className="text-xl font-black text-amber-600 dark:text-amber-400">
-              $19.99
+              {bestValuePack.iapPrice}
             </span>
           </div>
         </button>

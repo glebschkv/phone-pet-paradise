@@ -16,6 +16,8 @@ import {
   Snowflake,
   Award,
   Infinity as InfinityIcon,
+  Loader2,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePremiumStatus, SUBSCRIPTION_PLANS, SubscriptionPlan } from '@/hooks/usePremiumStatus';
@@ -25,48 +27,77 @@ import { Capacitor } from '@capacitor/core';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { DialogTitle } from '@/components/ui/dialog';
 
 interface PremiumSubscriptionProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const FEATURE_ICONS: Record<string, React.ReactNode> = {
-  // Multipliers
-  '2x Coin & XP multiplier': <Zap className="w-4 h-4" />,
-  '3x Coin & XP multiplier': <Zap className="w-4 h-4" />,
-  '4x Coin & XP multiplier': <Zap className="w-4 h-4" />,
-  // Sounds
-  'All 13 ambient sounds': <Volume2 className="w-4 h-4" />,
-  // Timer
-  'Auto-break Pomodoro cycles': <Timer className="w-4 h-4" />,
-  'Session notes & reflections': <PenLine className="w-4 h-4" />,
-  'Focus analytics dashboard': <BarChart3 className="w-4 h-4" />,
-  // Streak freezes
-  '2 Streak Freezes/month': <Snowflake className="w-4 h-4" />,
-  '5 Streak Freezes/month': <Snowflake className="w-4 h-4" />,
-  '7 Streak Freezes/month': <Snowflake className="w-4 h-4" />,
-  // Sound mixing
-  'Sound mixing (2 layers)': <Music className="w-4 h-4" />,
-  'Sound mixing (3 layers)': <Music className="w-4 h-4" />,
-  // Presets
-  '3 Focus presets': <Settings className="w-4 h-4" />,
-  '5 Focus presets': <Settings className="w-4 h-4" />,
-  '10 Focus presets': <Settings className="w-4 h-4" />,
-  // Premium+
-  'Everything in Premium': <Check className="w-4 h-4" />,
-  'Everything in Premium+': <Check className="w-4 h-4" />,
-  'Battle Pass Premium included': <Award className="w-4 h-4" />,
-  'Early access to features': <Zap className="w-4 h-4" />,
-  'Exclusive profile frames': <Star className="w-4 h-4" />,
-  // Lifetime
-  'No recurring fees ever': <InfinityIcon className="w-4 h-4" />,
-  'All future updates included': <RefreshCw className="w-4 h-4" />,
-  'Exclusive Founder badge': <Star className="w-4 h-4" />,
-  'Founder-only legendary pet': <Sparkles className="w-4 h-4" />,
+// Compact feature display with icons and short labels
+const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string }> = {
+  '1.5x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '1.5x Coins & XP' },
+  '2x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '2x Coins & XP' },
+  '2.5x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '2.5x Coins & XP' },
+  'All 13 ambient sounds': { icon: <Volume2 className="w-3.5 h-3.5" />, label: '13 Sounds' },
+  'Auto-break Pomodoro cycles': { icon: <Timer className="w-3.5 h-3.5" />, label: 'Auto Pomodoro' },
+  'Session notes & reflections': { icon: <PenLine className="w-3.5 h-3.5" />, label: 'Session Notes' },
+  'Focus analytics dashboard': { icon: <BarChart3 className="w-3.5 h-3.5" />, label: 'Analytics' },
+  '2 Streak Freezes/month': { icon: <Snowflake className="w-3.5 h-3.5" />, label: '2 Freezes/mo' },
+  '5 Streak Freezes/month': { icon: <Snowflake className="w-3.5 h-3.5" />, label: '5 Freezes/mo' },
+  '7 Streak Freezes/month': { icon: <Snowflake className="w-3.5 h-3.5" />, label: '7 Freezes/mo' },
+  'Sound mixing (2 layers)': { icon: <Music className="w-3.5 h-3.5" />, label: '2-Layer Mix' },
+  'Sound mixing (3 layers)': { icon: <Music className="w-3.5 h-3.5" />, label: '3-Layer Mix' },
+  '3 Focus presets': { icon: <Settings className="w-3.5 h-3.5" />, label: '3 Presets' },
+  '5 Focus presets': { icon: <Settings className="w-3.5 h-3.5" />, label: '5 Presets' },
+  '10 Focus presets': { icon: <Settings className="w-3.5 h-3.5" />, label: '10 Presets' },
+  'Everything in Premium': { icon: <Check className="w-3.5 h-3.5" />, label: 'All Premium' },
+  'Everything in Premium+': { icon: <Check className="w-3.5 h-3.5" />, label: 'All Premium+' },
+  'Battle Pass Premium included': { icon: <Award className="w-3.5 h-3.5" />, label: 'Battle Pass' },
+  'Early access to features': { icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Early Access' },
+  'Exclusive profile frames': { icon: <Star className="w-3.5 h-3.5" />, label: 'Profile Frames' },
+  'No recurring fees ever': { icon: <InfinityIcon className="w-3.5 h-3.5" />, label: 'Pay Once' },
+  'All future updates included': { icon: <RefreshCw className="w-3.5 h-3.5" />, label: 'All Updates' },
+  'Exclusive Founder badge': { icon: <Shield className="w-3.5 h-3.5" />, label: 'Founder Badge' },
+  'Founder-only legendary pet': { icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Legendary Pet' },
+};
+
+const TIER_CONFIG = {
+  premium: {
+    headerGradient: 'from-amber-500 to-orange-500',
+    borderColor: 'border-amber-400/50 dark:border-amber-500/40',
+    accentColor: 'text-amber-500',
+    iconColor: 'text-amber-400',
+    featureBg: 'bg-amber-500/8 border-amber-500/15',
+    buttonGradient: 'from-amber-400 to-orange-500',
+    buttonBorder: 'border-amber-600',
+    buttonShadow: 'shadow-amber-700/40',
+    icon: <Star className="w-4 h-4 text-white" />,
+  },
+  premium_plus: {
+    headerGradient: 'from-purple-500 to-pink-500',
+    borderColor: 'border-purple-400/50 dark:border-purple-500/40',
+    accentColor: 'text-purple-500',
+    iconColor: 'text-purple-400',
+    featureBg: 'bg-purple-500/8 border-purple-500/15',
+    buttonGradient: 'from-purple-500 to-pink-500',
+    buttonBorder: 'border-purple-700',
+    buttonShadow: 'shadow-purple-800/40',
+    icon: <Sparkles className="w-4 h-4 text-white" />,
+  },
+  lifetime: {
+    headerGradient: 'from-amber-400 via-yellow-400 to-orange-400',
+    borderColor: 'border-yellow-400/50 dark:border-yellow-500/40',
+    accentColor: 'text-yellow-500',
+    iconColor: 'text-yellow-400',
+    featureBg: 'bg-yellow-500/8 border-yellow-500/15',
+    buttonGradient: 'from-amber-400 via-yellow-400 to-orange-400',
+    buttonBorder: 'border-amber-600',
+    buttonShadow: 'shadow-amber-700/40',
+    icon: <Crown className="w-4 h-4 text-white" />,
+  },
 };
 
 export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProps) => {
@@ -82,12 +113,10 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
     setIsProcessing(true);
 
     if (isNative) {
-      // Use real StoreKit
       const result = await storeKit.purchaseProduct(plan.iapProductId);
       setIsProcessing(false);
 
       if (result.success) {
-        // Grant bonus coins
         const bonusResult = grantBonusCoins(plan.id);
         if (bonusResult.granted) {
           toast.success(`Purchase successful! +${bonusResult.amount.toLocaleString()} bonus coins!`);
@@ -99,13 +128,11 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
         toast.error(result.message || 'Purchase failed');
       }
     } else {
-      // Fallback for web/dev
       await new Promise(resolve => setTimeout(resolve, 1500));
       const result = purchaseSubscription(plan.id);
       setIsProcessing(false);
 
       if (result.success) {
-        // Grant bonus coins for dev testing
         const bonusResult = grantBonusCoins(plan.id);
         if (bonusResult.granted) {
           toast.success(`${result.message} +${bonusResult.amount.toLocaleString()} bonus coins!`);
@@ -123,12 +150,9 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
     setIsRestoring(true);
 
     if (isNative) {
-      // Use real StoreKit
       await storeKit.restorePurchases();
       setIsRestoring(false);
-      // Toast is handled by useStoreKit
     } else {
-      // Fallback for web/dev
       await new Promise(resolve => setTimeout(resolve, 1000));
       const result = restorePurchases();
       setIsRestoring(false);
@@ -141,7 +165,6 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
     }
   };
 
-  // Filter plans by selected period
   const premiumPlans = SUBSCRIPTION_PLANS.filter(
     p => p.tier === 'premium' && p.period === selectedPeriod
   );
@@ -150,272 +173,250 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
   );
   const lifetimePlan = SUBSCRIPTION_PLANS.find(p => p.period === 'lifetime');
 
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-br from-amber-400 via-orange-400 to-pink-500 p-6 text-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-2xl font-black">
-              <Crown className="w-7 h-7" />
-              Go Premium
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-white/90 mt-2">
-            Unlock all features and supercharge your focus
-          </p>
+  const renderPlanCard = (plan: SubscriptionPlan, tierKey: 'premium' | 'premium_plus' | 'lifetime') => {
+    const config = TIER_CONFIG[tierKey];
+    const isCurrentTier = (tierKey === 'premium' && tier === 'premium') ||
+                          (tierKey === 'premium_plus' && (tier === 'premium_plus' || isLifetime)) ||
+                          (tierKey === 'lifetime' && isLifetime);
 
-          {/* Period Toggle */}
-          <div className="flex gap-2 mt-4 p-1 bg-white/20 rounded-xl">
-            <button
-              onClick={() => setSelectedPeriod('monthly')}
-              className={cn(
-                "flex-1 py-2 rounded-lg text-sm font-semibold transition-all",
-                selectedPeriod === 'monthly'
-                  ? "bg-white text-amber-600"
-                  : "text-white/80 hover:text-white"
-              )}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setSelectedPeriod('yearly')}
-              className={cn(
-                "flex-1 py-2 rounded-lg text-sm font-semibold transition-all relative",
-                selectedPeriod === 'yearly'
-                  ? "bg-white text-amber-600"
-                  : "text-white/80 hover:text-white"
-              )}
-            >
-              Yearly
-              <span className="absolute -top-2 -right-1 px-1.5 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
-                SAVE 37%
+    return (
+      <div
+        key={plan.id}
+        className={cn(
+          "relative rounded-xl border-2 overflow-hidden",
+          config.borderColor,
+          tierKey === 'lifetime' && "shadow-[0_0_20px_rgba(250,204,21,0.15)]",
+          tierKey === 'premium_plus' && "shadow-[0_0_15px_rgba(168,85,247,0.1)]",
+        )}
+      >
+        {/* Tier header strip */}
+        <div className={cn(
+          "relative bg-gradient-to-r px-3 py-2",
+          config.headerGradient,
+        )}>
+          <div className="retro-scanlines opacity-10" />
+          <div className="flex items-center justify-between relative z-[1]">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
+                {config.icon}
+              </div>
+              <span className="font-black text-white uppercase tracking-wide text-sm">
+                {plan.name}
               </span>
-            </button>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {plan.isPopular && (
+                <span className="px-2 py-0.5 bg-white/25 backdrop-blur-sm rounded-full text-[8px] font-black text-white uppercase tracking-wider">
+                  Popular
+                </span>
+              )}
+              {tierKey === 'lifetime' && (
+                <span className="px-2 py-0.5 bg-white/25 backdrop-blur-sm rounded-full text-[8px] font-black text-white uppercase tracking-wider">
+                  Best Value
+                </span>
+              )}
+              {plan.savings && tierKey !== 'lifetime' && (
+                <span className="px-2 py-0.5 bg-green-500 rounded-full text-[8px] font-black text-white uppercase">
+                  {plan.savings}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="p-4 space-y-4">
-          {/* Already Premium */}
-          {isPremium && currentPlan && (
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
-              <div className="flex items-center gap-2 mb-1">
-                <Check className="w-5 h-5 text-green-500" />
-                <span className="font-bold text-green-700 dark:text-green-400">
-                  You're a {currentPlan.name} member!
+        {/* Card body */}
+        <div className="p-3 bg-card">
+          {/* Price row */}
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[11px] text-muted-foreground">{plan.description}</p>
+              {plan.bonusCoins > 0 && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Coins className={cn("w-3 h-3", config.iconColor)} />
+                  <span className={cn("text-[11px] font-bold", config.accentColor)}>
+                    +{plan.bonusCoins.toLocaleString()} bonus coins
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="text-right flex-shrink-0 ml-3">
+              <span className={cn("text-xl font-black", config.accentColor)}>
+                {plan.price}
+              </span>
+              <span className="text-[10px] text-muted-foreground block">
+                {plan.period === 'monthly' ? '/month' : plan.period === 'yearly' ? '/year' : 'one-time'}
+              </span>
+            </div>
+          </div>
+
+          {/* Features in 2-col compact grid */}
+          <div className="grid grid-cols-2 gap-1 mb-3">
+            {plan.features.map((feature) => {
+              const mapped = FEATURE_MAP[feature];
+              return (
+                <div
+                  key={feature}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2 py-1.5 rounded-lg border",
+                    config.featureBg,
+                  )}
+                >
+                  <div className={cn("flex-shrink-0", config.iconColor)}>
+                    {mapped?.icon || <Check className="w-3.5 h-3.5" />}
+                  </div>
+                  <span className="text-[10px] font-semibold leading-tight truncate">
+                    {mapped?.label || feature}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Purchase button */}
+          <button
+            onClick={() => handlePurchase(plan)}
+            disabled={isProcessing || isCurrentTier}
+            className={cn(
+              "w-full py-2.5 rounded-xl border-2 font-black uppercase tracking-wide text-sm transition-all flex items-center justify-center gap-2",
+              isCurrentTier
+                ? "bg-muted border-border text-muted-foreground cursor-not-allowed"
+                : cn(
+                    "text-white active:translate-y-0.5 shadow-[0_3px_0]",
+                    `bg-gradient-to-b ${config.buttonGradient}`,
+                    config.buttonBorder,
+                    config.buttonShadow,
+                  ),
+            )}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : isCurrentTier ? (
+              <>
+                <Check className="w-4 h-4" />
+                <span>Current Plan</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                <span>
+                  {tierKey === 'lifetime' ? 'Get Lifetime Access' : tierKey === 'premium_plus' ? 'Upgrade to Plus' : 'Subscribe Now'}
                 </span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="retro-modal max-w-[340px] p-0 overflow-hidden border-0 max-h-[90vh] overflow-y-auto">
+        <VisuallyHidden>
+          <DialogTitle>Go Premium</DialogTitle>
+        </VisuallyHidden>
+        <>
+          {/* Header */}
+          <div className="retro-modal-header p-5 text-center relative">
+            <div className="retro-scanlines opacity-20" />
+
+            {/* Crown with glow */}
+            <div className="relative inline-flex items-center justify-center mb-3">
+              <div className="absolute inset-0 bg-amber-400/30 rounded-full blur-xl scale-[2]" />
+              <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center border-2 border-amber-300/50 shadow-lg shadow-amber-500/40">
+                <Crown className="w-7 h-7 text-white" />
               </div>
-              <p className="text-sm text-green-600 dark:text-green-300">
-                Thank you for supporting NoMo!
-              </p>
             </div>
-          )}
 
-          {/* Premium Plan */}
-          {premiumPlans.map((plan) => (
-            <div
-              key={plan.id}
-              className={cn(
-                "rounded-xl border-2 overflow-hidden transition-all",
-                plan.isPopular
-                  ? "border-amber-400 shadow-lg shadow-amber-200/50 dark:shadow-amber-900/30"
-                  : "border-gray-200 dark:border-gray-700"
-              )}
-            >
-              {plan.isPopular && (
-                <div className="bg-gradient-to-r from-amber-400 to-orange-400 text-white text-center py-1 text-xs font-bold">
-                  MOST POPULAR
-                </div>
-              )}
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="font-bold text-lg">{plan.name}</h3>
-                    <p className="text-xs text-muted-foreground">{plan.description}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-black text-amber-600">{plan.price}</p>
-                    <p className="text-xs text-muted-foreground">
-                      /{plan.period === 'monthly' ? 'mo' : 'year'}
-                    </p>
-                  </div>
-                </div>
+            <h2 className="text-lg font-black uppercase tracking-tight text-white">
+              Go Premium
+            </h2>
+            <p className="text-[11px] text-white/60 mt-0.5">
+              Unlock all features & supercharge your focus
+            </p>
 
-                {/* Bonus coins badge */}
-                {plan.bonusCoins > 0 && (
-                  <div className="flex items-center gap-1.5 mb-3 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg w-fit">
-                    <Coins className="w-4 h-4 text-amber-600" />
-                    <span className="text-sm font-bold text-amber-700 dark:text-amber-400">
-                      +{plan.bonusCoins.toLocaleString()} bonus coins!
-                    </span>
-                  </div>
+            {/* Period Toggle */}
+            <div className="flex mt-4 p-1 bg-black/30 rounded-xl border border-white/10">
+              <button
+                onClick={() => setSelectedPeriod('monthly')}
+                className={cn(
+                  "flex-1 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                  selectedPeriod === 'monthly'
+                    ? "bg-white/15 text-white border border-white/15 shadow-inner"
+                    : "text-white/40"
                 )}
-
-                <div className="space-y-2 mb-4">
-                  {plan.features.map((feature) => (
-                    <div key={feature} className="flex items-center gap-2 text-sm">
-                      <div className="text-amber-500">
-                        {FEATURE_ICONS[feature] || <Check className="w-4 h-4" />}
-                      </div>
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => handlePurchase(plan)}
-                  disabled={isProcessing || (isPremium && tier === 'premium')}
-                  className={cn(
-                    "w-full py-3 rounded-xl font-bold transition-all",
-                    isPremium && tier === 'premium'
-                      ? "bg-gray-200 dark:bg-gray-700 text-muted-foreground cursor-not-allowed"
-                      : "bg-gradient-to-b from-amber-400 to-amber-500 text-white shadow-md hover:from-amber-500 hover:to-amber-600"
-                  )}
-                >
-                  {isProcessing ? 'Processing...' : isPremium && tier === 'premium' ? 'Current Plan' : 'Subscribe'}
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {/* Premium+ Plan */}
-          {premiumPlusPlans.map((plan) => (
-            <div
-              key={plan.id}
-              className="rounded-xl border-2 border-purple-300 dark:border-purple-700 overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20"
-            >
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg">{plan.name}</h3>
-                      <p className="text-xs text-muted-foreground">{plan.description}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-black text-purple-600">{plan.price}</p>
-                    <p className="text-xs text-muted-foreground">
-                      /{plan.period === 'monthly' ? 'mo' : 'year'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bonus coins badge */}
-                {plan.bonusCoins > 0 && (
-                  <div className="flex items-center gap-1.5 mb-3 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg w-fit">
-                    <Coins className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-bold text-purple-700 dark:text-purple-400">
-                      +{plan.bonusCoins.toLocaleString()} bonus coins!
-                    </span>
-                  </div>
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setSelectedPeriod('yearly')}
+                className={cn(
+                  "flex-1 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wide relative",
+                  selectedPeriod === 'yearly'
+                    ? "bg-white/15 text-white border border-white/15 shadow-inner"
+                    : "text-white/40"
                 )}
-
-                <div className="space-y-2 mb-4">
-                  {plan.features.map((feature) => (
-                    <div key={feature} className="flex items-center gap-2 text-sm">
-                      <div className="text-purple-500">
-                        {FEATURE_ICONS[feature] || <Check className="w-4 h-4" />}
-                      </div>
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => handlePurchase(plan)}
-                  disabled={isProcessing || tier === 'premium_plus' || isLifetime}
-                  className={cn(
-                    "w-full py-3 rounded-xl font-bold transition-all",
-                    (tier === 'premium_plus' || isLifetime)
-                      ? "bg-gray-200 dark:bg-gray-700 text-muted-foreground cursor-not-allowed"
-                      : "bg-gradient-to-b from-purple-500 to-pink-500 text-white shadow-md hover:from-purple-600 hover:to-pink-600"
-                  )}
-                >
-                  {isProcessing ? 'Processing...' : (tier === 'premium_plus' || isLifetime) ? 'Current Plan' : 'Upgrade to Premium+'}
-                </button>
-              </div>
+              >
+                Yearly
+                <span className="absolute -top-2 -right-0.5 px-1.5 py-0.5 bg-green-500 text-white text-[7px] font-black rounded-full uppercase shadow-lg shadow-green-500/30">
+                  Save 33%
+                </span>
+              </button>
             </div>
-          ))}
+          </div>
 
-          {/* Lifetime Plan */}
-          {lifetimePlan && (
-            <div className="rounded-xl border-2 border-amber-400 overflow-hidden bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/20 dark:via-yellow-900/20 dark:to-orange-900/20">
-              <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-white text-center py-1.5 text-xs font-bold flex items-center justify-center gap-1">
-                <Crown className="w-3 h-3" />
-                BEST VALUE - LIFETIME ACCESS
-              </div>
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="font-bold text-lg">{lifetimePlan.name}</h3>
-                    <p className="text-xs text-muted-foreground">{lifetimePlan.description}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-black bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                      {lifetimePlan.price}
-                    </p>
-                    <p className="text-xs text-muted-foreground">one-time</p>
-                  </div>
+          {/* Plan Cards */}
+          <div className="p-3 space-y-3 bg-card">
+            {/* Already Premium banner */}
+            {isPremium && currentPlan && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20">
+                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3.5 h-3.5 text-white" />
                 </div>
-
-                {/* Bonus coins badge */}
-                {lifetimePlan.bonusCoins > 0 && (
-                  <div className="flex items-center gap-1.5 mb-3 px-3 py-1.5 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-lg w-fit">
-                    <Coins className="w-4 h-4 text-amber-600" />
-                    <span className="text-sm font-bold bg-gradient-to-r from-amber-700 to-orange-600 bg-clip-text text-transparent">
-                      +{lifetimePlan.bonusCoins.toLocaleString()} bonus coins!
-                    </span>
-                  </div>
-                )}
-
-                <div className="space-y-2 mb-4">
-                  {lifetimePlan.features.map((feature) => (
-                    <div key={feature} className="flex items-center gap-2 text-sm">
-                      <div className="text-amber-500">
-                        {FEATURE_ICONS[feature] || <Check className="w-4 h-4" />}
-                      </div>
-                      <span>{feature}</span>
-                    </div>
-                  ))}
+                <div>
+                  <span className="text-xs font-bold text-green-700 dark:text-green-400">
+                    {currentPlan.name} Active
+                  </span>
+                  <span className="text-[10px] text-green-600/70 dark:text-green-400/60 block">
+                    Thank you for supporting NoMo!
+                  </span>
                 </div>
-
-                <button
-                  onClick={() => handlePurchase(lifetimePlan)}
-                  disabled={isProcessing || isLifetime}
-                  className={cn(
-                    "w-full py-3 rounded-xl font-bold transition-all",
-                    isLifetime
-                      ? "bg-gray-200 dark:bg-gray-700 text-muted-foreground cursor-not-allowed"
-                      : "bg-gradient-to-b from-amber-500 via-yellow-500 to-orange-500 text-white shadow-md hover:from-amber-600 hover:via-yellow-600 hover:to-orange-600"
-                  )}
-                >
-                  {isProcessing ? 'Processing...' : isLifetime ? 'Lifetime Member' : 'Get Lifetime Access'}
-                </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Restore Purchases - Made prominent per Apple guidelines */}
-          <div className="border-t pt-4 mt-2">
+            {/* Premium Plan */}
+            {premiumPlans.map((plan) => renderPlanCard(plan, 'premium'))}
+
+            {/* Premium+ Plan */}
+            {premiumPlusPlans.map((plan) => renderPlanCard(plan, 'premium_plus'))}
+
+            {/* Lifetime Plan */}
+            {lifetimePlan && renderPlanCard(lifetimePlan, 'lifetime')}
+
+            {/* Restore Purchases */}
             <button
               onClick={handleRestore}
               disabled={isRestoring || isProcessing}
-              className="w-full py-3 rounded-xl font-semibold border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all flex items-center justify-center gap-2"
+              className={cn(
+                "retro-cancel-button w-full py-2.5 flex items-center justify-center gap-2",
+                (isRestoring || isProcessing) && "opacity-50 cursor-not-allowed"
+              )}
             >
-              <RefreshCw className={cn("w-4 h-4", isRestoring && "animate-spin")} />
-              {isRestoring ? 'Restoring...' : 'Restore Previous Purchases'}
+              <RefreshCw className={cn("w-3.5 h-3.5", isRestoring && "animate-spin")} />
+              <span className="text-xs font-bold uppercase">
+                {isRestoring ? 'Restoring...' : 'Restore Purchases'}
+              </span>
             </button>
-          </div>
 
-          {/* Terms */}
-          <p className="text-[10px] text-center text-muted-foreground">
-            Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period.
-            Manage subscriptions in your Apple ID account settings.
-          </p>
-        </div>
+            {/* Terms */}
+            <p className="text-[9px] text-center text-muted-foreground leading-relaxed pb-1">
+              Subscriptions auto-renew unless cancelled 24h before period ends. Manage in Apple ID settings.
+            </p>
+          </div>
+        </>
       </DialogContent>
     </Dialog>
   );

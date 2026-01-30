@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Coins } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
@@ -7,6 +8,7 @@ import { AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
 import type { ShopCategory } from "@/data/ShopData";
 import { useStoreKit } from "@/hooks/useStoreKit";
+import { BundleConfirmDialog } from "../BundleConfirmDialog";
 
 interface PowerUpsTabProps {
   inventory: ShopInventory;
@@ -32,16 +34,23 @@ export const PowerUpsTab = ({
   const coins = COIN_PACKS;
   const storeKit = useStoreKit();
 
-  const handlePurchaseCoinPack = async (pack: CoinPack) => {
-    if (!pack.iapProductId) {
+  // State for coin pack confirmation dialog
+  const [selectedPack, setSelectedPack] = useState<CoinPack | null>(null);
+  const [showPackConfirm, setShowPackConfirm] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
+  const handleConfirmPurchase = async () => {
+    if (!selectedPack?.iapProductId) {
       toast.error("Product not available");
       return;
     }
 
+    setIsPurchasing(true);
     try {
-      const result = await storeKit.purchaseProduct(pack.iapProductId);
+      const result = await storeKit.purchaseProduct(selectedPack.iapProductId);
       if (result.success) {
-        toast.success(`Successfully purchased ${pack.name}!`);
+        toast.success(`Successfully purchased ${selectedPack.name}!`);
+        setShowPackConfirm(false);
       } else if (result.cancelled) {
         // User cancelled - no toast needed
       } else {
@@ -49,11 +58,27 @@ export const PowerUpsTab = ({
       }
     } catch (_error) {
       toast.error("Unable to complete purchase");
+    } finally {
+      setIsPurchasing(false);
     }
   };
 
   return (
     <div className="space-y-4">
+      {/* Coin Pack Confirmation Dialog */}
+      <BundleConfirmDialog
+        open={showPackConfirm}
+        onOpenChange={(open) => {
+          if (!isPurchasing) {
+            setShowPackConfirm(open);
+            if (!open) setSelectedPack(null);
+          }
+        }}
+        bundle={selectedPack}
+        onPurchase={handleConfirmPurchase}
+        isPurchasing={isPurchasing}
+      />
+
       {/* Coin Boosters */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
@@ -142,7 +167,10 @@ export const PowerUpsTab = ({
           {coins.map((pack) => (
             <button
               key={pack.id}
-              onClick={() => handlePurchaseCoinPack(pack)}
+              onClick={() => {
+                setSelectedPack(pack);
+                setShowPackConfirm(true);
+              }}
               className={cn(
                 "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2",
                 pack.isBestValue
