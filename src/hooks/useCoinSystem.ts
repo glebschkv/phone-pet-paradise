@@ -225,17 +225,17 @@ export interface CoinSystemState {
 }
 
 // Coin rewards based on session duration (in minutes)
-// Boosted rewards - players should be able to buy things regularly!
+// Balanced for healthy economy - free players earn ~490 coins/week from sessions
 const COIN_REWARDS: Record<number, number> = {
-  25: 25,   // 25 minutes = 25 coins - more than doubled
-  30: 40,   // 30 minutes = 40 coins - more than doubled
-  45: 65,   // 45 minutes = 65 coins - more than doubled
-  60: 100,  // 1 hour = 100 coins - 2.5x increase
-  90: 175,  // 90 minutes = 175 coins - more than doubled
-  120: 260, // 2 hours = 260 coins - more than doubled
-  180: 400, // 3 hours = 400 coins - more than doubled
-  240: 550, // 4 hours = 550 coins - more than doubled
-  300: 750, // 5 hours = 750 coins - more than doubled
+  25: 20,   // 25 minutes = 20 coins
+  30: 30,   // 30 minutes = 30 coins
+  45: 50,   // 45 minutes = 50 coins
+  60: 80,   // 1 hour = 80 coins
+  90: 140,  // 90 minutes = 140 coins
+  120: 200, // 2 hours = 200 coins
+  180: 320, // 3 hours = 320 coins
+  240: 440, // 4 hours = 440 coins
+  300: 600, // 5 hours = 600 coins
 };
 
 // Random bonus coin system (same odds as XP)

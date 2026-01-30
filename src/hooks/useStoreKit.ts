@@ -116,9 +116,12 @@ const ALL_PRODUCT_IDS = [
   'co.nomoinc.nomo.coins.value',
   'co.nomoinc.nomo.coins.premium',
   'co.nomoinc.nomo.coins.mega',
+  'co.nomoinc.nomo.coins.ultra',
   // Bundles
+  'co.nomoinc.nomo.bundle.welcome',
   'co.nomoinc.nomo.bundle.starter',
   'co.nomoinc.nomo.bundle.collector',
+  'co.nomoinc.nomo.bundle.ultimate',
 ];
 
 interface UseStoreKitReturn {

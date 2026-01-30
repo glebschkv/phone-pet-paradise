@@ -21,15 +21,15 @@ export interface DailyLoginState {
 }
 
 // 7-day reward cycle with balanced XP + coin rewards
-// Weekly total: 1,150 XP + 1,005 coins + streak freeze + lucky spin
+// Weekly total: 1,050 XP + 785 coins + streak freeze + lucky spin
 const DAILY_REWARDS: DailyReward[] = [
-  { day: 1, type: 'xp', xp: 50, coins: 30, label: 'Welcome Back!', description: 'Start your week strong', icon: '🌟' },
-  { day: 2, type: 'xp', xp: 75, coins: 50, label: 'Day 2 Bonus', description: 'Keep the momentum going', icon: '✨' },
-  { day: 3, type: 'xp', xp: 100, coins: 75, label: 'Triple Treat', description: '3 days in a row!', icon: '🎁' },
-  { day: 4, type: 'streak_freeze', xp: 125, coins: 100, streakFreeze: 1, label: 'Safety Net', description: '+1 Streak Freeze!', icon: '🧊' },
-  { day: 5, type: 'xp', xp: 175, coins: 150, label: 'Halfway Hero', description: 'Over halfway there!', icon: '💪' },
-  { day: 6, type: 'xp', xp: 225, coins: 200, label: 'Almost There', description: 'One more day!', icon: '🔥' },
-  { day: 7, type: 'mystery_bonus', xp: 400, coins: 400, luckyWheelSpin: 1, label: 'Weekly Jackpot!', description: 'Massive rewards + free spin!', icon: '🎰' },
+  { day: 1, type: 'xp', xp: 50, coins: 25, label: 'Welcome Back!', description: 'Start your week strong', icon: '🌟' },
+  { day: 2, type: 'xp', xp: 75, coins: 40, label: 'Day 2 Bonus', description: 'Keep the momentum going', icon: '✨' },
+  { day: 3, type: 'xp', xp: 100, coins: 60, label: 'Triple Treat', description: '3 days in a row!', icon: '🎁' },
+  { day: 4, type: 'streak_freeze', xp: 125, coins: 80, streakFreeze: 1, label: 'Safety Net', description: '+1 Streak Freeze!', icon: '🧊' },
+  { day: 5, type: 'xp', xp: 150, coins: 120, label: 'Halfway Hero', description: 'Over halfway there!', icon: '💪' },
+  { day: 6, type: 'xp', xp: 200, coins: 160, label: 'Almost There', description: 'One more day!', icon: '🔥' },
+  { day: 7, type: 'mystery_bonus', xp: 350, coins: 300, luckyWheelSpin: 1, label: 'Weekly Jackpot!', description: 'Massive rewards + free spin!', icon: '🎰' },
 ];
 
 const STORAGE_KEY = 'pet_paradise_daily_login';
