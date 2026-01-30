@@ -287,9 +287,33 @@ export const useDeviceActivity = () => {
           { success: false, monitoring: false, startTime: 0 },
           'startMonitoring'
         );
+
+        // Refresh blocking status now that we have Screen Time permission
+        // (initial getBlockingStatus during initialize() may have returned empty data
+        // because it ran before permission was granted)
+        const { result: blockingStatus } = await safePluginCall(
+          () => DeviceActivity.getBlockingStatus(),
+          {
+            isBlocking: false,
+            focusSessionActive: false,
+            shieldAttempts: 0,
+            lastShieldAttemptTimestamp: 0,
+            hasAppsConfigured: false,
+            selectedAppsCount: 0,
+            selectedCategoriesCount: 0,
+          } as BlockingStatus,
+          'getBlockingStatus-afterPermission'
+        );
+
         setState(prev => ({
           ...prev,
-          isMonitoring: monitoring.monitoring
+          isMonitoring: monitoring.monitoring,
+          isBlocking: blockingStatus.isBlocking,
+          hasAppsConfigured: blockingStatus.hasAppsConfigured,
+          shieldAttempts: blockingStatus.shieldAttempts,
+          lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
+          selectedAppsCount: blockingStatus.selectedAppsCount,
+          selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
         }));
 
         toast.success("Screen Time Access Granted", {
