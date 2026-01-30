@@ -66,12 +66,14 @@ export const TimerView = ({
 }: TimerViewProps) => {
   return (
     <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-4 pb-32">
-      {/* View Toggle & Ambient Sound */}
-      <div className="mb-4 relative flex items-center justify-center w-full">
+      {/* View Toggle */}
+      <div className="mb-3 flex items-center justify-center w-full">
         <ViewToggle currentView={currentView} onViewChange={onViewChange} />
-        <div className="absolute right-0">
-          <AmbientSoundPicker />
-        </div>
+      </div>
+
+      {/* Ambient Sound Picker */}
+      <div className="mb-4 flex items-center justify-center w-full">
+        <AmbientSoundPicker />
       </div>
 
       <TimerDisplay
