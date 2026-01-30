@@ -38,7 +38,49 @@
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
+		/* ShieldConfiguration extension build files */
+		SHLD000100000001 /* ShieldConfigurationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHLD000100000000 /* ShieldConfigurationExtension.swift */; };
+		SHLD000400000001 /* ShieldConfigurationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHLD000400000000 /* ShieldConfigurationHelper.swift */; };
+		SHLD000600000001 /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHARED0001000000000000 /* SharedConstants.swift */; };
+		EMBED_SHLD000000 /* NoMoShield.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = SHLD000500000000 /* NoMoShield.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		/* DeviceActivityMonitor extension build files */
+		DACM000100000001 /* DeviceActivityMonitorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACM000100000000 /* DeviceActivityMonitorExtension.swift */; };
+		DACM000400000001 /* DeviceActivityMonitorHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACM000400000000 /* DeviceActivityMonitorHelper.swift */; };
+		DACM000600000001 /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHARED0001000000000000 /* SharedConstants.swift */; };
+		EMBED_DACM000000 /* NoMoActivityMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DACM000500000000 /* NoMoActivityMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		PROXYSHLD0000000 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = SHLDTARGET000000;
+			remoteInfo = NoMoShield;
+		};
+		PROXYDACM0000000 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DACMTARGET000000;
+			remoteInfo = NoMoActivityMonitor;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		EMBEDPHASE000000 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				EMBED_SHLD000000 /* NoMoShield.appex in Embed Foundation Extensions */,
+				EMBED_DACM000000 /* NoMoActivityMonitor.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -76,6 +118,18 @@
 		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
+		/* ShieldConfiguration extension file references */
+		SHLD000100000000 /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
+		SHLD000200000000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		SHLD000300000000 /* ShieldConfiguration.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShieldConfiguration.entitlements; sourceTree = "<group>"; };
+		SHLD000400000000 /* ShieldConfigurationHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationHelper.swift; sourceTree = "<group>"; };
+		SHLD000500000000 /* NoMoShield.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NoMoShield.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		/* DeviceActivityMonitor extension file references */
+		DACM000100000000 /* DeviceActivityMonitorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityMonitorExtension.swift; sourceTree = "<group>"; };
+		DACM000200000000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DACM000300000000 /* DeviceActivityMonitor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DeviceActivityMonitor.entitlements; sourceTree = "<group>"; };
+		DACM000400000000 /* DeviceActivityMonitorHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityMonitorHelper.swift; sourceTree = "<group>"; };
+		DACM000500000000 /* NoMoActivityMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NoMoActivityMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +138,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		SHLDPHASE0020000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DACMPHASE0020000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +180,8 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				SHLD000500000000 /* NoMoShield.appex */,
+				DACM000500000000 /* NoMoActivityMonitor.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -121,6 +191,7 @@
 			children = (
 				SHARED0001000000000002 /* Shared */,
 				SRCGRP0010000000000000 /* Sources */,
+				EXTGRP0001000000 /* Extensions */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
@@ -137,6 +208,8 @@
 			isa = PBXGroup;
 			children = (
 				SHARED0001000000000000 /* SharedConstants.swift */,
+				SHLD000400000000 /* ShieldConfigurationHelper.swift */,
+				DACM000400000000 /* DeviceActivityMonitorHelper.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -186,6 +259,35 @@
 			path = Managers;
 			sourceTree = "<group>";
 		};
+		EXTGRP0001000000 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				EXTGRP0002000000 /* ShieldConfiguration */,
+				EXTGRP0003000000 /* DeviceActivityMonitor */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		EXTGRP0002000000 /* ShieldConfiguration */ = {
+			isa = PBXGroup;
+			children = (
+				SHLD000100000000 /* ShieldConfigurationExtension.swift */,
+				SHLD000200000000 /* Info.plist */,
+				SHLD000300000000 /* ShieldConfiguration.entitlements */,
+			);
+			path = ShieldConfiguration;
+			sourceTree = "<group>";
+		};
+		EXTGRP0003000000 /* DeviceActivityMonitor */ = {
+			isa = PBXGroup;
+			children = (
+				DACM000100000000 /* DeviceActivityMonitorExtension.swift */,
+				DACM000200000000 /* Info.plist */,
+				DACM000300000000 /* DeviceActivityMonitor.entitlements */,
+			);
+			path = DeviceActivityMonitor;
+			sourceTree = "<group>";
+		};
 		7F8756D8B27F46E3366F6CEA /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -207,15 +309,52 @@
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
 				9592DBEFFC6D2A0C8D5DEB22 /* [CP] Embed Pods Frameworks */,
+				EMBEDPHASE000000 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				DEPSHLD000000000 /* PBXTargetDependency */,
+				DEPDACM000000000 /* PBXTargetDependency */,
 			);
 			name = App;
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		SHLDTARGET000000 /* NoMoShield */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = SHLDCFG003000000 /* Build configuration list for PBXNativeTarget "NoMoShield" */;
+			buildPhases = (
+				SHLDPHASE0010000 /* Sources */,
+				SHLDPHASE0020000 /* Frameworks */,
+				SHLDPHASE0030000 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NoMoShield;
+			productName = NoMoShield;
+			productReference = SHLD000500000000 /* NoMoShield.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		DACMTARGET000000 /* NoMoActivityMonitor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DACMCFG003000000 /* Build configuration list for PBXNativeTarget "NoMoActivityMonitor" */;
+			buildPhases = (
+				DACMPHASE0010000 /* Sources */,
+				DACMPHASE0020000 /* Frameworks */,
+				DACMPHASE0030000 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NoMoActivityMonitor;
+			productName = NoMoActivityMonitor;
+			productReference = DACM000500000000 /* NoMoActivityMonitor.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -229,6 +368,14 @@
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
+						ProvisioningStyle = Automatic;
+					};
+					SHLDTARGET000000 = {
+						CreatedOnToolsVersion = 14.0;
+						ProvisioningStyle = Automatic;
+					};
+					DACMTARGET000000 = {
+						CreatedOnToolsVersion = 14.0;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -249,6 +396,8 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				SHLDTARGET000000 /* NoMoShield */,
+				DACMTARGET000000 /* NoMoActivityMonitor */,
 			);
 		};
 /* End PBXProject section */
@@ -264,6 +413,20 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		SHLDPHASE0030000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DACMPHASE0030000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,7 +500,40 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		SHLDPHASE0010000 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				SHLD000100000001 /* ShieldConfigurationExtension.swift in Sources */,
+				SHLD000400000001 /* ShieldConfigurationHelper.swift in Sources */,
+				SHLD000600000001 /* SharedConstants.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DACMPHASE0010000 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DACM000100000001 /* DeviceActivityMonitorExtension.swift in Sources */,
+				DACM000400000001 /* DeviceActivityMonitorHelper.swift in Sources */,
+				DACM000600000001 /* SharedConstants.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DEPSHLD000000000 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = SHLDTARGET000000 /* NoMoShield */;
+			targetProxy = PROXYSHLD0000000 /* PBXContainerItemProxy */;
+		};
+		DEPDACM000000000 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DACMTARGET000000 /* NoMoActivityMonitor */;
+			targetProxy = PROXYDACM0000000 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
@@ -507,6 +703,104 @@
 			};
 			name = Release;
 		};
+		/* ShieldConfiguration extension build configurations */
+		SHLDCFG001000000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = App/Extensions/ShieldConfiguration/ShieldConfiguration.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Extensions/ShieldConfiguration/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.nomoinc.nomo.ShieldConfiguration;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		SHLDCFG002000000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = App/Extensions/ShieldConfiguration/ShieldConfiguration.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Extensions/ShieldConfiguration/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.nomoinc.nomo.ShieldConfiguration;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		/* DeviceActivityMonitor extension build configurations */
+		DACMCFG001000000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = App/Extensions/DeviceActivityMonitor/DeviceActivityMonitor.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Extensions/DeviceActivityMonitor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.nomoinc.nomo.DeviceActivityMonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DACMCFG002000000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = App/Extensions/DeviceActivityMonitor/DeviceActivityMonitor.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Extensions/DeviceActivityMonitor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.nomoinc.nomo.DeviceActivityMonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -524,6 +818,24 @@
 			buildConfigurations = (
 				504EC3171FED79650016851F /* Debug */,
 				504EC3181FED79650016851F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		SHLDCFG003000000 /* Build configuration list for PBXNativeTarget "NoMoShield" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				SHLDCFG001000000 /* Debug */,
+				SHLDCFG002000000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DACMCFG003000000 /* Build configuration list for PBXNativeTarget "NoMoActivityMonitor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DACMCFG001000000 /* Debug */,
+				DACMCFG002000000 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
