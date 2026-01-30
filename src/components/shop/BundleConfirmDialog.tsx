@@ -5,6 +5,7 @@ import { StarterBundle, CoinPack } from "@/data/ShopData";
 import { getAnimalById } from "@/data/AnimalDatabase";
 import { BOOSTER_TYPES } from "@/hooks/useCoinBooster";
 import { SpritePreview } from "./ShopPreviewComponents";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
 interface BundleConfirmDialogProps {
   open: boolean;
@@ -109,9 +110,9 @@ export const BundleConfirmDialog = ({
                   />
                 </div>
               ) : (
-                <span className="text-5xl animate-bounce" style={{ animationDuration: '2s' }}>
-                  {bundle.icon}
-                </span>
+                <div className="animate-bounce" style={{ animationDuration: '2s' }}>
+                  <PixelIcon name={bundle.icon} size={64} />
+                </div>
               )}
             </div>
 
