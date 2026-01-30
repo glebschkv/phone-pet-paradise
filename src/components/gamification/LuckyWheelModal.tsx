@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useLuckyWheel } from '@/hooks/useLuckyWheel';
+import { useLuckyWheel, SpinResult } from '@/hooks/useLuckyWheel';
 import { cn } from '@/lib/utils';
-import { Sparkles, Clock, History, Gift, Zap } from 'lucide-react';
+import { Sparkles, Clock, History, Gift, Zap, X } from 'lucide-react';
 import { LuckyWheelPrize } from '@/data/GamificationData';
 import { WheelPrizeIcon, WheelPrizeIconSVG } from './WheelPrizeIcon';
 
@@ -35,6 +35,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
   const [localSpinning, setLocalSpinning] = useState(false);
   const [highlightSegment, setHighlightSegment] = useState<number | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [selectedWin, setSelectedWin] = useState<SpinResult | null>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
 
   const wheelConfig = getWheelConfig();
@@ -179,6 +180,33 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
     const g = Math.max(0, ((num >> 8) & 0x00FF) - amount);
     const b = Math.max(0, (num & 0x0000FF) - amount);
     return `rgb(${r},${g},${b})`;
+  };
+
+  const formatTimeAgo = (timestamp: string): string => {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffMs = now.getTime() - then.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays}d ago`;
+  };
+
+  const getPrizeDescription = (prize: LuckyWheelPrize): string => {
+    switch (prize.type) {
+      case 'coins': return `${prize.amount} coins added to your balance`;
+      case 'xp': return `${prize.amount} XP gained`;
+      case 'jackpot': return `${prize.amount} coins jackpot bonus!`;
+      case 'streak_freeze': return 'Protects your streak for 1 day';
+      case 'booster': return '3x coin multiplier on next session';
+      case 'mystery_box': return 'A surprise reward was unlocked';
+      default: return prize.name;
+    }
   };
 
   return (
@@ -487,21 +515,71 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
           <div className="flex gap-2 overflow-x-auto pb-2">
             {recentWins.length > 0 ? (
               recentWins.map((result, index) => (
-                <div
+                <button
                   key={index}
+                  onClick={() => setSelectedWin(result)}
                   className={cn(
                     "flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center text-xl",
-                    "retro-icon-badge",
+                    "retro-icon-badge cursor-pointer transition-transform hover:scale-110 active:scale-95",
                     getRarityBorder(result.prize.rarity)
                   )}
                 >
                   <WheelPrizeIcon prizeId={result.prize.id} size={28} />
-                </div>
+                </button>
               ))
             ) : (
               <p className="text-sm text-purple-400 retro-pixel-text">No spins yet!</p>
             )}
           </div>
+
+          {/* Reward Detail Popup */}
+          {selectedWin && (
+            <div className="mt-3 relative animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className={cn(
+                "retro-game-card p-4 border-2",
+                getRarityBorder(selectedWin.prize.rarity)
+              )}>
+                <button
+                  onClick={() => setSelectedWin(null)}
+                  className="absolute top-2 right-2 text-purple-400 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0",
+                    "retro-icon-badge",
+                    getRarityBorder(selectedWin.prize.rarity),
+                    getRarityGlow(selectedWin.prize.rarity)
+                  )}>
+                    <WheelPrizeIcon prizeId={selectedWin.prize.id} size={36} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-white font-bold retro-pixel-text text-sm">
+                      {selectedWin.prize.name}
+                    </h4>
+                    <p className="text-purple-300 text-xs mt-0.5">
+                      {getPrizeDescription(selectedWin.prize)}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className={cn(
+                        "text-xs capitalize retro-pixel-text px-1.5 py-0.5 rounded",
+                        selectedWin.prize.rarity === 'legendary' && "bg-yellow-500/20 retro-neon-yellow",
+                        selectedWin.prize.rarity === 'epic' && "bg-purple-500/20 retro-neon-pink",
+                        selectedWin.prize.rarity === 'rare' && "bg-blue-500/20 retro-neon-text",
+                        selectedWin.prize.rarity === 'common' && "bg-purple-500/10 text-purple-400"
+                      )}>
+                        {selectedWin.prize.rarity}
+                      </span>
+                      <span className="text-xs text-purple-500">
+                        {formatTimeAgo(selectedWin.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
