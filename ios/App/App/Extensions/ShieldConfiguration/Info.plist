@@ -25,7 +25,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.ManagedSettings.ShieldConfiguration</string>
 		<key>NSExtensionPrincipalClass</key>
-		<string>$(PRODUCT_MODULE_NAME).ShieldConfigurationExtension</string>
+		<string>NoMoShieldConfig.ShieldConfigurationExtension</string>
 	</dict>
 	<key>MinimumOSVersion</key>
 	<string>16.0</string>
