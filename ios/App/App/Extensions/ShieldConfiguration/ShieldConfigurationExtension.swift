@@ -3,91 +3,58 @@ import ManagedSettingsUI
 import UIKit
 import os.log
 
-// MARK: - Shield Configuration Extension
-// This extension provides custom UI for blocked apps during focus sessions
+// Minimal ShieldConfiguration extension for debugging
+// No dependencies on helper classes or shared constants
 
-private let shieldLog = OSLog(subsystem: "co.nomoinc.nomo.ShieldConfiguration", category: "ShieldConfig")
+private let log = OSLog(subsystem: "co.nomoinc.nomo.shield", category: "Shield")
 
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     override init() {
-        os_log("ShieldConfigurationExtension INIT called", log: shieldLog, type: .default)
+        os_log("SHIELD EXTENSION INIT", log: log, type: .fault)
         super.init()
     }
 
-    // MARK: - Shield Configuration for Applications
-
     override func configuration(shielding application: Application) -> ShieldConfiguration {
-        os_log("configuration(shielding application) called: %{public}@", log: shieldLog, type: .default, application.localizedDisplayName ?? "unknown")
-        return createFocusShieldConfiguration(
-            title: "Stay Focused!",
-            subtitle: application.localizedDisplayName ?? "This app is blocked"
-        )
+        os_log("SHIELD: shielding app: %{public}@", log: log, type: .fault, application.localizedDisplayName ?? "unknown")
+        return makeConfig()
     }
 
     override func configuration(shielding application: Application, in category: ActivityCategory) -> ShieldConfiguration {
-        os_log("configuration(shielding application in category) called: %{public}@", log: shieldLog, type: .default, category.localizedDisplayName ?? "unknown")
-        return createFocusShieldConfiguration(
-            title: "Stay Focused!",
-            subtitle: "\(category.localizedDisplayName ?? "This category") is blocked during your focus session"
-        )
+        os_log("SHIELD: shielding app in category", log: log, type: .fault)
+        return makeConfig()
     }
 
     override func configuration(shielding webDomain: WebDomain) -> ShieldConfiguration {
-        os_log("configuration(shielding webDomain) called: %{public}@", log: shieldLog, type: .default, webDomain.domain ?? "unknown")
-        return createFocusShieldConfiguration(
-            title: "Stay Focused!",
-            subtitle: "\(webDomain.domain ?? "This website") is blocked during your focus session"
-        )
+        os_log("SHIELD: shielding web domain", log: log, type: .fault)
+        return makeConfig()
     }
 
     override func configuration(shielding webDomain: WebDomain, in category: ActivityCategory) -> ShieldConfiguration {
-        os_log("configuration(shielding webDomain in category) called", log: shieldLog, type: .default)
-        return createFocusShieldConfiguration(
-            title: "Stay Focused!",
-            subtitle: "Web browsing in \(category.localizedDisplayName ?? "this category") is blocked"
-        )
+        os_log("SHIELD: shielding web domain in category", log: log, type: .fault)
+        return makeConfig()
     }
 
-    // MARK: - Create Shield Configuration
-
-    private func createFocusShieldConfiguration(title: String, subtitle: String) -> ShieldConfiguration {
-        os_log("createFocusShieldConfiguration called - title: %{public}@, subtitle: %{public}@", log: shieldLog, type: .default, title, subtitle)
-
-        // Record that user attempted to open a blocked app
-        let helper = ShieldConfigurationHelper()
-        os_log("ShieldConfigurationHelper created successfully", log: shieldLog, type: .default)
-
-        helper.recordShieldAttempt()
-        os_log("Shield attempt recorded, total: %d", log: shieldLog, type: .default, helper.shieldAttempts)
-
-        // Get motivational message
-        let motivationalMessage = helper.getMotivationalMessage()
-        os_log("Motivational message: %{public}@", log: shieldLog, type: .default, motivationalMessage)
-
-        let icon = helper.createNoMoIcon()
-        os_log("Icon created: %{public}@", log: shieldLog, type: .default, icon != nil ? "YES" : "NO")
-
-        let config = ShieldConfiguration(
+    private func makeConfig() -> ShieldConfiguration {
+        os_log("SHIELD: makeConfig called", log: log, type: .fault)
+        return ShieldConfiguration(
             backgroundBlurStyle: .systemUltraThinMaterialDark,
-            backgroundColor: ShieldConfigurationHelper.shieldBackgroundColor,
-            icon: icon,
+            backgroundColor: UIColor(red: 0.1, green: 0.05, blue: 0.15, alpha: 0.95),
+            icon: UIImage(systemName: "moon.stars.fill"),
             title: ShieldConfiguration.Label(
-                text: title,
-                color: UIColor.white
+                text: "Stay Focused!",
+                color: .white
             ),
             subtitle: ShieldConfiguration.Label(
-                text: motivationalMessage,
-                color: ShieldConfigurationHelper.shieldSubtitleColor
+                text: "Your focus pet is counting on you!",
+                color: UIColor(red: 0.8, green: 0.7, blue: 0.9, alpha: 1.0)
             ),
             primaryButtonLabel: ShieldConfiguration.Label(
                 text: "Return to NoMo",
-                color: UIColor.white
+                color: .white
             ),
-            primaryButtonBackgroundColor: ShieldConfigurationHelper.shieldButtonColor,
+            primaryButtonBackgroundColor: UIColor(red: 0.5, green: 0.3, blue: 0.8, alpha: 1.0),
             secondaryButtonLabel: nil
         )
-        os_log("ShieldConfiguration created successfully, returning", log: shieldLog, type: .default)
-        return config
     }
 }
