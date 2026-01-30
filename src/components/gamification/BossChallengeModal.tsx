@@ -5,6 +5,7 @@ import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { cn } from '@/lib/utils';
 import { Clock, XCircle, CheckCircle, Lock, Flame, Skull, Zap, ChevronLeft, ChevronRight, Coins, X } from 'lucide-react';
 import { BOSS_CHALLENGES, BossChallenge } from '@/data/GamificationData';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 interface BossChallengeModalProps {
   isOpen: boolean;
@@ -96,8 +97,8 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
             onClick={() => setSelectedIndex(activeIndex >= 0 ? activeIndex : 0)}
             className="mx-4 mt-3 p-2.5 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center gap-3"
           >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-lg">
-              {activeChallenge.challenge.emoji}
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+              <PixelIcon name={activeChallenge.challenge.emoji} size={24} />
             </div>
             <div className="flex-1 text-left">
               <div className="text-xs text-orange-400 font-medium flex items-center gap-1">
@@ -129,12 +130,12 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
               {/* Boss Icon & Info */}
               <div className="flex items-start gap-4 mb-4">
                 <div className={cn(
-                  "w-16 h-16 rounded-xl flex items-center justify-center text-3xl",
+                  "w-16 h-16 rounded-xl flex items-center justify-center",
                   "bg-gradient-to-br border-2 shadow-lg",
                   config.bg, config.border,
                   isActive && "animate-pulse"
                 )}>
-                  {currentChallenge.emoji}
+                  <PixelIcon name={currentChallenge.emoji} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className={cn(
@@ -175,7 +176,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
               {/* Rewards */}
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex items-center gap-1.5 bg-purple-800/40 px-2.5 py-1.5 rounded-lg">
-                  <span className="text-cyan-400 text-sm">⭐</span>
+                  <PixelIcon name="star" size={16} />
                   <span className="text-white font-semibold text-sm">{currentChallenge.rewards.xp}</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-purple-800/40 px-2.5 py-1.5 rounded-lg">
@@ -184,12 +185,12 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                 </div>
                 {currentChallenge.rewards.badge && (
                   <div className="flex items-center gap-1 bg-purple-800/40 px-2.5 py-1.5 rounded-lg">
-                    <span className="text-sm">🏅</span>
+                    <PixelIcon name="sports-medal" size={16} />
                   </div>
                 )}
                 {currentChallenge.rewards.specialReward && (
                   <div className="flex items-center gap-1 bg-gradient-to-r from-purple-600/40 to-pink-600/40 px-2.5 py-1.5 rounded-lg border border-purple-400/20">
-                    <span className="text-sm">✨</span>
+                    <PixelIcon name="sparkles" size={16} />
                   </div>
                 )}
               </div>

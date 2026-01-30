@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 import { useBackendAppState } from '@/hooks/useBackendAppState';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { timerLogger } from '@/lib/logger';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { FOCUS_BONUS } from '@/lib/constants';
 
@@ -34,7 +34,6 @@ interface SessionInfo {
 }
 
 export function useTimerRewards() {
-  const { toast } = useToast();
   const { awardXP, coinSystem, xpSystem } = useBackendAppState();
   const { recordFocusSession } = useBossChallenges();
 
@@ -132,8 +131,7 @@ export function useTimerRewards() {
         }
 
         // Show boss defeat toast
-        toast({
-          title: `🏆 BOSS DEFEATED: ${challenge.name}!`,
+        toast.success(`🏆 BOSS DEFEATED: ${challenge.name}!`, {
           description: `+${challenge.rewards.xp} XP, +${challenge.rewards.coins} Coins${challenge.rewards.badge ? ', +Badge!' : ''}`,
           duration: 5000,
         });
@@ -141,7 +139,7 @@ export function useTimerRewards() {
     }
 
     return result;
-  }, [awardXP, coinSystem, xpSystem, recordFocusSession, toast]);
+  }, [awardXP, coinSystem, xpSystem, recordFocusSession]);
 
   /**
    * Show focus bonus toast notification
@@ -150,14 +148,13 @@ export function useTimerRewards() {
     if (!focusBonusType) return;
 
     const isPerfect = focusBonusType === FOCUS_BONUS.PERFECT_FOCUS.label;
-    toast({
-      title: `${focusBonusType}!`,
+    toast.success(`${focusBonusType}!`, {
       description: isPerfect
         ? FOCUS_BONUS.PERFECT_FOCUS.description
         : FOCUS_BONUS.GOOD_FOCUS.description,
       duration: 4000,
     });
-  }, [toast]);
+  }, []);
 
   return {
     awardSessionRewards,

@@ -101,5 +101,5 @@ export function generateShareText(achievement: Achievement): string {
   const currentShares = parseInt(localStorage.getItem('achievement-shares') || '0', 10);
   localStorage.setItem('achievement-shares', String(currentShares + 1));
 
-  return `🏆 Achievement Unlocked: ${achievement.title}\n${achievement.description}\n\nShare your focus journey! #PetParadise #FocusAchievement`;
+  return `Achievement Unlocked: ${achievement.title}\n${achievement.description}\n\nShare your focus journey! #PetParadise #FocusAchievement`;
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { StoreKit, StoreKitProduct, PurchaseResult, SubscriptionStatus, RestoredPurchase } from '@/plugins/store-kit';
 import { SUBSCRIPTION_PLANS, dispatchSubscriptionChange } from './usePremiumStatus';
-import { useToast } from './use-toast';
+import { toast } from 'sonner';
 import { storeKitLogger as logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { reportError } from '@/lib/errorReporting';
@@ -148,8 +148,6 @@ export const useStoreKit = (): UseStoreKitReturn => {
   const [error, setError] = useState<string | null>(null);
   const [pluginAvailable, setPluginAvailable] = useState(true);
   const [pluginError, setPluginError] = useState<Error | null>(null);
-  const { toast } = useToast();
-
   // Track if plugin has been verified
   const pluginVerifiedRef = useRef(false);
 
@@ -271,10 +269,8 @@ export const useStoreKit = (): UseStoreKitReturn => {
     };
 
     if (!pluginAvailable) {
-      toast({
-        title: 'Purchases Unavailable',
+      toast.error('Purchases Unavailable', {
         description: 'In-app purchases are not available. Please restart the app.',
-        variant: 'destructive',
       });
       return { ...failedResult, message: 'Plugin unavailable' };
     }
@@ -292,10 +288,8 @@ export const useStoreKit = (): UseStoreKitReturn => {
     if (!success) {
       setIsPurchasing(false);
       setError('Purchase failed. Please try again.');
-      toast({
-        title: 'Purchase Failed',
+      toast.error('Purchase Failed', {
         description: 'Unable to complete the purchase. Please try again.',
-        variant: 'destructive',
       });
       return result;
     }
@@ -318,8 +312,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
           localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
         }
 
-        toast({
-          title: 'Purchase Successful!',
+        toast.success('Purchase Successful!', {
           description: 'Thank you for your purchase.',
         });
 
@@ -327,18 +320,14 @@ export const useStoreKit = (): UseStoreKitReturn => {
         await checkSubscriptionStatus();
       } else if (validationResult.requiresRetry) {
         // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
-        toast({
-          title: 'Verification Pending',
+        toast.error('Verification Pending', {
           description: 'Unable to verify purchase. Please try restoring purchases or check your connection.',
-          variant: 'destructive',
         });
         // Don't grant access - user needs to restore purchases
       } else {
         // SECURITY: Validation failed definitively
-        toast({
-          title: 'Verification Failed',
+        toast.error('Verification Failed', {
           description: 'Purchase could not be verified. Please contact support if this persists.',
-          variant: 'destructive',
         });
         // Don't grant access
       }
@@ -346,23 +335,20 @@ export const useStoreKit = (): UseStoreKitReturn => {
       // User cancelled - no toast needed
       logger.debug('Purchase cancelled by user');
     } else if (result.pending) {
-      toast({
-        title: 'Purchase Pending',
+      toast.info('Purchase Pending', {
         description: 'Your purchase is awaiting approval.',
       });
     }
 
     setIsPurchasing(false);
     return result;
-  }, [toast, checkSubscriptionStatus, pluginAvailable]);
+  }, [checkSubscriptionStatus, pluginAvailable]);
 
   // Restore purchases
   const restorePurchases = useCallback(async (): Promise<boolean> => {
     if (!pluginAvailable) {
-      toast({
-        title: 'Restore Unavailable',
+      toast.error('Restore Unavailable', {
         description: 'In-app purchases are not available. Please restart the app.',
-        variant: 'destructive',
       });
       return false;
     }
@@ -380,10 +366,8 @@ export const useStoreKit = (): UseStoreKitReturn => {
     if (!success) {
       setIsLoading(false);
       setError('Failed to restore purchases. Please try again.');
-      toast({
-        title: 'Restore Failed',
+      toast.error('Restore Failed', {
         description: 'Unable to restore purchases. Please try again.',
-        variant: 'destructive',
       });
       return false;
     }
@@ -415,8 +399,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       }
 
       if (validatedCount > 0) {
-        toast({
-          title: 'Purchases Restored!',
+        toast.success('Purchases Restored!', {
           description: `${validatedCount} purchase(s) restored successfully.`,
         });
 
@@ -426,31 +409,26 @@ export const useStoreKit = (): UseStoreKitReturn => {
         return true;
       } else {
         // SECURITY: No purchases could be validated - don't grant access
-        toast({
-          title: 'Restore Failed',
+        toast.error('Restore Failed', {
           description: 'Unable to verify purchases. Please check your connection and try again.',
-          variant: 'destructive',
         });
         setIsLoading(false);
         return false;
       }
     } else {
-      toast({
-        title: 'No Purchases Found',
+      toast.info('No Purchases Found', {
         description: 'No previous purchases were found to restore.',
       });
       setIsLoading(false);
       return false;
     }
-  }, [toast, checkSubscriptionStatus, pluginAvailable]);
+  }, [checkSubscriptionStatus, pluginAvailable]);
 
   // Open subscription management
   const manageSubscriptions = useCallback(async () => {
     if (!pluginAvailable) {
-      toast({
-        title: 'Feature Unavailable',
+      toast.error('Feature Unavailable', {
         description: 'Subscription management is not available. Please restart the app.',
-        variant: 'destructive',
       });
       return;
     }
@@ -462,13 +440,11 @@ export const useStoreKit = (): UseStoreKitReturn => {
     );
 
     if (!success) {
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: 'Failed to open subscription management.',
-        variant: 'destructive',
       });
     }
-  }, [toast, pluginAvailable]);
+  }, [pluginAvailable]);
 
   // Get product by ID
   const getProductById = useCallback((productId: string): StoreKitProduct | undefined => {

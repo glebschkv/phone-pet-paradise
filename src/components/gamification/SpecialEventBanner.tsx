@@ -3,6 +3,7 @@ import { useSpecialEvents } from '@/hooks/useSpecialEvents';
 import { cn } from '@/lib/utils';
 import { X, Clock, Gift, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 interface SpecialEventBannerProps {
   onClaimReward?: (xp?: number, coins?: number) => void;
@@ -75,7 +76,7 @@ export const SpecialEventBanner = ({ onClaimReward }: SpecialEventBannerProps) =
         {/* Compact view */}
         <div className="relative flex items-center justify-between p-3">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{activeEvent.emoji}</span>
+            <PixelIcon name={activeEvent.emoji} size={28} />
             <div>
               <h3 className="text-white font-bold text-sm">{activeEvent.name}</h3>
               <div className="flex items-center gap-2 text-white/80 text-xs">

@@ -14,7 +14,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete your first 10 minutes of focus time',
     category: 'focus',
     tier: 'bronze',
-    icon: '🌱',
+    icon: 'leaf',
     target: 10,
     rewards: [
       { type: 'xp', amount: 100, description: '+100 XP' },
@@ -27,7 +27,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Accumulate 1 hour of total focus time',
     category: 'focus',
     tier: 'bronze',
-    icon: '⏰',
+    icon: 'clock',
     target: 60,
     rewards: [
       { type: 'xp', amount: 150, description: '+150 XP' },
@@ -40,7 +40,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Accumulate 10 hours of total focus time',
     category: 'focus',
     tier: 'silver',
-    icon: '⚔️',
+    icon: 'sword',
     target: 600,
     rewards: [
       { type: 'xp', amount: 400, description: '+400 XP' },
@@ -53,7 +53,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Accumulate 50 hours of total focus time',
     category: 'focus',
     tier: 'gold',
-    icon: '💪',
+    icon: 'muscle',
     target: 3000,
     rewards: [
       { type: 'xp', amount: 800, description: '+800 XP' },
@@ -66,7 +66,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach 100 hours of total focus time',
     category: 'focus',
     tier: 'gold',
-    icon: '🏆',
+    icon: 'trophy',
     target: 6000,
     rewards: [
       { type: 'xp', amount: 1000, description: '+1000 XP' },
@@ -79,7 +79,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach 250 hours of total focus time',
     category: 'focus',
     tier: 'platinum',
-    icon: '🎯',
+    icon: 'target',
     target: 15000,
     rewards: [
       { type: 'xp', amount: 1500, description: '+1500 XP' },
@@ -92,7 +92,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Achieve 500 hours of total focus time',
     category: 'focus',
     tier: 'platinum',
-    icon: '👑',
+    icon: 'crown',
     target: 30000,
     rewards: [
       { type: 'xp', amount: 2000, description: '+2000 XP' },
@@ -105,7 +105,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Achieve 1000 hours of total focus time',
     category: 'focus',
     tier: 'diamond',
-    icon: '🌟',
+    icon: 'star',
     target: 60000,
     rewards: [
       { type: 'xp', amount: 4000, description: '+4000 XP' },
@@ -118,7 +118,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete a 2-hour focus session',
     category: 'focus',
     tier: 'silver',
-    icon: '🏃',
+    icon: 'running',
     target: 120,
     rewards: [
       { type: 'xp', amount: 300, description: '+300 XP' },
@@ -131,7 +131,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete a 4-hour focus session',
     category: 'focus',
     tier: 'gold',
-    icon: '🏃‍♂️',
+    icon: 'running',
     target: 240,
     rewards: [
       { type: 'xp', amount: 600, description: '+600 XP' },
@@ -144,7 +144,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete an 8-hour focus session',
     category: 'focus',
     tier: 'diamond',
-    icon: '🦸',
+    icon: 'superhero',
     target: 480,
     secret: true,
     rewards: [
@@ -158,7 +158,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete 5 focus sessions',
     category: 'focus',
     tier: 'bronze',
-    icon: '🎬',
+    icon: 'clapperboard',
     target: 5,
     rewards: [
       { type: 'xp', amount: 100, description: '+100 XP' },
@@ -171,7 +171,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete 25 focus sessions',
     category: 'focus',
     tier: 'silver',
-    icon: '📚',
+    icon: 'books',
     target: 25,
     rewards: [
       { type: 'xp', amount: 300, description: '+300 XP' },
@@ -184,7 +184,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete 100 focus sessions',
     category: 'focus',
     tier: 'gold',
-    icon: '🎖️',
+    icon: 'medal',
     target: 100,
     rewards: [
       { type: 'xp', amount: 800, description: '+800 XP' },
@@ -197,7 +197,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete 500 focus sessions',
     category: 'focus',
     tier: 'platinum',
-    icon: '🧘‍♂️',
+    icon: 'meditation',
     target: 500,
     rewards: [
       { type: 'xp', amount: 1600, description: '+1600 XP' },
@@ -210,7 +210,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete 1000 focus sessions',
     category: 'focus',
     tier: 'diamond',
-    icon: '⚡',
+    icon: 'lightning',
     target: 1000,
     secret: true,
     rewards: [
@@ -226,7 +226,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock your first pet companion',
     category: 'collection',
     tier: 'bronze',
-    icon: '🐾',
+    icon: 'paw',
     target: 1,
     rewards: [
       { type: 'xp', amount: 75, description: '+75 XP' },
@@ -239,7 +239,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock 5 different pets',
     category: 'collection',
     tier: 'bronze',
-    icon: '🦊',
+    icon: 'fox',
     target: 5,
     rewards: [
       { type: 'xp', amount: 150, description: '+150 XP' },
@@ -252,7 +252,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock 10 different pets',
     category: 'collection',
     tier: 'silver',
-    icon: '🦋',
+    icon: 'butterfly',
     target: 10,
     rewards: [
       { type: 'xp', amount: 300, description: '+300 XP' },
@@ -265,7 +265,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock 20 different pets',
     category: 'collection',
     tier: 'gold',
-    icon: '🦁',
+    icon: 'lion',
     target: 20,
     rewards: [
       { type: 'xp', amount: 600, description: '+600 XP' },
@@ -278,7 +278,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock 35 different pets',
     category: 'collection',
     tier: 'platinum',
-    icon: '🐘',
+    icon: 'elephant',
     target: 35,
     rewards: [
       { type: 'xp', amount: 1200, description: '+1200 XP' },
@@ -291,7 +291,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock all 50+ pets',
     category: 'collection',
     tier: 'diamond',
-    icon: '💎',
+    icon: 'diamond',
     target: 50,
     rewards: [
       { type: 'xp', amount: 3000, description: '+3000 XP' },
@@ -304,7 +304,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock 5 rare pets',
     category: 'collection',
     tier: 'silver',
-    icon: '💫',
+    icon: 'sparkles',
     target: 5,
     rewards: [
       { type: 'xp', amount: 400, description: '+400 XP' },
@@ -317,7 +317,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock 5 epic pets',
     category: 'collection',
     tier: 'gold',
-    icon: '🔮',
+    icon: 'crystal-ball',
     target: 5,
     rewards: [
       { type: 'xp', amount: 800, description: '+800 XP' },
@@ -330,7 +330,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock 3 legendary pets',
     category: 'collection',
     tier: 'platinum',
-    icon: '🌈',
+    icon: 'rainbow',
     target: 3,
     rewards: [
       { type: 'xp', amount: 1500, description: '+1500 XP' },
@@ -343,7 +343,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock all biomes',
     category: 'collection',
     tier: 'platinum',
-    icon: '🌍',
+    icon: 'globe',
     target: 8,
     rewards: [
       { type: 'xp', amount: 1500, description: '+1500 XP' },
@@ -358,7 +358,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach bond level 3 with any pet',
     category: 'bond',
     tier: 'bronze',
-    icon: '💕',
+    icon: 'heart',
     target: 3,
     rewards: [
       { type: 'xp', amount: 100, description: '+100 XP' },
@@ -371,7 +371,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach bond level 5 with any pet',
     category: 'bond',
     tier: 'silver',
-    icon: '💗',
+    icon: 'heart',
     target: 5,
     rewards: [
       { type: 'xp', amount: 200, description: '+200 XP' },
@@ -384,7 +384,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach bond level 7 with any pet',
     category: 'bond',
     tier: 'gold',
-    icon: '💖',
+    icon: 'heart',
     target: 7,
     rewards: [
       { type: 'xp', amount: 400, description: '+400 XP' },
@@ -397,7 +397,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach max bond (level 10) with any pet',
     category: 'bond',
     tier: 'platinum',
-    icon: '✨',
+    icon: 'sparkles',
     target: 10,
     rewards: [
       { type: 'xp', amount: 800, description: '+800 XP' },
@@ -410,7 +410,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach max bond with 3 different pets',
     category: 'bond',
     tier: 'platinum',
-    icon: '💝',
+    icon: 'heart-ribbon',
     target: 3,
     rewards: [
       { type: 'xp', amount: 1200, description: '+1200 XP' },
@@ -423,7 +423,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach max bond with 5 different pets',
     category: 'bond',
     tier: 'diamond',
-    icon: '🌟',
+    icon: 'star',
     target: 5,
     rewards: [
       { type: 'xp', amount: 2000, description: '+2000 XP' },
@@ -438,7 +438,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach level 5',
     category: 'progression',
     tier: 'bronze',
-    icon: '⭐',
+    icon: 'star',
     target: 5,
     rewards: [
       { type: 'xp', amount: 100, description: '+100 XP' },
@@ -451,7 +451,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach level 10',
     category: 'progression',
     tier: 'silver',
-    icon: '🌙',
+    icon: 'moon',
     target: 10,
     rewards: [
       { type: 'xp', amount: 300, description: '+300 XP' },
@@ -464,7 +464,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach level 25',
     category: 'progression',
     tier: 'gold',
-    icon: '🌞',
+    icon: 'sun',
     target: 25,
     rewards: [
       { type: 'xp', amount: 800, description: '+800 XP' },
@@ -477,7 +477,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach level 40',
     category: 'progression',
     tier: 'platinum',
-    icon: '🔥',
+    icon: 'fire',
     target: 40,
     rewards: [
       { type: 'xp', amount: 1400, description: '+1400 XP' },
@@ -490,7 +490,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Reach the maximum level 50',
     category: 'progression',
     tier: 'diamond',
-    icon: '🏅',
+    icon: 'sports-medal',
     target: 50,
     rewards: [
       { type: 'xp', amount: 2000, description: '+2000 XP' },
@@ -505,7 +505,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Buy your first item from the shop',
     category: 'economy',
     tier: 'bronze',
-    icon: '🛒',
+    icon: 'shopping-cart',
     target: 1,
     rewards: [
       { type: 'xp', amount: 75, description: '+75 XP' },
@@ -518,7 +518,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Make 5 purchases from the shop',
     category: 'economy',
     tier: 'silver',
-    icon: '🛍️',
+    icon: 'shopping-bag',
     target: 5,
     rewards: [
       { type: 'xp', amount: 200, description: '+200 XP' },
@@ -531,7 +531,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Make 15 purchases from the shop',
     category: 'economy',
     tier: 'gold',
-    icon: '💰',
+    icon: 'money-bag',
     target: 15,
     rewards: [
       { type: 'xp', amount: 600, description: '+600 XP' },
@@ -544,7 +544,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Earn 1,000 total coins',
     category: 'economy',
     tier: 'bronze',
-    icon: '🪙',
+    icon: 'coin',
     target: 1000,
     rewards: [
       { type: 'xp', amount: 100, description: '+100 XP' },
@@ -557,7 +557,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Earn 5,000 total coins',
     category: 'economy',
     tier: 'silver',
-    icon: '💵',
+    icon: 'dollar',
     target: 5000,
     rewards: [
       { type: 'xp', amount: 300, description: '+300 XP' },
@@ -570,7 +570,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Earn 25,000 total coins',
     category: 'economy',
     tier: 'gold',
-    icon: '💎',
+    icon: 'diamond',
     target: 25000,
     rewards: [
       { type: 'xp', amount: 700, description: '+700 XP' },
@@ -583,7 +583,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Earn 100,000 total coins',
     category: 'economy',
     tier: 'platinum',
-    icon: '👑',
+    icon: 'crown',
     target: 100000,
     rewards: [
       { type: 'xp', amount: 1500, description: '+1500 XP' },
@@ -598,7 +598,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete 10 focus sessions after 10 PM',
     category: 'special',
     tier: 'silver',
-    icon: '🦉',
+    icon: 'owl',
     target: 10,
     rewards: [
       { type: 'xp', amount: 300, description: '+300 XP' },
@@ -611,7 +611,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete 10 focus sessions before 7 AM',
     category: 'special',
     tier: 'silver',
-    icon: '🐦',
+    icon: 'bird',
     target: 10,
     rewards: [
       { type: 'xp', amount: 300, description: '+300 XP' },
@@ -624,7 +624,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete 20 focus sessions on weekends',
     category: 'special',
     tier: 'gold',
-    icon: '🎉',
+    icon: 'party',
     target: 20,
     rewards: [
       { type: 'xp', amount: 500, description: '+500 XP' },
@@ -637,7 +637,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Complete focus sessions for 7 consecutive days',
     category: 'special',
     tier: 'gold',
-    icon: '📅',
+    icon: 'calendar',
     target: 7,
     rewards: [
       { type: 'xp', amount: 600, description: '+600 XP' },
@@ -650,7 +650,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Maintain a 7-day focus streak',
     category: 'special',
     tier: 'silver',
-    icon: '🔥',
+    icon: 'fire',
     target: 7,
     rewards: [
       { type: 'xp', amount: 300, description: '+300 XP' },
@@ -663,7 +663,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Maintain a 30-day focus streak',
     category: 'special',
     tier: 'gold',
-    icon: '🌟',
+    icon: 'star',
     target: 30,
     rewards: [
       { type: 'xp', amount: 800, description: '+800 XP' },
@@ -676,7 +676,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Maintain a 60-day focus streak',
     category: 'special',
     tier: 'platinum',
-    icon: '💫',
+    icon: 'sparkles',
     target: 60,
     rewards: [
       { type: 'xp', amount: 1400, description: '+1400 XP' },
@@ -689,7 +689,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Maintain a 100-day focus streak',
     category: 'special',
     tier: 'diamond',
-    icon: '🏆',
+    icon: 'trophy',
     target: 100,
     rewards: [
       { type: 'xp', amount: 3000, description: '+3000 XP' },
@@ -702,7 +702,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Maintain a 365-day focus streak',
     category: 'special',
     tier: 'diamond',
-    icon: '👑',
+    icon: 'crown',
     target: 365,
     secret: true,
     rewards: [
@@ -716,7 +716,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Win 5 jackpots from focus sessions',
     category: 'special',
     tier: 'gold',
-    icon: '🎰',
+    icon: 'slot-machine',
     target: 5,
     rewards: [
       { type: 'xp', amount: 600, description: '+600 XP' },
@@ -729,7 +729,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Spin the lucky wheel 25 times',
     category: 'special',
     tier: 'silver',
-    icon: '🎡',
+    icon: 'ferris-wheel',
     target: 25,
     rewards: [
       { type: 'xp', amount: 300, description: '+300 XP' },
@@ -744,7 +744,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Share 5 achievements',
     category: 'social',
     tier: 'bronze',
-    icon: '🦋',
+    icon: 'butterfly',
     target: 5,
     rewards: [
       { type: 'xp', amount: 100, description: '+100 XP' },
@@ -757,7 +757,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock 25 achievements',
     category: 'special',
     tier: 'gold',
-    icon: '🏅',
+    icon: 'sports-medal',
     target: 25,
     rewards: [
       { type: 'xp', amount: 1000, description: '+1000 XP' },
@@ -770,7 +770,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Unlock all non-secret achievements',
     category: 'special',
     tier: 'diamond',
-    icon: '🎖️',
+    icon: 'medal',
     target: 50,
     secret: true,
     rewards: [

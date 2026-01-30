@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { timerLogger } from '@/lib/logger';
 import { TIMER_PRESETS, TimerPreset } from '../constants';
 
@@ -26,8 +26,6 @@ interface BreakTransitionActions {
 }
 
 export function useBreakTransition(): BreakTransitionState & BreakTransitionActions {
-  const { toast } = useToast();
-
   // Load auto-break setting from localStorage
   const [autoBreakEnabled, setAutoBreakEnabled] = useState(() => {
     try {
@@ -80,12 +78,11 @@ export function useBreakTransition(): BreakTransitionState & BreakTransitionActi
    */
   const handleSkipBreak = useCallback(() => {
     setShowBreakModal(false);
-    toast({
-      title: 'Break skipped',
+    toast.info('Break skipped', {
       description: "Remember to take breaks regularly!",
       duration: 2000,
     });
-  }, [toast]);
+  }, []);
 
   return {
     // State

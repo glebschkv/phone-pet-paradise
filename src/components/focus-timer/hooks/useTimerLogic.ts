@@ -15,7 +15,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useDeviceActivity } from "@/hooks/useDeviceActivity";
@@ -30,7 +30,6 @@ import { useTimerControls } from "./useTimerControls";
 import { useTimerCountdown } from "./useTimerCountdown";
 
 export const useTimerLogic = () => {
-  const { toast } = useToast();
   const { awardXP } = useBackendAppState();
   const { playCompletionSound } = useTimerAudio();
   const { recordSession } = useAnalytics();
@@ -254,8 +253,7 @@ export const useTimerLogic = () => {
         setLastSessionXP(xpEarned);
         setShowSessionNotesModal(true);
       } else {
-        toast({
-          title: 'Break Complete!',
+        toast.info('Break Complete!', {
           description: 'Time to get back to work!',
           duration: 3000,
         });
@@ -274,7 +272,6 @@ export const useTimerLogic = () => {
     recordSession,
     saveTimerState,
     triggerHaptic,
-    toast,
   ]);
 
   // ============================================================================

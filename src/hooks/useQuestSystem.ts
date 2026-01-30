@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { questLogger } from '@/lib/logger';
 import { useXPStore } from '@/stores/xpStore';
 import { useCoinStore } from '@/stores/coinStore';
@@ -147,7 +147,6 @@ const STORY_QUESTS = [
 
 export const useQuestSystem = (): QuestSystemReturn => {
   const [quests, setQuests] = useState<Quest[]>([]);
-  const { toast } = useToast();
   const { addXP, addAnimal } = useXPStore();
   const { addCoins } = useCoinStore();
 
@@ -339,8 +338,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
       rewardMessages.push(unlockedPets.join(', '));
     }
 
-    toast({
-      title: "Quest Complete!",
+    toast.success("Quest Complete!", {
       description: `${quest.title} completed! ${rewardMessages.join(' • ')}`,
     });
 
@@ -351,7 +349,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
       saveQuestData(updated);
       return updated;
     });
-  }, [quests, toast, saveQuestData, addXP, addCoins, addAnimal]);
+  }, [quests, saveQuestData, addXP, addCoins, addAnimal]);
 
   // Get quest by ID
   const getQuestById = useCallback((questId: string): Quest | undefined => {
