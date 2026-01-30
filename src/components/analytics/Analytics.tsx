@@ -45,8 +45,8 @@ export const Analytics = () => {
 
   return (
     <div className="pb-24">
-      <div className="px-4 py-2 space-y-4">
-        {/* Stat Cards */}
+      <div className="px-4 py-3 space-y-3">
+        {/* Quick Stats */}
         <AnalyticsStatCards
           todayFocusTime={todayStats.totalFocusTime}
           currentStreak={streakData.currentStreak}

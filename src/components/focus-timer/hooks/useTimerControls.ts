@@ -6,7 +6,7 @@
  */
 
 import { useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { FocusCategory } from "@/types/analytics";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
@@ -45,7 +45,6 @@ export const useTimerControls = ({
   triggerHaptic,
   awardXP,
 }: UseTimerControlsProps) => {
-  const { toast } = useToast();
   const { recordSession } = useAnalytics();
 
   const requestStartTimer = useCallback(() => {
@@ -242,21 +241,18 @@ export const useTimerControls = ({
       try {
         const reward = await awardXP(completedMinutes);
         xpEarned = reward?.xpGained || 0;
-        toast({
-          title: "Session Skipped",
+        toast.success("Session Skipped", {
           description: `+${xpEarned} XP for ${completedMinutes} minutes of focus!`,
           duration: 3000,
         });
       } catch {
-        toast({
-          title: "Timer Skipped",
+        toast.info("Timer Skipped", {
           description: "Session saved locally, will sync when online",
           duration: 2000,
         });
       }
     } else {
-      toast({
-        title: "Timer Skipped",
+      toast.info("Timer Skipped", {
         description: completedMinutes < 25 ? "Need 25+ minutes for XP rewards" : "Break completed",
         duration: 2000,
       });
@@ -301,7 +297,7 @@ export const useTimerControls = ({
         isCountup: false,
       });
     }
-  }, [timerState, awardXP, toast, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
+  }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });

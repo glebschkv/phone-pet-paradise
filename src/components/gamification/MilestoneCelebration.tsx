@@ -6,6 +6,7 @@ import { useMilestoneCelebrations } from '@/hooks/useMilestoneCelebrations';
 import { cn } from '@/lib/utils';
 import { Milestone } from '@/data/GamificationData';
 import { PartyPopper, Sparkles, Star, Gift } from 'lucide-react';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 interface MilestoneCelebrationProps {
   onClaimReward?: (milestone: Milestone) => void;
@@ -117,8 +118,8 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
           <div className="relative z-10 text-center space-y-4">
             {/* Icon */}
             <div className="relative inline-block">
-              <div className="text-8xl animate-bounce">
-                {displayCelebration.emoji}
+              <div className="animate-bounce">
+                <PixelIcon name={displayCelebration.emoji} size={96} />
               </div>
               <div className="absolute -top-2 -right-2">
                 {celebrationType === 'stars' ? (
@@ -158,7 +159,7 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
                 )}
                 {displayCelebration.rewards.badge && (
                   <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
-                    <div className="text-2xl">🏅</div>
+                    <PixelIcon name="sports-medal" size={28} />
                     <div className="text-white/70 text-sm">Badge</div>
                   </div>
                 )}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { performanceLogger } from '@/lib/logger';
 
 interface PerformanceMetrics {
@@ -45,8 +45,6 @@ export const usePerformanceMonitor = () => {
   const frameCount = useRef(0);
   const lastTime = useRef(performance.now());
   const animationFrame = useRef<number>();
-  const { toast } = useToast();
-
   // FPS monitoring
   const measureFPS = useCallback(() => {
     const now = performance.now();
@@ -83,14 +81,12 @@ export const usePerformanceMonitor = () => {
       
       // Warn if memory usage is high (development only)
       if (IS_DEV && memoryMB > settings.maxMemoryMB * 0.8) {
-        toast({
-          title: "High Memory Usage",
+        toast.error("High Memory Usage", {
           description: `App is using ${Math.round(memoryMB)}MB of memory`,
-          variant: "destructive",
         });
       }
     }
-  }, [settings.maxMemoryMB, toast]);
+  }, [settings.maxMemoryMB]);
 
   // Auto-optimization with cooldown
   const optimizePerformance = useCallback(async () => {
@@ -218,8 +214,7 @@ export const usePerformanceMonitor = () => {
         );
       }
 
-      toast({
-        title: "Performance Optimized",
+      toast.success("Performance Optimized", {
         description: "Memory cleared and caches cleaned",
       });
     } catch (error) {
@@ -227,7 +222,7 @@ export const usePerformanceMonitor = () => {
     } finally {
       setIsOptimizing(false);
     }
-  }, [isOptimizing, toast]);
+  }, [isOptimizing]);
 
   return {
     metrics,

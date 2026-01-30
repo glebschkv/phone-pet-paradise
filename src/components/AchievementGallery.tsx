@@ -5,8 +5,9 @@ import { Trophy, Share2, Lock, ChevronLeft, Check } from 'lucide-react';
 import { useAchievementSystem, Achievement } from '@/hooks/useAchievementSystem';
 import { useXPSystem } from '@/hooks/useXPSystem';
 import { useCoinSystem } from '@/hooks/useCoinSystem';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 export interface AchievementGalleryProps {
   onClose?: () => void;
@@ -24,8 +25,6 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
   } = useAchievementSystem();
   const { addDirectXP } = useXPSystem();
   const coinSystem = useCoinSystem();
-  const { toast } = useToast();
-
   const tierColors: Record<string, { bg: string; border: string; text: string }> = {
     bronze: { bg: 'bg-amber-900/30', border: 'border-amber-600/40', text: 'text-amber-400' },
     silver: { bg: 'bg-slate-400/20', border: 'border-slate-400/40', text: 'text-slate-300' },
@@ -50,8 +49,7 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
     if (rewards.coins > 0) {
       coinSystem.addCoins(rewards.coins);
     }
-    toast({
-      title: "Rewards Claimed!",
+    toast.success("Rewards Claimed!", {
       description: `+${rewards.xp} XP, +${rewards.coins} Coins`,
     });
   };
@@ -64,7 +62,7 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
           await navigator.share({ title: "Achievement!", text: shareText });
         } else {
           await navigator.clipboard.writeText(shareText);
-          toast({ title: "Copied!", description: "Share text copied" });
+          toast.success("Copied!", { description: "Share text copied" });
         }
       } catch (e) {
         logger.error(e);
@@ -103,7 +101,7 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
               ? "bg-green-500/15 border-green-500/40"
               : "bg-purple-800/40 border-purple-600/30"
           )}>
-            {isSecret ? '❓' : achievement.icon}
+            {isSecret ? <PixelIcon name="question-mark" size={28} /> : <PixelIcon name={achievement.icon} size={28} />}
           </div>
 
           {/* Title & Tier */}
@@ -189,7 +187,7 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
             <div className="flex items-center gap-4 pt-2 border-t border-purple-700/30">
               <span className="text-xs text-purple-400">Rewards:</span>
               <span className="text-xs font-semibold text-blue-400">+{xpReward} XP</span>
-              <span className="text-xs font-semibold text-yellow-400">+{coinReward} 🪙</span>
+              <span className="text-xs font-semibold text-yellow-400 inline-flex items-center gap-0.5">+{coinReward} <PixelIcon name="coin" size={14} /></span>
             </div>
           </>
         ) : (

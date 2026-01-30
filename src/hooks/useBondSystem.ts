@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { bondLogger } from '@/lib/logger';
 
 export interface BondData {
@@ -45,8 +45,6 @@ const ABILITIES_BY_LEVEL = {
 
 export const useBondSystem = (): BondSystemReturn => {
   const [bonds, setBonds] = useState<Record<string, BondData>>({});
-  const { toast } = useToast();
-
   // Load bond data from localStorage
   const loadBondData = useCallback(() => {
     try {
@@ -143,8 +141,7 @@ export const useBondSystem = (): BondSystemReturn => {
       saveBondData(newBonds);
 
       if (leveledUp) {
-        toast({
-          title: "Bond Level Up!",
+        toast.success("Bond Level Up!", {
           description: `Your bond with ${animalId} reached level ${newLevel}!`,
         });
       }
@@ -153,7 +150,7 @@ export const useBondSystem = (): BondSystemReturn => {
     });
 
     return true;
-  }, [initializeBond, calculateMood, saveBondData, toast]);
+  }, [initializeBond, calculateMood, saveBondData]);
 
   // Generic interaction method
   const interactWithPet = useCallback(async (animalId: string, activity: string): Promise<boolean> => {
@@ -162,15 +159,14 @@ export const useBondSystem = (): BondSystemReturn => {
         const experienceGain = Math.floor(Math.random() * 15) + 10;
         addExperience(animalId, experienceGain);
         
-        toast({
-          title: "Pet Interaction",
+        toast.success("Pet Interaction", {
           description: `${activity} with your pet! +${experienceGain} bond experience`,
         });
         
         resolve(true);
       }, 1000);
     });
-  }, [addExperience, toast]);
+  }, [addExperience]);
 
   // Specific interaction methods
   const feedPet = useCallback(async (animalId: string): Promise<boolean> => {
@@ -187,15 +183,14 @@ export const useBondSystem = (): BondSystemReturn => {
         const experienceGain = Math.floor(Math.random() * 25) + 20;
         addExperience(animalId, experienceGain);
         
-        toast({
-          title: "Training Complete",
+        toast.success("Training Complete", {
           description: `Trained ${skill}! +${experienceGain} bond experience`,
         });
         
         resolve(true);
       }, 2000);
     });
-  }, [addExperience, toast]);
+  }, [addExperience]);
 
   const giftTreat = useCallback(async (animalId: string): Promise<boolean> => {
     return interactWithPet(animalId, "Gave treat to");

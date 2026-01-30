@@ -4,6 +4,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Trophy, Sparkles, Star } from 'lucide-react';
 import { useAchievementSystem } from '@/hooks/useAchievementSystem';
 import { cn } from '@/lib/utils';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 interface AchievementUnlockModalProps {
   onClaimReward: (xp: number, coins: number) => void;
@@ -52,12 +53,12 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
     }
   };
 
-  const tierEmojis = {
-    bronze: '🥉',
-    silver: '🥈',
-    gold: '🥇',
-    platinum: '💠',
-    diamond: '💎'
+  const tierIcons: Record<string, string> = {
+    bronze: 'badge-bronze',
+    silver: 'badge-silver',
+    gold: 'badge-gold',
+    platinum: 'diamond',
+    diamond: 'diamond'
   };
 
   useEffect(() => {
@@ -144,7 +145,7 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
             isAnimating && "animate-bounce"
           )}>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-5xl">{achievement.icon}</span>
+              <PixelIcon name={achievement.icon} size={48} />
             </div>
             {/* Shine effect */}
             <div className="absolute inset-0 rounded-xl overflow-hidden">
@@ -166,7 +167,7 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
             achievement.tier === 'platinum' && "bg-gradient-to-b from-cyan-400 to-cyan-500 border-2 border-cyan-300",
             achievement.tier === 'diamond' && "retro-difficulty-legendary"
           )}>
-            <span className="text-lg">{tierEmojis[achievement.tier]}</span>
+            <PixelIcon name={tierIcons[achievement.tier]} size={20} />
             <span className="text-xs font-bold uppercase">{achievement.tier}</span>
           </div>
 
@@ -210,7 +211,7 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
                   "border-2 border-yellow-400/50",
                   isAnimating && "animate-pulse"
                 )}>
-                  <span className="text-xl">🪙</span>
+                  <PixelIcon name="coin" size={24} />
                   <div className="text-left">
                     <div className="text-lg font-bold text-yellow-400 retro-pixel-text">+{rewards.coins}</div>
                     <div className="text-[10px] text-yellow-400/70 uppercase">Coins</div>

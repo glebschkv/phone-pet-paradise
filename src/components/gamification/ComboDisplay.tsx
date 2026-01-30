@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useComboSystem, COMBO_UPDATED_EVENT } from '@/hooks/useComboSystem';
 import { cn } from '@/lib/utils';
 import { Flame, Clock, TrendingUp, Zap } from 'lucide-react';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 interface ComboDisplayProps {
   variant?: 'compact' | 'full' | 'minimal';
@@ -69,8 +70,8 @@ export const ComboDisplay = ({ variant = 'compact', className }: ComboDisplayPro
           {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-bold retro-pixel-text" style={{ color: currentTier.color }}>
-                {currentTier.emoji} {currentTier.name.toUpperCase()}
+              <span className="font-bold retro-pixel-text inline-flex items-center gap-1" style={{ color: currentTier.color }}>
+                <PixelIcon name={currentTier.emoji} size={16} /> {currentTier.name.toUpperCase()}
               </span>
               <span className="retro-neon-green text-sm retro-pixel-text">
                 {multiplier}x
@@ -148,7 +149,7 @@ export const ComboDisplay = ({ variant = 'compact', className }: ComboDisplayPro
 
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-2xl">{currentTier.emoji}</span>
+              <PixelIcon name={currentTier.emoji} size={28} />
               <span className="font-bold text-xl retro-pixel-text" style={{ color: currentTier.color }}>
                 {currentTier.name.toUpperCase()}
               </span>
@@ -189,7 +190,7 @@ export const ComboDisplay = ({ variant = 'compact', className }: ComboDisplayPro
               <span className="flex items-center gap-1 retro-pixel-text text-purple-300">
                 NEXT TIER:
                 <span className="font-bold" style={{ color: nextTierProgress.nextTier.color }}>
-                  {nextTierProgress.nextTier.emoji} {nextTierProgress.nextTier.name}
+                  <PixelIcon name={nextTierProgress.nextTier.emoji} size={14} className="inline-block align-middle" /> {nextTierProgress.nextTier.name}
                 </span>
               </span>
               <span className="text-purple-400 retro-pixel-text">
