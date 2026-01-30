@@ -263,42 +263,11 @@ export const useDataBackup = () => {
     return getLocalBackupsUtil();
   }, []);
 
-  // Auto backup
-  const autoBackup = useCallback(async () => {
-    try {
-      const lastBackup = localStorage.getItem('last-auto-backup');
-      const now = Date.now();
-      const oneDayAgo = now - (24 * 60 * 60 * 1000);
-      
-      if (!lastBackup || parseInt(lastBackup) < oneDayAgo) {
-        await createBackup(`auto-backup-${new Date().toISOString().split('T')[0]}`);
-        localStorage.setItem('last-auto-backup', now.toString());
-      }
-    } catch (error) {
-      backupLogger.error('Auto backup failed:', error);
-    }
-  }, [createBackup]);
-
-  // Clear old backups
-  const cleanupOldBackups = useCallback(() => {
-    try {
-      const backups = getLocalBackupsUtil();
-      const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-
-      const filtered = backups.filter(backup => backup.timestamp > oneWeekAgo);
-      localStorage.setItem('backup-metadata', JSON.stringify(filtered));
-    } catch (error) {
-      backupLogger.error('Backup cleanup failed:', error);
-    }
-  }, []);
-
   return {
     isCreatingBackup,
     isRestoringBackup,
     createBackup,
     restoreBackup,
-    autoBackup,
-    cleanupOldBackups,
     getLocalBackups,
   };
 };
