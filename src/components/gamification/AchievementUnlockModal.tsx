@@ -16,6 +16,9 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
   const { pendingUnlock, dismissPendingUnlock, claimRewards } = useAchievementSystem();
   const [isAnimating, setIsAnimating] = useState(false);
   const [claimed, setClaimed] = useState(false);
+  // Keep a snapshot of the last unlock data so the Dialog can animate out
+  // before the content disappears (prevents abrupt unmount leaving stale overlay)
+  const [displayData, setDisplayData] = useState<typeof pendingUnlock>(null);
 
   const tierStyles = {
     bronze: {
@@ -60,6 +63,7 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
 
   useEffect(() => {
     if (pendingUnlock) {
+      setDisplayData(pendingUnlock);
       setIsAnimating(true);
       setClaimed(false);
       const timer = setTimeout(() => setIsAnimating(false), 1000);
@@ -83,9 +87,11 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
     dismissPendingUnlock();
   };
 
-  if (!pendingUnlock) return null;
+  // Use displayData for rendering so content persists during close animation
+  const data = pendingUnlock || displayData;
+  if (!data) return null;
 
-  const { achievement, rewards } = pendingUnlock;
+  const { achievement, rewards } = data;
   const style = tierStyles[achievement.tier];
 
   return (

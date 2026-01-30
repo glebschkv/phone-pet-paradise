@@ -259,11 +259,19 @@ export const useShop = () => {
       }
     }
 
+    // Grant streak freezes
+    if (bundle.contents.streakFreezes && bundle.contents.streakFreezes > 0) {
+      for (let i = 0; i < bundle.contents.streakFreezes; i++) {
+        streakSystem.earnStreakFreeze();
+      }
+      results.push(`${bundle.contents.streakFreezes} Streak Freeze${bundle.contents.streakFreezes > 1 ? 's' : ''}`);
+    }
+
     return {
       success: true,
       message: `${bundle.name} purchased! Received: ${results.join(', ')}`
     };
-  }, [coinSystem, boosterSystem, unlockCharacter]);
+  }, [coinSystem, boosterSystem, streakSystem, unlockCharacter]);
 
   /**
    * SECURITY: Purchase a background bundle with server-validated coin spending

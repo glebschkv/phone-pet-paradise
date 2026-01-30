@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,9 @@ interface MilestoneCelebrationProps {
 export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProps) => {
   const { showCelebration, pendingCelebration, dismissCelebration, getCelebrationType } = useMilestoneCelebrations();
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: string; delay: number }[]>([]);
+  // Cache last valid celebration data so content persists during Dialog close animation
+  const lastCelebrationRef = useRef<Milestone | null>(null);
+  if (pendingCelebration) lastCelebrationRef.current = pendingCelebration;
 
   const celebrationType = getCelebrationType();
 
@@ -72,12 +75,11 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
     dismissCelebration();
   };
 
-  if (!showCelebration || !pendingCelebration) {
-    return null;
-  }
+  const displayCelebration = pendingCelebration || lastCelebrationRef.current;
+  if (!displayCelebration) return null;
 
   return (
-    <Dialog open={showCelebration} onOpenChange={handleClaim}>
+    <Dialog open={showCelebration && !!pendingCelebration} onOpenChange={handleClaim}>
       <DialogContent className="max-w-sm p-0 overflow-hidden border-0">
         <VisuallyHidden>
           <DialogTitle>Milestone Celebration</DialogTitle>
@@ -117,7 +119,7 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
             {/* Icon */}
             <div className="relative inline-block">
               <div className="animate-bounce">
-                <PixelIcon name={pendingCelebration.emoji} size={96} />
+                <PixelIcon name={displayCelebration.emoji} size={96} />
               </div>
               <div className="absolute -top-2 -right-2">
                 {celebrationType === 'stars' ? (
@@ -133,29 +135,29 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
             {/* Title */}
             <div>
               <h2 className="text-3xl font-bold text-white mb-1 animate-in slide-in-from-bottom duration-500">
-                {pendingCelebration.title}
+                {displayCelebration.title}
               </h2>
               <p className="text-white/80 text-lg animate-in slide-in-from-bottom duration-700">
-                {pendingCelebration.description}
+                {displayCelebration.description}
               </p>
             </div>
 
             {/* Rewards */}
-            {pendingCelebration.rewards && (
+            {displayCelebration.rewards && (
               <div className="flex items-center justify-center gap-4 mt-4 animate-in fade-in duration-1000">
-                {pendingCelebration.rewards.xp && (
+                {displayCelebration.rewards.xp && (
                   <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
-                    <div className="text-2xl font-bold text-yellow-400">+{pendingCelebration.rewards.xp}</div>
+                    <div className="text-2xl font-bold text-yellow-400">+{displayCelebration.rewards.xp}</div>
                     <div className="text-white/70 text-sm">XP</div>
                   </div>
                 )}
-                {pendingCelebration.rewards.coins && (
+                {displayCelebration.rewards.coins && (
                   <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
-                    <div className="text-2xl font-bold text-amber-400">+{pendingCelebration.rewards.coins}</div>
+                    <div className="text-2xl font-bold text-amber-400">+{displayCelebration.rewards.coins}</div>
                     <div className="text-white/70 text-sm">Coins</div>
                   </div>
                 )}
-                {pendingCelebration.rewards.badge && (
+                {displayCelebration.rewards.badge && (
                   <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
                     <PixelIcon name="sports-medal" size={28} />
                     <div className="text-white/70 text-sm">Badge</div>

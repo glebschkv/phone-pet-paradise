@@ -91,6 +91,7 @@ export interface StarterBundle extends ShopItem {
     coins: number;
     boosterId?: string;
     characterId?: string;
+    streakFreezes?: number;
   };
   savings: string;
 }

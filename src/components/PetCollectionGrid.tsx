@@ -17,7 +17,7 @@ import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { AnimalData, BIOME_DATABASE } from "@/data/AnimalDatabase";
 import { PREMIUM_BACKGROUNDS, PremiumBackground } from "@/data/ShopData";
 import { toast } from "sonner";
-import { CollectionFilters } from "./collection/CollectionFilters";
+import { CollectionFilters, PetSortOption } from "./collection/CollectionFilters";
 import { PetCard } from "./collection/PetCard";
 import { PetDetailModal } from "./collection/PetDetailModal";
 import { WorldGrid } from "./collection/WorldGrid";
@@ -102,6 +102,7 @@ export const PetCollectionGrid = memo(() => {
 
   // Local UI state
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<PetSortOption>("default");
   const [selectedPet, setSelectedPet] = useState<AnimalData | null>(null);
   const [activeTab, setActiveTab] = useState<"pets" | "worlds">("pets");
   const [selectedBackground, setSelectedBackground] = useState<PremiumBackground | null>(null);
@@ -143,11 +144,40 @@ export const PetCollectionGrid = memo(() => {
     window.dispatchEvent(new CustomEvent('navigateToShopCategory', { detail: 'pets' }));
   }, []);
 
-  // Memoize filtered pets to avoid recalculating on every render
-  const filteredPets = useMemo(
-    () => filterAnimals(searchQuery, "all", "all"),
-    [searchQuery, filterAnimals]
-  );
+  // Memoize filtered and sorted pets
+  const filteredPets = useMemo(() => {
+    const pets = filterAnimals(searchQuery, "all", "all");
+
+    if (sortOption === "default") return pets;
+
+    const RARITY_RANK: Record<string, number> = {
+      legendary: 0,
+      epic: 1,
+      rare: 2,
+      common: 3,
+    };
+
+    return [...pets].sort((a, b) => {
+      switch (sortOption) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "rarity":
+          return (RARITY_RANK[a.rarity] ?? 4) - (RARITY_RANK[b.rarity] ?? 4);
+        case "owned": {
+          const aOwned = isAnimalUnlocked(a.id) ? 0 : 1;
+          const bOwned = isAnimalUnlocked(b.id) ? 0 : 1;
+          return aOwned - bOwned;
+        }
+        case "favorites": {
+          const aFav = isAnimalFavorite(a.id) ? 0 : 1;
+          const bFav = isAnimalFavorite(b.id) ? 0 : 1;
+          return aFav - bFav;
+        }
+        default:
+          return 0;
+      }
+    });
+  }, [searchQuery, sortOption, filterAnimals, isAnimalUnlocked, isAnimalFavorite]);
 
   // Memoize handler to avoid recreating on every render
   const handlePetClick = useCallback((pet: AnimalData) => {
@@ -185,6 +215,8 @@ export const PetCollectionGrid = memo(() => {
         onTabChange={setActiveTab}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        sortOption={sortOption}
+        onSortChange={setSortOption}
         petsStats={petsStats}
         worldsStats={worldsStats}
       />
