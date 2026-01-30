@@ -1,68 +1,62 @@
 import ManagedSettings
 import ManagedSettingsUI
 import UIKit
+import os.log
 
-// MARK: - Shield Configuration Extension
-// This extension provides custom UI for blocked apps during focus sessions
+private let log = OSLog(subsystem: "co.nomoinc.nomo.shield", category: "Shield")
 
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     private let helper = ShieldConfigurationHelper()
 
-    // MARK: - Shield Configuration for Applications
+    override init() {
+        os_log("SHIELD EXTENSION INIT", log: log, type: .fault)
+        super.init()
+    }
 
     override func configuration(shielding application: Application) -> ShieldConfiguration {
-        return createFocusShieldConfiguration(
-            title: "Stay Focused!",
-            subtitle: application.localizedDisplayName ?? "This app is blocked"
-        )
+        os_log("SHIELD: shielding app: %{public}@", log: log, type: .fault, application.localizedDisplayName ?? "unknown")
+        helper.recordShieldAttempt()
+        return makeConfig()
     }
 
     override func configuration(shielding application: Application, in category: ActivityCategory) -> ShieldConfiguration {
-        return createFocusShieldConfiguration(
-            title: "Stay Focused!",
-            subtitle: "\(category.localizedDisplayName ?? "This category") is blocked during your focus session"
-        )
+        os_log("SHIELD: shielding app in category", log: log, type: .fault)
+        helper.recordShieldAttempt()
+        return makeConfig()
     }
 
     override func configuration(shielding webDomain: WebDomain) -> ShieldConfiguration {
-        return createFocusShieldConfiguration(
-            title: "Stay Focused!",
-            subtitle: "\(webDomain.domain ?? "This website") is blocked during your focus session"
-        )
+        os_log("SHIELD: shielding web domain", log: log, type: .fault)
+        helper.recordShieldAttempt()
+        return makeConfig()
     }
 
     override func configuration(shielding webDomain: WebDomain, in category: ActivityCategory) -> ShieldConfiguration {
-        return createFocusShieldConfiguration(
-            title: "Stay Focused!",
-            subtitle: "Web browsing in \(category.localizedDisplayName ?? "this category") is blocked"
-        )
+        os_log("SHIELD: shielding web domain in category", log: log, type: .fault)
+        helper.recordShieldAttempt()
+        return makeConfig()
     }
 
-    // MARK: - Create Shield Configuration
-
-    private func createFocusShieldConfiguration(title: String, subtitle: String) -> ShieldConfiguration {
-        // Record that user attempted to open a blocked app
-        helper.recordShieldAttempt()
-
-        // Get motivational message
-        let motivationalMessage = helper.getMotivationalMessage()
+    private func makeConfig() -> ShieldConfiguration {
+        let message = helper.getMotivationalMessage()
+        os_log("SHIELD: makeConfig - message: %{public}@", log: log, type: .fault, message)
 
         return ShieldConfiguration(
             backgroundBlurStyle: .systemUltraThinMaterialDark,
             backgroundColor: ShieldConfigurationHelper.shieldBackgroundColor,
             icon: helper.createNoMoIcon(),
             title: ShieldConfiguration.Label(
-                text: title,
-                color: UIColor.white
+                text: "Stay Focused!",
+                color: .white
             ),
             subtitle: ShieldConfiguration.Label(
-                text: motivationalMessage,
+                text: message,
                 color: ShieldConfigurationHelper.shieldSubtitleColor
             ),
             primaryButtonLabel: ShieldConfiguration.Label(
                 text: "Return to NoMo",
-                color: UIColor.white
+                color: .white
             ),
             primaryButtonBackgroundColor: ShieldConfigurationHelper.shieldButtonColor,
             secondaryButtonLabel: nil

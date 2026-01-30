@@ -5,6 +5,8 @@ export interface BlockingStatus {
   shieldAttempts: number;
   lastShieldAttemptTimestamp: number;
   hasAppsConfigured: boolean;
+  selectedAppsCount: number;
+  selectedCategoriesCount: number;
 }
 
 // Shield attempts response
