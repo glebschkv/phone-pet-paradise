@@ -19,6 +19,8 @@ interface DeviceActivityState {
   hasAppsConfigured: boolean;
   shieldAttempts: number;
   lastShieldAttemptTimestamp: number;
+  selectedAppsCount: number;
+  selectedCategoriesCount: number;
 
   // Plugin health
   pluginAvailable: boolean;
@@ -86,6 +88,8 @@ export const useDeviceActivity = () => {
     hasAppsConfigured: false,
     shieldAttempts: 0,
     lastShieldAttemptTimestamp: 0,
+    selectedAppsCount: 0,
+    selectedCategoriesCount: 0,
     pluginAvailable: true,
     pluginError: null,
   });
@@ -187,6 +191,8 @@ export const useDeviceActivity = () => {
           shieldAttempts: 0,
           lastShieldAttemptTimestamp: 0,
           hasAppsConfigured: false,
+          selectedAppsCount: 0,
+          selectedCategoriesCount: 0,
         } as BlockingStatus,
         'getBlockingStatus'
       );
@@ -198,6 +204,8 @@ export const useDeviceActivity = () => {
         hasAppsConfigured: blockingStatus.hasAppsConfigured,
         shieldAttempts: blockingStatus.shieldAttempts,
         lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
+        selectedAppsCount: blockingStatus.selectedAppsCount,
+        selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
         pluginAvailable: true,
         pluginError: null,
       }));
@@ -397,6 +405,8 @@ export const useDeviceActivity = () => {
       shieldAttempts: 0,
       lastShieldAttemptTimestamp: 0,
       hasAppsConfigured: false,
+      selectedAppsCount: 0,
+      selectedCategoriesCount: 0,
     };
 
     if (!state.pluginAvailable) {
@@ -419,6 +429,8 @@ export const useDeviceActivity = () => {
       hasAppsConfigured: status.hasAppsConfigured,
       shieldAttempts: status.shieldAttempts,
       lastShieldAttemptTimestamp: status.lastShieldAttemptTimestamp,
+      selectedAppsCount: status.selectedAppsCount,
+      selectedCategoriesCount: status.selectedCategoriesCount,
     }));
 
     return status;
@@ -483,8 +495,10 @@ export const useDeviceActivity = () => {
     );
 
     if (success && result?.success) {
+      const appsSelected = result.appsSelected ?? 0;
+      const categoriesSelected = result.categoriesSelected ?? 0;
       deviceActivityLogger.info(
-        `App picker done: ${result.appsSelected ?? 0} apps, ${result.categoriesSelected ?? 0} categories`
+        `App picker done: ${appsSelected} apps, ${categoriesSelected} categories`
       );
       // Refresh blocking status after selection change
       const { result: status } = await safePluginCall(
@@ -495,12 +509,16 @@ export const useDeviceActivity = () => {
           shieldAttempts: 0,
           lastShieldAttemptTimestamp: 0,
           hasAppsConfigured: false,
+          selectedAppsCount: appsSelected,
+          selectedCategoriesCount: categoriesSelected,
         } as BlockingStatus,
         'getBlockingStatus-afterPicker'
       );
       setState(prev => ({
         ...prev,
         hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
+        selectedAppsCount: status.selectedAppsCount || appsSelected,
+        selectedCategoriesCount: status.selectedCategoriesCount || categoriesSelected,
       }));
     } else if (result?.cancelled) {
       deviceActivityLogger.info('App picker cancelled by user');
@@ -546,6 +564,8 @@ export const useDeviceActivity = () => {
       ...prev,
       hasAppsConfigured: false,
       isBlocking: false,
+      selectedAppsCount: 0,
+      selectedCategoriesCount: 0,
     }));
 
     // Try to clear on native if plugin is available
@@ -658,8 +678,10 @@ export const useDeviceActivity = () => {
     }
   }, [state.isMonitoring, getUsageData]);
 
-  // Count blocked apps
-  const blockedAppsCount = simulatedApps.filter(app => app.isBlocked).length;
+  // Count blocked apps: use native counts on iOS, web simulation otherwise
+  const blockedAppsCount = isNative
+    ? state.selectedAppsCount + state.selectedCategoriesCount
+    : simulatedApps.filter(app => app.isBlocked).length;
 
   return {
     // State
