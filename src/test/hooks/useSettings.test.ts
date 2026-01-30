@@ -5,8 +5,13 @@ import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 // Mock toast
 const mockToast = vi.fn();
-vi.mock('@/hooks/use-toast', () => ({
-  useToast: () => ({ toast: mockToast }),
+vi.mock('sonner', () => ({
+  toast: Object.assign(mockToast, {
+    success: mockToast,
+    error: mockToast,
+    info: mockToast,
+    warning: mockToast,
+  }),
 }));
 
 // Mock logger

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { settingsLogger } from '@/lib/logger';
 
@@ -49,8 +49,6 @@ const defaultSettings: AppSettings = {
 export const useSettings = () => {
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-
   // Load settings from localStorage on mount
   useEffect(() => {
     try {
@@ -60,15 +58,13 @@ export const useSettings = () => {
       }
     } catch (error) {
       settingsLogger.error('Failed to load settings:', error);
-      toast({
-        title: "Settings Error",
+      toast.error("Settings Error", {
         description: "Failed to load saved settings. Using defaults.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   // Save settings to localStorage
   const updateSettings = (newSettings: Partial<AppSettings>) => {
@@ -82,16 +78,13 @@ export const useSettings = () => {
         applyTheme(newSettings.theme);
       }
 
-      toast({
-        title: "Settings Saved",
+      toast.success("Settings Saved", {
         description: "Your preferences have been updated.",
       });
     } catch (error) {
       settingsLogger.error('Failed to save settings:', error);
-      toast({
-        title: "Save Error",
+      toast.error("Save Error", {
         description: "Failed to save settings. Please try again.",
-        variant: "destructive",
       });
     }
   };
@@ -114,8 +107,7 @@ export const useSettings = () => {
     setSettings(defaultSettings);
     storage.remove(STORAGE_KEYS.APP_SETTINGS);
     applyTheme(defaultSettings.theme);
-    toast({
-      title: "Settings Reset",
+    toast.info("Settings Reset", {
       description: "All settings have been reset to defaults.",
     });
   };
@@ -132,16 +124,13 @@ export const useSettings = () => {
       link.click();
       URL.revokeObjectURL(url);
       
-      toast({
-        title: "Settings Exported",
+      toast.success("Settings Exported", {
         description: "Settings file has been downloaded.",
       });
     } catch (error) {
       settingsLogger.error('Failed to export settings:', error);
-      toast({
-        title: "Export Error",
+      toast.error("Export Error", {
         description: "Failed to export settings.",
-        variant: "destructive",
       });
     }
   };
@@ -159,17 +148,14 @@ export const useSettings = () => {
           const validatedSettings = { ...defaultSettings, ...imported };
           updateSettings(validatedSettings);
           
-          toast({
-            title: "Settings Imported",
+          toast.success("Settings Imported", {
             description: "Settings have been successfully imported.",
           });
           resolve();
         } catch (error) {
           settingsLogger.error('Failed to import settings:', error);
-          toast({
-            title: "Import Error",
+          toast.error("Import Error", {
             description: "Invalid settings file format.",
-            variant: "destructive",
           });
           reject(error);
         }

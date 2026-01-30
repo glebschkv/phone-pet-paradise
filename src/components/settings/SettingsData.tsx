@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Download, Upload, RotateCcw, Shield, AlertTriangle, HardDrive } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 
 interface SettingsDataProps {
   settings: AppSettings;
@@ -18,7 +18,6 @@ interface SettingsDataProps {
 
 export const SettingsData = ({ settings, onUpdate, onReset, onExport, onImport }: SettingsDataProps) => {
   const [importFile, setImportFile] = useState<File | null>(null);
-  const { toast } = useToast();
 
   const handleImport = async () => {
     if (!importFile) return;
@@ -35,10 +34,8 @@ export const SettingsData = ({ settings, onUpdate, onReset, onExport, onImport }
     if (file && file.type === 'application/json') {
       setImportFile(file);
     } else {
-      toast({
-        title: "Invalid File",
+      toast.error("Invalid File", {
         description: "Please select a valid JSON settings file.",
-        variant: "destructive",
       });
     }
   };

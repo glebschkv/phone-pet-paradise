@@ -42,10 +42,13 @@ vi.mock('@capacitor/core', () => ({
   },
 }));
 
-// Mock useToast
-vi.mock('@/hooks/use-toast', () => ({
-  useToast: () => ({
-    toast: mockToastFn,
+// Mock sonner toast
+vi.mock('sonner', () => ({
+  toast: Object.assign(mockToastFn, {
+    success: mockToastFn,
+    error: mockToastFn,
+    info: mockToastFn,
+    warning: mockToastFn,
   }),
 }));
 

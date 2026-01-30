@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { notificationLogger as logger } from '@/lib/logger';
 
 interface NotificationPermissions {
@@ -35,8 +35,6 @@ export const useNotifications = () => {
     localEnabled: false,
   });
   const [isInitialized, setIsInitialized] = useState(globalNotificationsInitialized);
-  const { toast } = useToast();
-
   // Store listener cleanup functions
   const listenerCleanupRef = useRef<Array<() => Promise<void>>>([]);
 
@@ -66,8 +64,7 @@ export const useNotifications = () => {
       logger.debug('Push notification received:', notification);
 
       // Show in-app notification for background received notifications
-      toast({
-        title: notification.title || "New Notification",
+      toast.info(notification.title || "New Notification", {
         description: notification.body || "You have a new notification",
       });
     });
@@ -103,7 +100,7 @@ export const useNotifications = () => {
       }));
     });
     listenerCleanupRef.current.push(() => localActionListener.remove());
-  }, [toast]);
+  }, []);
 
   const initializeNotifications = useCallback(async () => {
     // Check module-level flag to prevent re-initialization across remounts

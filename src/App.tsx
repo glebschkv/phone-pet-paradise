@@ -1,5 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -27,7 +26,6 @@ const App = () => (
         <OfflineProvider>
           <TooltipProvider>
             <Toaster />
-            <Sonner />
             <PluginUnavailableBanner className="fixed top-0 left-0 right-0 z-50" />
             <VersionNotice />
             <BrowserRouter>

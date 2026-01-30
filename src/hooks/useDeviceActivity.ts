@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { DeviceActivity } from '@/plugins/device-activity';
 import type { BlockingStatus, StartBlockingResult, StopBlockingResult } from '@/plugins/device-activity/definitions';
 import { Capacitor } from '@capacitor/core';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { deviceActivityLogger } from '@/lib/logger';
 import { reportError } from '@/lib/errorReporting';
 
@@ -109,8 +109,6 @@ export const useDeviceActivity = () => {
     }
     return DEFAULT_BLOCKED_APPS;
   });
-
-  const { toast } = useToast();
 
   // Check if we're on native platform
   const isNative = Capacitor.isNativePlatform();
@@ -286,8 +284,7 @@ export const useDeviceActivity = () => {
           isMonitoring: monitoring.monitoring
         }));
 
-        toast({
-          title: "Screen Time Access Granted",
+        toast.success("Screen Time Access Granted", {
           description: "You can now block distracting apps during focus sessions!",
         });
       } else if (currentStatus.status === 'notDetermined') {
@@ -295,19 +292,15 @@ export const useDeviceActivity = () => {
         // dialog likely never appeared. This usually means the Family Controls
         // entitlement is missing from the provisioning profile.
         const errorDetail = lastError ? ` (${lastError})` : '';
-        toast({
-          title: "Permission Not Available",
+        toast.error("Permission Not Available", {
           description: `Screen Time permission dialog did not appear${errorDetail}. Try deleting and reinstalling the app, or check that Family Controls is enabled in Xcode.`,
-          variant: "destructive",
         });
       } else {
         // Status is "denied" — user explicitly denied, or system blocked it.
         // They need to go to Settings to re-enable.
         const errorDetail = lastError ? ` Error: ${lastError}` : '';
-        toast({
-          title: "Permission Denied",
+        toast.error("Permission Denied", {
           description: `Screen Time access was denied. Tap "Open Settings" below to enable it for this app.${errorDetail}`,
-          variant: "destructive",
         });
       }
     } catch (error) {
@@ -315,15 +308,13 @@ export const useDeviceActivity = () => {
       if (error instanceof Error) {
         reportError(error, { context: 'DeviceActivity.requestPermissions' });
       }
-      toast({
-        title: "Permission Error",
+      toast.error("Permission Error", {
         description: "Failed to request Screen Time permissions. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, [toast]);
+  }, []);
 
   // Start app blocking (called when timer starts)
   const startAppBlocking = useCallback(async (): Promise<StartBlockingResult> => {
@@ -358,14 +349,13 @@ export const useDeviceActivity = () => {
     }));
 
     if (result.appsBlocked > 0 || result.categoriesBlocked > 0) {
-      toast({
-        title: "Focus Mode Active",
+      toast.success("Focus Mode Active", {
         description: `Blocking ${result.appsBlocked} apps and ${result.categoriesBlocked} categories`,
       });
     }
 
     return result;
-  }, [toast, state.pluginAvailable]);
+  }, [state.pluginAvailable]);
 
   // Stop app blocking (called when timer ends)
   const stopAppBlocking = useCallback(async (): Promise<StopBlockingResult> => {

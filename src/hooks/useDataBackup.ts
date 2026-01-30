@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { backupLogger } from '@/lib/logger';
 
 interface BackupData {
@@ -33,8 +33,6 @@ const getLocalBackupsUtil = (): BackupMetadata[] => {
 export const useDataBackup = () => {
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [isRestoringBackup, setIsRestoringBackup] = useState(false);
-  const { toast } = useToast();
-
   // Get all app data for backup
   const collectAppData = useCallback((): BackupData => {
     const data: BackupData = {
@@ -126,24 +124,21 @@ export const useDataBackup = () => {
       existingBackups.push(metadata);
       localStorage.setItem('backup-metadata', JSON.stringify(existingBackups));
 
-      toast({
-        title: "Backup Created",
+      toast.success("Backup Created", {
         description: `Backup saved as ${filename}`,
       });
 
       return metadata;
     } catch (error) {
       backupLogger.error('Backup creation failed:', error);
-      toast({
-        title: "Backup Failed",
+      toast.error("Backup Failed", {
         description: "Failed to create backup. Please try again.",
-        variant: "destructive",
       });
       throw error;
     } finally {
       setIsCreatingBackup(false);
     }
-  }, [collectAppData, toast]);
+  }, [collectAppData]);
 
   // SECURITY: Validate backup data structure thoroughly
   const validateBackupData = (data: unknown): data is BackupData => {
@@ -237,8 +232,7 @@ export const useDataBackup = () => {
         }
       });
       
-      toast({
-        title: "Backup Restored",
+      toast.success("Backup Restored", {
         description: "Your data has been restored. Please refresh the page.",
       });
       
@@ -247,16 +241,14 @@ export const useDataBackup = () => {
       
     } catch (error) {
       backupLogger.error('Backup restore failed:', error);
-      toast({
-        title: "Restore Failed",
+      toast.error("Restore Failed", {
         description: "Failed to restore backup. Please check the file format.",
-        variant: "destructive",
       });
       throw error;
     } finally {
       setIsRestoringBackup(false);
     }
-  }, [createBackup, toast]);
+  }, [createBackup]);
 
   // Get local backup metadata - wrapper around utility function
   const getLocalBackups = useCallback((): BackupMetadata[] => {
