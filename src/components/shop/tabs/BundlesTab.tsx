@@ -6,6 +6,7 @@
  */
 
 import { Check, Coins } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -76,7 +77,7 @@ const PetBundlesSection = ({
   return (
     <div>
       <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-        <span>🐾</span> Pet Bundles
+        <PixelIcon name="paw" size={16} /> Pet Bundles
       </h4>
       <div className="space-y-2">
         {PET_BUNDLES.map((bundle) => (
@@ -159,7 +160,7 @@ const PetBundleCard = ({
               ))}
             />
           ) : (
-            <span className="text-3xl">{bundle.icon}</span>
+            <PixelIcon name={bundle.icon} size={30} />
           )}
         </div>
 
@@ -237,7 +238,7 @@ const BackgroundBundlesSection = ({
   return (
     <div>
       <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-        <span>🖼️</span> Background Bundles
+        <PixelIcon name="picture-frame" size={16} /> Background Bundles
       </h4>
       <div className="space-y-2">
         {BACKGROUND_BUNDLES.map((bundle) => (

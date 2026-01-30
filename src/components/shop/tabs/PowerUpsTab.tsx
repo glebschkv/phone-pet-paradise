@@ -1,4 +1,5 @@
 import { Coins } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { ShopItem, getShopItemsByCategory, COIN_PACKS, CoinPack } from "@/data/ShopData";
 import type { ShopInventory } from "@/hooks/useShop";
@@ -56,7 +57,7 @@ export const PowerUpsTab = ({
       {/* Coin Boosters */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>🚀</span> Coin Boosters
+          <PixelIcon name="rocket" size={16} /> Coin Boosters
         </h4>
         <div className="space-y-2">
           {boosters.map((booster) => {
@@ -79,7 +80,7 @@ export const PowerUpsTab = ({
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{booster.icon}</span>
+                  <PixelIcon name={booster.icon} size={24} />
                   <div className="flex-1">
                     <span className="font-bold text-sm">{booster.name}</span>
                     <p className="text-xs text-muted-foreground">{booster.description}</p>
@@ -100,7 +101,7 @@ export const PowerUpsTab = ({
       {/* Utility Items */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>🧊</span> Streak Protection
+          <PixelIcon name="ice-cube" size={16} /> Streak Protection
         </h4>
         <div className="grid grid-cols-3 gap-2">
           {utilities.map((item) => {
@@ -117,7 +118,7 @@ export const PowerUpsTab = ({
                   "bg-cyan-50 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700"
                 )}
               >
-                <span className="text-2xl block mb-1">{item.icon}</span>
+                <PixelIcon name={item.icon} size={24} className="block mb-1" />
                 <span className="text-[10px] font-bold block">{item.name}</span>
                 <div className={cn(
                   "flex items-center justify-center gap-0.5 mt-1 text-xs font-bold",
@@ -135,7 +136,7 @@ export const PowerUpsTab = ({
       {/* Coin Packs */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>💰</span> Buy Coins
+          <PixelIcon name="money-bag" size={16} /> Buy Coins
         </h4>
         <div className="space-y-2">
           {coins.map((pack) => (
@@ -150,7 +151,7 @@ export const PowerUpsTab = ({
               )}
             >
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{pack.icon}</span>
+                <PixelIcon name={pack.icon} size={24} />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm">{pack.name}</span>

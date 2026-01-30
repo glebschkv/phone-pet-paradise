@@ -1,4 +1,5 @@
 import { Check, Coins, Palette, Clock, Star } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { ShopItem, PREMIUM_BACKGROUNDS, ShopCategory } from "@/data/ShopData";
 import type { ShopInventory } from "@/hooks/useShop";
@@ -68,7 +69,7 @@ export const PetsTab = ({
       {/* Pets Section */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>🐾</span> Pets
+          <PixelIcon name="paw" size={16} /> Pets
         </h4>
         <div className="grid grid-cols-2 gap-3">
           {characters.map((character) => {
@@ -145,7 +146,7 @@ export const PetsTab = ({
       {backgroundsWithPreviews.length > 0 && (
         <div>
           <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <span>🌤️</span> Sky Collection
+            <PixelIcon name="sun-cloud" size={16} /> Sky Collection
           </h4>
           <div className="grid grid-cols-2 gap-2">
             {backgroundsWithPreviews.map((bg) => {
@@ -252,7 +253,7 @@ export const PetsTab = ({
       {backgroundsWithoutPreviews.length > 0 && (
         <div>
           <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <span>🖼️</span> Backgrounds
+            <PixelIcon name="picture-frame" size={16} /> Backgrounds
           </h4>
           <div className="grid grid-cols-3 gap-2">
             {backgroundsWithoutPreviews.map((bg) => {
@@ -294,7 +295,7 @@ export const PetsTab = ({
                       <Check className="w-2.5 h-2.5 text-white" />
                     </div>
                   )}
-                  <span className="text-2xl block mb-1">{bg.icon}</span>
+                  <PixelIcon name={bg.icon} size={24} className="block mb-1" />
                   <span className="text-[10px] font-bold block leading-tight">{bg.name}</span>
                   {owned ? (
                     <div className="text-[8px] font-medium mt-1 text-purple-600 dark:text-purple-400">

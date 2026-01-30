@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Coins, Lock, Sparkles, Star, Loader2 } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { ShopItem, BackgroundBundle, PetBundle } from "@/data/ShopData";
 import { AnimalData } from "@/data/AnimalDatabase";
@@ -63,10 +64,14 @@ export const PurchaseConfirmDialog = ({
               ) : 'previewImage' in selectedItem && typeof selectedItem.previewImage === 'string' && selectedItem.previewImage ? (
                 // Single background preview
                 <BackgroundPreview imagePath={selectedItem.previewImage} size="large" className="w-full" />
-              ) : (
+              ) : 'emoji' in selectedItem ? (
                 <span className="text-5xl retro-pixel-shadow animate-bounce">
-                  {'emoji' in selectedItem ? selectedItem.emoji : selectedItem.icon}
+                  {selectedItem.emoji}
                 </span>
+              ) : (
+                <div className="animate-bounce">
+                  <PixelIcon name={selectedItem.icon} size={48} className="retro-pixel-shadow" />
+                </div>
               )}
             </div>
             <DialogHeader>

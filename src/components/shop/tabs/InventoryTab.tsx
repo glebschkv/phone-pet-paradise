@@ -1,4 +1,5 @@
 import { Snowflake, Zap, Clock, Image, Check, PawPrint } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { useStreakFreezeCount } from "@/stores/streakStore";
 import { useOwnedBackgrounds, useOwnedCharacters, useEquippedBackground } from "@/stores/shopStore";
@@ -42,7 +43,7 @@ export const InventoryTab = ({ equipBackground }: InventoryTabProps) => {
       {/* Consumables Section */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>🎒</span> Consumables
+          <PixelIcon name="backpack" size={16} /> Consumables
         </h4>
         <div className="grid grid-cols-2 gap-2">
           {/* Streak Freezes */}
@@ -98,7 +99,7 @@ export const InventoryTab = ({ equipBackground }: InventoryTabProps) => {
       {/* Owned Backgrounds */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>🖼️</span> Backgrounds
+          <PixelIcon name="picture-frame" size={16} /> Backgrounds
           {ownedBgData.length > 0 && (
             <span className="text-xs font-normal text-muted-foreground">({ownedBgData.length})</span>
           )}
@@ -160,7 +161,7 @@ export const InventoryTab = ({ equipBackground }: InventoryTabProps) => {
       {/* Owned Exclusive Pets */}
       <div>
         <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <span>🐾</span> Exclusive Pets
+          <PixelIcon name="paw" size={16} /> Exclusive Pets
           {ownedExclusivePets.length > 0 && (
             <span className="text-xs font-normal text-muted-foreground">
               ({ownedExclusivePets.length}/{allExclusivePets.length})
@@ -203,7 +204,7 @@ export const InventoryTab = ({ equipBackground }: InventoryTabProps) => {
       {/* Empty state */}
       {!hasAnyItems && (
         <div className="py-8 text-center">
-          <span className="text-4xl block mb-2">🎒</span>
+          <div className="block mb-2"><PixelIcon name="backpack" size={36} /></div>
           <p className="text-sm font-bold text-muted-foreground">Your inventory is empty</p>
           <p className="text-xs text-muted-foreground mt-1">
             Purchase items from the shop to see them here!
