@@ -249,6 +249,7 @@ export const COIN_PACKS: CoinPack[] = [
     iapProductId: 'co.nomoinc.nomo.coins.starter',
     icon: '🪙',
     coinAmount: 500,
+    bonusCoins: 100,
     rarity: 'common',
   },
   {
@@ -260,7 +261,7 @@ export const COIN_PACKS: CoinPack[] = [
     iapProductId: 'co.nomoinc.nomo.coins.value',
     icon: '💰',
     coinAmount: 1500,
-    bonusCoins: 100,
+    bonusCoins: 300,
     rarity: 'rare',
   },
   {
@@ -272,7 +273,7 @@ export const COIN_PACKS: CoinPack[] = [
     iapProductId: 'co.nomoinc.nomo.coins.premium',
     icon: '💎',
     coinAmount: 5000,
-    bonusCoins: 500,
+    bonusCoins: 1000,
     rarity: 'epic',
   },
   {
@@ -284,7 +285,19 @@ export const COIN_PACKS: CoinPack[] = [
     iapProductId: 'co.nomoinc.nomo.coins.mega',
     icon: '🏆',
     coinAmount: 15000,
-    bonusCoins: 2500,
+    bonusCoins: 5000,
+    rarity: 'legendary',
+  },
+  {
+    id: 'coins-ultra',
+    name: 'Ultra Pack',
+    description: 'The VIP experience - maximum coins!',
+    category: 'coins',
+    iapPrice: '$49.99',
+    iapProductId: 'co.nomoinc.nomo.coins.ultra',
+    icon: '👑',
+    coinAmount: 40000,
+    bonusCoins: 20000,
     rarity: 'legendary',
     isBestValue: true,
   },
@@ -295,6 +308,22 @@ export const COIN_PACKS: CoinPack[] = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const STARTER_BUNDLES: StarterBundle[] = [
+  {
+    id: 'bundle-welcome',
+    name: 'Welcome Gift',
+    description: 'A perfect start to your journey! Coins, protection, and a boost.',
+    category: 'coins',
+    iapPrice: '$1.99',
+    iapProductId: 'co.nomoinc.nomo.bundle.welcome',
+    icon: '🎁',
+    rarity: 'rare',
+    contents: {
+      coins: 400,
+      boosterId: 'focus_boost',
+      streakFreezes: 1,
+    },
+    savings: '60%',
+  },
   {
     id: 'bundle-starter',
     name: 'Starter Bundle',
@@ -326,6 +355,23 @@ export const STARTER_BUNDLES: StarterBundle[] = [
       characterId: 'kitsune-spirit', // Legendary Kitsune Spirit
     },
     savings: '60%',
+  },
+  {
+    id: 'bundle-ultimate',
+    name: 'Ultimate Bundle',
+    description: 'The ultimate collection - exclusive pets, massive coins, and premium extras.',
+    category: 'coins',
+    iapPrice: '$29.99',
+    iapProductId: 'co.nomoinc.nomo.bundle.ultimate',
+    icon: '👑',
+    rarity: 'legendary',
+    contents: {
+      coins: 12000,
+      boosterId: 'super_boost',
+      characterId: 'storm-spirit', // Legendary Storm Spirit
+      streakFreezes: 5,
+    },
+    savings: '65%',
   },
 ];
 
