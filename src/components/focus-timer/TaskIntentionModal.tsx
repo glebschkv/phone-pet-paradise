@@ -64,14 +64,14 @@ export const TaskIntentionModal = ({
     setTaskLabel("");
   };
 
-  const handleSkip = () => {
-    onStart("other", undefined);
+  const handleCancel = () => {
     setTaskLabel("");
+    onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="retro-modal max-w-[340px] p-0 overflow-hidden border-0">
+      <DialogContent className="retro-modal max-w-[340px] p-0 overflow-hidden border-0 [&>button:last-child]:hidden">
         <VisuallyHidden>
           <DialogTitle>What are you focusing on?</DialogTitle>
         </VisuallyHidden>
@@ -81,7 +81,7 @@ export const TaskIntentionModal = ({
           <div className="retro-scanlines opacity-20" />
           <div className="relative z-10 flex items-center justify-center gap-2.5">
             <PixelIcon name="target" size={22} />
-            <h2 className="text-base font-bold tracking-wide uppercase retro-pixel-text retro-neon-text">
+            <h2 className="text-base font-bold tracking-wide uppercase text-white">
               What are you focusing on?
             </h2>
           </div>
@@ -170,7 +170,7 @@ export const TaskIntentionModal = ({
           {/* Action Buttons */}
           <div className="flex gap-3 pt-1 pb-1">
             <button
-              onClick={handleSkip}
+              onClick={handleCancel}
               className={cn(
                 "flex-1 py-2.5 rounded-lg font-bold text-sm tracking-wide",
                 "border-2 border-slate-600/50 text-slate-500",
@@ -179,7 +179,7 @@ export const TaskIntentionModal = ({
                 "transition-all duration-150 touch-manipulation"
               )}
             >
-              Skip
+              Cancel
             </button>
             <button
               onClick={handleStart}
