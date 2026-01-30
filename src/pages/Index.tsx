@@ -5,7 +5,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
-import { useDataBackup } from "@/hooks/useDataBackup";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useNavigate } from "react-router-dom";
@@ -44,7 +44,6 @@ const Index = () => {
   const hasCompletedOnboarding = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   usePerformanceMonitor(); // Initialize performance monitoring
-  const { autoBackup } = useDataBackup(); // Initialize auto-backup
 
   // Use Zustand stores instead of localStorage + events
   const backgroundTheme = useThemeStore((state) => state.homeBackground);
@@ -75,11 +74,6 @@ const Index = () => {
       navigate('/auth');
     }
   }, [isLoading, isAuthenticated, navigate]);
-
-  // Auto backup on app start
-  useEffect(() => {
-    autoBackup();
-  }, [autoBackup]);
 
   // Show splash screen while checking auth
   if (isLoading) {
