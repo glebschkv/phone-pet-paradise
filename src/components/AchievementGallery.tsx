@@ -7,6 +7,7 @@ import { useXPSystem } from '@/hooks/useXPSystem';
 import { useCoinSystem } from '@/hooks/useCoinSystem';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 export interface AchievementGalleryProps {
   onClose?: () => void;
@@ -100,7 +101,7 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
               ? "bg-green-500/15 border-green-500/40"
               : "bg-purple-800/40 border-purple-600/30"
           )}>
-            {isSecret ? '❓' : achievement.icon}
+            {isSecret ? <PixelIcon name="question-mark" size={28} /> : <PixelIcon name={achievement.icon} size={28} />}
           </div>
 
           {/* Title & Tier */}
@@ -186,7 +187,7 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
             <div className="flex items-center gap-4 pt-2 border-t border-purple-700/30">
               <span className="text-xs text-purple-400">Rewards:</span>
               <span className="text-xs font-semibold text-blue-400">+{xpReward} XP</span>
-              <span className="text-xs font-semibold text-yellow-400">+{coinReward} 🪙</span>
+              <span className="text-xs font-semibold text-yellow-400 inline-flex items-center gap-0.5">+{coinReward} <PixelIcon name="coin" size={14} /></span>
             </div>
           </>
         ) : (
