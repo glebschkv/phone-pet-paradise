@@ -295,7 +295,7 @@ export const COIN_PACKS: CoinPack[] = [
     category: 'coins',
     iapPrice: '$49.99',
     iapProductId: 'co.nomoinc.nomo.coins.ultra',
-    icon: '👑',
+    icon: 'ultra-crown',
     coinAmount: 40000,
     bonusCoins: 20000,
     rarity: 'legendary',
@@ -315,7 +315,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     category: 'coins',
     iapPrice: '$1.99',
     iapProductId: 'co.nomoinc.nomo.bundle.welcome',
-    icon: '🎁',
+    icon: 'gift',
     rarity: 'rare',
     contents: {
       coins: 400,
@@ -363,7 +363,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     category: 'coins',
     iapPrice: '$29.99',
     iapProductId: 'co.nomoinc.nomo.bundle.ultimate',
-    icon: '👑',
+    icon: 'treasure-chest',
     rarity: 'legendary',
     contents: {
       coins: 12000,
