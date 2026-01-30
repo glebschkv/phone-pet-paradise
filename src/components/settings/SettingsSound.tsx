@@ -118,14 +118,6 @@ export const SettingsSound = ({ settings, onUpdate }: SettingsSoundProps) => {
         )}
       </div>
 
-      {!settings.soundEnabled && (
-        <div className="retro-stat-pill p-4 text-center">
-          <VolumeX className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground">
-            Sounds are disabled
-          </p>
-        </div>
-      )}
     </div>
   );
 };
