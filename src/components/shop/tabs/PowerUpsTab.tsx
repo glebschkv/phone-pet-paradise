@@ -143,7 +143,7 @@ export const PowerUpsTab = ({
                   "bg-cyan-50 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700"
                 )}
               >
-                <PixelIcon name={item.icon} size={24} className="block mb-1" />
+                <PixelIcon name={item.icon} size={24} className="block mb-1 mx-auto" />
                 <span className="text-[10px] font-bold block">{item.name}</span>
                 <div className={cn(
                   "flex items-center justify-center gap-0.5 mt-1 text-xs font-bold",
