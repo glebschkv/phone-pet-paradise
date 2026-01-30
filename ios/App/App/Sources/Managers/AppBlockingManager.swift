@@ -36,16 +36,12 @@ final class AppBlockingManager: AppBlockingManaging {
         focusDataManager: FocusDataManager = .shared,
         userDefaults: UserDefaults? = nil
     ) {
-        // Only create ManagedSettingsStore when running in an app extension,
-        // where the managed-settings entitlement is available.
-        // The main app (.app bundle) does not have this entitlement.
+        // ManagedSettingsStore works in both the main app and extensions on iOS 16+
+        // when the Family Controls entitlement is present.
         if let store = store {
             self.store = store
-        } else if Bundle.main.bundlePath.hasSuffix(".appex") {
-            self.store = ManagedSettingsStore()
         } else {
-            self.store = nil
-            Log.blocking.info("Running in main app - ManagedSettingsStore not available (extension-only entitlement)")
+            self.store = ManagedSettingsStore()
         }
         self.focusDataManager = focusDataManager
         self.userDefaults = userDefaults ?? AppConfig.sharedUserDefaults
@@ -59,9 +55,16 @@ final class AppBlockingManager: AppBlockingManaging {
     }
 
     var hasAppsConfigured: Bool {
-        guard let store = store,
-              let apps = store.shield.applications else { return false }
-        return !apps.isEmpty
+        guard let store = store else { return false }
+        let hasApps = store.shield.applications.map { !$0.isEmpty } ?? false
+        let hasCategories: Bool
+        if case .specific(let tokens) = store.shield.applicationCategories {
+            hasCategories = !tokens.isEmpty
+        } else {
+            hasCategories = false
+        }
+        let hasDomains = store.shield.webDomains.map { !$0.isEmpty } ?? false
+        return hasApps || hasCategories || hasDomains
     }
 
     // MARK: - Start Blocking

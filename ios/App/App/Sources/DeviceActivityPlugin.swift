@@ -81,39 +81,32 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     /// Checks if the Family Controls entitlement is properly configured
-    /// by reading the embedded provisioning profile and checking initial auth status.
+    /// by checking authorization status and the embedded provisioning profile.
     private func diagnoseEntitlement() {
         Log.app.info("=== FAMILY CONTROLS DIAGNOSTIC ===")
 
-        // Check 1: Initial authorization status from AuthorizationCenter
+        // Check 1: Initial authorization status from AuthorizationCenter (most reliable indicator)
         if #available(iOS 16.0, *) {
             let rawStatus = FamilyControls.AuthorizationCenter.shared.authorizationStatus
-            Log.app.info("[DIAG] AuthorizationCenter.authorizationStatus = \(rawStatus)")
-            Log.app.info("[DIAG] Raw value description: \(String(describing: rawStatus))")
+            Log.app.info("[DIAG] AuthorizationCenter.authorizationStatus = \(String(describing: rawStatus))")
         }
 
         // Check 2: Look for Family Controls entitlement in embedded profile
+        // NOTE: On development builds, this check may show NO even when the entitlement
+        // is correctly configured via the .entitlements file. The provisioning profile
+        // string search is not reliable for dev builds. Check authorization status above
+        // for the definitive answer.
         if let profilePath = Bundle.main.path(forResource: "embedded", ofType: "mobileprovision"),
            let profileData = try? Data(contentsOf: URL(fileURLWithPath: profilePath)) {
             let profileString = String(data: profileData, encoding: .ascii) ?? ""
             let hasFamilyControls = profileString.contains("com.apple.developer.family-controls")
             Log.app.info("[DIAG] Provisioning profile found: YES")
-            Log.app.info("[DIAG] Family Controls entitlement in profile: \(hasFamilyControls ? "YES ✅" : "NO ❌ — This is the problem!")")
-
-            if !hasFamilyControls {
-                Log.app.info("[DIAG] FIX: In Xcode, remove and re-add the Family Controls capability,")
-                Log.app.info("[DIAG]       then toggle 'Automatically manage signing' off and on.")
-                Log.app.info("[DIAG]       Or manually create a provisioning profile in the Apple Developer Portal.")
-            }
+            Log.app.info("[DIAG] Family Controls in profile: \(hasFamilyControls ? "YES ✅" : "NO (may be normal for dev builds)")")
         } else {
-            Log.app.info("[DIAG] Provisioning profile found: NO (simulator build or missing)")
+            Log.app.info("[DIAG] Provisioning profile found: NO (simulator or dev build)")
         }
 
-        // Check 3: Check the entitlements file
-        let entitlements = Bundle.main.infoDictionary
         Log.app.info("[DIAG] Bundle ID: \(Bundle.main.bundleIdentifier ?? "unknown")")
-        Log.app.info("[DIAG] Info.plist keys: \(entitlements?.keys.sorted().joined(separator: ", ") ?? "none")")
-
         Log.app.info("=== END DIAGNOSTIC ===")
     }
 
