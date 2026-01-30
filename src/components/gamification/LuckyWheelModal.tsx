@@ -213,23 +213,23 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-sm p-0 overflow-hidden retro-modal">
         {/* Retro Header */}
-        <div className="retro-modal-header">
+        <div className="retro-modal-header py-2 px-4">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl flex items-center gap-3 retro-pixel-text">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center border-2 border-pink-400">
-                <Sparkles className="w-5 h-5 text-white" />
+            <DialogTitle className="text-white text-lg flex items-center gap-2 retro-pixel-text">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center border-2 border-pink-400">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
               <span className="retro-neon-pink">LUCKY SPIN</span>
             </DialogTitle>
           </DialogHeader>
-          <p className="text-purple-200/80 text-sm mt-2">
+          <p className="text-purple-200/80 text-xs mt-1">
             Spin daily for awesome prizes!
           </p>
         </div>
 
         {/* Wheel Section */}
         <div className={cn(
-          "relative p-6 flex flex-col items-center",
+          "relative px-4 pt-3 pb-2 flex flex-col items-center",
           "wheel-section-bg",
           localSpinning && "wheel-section-spinning"
         )}>
@@ -246,12 +246,12 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
           )}
 
           {/* Decorative Lights */}
-          <div className="absolute top-4 left-0 right-0 flex justify-center gap-3 z-10">
+          <div className="absolute top-2 left-0 right-0 flex justify-center gap-2 z-10">
             {[...Array(7)].map((_, i) => (
               <div
                 key={i}
                 className={cn(
-                  "w-3 h-3 rounded-full transition-all duration-300",
+                  "w-2.5 h-2.5 rounded-full transition-all duration-300",
                   localSpinning
                     ? "wheel-light-chasing"
                     : i % 3 === 0
@@ -269,7 +269,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
 
           {/* SVG Pointer - proper arrowhead with depth */}
           <div className={cn(
-            "absolute top-12 z-10",
+            "absolute top-8 z-10",
             localSpinning && "wheel-pointer-ticking"
           )}>
             <svg width="32" height="36" viewBox="0 0 32 36" className="wheel-pointer-svg">
@@ -305,7 +305,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
 
           {/* Wheel Container */}
           <div className={cn(
-            "relative w-64 h-64 mt-6",
+            "relative w-52 h-52 mt-4",
             showCelebration && currentPrize?.rarity === 'legendary' && "wheel-screen-shake"
           )}>
             {/* Outer decorative ring */}
@@ -470,11 +470,11 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
         </div>
 
         {/* Spin Button */}
-        <div className="px-6 pb-4">
+        <div className="px-4 pb-2">
           {canSpin ? (
             <button
               className={cn(
-                "w-full retro-arcade-btn retro-arcade-btn-yellow py-4 text-lg flex items-center justify-center gap-2 touch-manipulation select-none",
+                "w-full retro-arcade-btn retro-arcade-btn-yellow py-3 text-base flex items-center justify-center gap-2 touch-manipulation select-none",
                 localSpinning ? "opacity-50 cursor-not-allowed" : "active:scale-95"
               )}
               onClick={handleSpin}
@@ -484,16 +484,16 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                 <span className="animate-pulse retro-pixel-text">SPINNING...</span>
               ) : (
                 <>
-                  <Zap className="w-5 h-5" />
+                  <Zap className="w-4 h-4" />
                   <span className="retro-pixel-text">SPIN!</span>
                 </>
               )}
             </button>
           ) : (
-            <div className="retro-game-card p-4 text-center">
+            <div className="retro-game-card p-3 text-center">
               <div className="flex items-center justify-center gap-2 text-purple-400">
-                <Clock className="w-4 h-4" />
-                <span className="retro-pixel-text">
+                <Clock className="w-3.5 h-3.5" />
+                <span className="retro-pixel-text text-sm">
                   Next spin in {timeUntilNext.hours}h {timeUntilNext.minutes}m
                 </span>
               </div>
@@ -502,68 +502,66 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
         </div>
 
         {/* Stats and History */}
-        <div className="p-4 border-t-2 border-purple-700/50 bg-purple-900/30">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium flex items-center gap-1 text-cyan-400 retro-pixel-text">
-              <History className="w-4 h-4" />
+        <div className="px-4 py-2 border-t-2 border-purple-700/50 bg-purple-900/30">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium flex items-center gap-1 text-cyan-400 retro-pixel-text">
+              <History className="w-3.5 h-3.5" />
               RECENT WINS
             </span>
             <span className="text-xs text-purple-400 retro-pixel-text">
               {stats.totalSpins} spins
             </span>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
             {recentWins.length > 0 ? (
               recentWins.map((result, index) => (
                 <button
                   key={index}
-                  onClick={() => setSelectedWin(result)}
+                  onClick={() => setSelectedWin(selectedWin === result ? null : result)}
                   className={cn(
-                    "flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center text-xl",
+                    "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
                     "retro-icon-badge cursor-pointer transition-transform hover:scale-110 active:scale-95",
-                    getRarityBorder(result.prize.rarity)
+                    getRarityBorder(result.prize.rarity),
+                    selectedWin === result && "ring-2 ring-white/50"
                   )}
                 >
-                  <WheelPrizeIcon prizeId={result.prize.id} size={28} />
+                  <WheelPrizeIcon prizeId={result.prize.id} size={24} />
                 </button>
               ))
             ) : (
-              <p className="text-sm text-purple-400 retro-pixel-text">No spins yet!</p>
+              <p className="text-xs text-purple-400 retro-pixel-text">No spins yet!</p>
             )}
           </div>
 
           {/* Reward Detail Popup */}
           {selectedWin && (
-            <div className="mt-3 relative animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="mt-2 relative animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className={cn(
-                "retro-game-card p-4 border-2",
+                "retro-game-card p-2.5 border-2",
                 getRarityBorder(selectedWin.prize.rarity)
               )}>
                 <button
                   onClick={() => setSelectedWin(null)}
-                  className="absolute top-2 right-2 text-purple-400 hover:text-white transition-colors"
+                  className="absolute top-1.5 right-1.5 text-purple-400 hover:text-white transition-colors"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   <div className={cn(
-                    "w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0",
+                    "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
                     "retro-icon-badge",
                     getRarityBorder(selectedWin.prize.rarity),
                     getRarityGlow(selectedWin.prize.rarity)
                   )}>
-                    <WheelPrizeIcon prizeId={selectedWin.prize.id} size={36} />
+                    <WheelPrizeIcon prizeId={selectedWin.prize.id} size={26} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-white font-bold retro-pixel-text text-sm">
-                      {selectedWin.prize.name}
-                    </h4>
-                    <p className="text-purple-300 text-xs mt-0.5">
-                      {getPrizeDescription(selectedWin.prize)}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-white font-bold retro-pixel-text text-xs">
+                        {selectedWin.prize.name}
+                      </h4>
                       <span className={cn(
-                        "text-xs capitalize retro-pixel-text px-1.5 py-0.5 rounded",
+                        "text-[10px] capitalize retro-pixel-text px-1 py-0.5 rounded leading-none",
                         selectedWin.prize.rarity === 'legendary' && "bg-yellow-500/20 retro-neon-yellow",
                         selectedWin.prize.rarity === 'epic' && "bg-purple-500/20 retro-neon-pink",
                         selectedWin.prize.rarity === 'rare' && "bg-blue-500/20 retro-neon-text",
@@ -571,10 +569,13 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                       )}>
                         {selectedWin.prize.rarity}
                       </span>
-                      <span className="text-xs text-purple-500">
-                        {formatTimeAgo(selectedWin.timestamp)}
-                      </span>
                     </div>
+                    <p className="text-purple-300 text-[11px] mt-0.5">
+                      {getPrizeDescription(selectedWin.prize)}
+                    </p>
+                    <span className="text-[10px] text-purple-500">
+                      {formatTimeAgo(selectedWin.timestamp)}
+                    </span>
                   </div>
                 </div>
               </div>
