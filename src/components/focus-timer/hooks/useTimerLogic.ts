@@ -19,6 +19,8 @@ import { toast } from 'sonner';
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useDeviceActivity } from "@/hooks/useDeviceActivity";
+import { useStreakSystem } from "@/hooks/useStreakSystem";
+import { useNotifications } from "@/hooks/useNotifications";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { useTimerPersistence } from "./useTimerPersistence";
 import { useTimerAudio } from "./useTimerAudio";
@@ -34,6 +36,8 @@ export const useTimerLogic = () => {
   const { playCompletionSound } = useTimerAudio();
   const { recordSession } = useAnalytics();
   const { stop: stopAmbientSound, isPlaying: isAmbientPlaying } = useAmbientSound();
+  const { recordSession: recordStreakSession } = useStreakSystem();
+  const { scheduleStreakNotification, scheduleRewardNotification } = useNotifications();
 
   // Composed hooks
   const { awardSessionRewards, showFocusBonusToast } = useTimerRewards();
@@ -238,6 +242,17 @@ export const useTimerLogic = () => {
         state.hasAppsConfigured,
       );
 
+      // Update streak system and trigger notifications for work sessions
+      if (state.timerState.sessionType !== 'break') {
+        const streakReward = recordStreakSession();
+        if (streakReward) {
+          scheduleStreakNotification(streakReward.milestone);
+        }
+        if (xpEarned > 0) {
+          scheduleRewardNotification(xpEarned);
+        }
+      }
+
       // Reset display based on mode
       if (state.timerState.isCountup) {
         // For countup, reset to 0
@@ -286,6 +301,9 @@ export const useTimerLogic = () => {
     awardSessionRewards,
     showFocusBonusToast,
     recordSession,
+    recordStreakSession,
+    scheduleStreakNotification,
+    scheduleRewardNotification,
     saveTimerState,
     triggerHaptic,
   ]);

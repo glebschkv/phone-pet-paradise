@@ -8,6 +8,8 @@
 import { useCallback } from "react";
 import { toast } from 'sonner';
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useStreakSystem } from "@/hooks/useStreakSystem";
+import { useNotifications } from "@/hooks/useNotifications";
 import { FocusCategory, FocusQuality } from "@/types/analytics";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { TimerState } from "./useTimerPersistence";
@@ -46,6 +48,8 @@ export const useTimerControls = ({
   awardXP,
 }: UseTimerControlsProps) => {
   const { recordSession } = useAnalytics();
+  const { recordSession: recordStreakSession } = useStreakSystem();
+  const { scheduleStreakNotification, scheduleRewardNotification } = useNotifications();
 
   const requestStartTimer = useCallback(() => {
     if (selectedPreset.type === 'break') {
@@ -306,6 +310,17 @@ export const useTimerControls = ({
         focusQuality,
         hasAppsConfigured,
       );
+
+      // Update streak and trigger notifications for qualifying work sessions
+      if (isWorkSession && completedMinutes >= 25) {
+        const streakReward = recordStreakSession();
+        if (streakReward) {
+          scheduleStreakNotification(streakReward.milestone);
+        }
+        if (xpEarned > 0) {
+          scheduleRewardNotification(xpEarned);
+        }
+      }
     }
 
     if (timerState.isCountup || selectedPreset.isCountup) {
@@ -335,7 +350,7 @@ export const useTimerControls = ({
         isCountup: false,
       });
     }
-  }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
+  }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, recordStreakSession, scheduleStreakNotification, scheduleRewardNotification, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });
