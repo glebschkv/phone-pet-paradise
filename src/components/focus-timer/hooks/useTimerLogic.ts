@@ -84,7 +84,6 @@ export const useTimerLogic = () => {
   // Store latest values in refs to avoid callback dependency bloat
   const stateRef = useRef({
     timerState,
-    appBlockingEnabled,
     hasAppsConfigured,
     blockedAppsCount,
     isAmbientPlaying,
@@ -93,7 +92,6 @@ export const useTimerLogic = () => {
   useEffect(() => {
     stateRef.current = {
       timerState,
-      appBlockingEnabled,
       hasAppsConfigured,
       blockedAppsCount,
       isAmbientPlaying,
@@ -177,7 +175,7 @@ export const useTimerLogic = () => {
       clearPersistence();
 
       let shieldAttempts = 0;
-      if (state.timerState.sessionType !== 'break' && state.appBlockingEnabled) {
+      if (state.timerState.sessionType !== 'break' && state.hasAppsConfigured) {
         const blockingResult = await stopAppBlocking();
         shieldAttempts = blockingResult.shieldAttempts;
       }

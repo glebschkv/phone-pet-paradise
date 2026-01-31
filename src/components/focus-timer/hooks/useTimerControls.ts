@@ -69,11 +69,7 @@ export const useTimerControls = ({
   const startTimerWithIntent = useCallback(async (category: FocusCategory, taskLabel?: string) => {
     setShowIntentionModal(false);
 
-    // Only check permission — the native startAppBlocking() already handles
-    // the case where no apps are configured (returns appsBlocked: 0).
-    // We don't check hasAppsConfigured/blockedAppsCount here because those
-    // values may be stale (each useDeviceActivity() instance has independent state).
-    if (appBlockingEnabled) {
+    if (appBlockingEnabled && hasAppsConfigured && blockedAppsCount > 0) {
       const result = await startAppBlocking();
       if (result.appsBlocked > 0) {
         triggerHaptic('light');
@@ -105,7 +101,7 @@ export const useTimerControls = ({
         taskLabel,
       });
     }
-  }, [saveTimerState, timerState.timeLeft, timerState.isCountup, appBlockingEnabled, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
+  }, [saveTimerState, timerState.timeLeft, timerState.isCountup, appBlockingEnabled, hasAppsConfigured, blockedAppsCount, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
 
   const pauseTimer = useCallback(() => {
     const now = Date.now();
@@ -158,9 +154,11 @@ export const useTimerControls = ({
       elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
     }
 
-    // Stop blocking for any non-break session. Native stopAppBlocking() is
-    // safe to call even when nothing is blocking (returns shieldAttempts: 0).
-    if (timerState.sessionType !== 'break' && appBlockingEnabled) {
+    if (timerState.sessionType !== 'break' && timerState.sessionType !== 'countup' && hasAppsConfigured) {
+      await stopAppBlocking();
+    }
+    // Also stop blocking for countup mode
+    if (timerState.sessionType === 'countup' && hasAppsConfigured) {
       await stopAppBlocking();
     }
 
@@ -210,7 +208,7 @@ export const useTimerControls = ({
         isCountup: false,
       });
     }
-  }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, appBlockingEnabled, stopAppBlocking, intervalRef, setDisplayTime]);
+  }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
   const skipTimer = useCallback(async () => {
     let elapsedSeconds = 0;
@@ -226,7 +224,7 @@ export const useTimerControls = ({
 
     const completedMinutes = Math.ceil(elapsedSeconds / 60);
 
-    if (timerState.sessionType !== 'break' && appBlockingEnabled) {
+    if (timerState.sessionType !== 'break' && hasAppsConfigured) {
       await stopAppBlocking();
     }
 
@@ -299,7 +297,7 @@ export const useTimerControls = ({
         isCountup: false,
       });
     }
-  }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, appBlockingEnabled, stopAppBlocking, intervalRef, setDisplayTime]);
+  }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });
