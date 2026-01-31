@@ -5,9 +5,10 @@
  * Extracted from useTimerLogic for better separation of concerns.
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { TimerState } from "./useTimerPersistence";
 import { MAX_COUNTUP_DURATION } from "../constants";
+import { timerLogger } from "@/lib/logger";
 
 interface UseTimerCountdownProps {
   timerState: TimerState;
@@ -34,14 +35,38 @@ export const useTimerCountdown = ({
 }: UseTimerCountdownProps) => {
   // Store latest values in ref to avoid callback dependency bloat
   const stateRef = useRef<StateRef>({ timerState });
+  // Prevent multiple concurrent handleComplete calls
+  const completingRef = useRef(false);
 
   useEffect(() => {
     stateRef.current = { timerState };
   });
 
+  // Safe wrapper that prevents double-completion and catches errors
+  const safeComplete = useCallback(() => {
+    if (completingRef.current) return;
+    completingRef.current = true;
+
+    // Clear interval immediately to prevent tick from firing again
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    handleComplete()
+      .catch((error) => {
+        timerLogger.error('Timer completion failed:', error);
+      })
+      .finally(() => {
+        completingRef.current = false;
+      });
+  }, [handleComplete, intervalRef]);
+
   // Sync displayTime/elapsedTime with timerState when not running
   useEffect(() => {
     if (!timerState.isRunning) {
+      // Reset completing flag when timer stops
+      completingRef.current = false;
       if (timerState.isCountup) {
         setElapsedTime(timerState.elapsedTime || 0);
       } else {
@@ -58,9 +83,14 @@ export const useTimerCountdown = ({
     }
 
     if (timerState.isRunning && timerState.startTime) {
+      const startTime = timerState.startTime;
+
       const tick = () => {
+        // Skip tick if completion is already in progress
+        if (completingRef.current) return;
+
         const now = Date.now();
-        const elapsedMs = now - timerState.startTime!;
+        const elapsedMs = now - startTime;
         const elapsedSeconds = Math.floor(elapsedMs / 1000);
 
         if (timerState.isCountup) {
@@ -74,7 +104,7 @@ export const useTimerCountdown = ({
 
           // Complete when max duration is reached
           if (newElapsedTime >= MAX_COUNTUP_DURATION) {
-            handleComplete();
+            safeComplete();
           }
         } else {
           // Countdown mode: track remaining time
@@ -86,7 +116,7 @@ export const useTimerCountdown = ({
           }
 
           if (newTimeLeft === 0) {
-            handleComplete();
+            safeComplete();
           }
         }
       };
@@ -101,7 +131,7 @@ export const useTimerCountdown = ({
         intervalRef.current = null;
       }
     };
-  }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, timerState.isCountup, saveTimerState, handleComplete, setDisplayTime, setElapsedTime, intervalRef]);
+  }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, timerState.isCountup, saveTimerState, safeComplete, setDisplayTime, setElapsedTime, intervalRef]);
 
   // Page visibility handling
   useEffect(() => {
@@ -123,7 +153,7 @@ export const useTimerCountdown = ({
           setShowLockScreen(false);
 
           if (newElapsedTime >= MAX_COUNTUP_DURATION) {
-            handleComplete();
+            safeComplete();
           }
         } else {
           // Countdown mode: update remaining time
@@ -133,7 +163,7 @@ export const useTimerCountdown = ({
           setShowLockScreen(false);
 
           if (newTimeLeft === 0) {
-            handleComplete();
+            safeComplete();
           }
         }
       }
@@ -141,5 +171,5 @@ export const useTimerCountdown = ({
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [saveTimerState, handleComplete, setDisplayTime, setElapsedTime, setShowLockScreen]);
+  }, [saveTimerState, safeComplete, setDisplayTime, setElapsedTime, setShowLockScreen]);
 };

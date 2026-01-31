@@ -270,6 +270,11 @@ export const globalErrorHandler = (
 export const globalPromiseRejectionHandler = (
   event: PromiseRejectionEvent
 ): void => {
+  // Prevent the default behavior (console error / WebView crash on iOS)
+  if (typeof event.preventDefault === 'function') {
+    event.preventDefault();
+  }
+
   const error =
     event.reason instanceof Error
       ? event.reason

@@ -28,6 +28,7 @@ import { useSessionNotes } from "./useSessionNotes";
 import { useBreakTransition } from "./useBreakTransition";
 import { useTimerControls } from "./useTimerControls";
 import { useTimerCountdown } from "./useTimerCountdown";
+import { timerLogger } from "@/lib/logger";
 
 export const useTimerLogic = () => {
   const { awardXP } = useBackendAppState();
@@ -176,51 +177,63 @@ export const useTimerLogic = () => {
 
       let shieldAttempts = 0;
       if (state.timerState.sessionType !== 'break' && state.hasAppsConfigured) {
-        const blockingResult = await stopAppBlocking();
-        shieldAttempts = blockingResult.shieldAttempts;
+        try {
+          const blockingResult = await stopAppBlocking();
+          shieldAttempts = blockingResult?.shieldAttempts ?? 0;
+        } catch (err) {
+          timerLogger.error('Failed to stop app blocking:', err);
+        }
       }
 
       if (state.isAmbientPlaying) {
-        stopAmbientSound();
+        try { stopAmbientSound(); } catch { /* non-critical */ }
       }
 
       if (state.timerState.soundEnabled) {
-        playCompletionSound();
+        try { playCompletionSound(); } catch { /* non-critical */ }
       }
 
       let xpEarned = 0;
       if (state.timerState.sessionType !== 'break') {
-        const rewardResult = await awardSessionRewards(
-          completedMinutes,
-          shieldAttempts,
-          state.hasAppsConfigured,
-          state.blockedAppsCount,
-          {
-            sessionType: state.timerState.sessionType,
-            sessionDuration: state.timerState.sessionDuration,
-            category: state.timerState.category,
-            taskLabel: state.timerState.taskLabel,
+        try {
+          const rewardResult = await awardSessionRewards(
+            completedMinutes,
+            shieldAttempts,
+            state.hasAppsConfigured ?? false,
+            state.blockedAppsCount ?? 0,
+            {
+              sessionType: state.timerState.sessionType,
+              sessionDuration: state.timerState.sessionDuration,
+              category: state.timerState.category,
+              taskLabel: state.timerState.taskLabel,
+            }
+          );
+
+          xpEarned = rewardResult?.xpEarned ?? 0;
+
+          if (rewardResult?.focusBonusType === 'PERFECT FOCUS') {
+            triggerHaptic('success');
           }
-        );
 
-        xpEarned = rewardResult.xpEarned;
-
-        if (rewardResult.focusBonusType === 'PERFECT FOCUS') {
-          triggerHaptic('success');
+          showFocusBonusToast(rewardResult?.focusBonusType ?? '');
+        } catch (err) {
+          timerLogger.error('Failed to award session rewards:', err);
         }
-
-        showFocusBonusToast(rewardResult.focusBonusType);
       }
 
-      recordSession(
-        state.timerState.sessionType,
-        state.timerState.sessionDuration,
-        state.timerState.sessionDuration,
-        'completed',
-        xpEarned,
-        state.timerState.category,
-        state.timerState.taskLabel
-      );
+      try {
+        recordSession(
+          state.timerState.sessionType,
+          state.timerState.sessionDuration,
+          state.timerState.sessionDuration,
+          'completed',
+          xpEarned,
+          state.timerState.category,
+          state.timerState.taskLabel
+        );
+      } catch (err) {
+        timerLogger.error('Failed to record session:', err);
+      }
 
       // Reset display based on mode
       if (state.timerState.isCountup) {
@@ -232,7 +245,7 @@ export const useTimerLogic = () => {
           timeLeft: 0,
           elapsedTime: 0,
           startTime: null,
-          completedSessions: state.timerState.completedSessions + 1,
+          completedSessions: (state.timerState.completedSessions ?? 0) + 1,
           category: undefined,
           taskLabel: undefined,
         });
@@ -243,7 +256,7 @@ export const useTimerLogic = () => {
           isRunning: false,
           timeLeft: state.timerState.sessionDuration,
           startTime: null,
-          completedSessions: state.timerState.completedSessions + 1,
+          completedSessions: (state.timerState.completedSessions ?? 0) + 1,
           category: undefined,
           taskLabel: undefined,
         });
@@ -258,6 +271,10 @@ export const useTimerLogic = () => {
           duration: 3000,
         });
       }
+    } catch (error) {
+      timerLogger.error('Timer completion failed:', error);
+      // Ensure timer is stopped even if completion logic fails
+      saveTimerState({ isRunning: false, startTime: null });
     } finally {
       completionLockRef.current = null;
       if (releaseLock) releaseLock();
