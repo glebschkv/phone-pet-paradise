@@ -59,7 +59,7 @@ const InlineUpgradePrompt = ({
     >
       <Icon className="w-3.5 h-3.5 text-amber-500" />
     </div>
-    <span className="text-[11px] text-amber-400/90 font-semibold flex-1 text-left">
+    <span className="text-[11px] text-amber-700 font-semibold flex-1 text-left">
       {text}
     </span>
     <div className="flex items-center gap-1">

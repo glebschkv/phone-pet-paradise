@@ -33,7 +33,7 @@ export const ViewToggle = ({ currentView, onViewChange }: ViewToggleProps) => {
         )}
       >
         <BarChart3 className="w-4 h-4" />
-        Stats
+        Analytics
       </button>
     </div>
   );
