@@ -88,9 +88,9 @@ export const PetCard = memo(({
       )}
 
       {/* Sprite area */}
-      <div className={cn("inventory-sprite-area", isUnavailable && "opacity-50")}>
+      <div className={cn("inventory-sprite-area")}>
         {(isUnavailable) && pet.spriteConfig ? (
-          <div style={{ filter: 'brightness(0.3) saturate(0)' }}>
+          <div style={{ filter: 'brightness(0.5) saturate(0)' }}>
             <SpritePreview
               animal={pet}
               scale={Math.min(1.5, 48 / pet.spriteConfig.frameHeight)}

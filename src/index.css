@@ -3830,10 +3830,10 @@
   /* Locked slot - dimmed */
   .inventory-slot.locked {
     background: linear-gradient(180deg,
-      hsl(255 25% 15%) 0%,
-      hsl(252 22% 12%) 100%
+      hsl(255 25% 20%) 0%,
+      hsl(252 22% 16%) 100%
     );
-    border-color: hsl(255 22% 22%);
+    border-color: hsl(255 22% 26%);
   }
 
   /* Shop pet slot */
@@ -3887,7 +3887,7 @@
   }
 
   .inventory-slot.locked .inventory-pet-name {
-    color: hsl(255 15% 42%);
+    color: hsl(255 15% 50%);
   }
 
   /* Rarity indicator dot */
