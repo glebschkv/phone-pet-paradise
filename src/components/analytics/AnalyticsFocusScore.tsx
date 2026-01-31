@@ -155,7 +155,7 @@ export const AnalyticsFocusScore = ({ score, breakdown, peerBenchmark, isPremium
               >
                 <div className="flex items-center gap-1.5">
                   <Crown className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="text-amber-400">See score breakdown</span>
+                  <span className="text-amber-700">See score breakdown</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-amber-500/60" />
               </button>
