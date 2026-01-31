@@ -4,6 +4,7 @@ import { useCoinSystem } from '@/hooks/useCoinSystem';
 import { useStreakSystem } from '@/hooks/useStreakSystem';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useDailyLoginRewards, DailyReward } from '@/hooks/useDailyLoginRewards';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { logger } from '@/lib/logger';
 
 interface AppStateData {
@@ -21,6 +22,7 @@ export const useAppStateTracking = () => {
   const streakSystem = useStreakSystem();
   const notifications = useNotifications();
   const dailyLoginRewards = useDailyLoginRewards();
+  const { getLoginCoinMultiplier } = usePremiumStatus();
   
   const [appState, setAppState] = useState<AppStateData>({
     lastActiveTime: Date.now(),
@@ -204,10 +206,12 @@ export const useAppStateTracking = () => {
         }
       }
 
-      // Award coins if present (all daily rewards have coins)
+      // Award coins if present (all daily rewards have coins), applying premium multiplier
       if (reward.coins > 0) {
-        coinSystem.addCoins(reward.coins, 'daily_reward');
-        logger.debug(`Daily login: awarded ${reward.coins} coins`);
+        const multiplier = getLoginCoinMultiplier();
+        const finalCoins = Math.round(reward.coins * multiplier);
+        coinSystem.addCoins(finalCoins, 'daily_reward');
+        logger.debug(`Daily login: awarded ${finalCoins} coins (${reward.coins} base × ${multiplier}x)`);
       }
 
       // Award streak freeze for streak_freeze type
@@ -216,7 +220,7 @@ export const useAppStateTracking = () => {
       }
     }
     return { dailyReward: reward, xpReward };
-  }, [dailyLoginRewards, xpSystem, coinSystem, streakSystem, saveState]);
+  }, [dailyLoginRewards, xpSystem, coinSystem, streakSystem, saveState, getLoginCoinMultiplier]);
 
   return {
     // XP System data
