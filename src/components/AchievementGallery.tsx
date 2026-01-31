@@ -43,6 +43,9 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
 
   const handleClaim = (achievement: Achievement) => {
     const rewards = claimRewards(achievement.id);
+    if (rewards.xp === 0 && rewards.coins === 0) {
+      return; // Already claimed by another path (e.g., unlock popup)
+    }
     if (rewards.xp > 0) {
       addDirectXP(rewards.xp);
     }

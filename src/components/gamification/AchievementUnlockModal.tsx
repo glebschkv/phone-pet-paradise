@@ -75,7 +75,9 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
     if (!pendingUnlock || claimed) return;
 
     const rewards = claimRewards(pendingUnlock.achievement.id);
-    onClaimReward(rewards.xp, rewards.coins);
+    if (rewards.xp > 0 || rewards.coins > 0) {
+      onClaimReward(rewards.xp, rewards.coins);
+    }
     setClaimed(true);
 
     setTimeout(() => {
