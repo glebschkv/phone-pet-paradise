@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Crown, ChevronRight, Check, Coins } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
+// Note: PixelIcon still used for starter bundle icons and best value icon
 import { BackgroundBundle, ShopItem, COIN_PACKS, StarterBundle, CoinPack } from "@/data/ShopData";
 import { BACKGROUND_BUNDLES, STARTER_BUNDLES } from "@/data/ShopData";
 import type { ShopInventory } from "@/hooks/useShop";
@@ -99,41 +100,34 @@ export const FeaturedTab = ({
         isPurchasing={isPurchasing}
       />
 
-      {/* Premium Hero Card - Clean and Focused */}
+      {/* Premium Strip - Compact */}
       {!isPremium ? (
         <button
           onClick={() => setShowPremiumModal(true)}
-          className="w-full bg-gradient-to-br from-amber-400 via-orange-400 to-orange-500 rounded-2xl p-4 text-left shadow-lg active:scale-[0.98] transition-transform"
+          className="shop-premium-strip active:scale-[0.98] transition-transform"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-              <Crown className="w-7 h-7 text-white" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Crown className="w-5 h-5 text-white" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-black text-white text-lg">Go Premium</h3>
-              <p className="text-white/80 text-sm">
-                Unlock all features & exclusive pets
-              </p>
+            <div className="flex-1 min-w-0">
+              <span className="font-black text-white text-sm">Go Premium</span>
+              <span className="text-white/70 text-xs ml-1.5">Unlock everything</span>
             </div>
-            <ChevronRight className="w-6 h-6 text-white/80" />
-          </div>
-          <div className="mt-3 bg-white/20 backdrop-blur rounded-xl py-2 px-3 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">Starting at $4.99/mo</span>
+            <span className="text-white/90 font-bold text-xs whitespace-nowrap">$4.99/mo</span>
+            <ChevronRight className="w-4 h-4 text-white/60 flex-shrink-0" />
           </div>
         </button>
       ) : (
-        <div className="bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-2xl p-4 border border-green-300 dark:border-green-700">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-              <Check className="w-6 h-6 text-white" />
+        <div className="shop-premium-active">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+              <Check className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-green-800 dark:text-green-300">
+              <span className="font-bold text-emerald-800 text-sm">
                 {currentPlan?.name || 'Premium'} Active
-              </h3>
-              <p className="text-xs text-green-600 dark:text-green-400">
-                You have full access
-              </p>
+              </span>
             </div>
           </div>
         </div>
@@ -141,10 +135,10 @@ export const FeaturedTab = ({
 
       {/* Background Bundles */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="picture-frame" size={16} /> Background Bundles
-        </h4>
-        <div className="space-y-2">
+        <div className="shop-section-header">
+          <span className="shop-section-title">Background Bundles</span>
+        </div>
+        <div className="space-y-3">
           {BACKGROUND_BUNDLES.map((bundle) => {
             const owned = isBundleOwned(bundle.id);
             const affordable = canAfford(bundle.coinPrice || 0);
@@ -158,47 +152,47 @@ export const FeaturedTab = ({
                   }
                 }}
                 className={cn(
-                  "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden",
-                  owned
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                    : "bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border-sky-200 dark:border-sky-700"
+                  "shop-bundle-card w-full text-left",
+                  owned && "owned"
                 )}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-16">
-                    <BundlePreviewCarousel images={bundle.previewImages} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm">{bundle.name}</span>
-                      {owned ? (
-                        <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center gap-1">
-                          <Check className="w-2.5 h-2.5" /> OWNED
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
-                          SAVE {bundle.savings}
-                        </span>
-                      )}
+                {/* Hero preview image */}
+                <div className="relative w-full h-36 overflow-hidden rounded-t-xl">
+                  <BundlePreviewCarousel images={bundle.previewImages} />
+                  {owned && (
+                    <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
+                      <div className="bg-emerald-500 rounded-full px-3 py-1 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-white" />
+                        <span className="text-xs font-bold text-white">OWNED</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                      {bundle.description}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-muted-foreground line-through">
+                  )}
+                  {!owned && (
+                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-emerald-500 text-white text-[9px] font-bold rounded-full">
+                      SAVE {bundle.savings}
+                    </div>
+                  )}
+                </div>
+                {/* Info bar */}
+                <div className="px-3 py-2.5 flex items-center justify-between">
+                  <div className="min-w-0">
+                    <span className="font-bold text-sm text-amber-900 block">{bundle.name}</span>
+                    <span className="text-[10px] text-amber-700/60">{bundle.backgroundIds.length} backgrounds</span>
+                  </div>
+                  {!owned && (
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className="text-[10px] text-amber-700/40 line-through">
                         {bundle.totalValue.toLocaleString()}
                       </span>
-                      {!owned && (
-                        <div className={cn(
-                          "flex items-center gap-1 text-xs font-bold",
-                          affordable ? "text-amber-600" : "text-red-500"
-                        )}>
-                          <Coins className="w-3 h-3" />
-                          {bundle.coinPrice?.toLocaleString()}
-                        </div>
-                      )}
+                      <div className={cn(
+                        "shop-price-pill",
+                        !affordable && "expensive"
+                      )}>
+                        <Coins className="w-3 h-3" />
+                        <span>{bundle.coinPrice?.toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </button>
             );
@@ -208,9 +202,9 @@ export const FeaturedTab = ({
 
       {/* Special Bundles */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="gift" size={16} /> Special Bundles
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Special Bundles</span>
+        </div>
         <div className="space-y-2">
           {STARTER_BUNDLES.map((bundle) => {
             // Check if user already has all bundle contents
@@ -268,9 +262,9 @@ export const FeaturedTab = ({
 
       {/* Best Value Coin Pack */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="money-bag" size={16} /> Best Value
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Best Value</span>
+        </div>
         <button
           onClick={() => {
             setSelectedBundle(bestValuePack);
@@ -304,18 +298,16 @@ export const FeaturedTab = ({
 
       {/* Popular Pets Preview */}
       <div>
-        <div className="flex items-center justify-between mb-2 px-1">
-          <h4 className="text-sm font-bold flex items-center gap-2">
-            <PixelIcon name="fire" size={16} /> Popular Pets
-          </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Popular Pets</span>
           <button
             onClick={() => setActiveCategory('pets')}
-            className="text-xs text-amber-600 dark:text-amber-400 font-semibold"
+            className="shop-see-all-btn"
           >
             See All →
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {bestSellingPets.map((pet) => {
             const owned = inventory.ownedCharacters.includes(pet.id);
             return (
@@ -326,29 +318,27 @@ export const FeaturedTab = ({
                   if (!owned) setShowPurchaseConfirm(true);
                 }}
                 className={cn(
-                  "p-3 rounded-xl border-2 text-center transition-all active:scale-95",
-                  owned
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                  "shop-pet-card",
+                  owned && "owned"
                 )}
               >
-                <div className="h-12 mb-1 flex items-center justify-center overflow-hidden">
+                <div className="h-14 mb-1.5 flex items-center justify-center overflow-hidden">
                   {pet.spriteConfig ? (
                     <SpritePreview
                       animal={pet}
-                      scale={Math.min(1.5, 48 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
+                      scale={Math.min(1.8, 56 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
                     />
                   ) : (
                     <span className="text-3xl">{pet.emoji}</span>
                   )}
                 </div>
-                <span className="text-xs font-bold block">{pet.name}</span>
+                <span className="text-xs font-bold block text-amber-900">{pet.name}</span>
                 {owned ? (
-                  <span className="text-[10px] text-green-600 dark:text-green-400 font-semibold">Owned</span>
+                  <span className="text-[10px] text-emerald-600 font-bold">Owned</span>
                 ) : (
-                  <div className="flex items-center justify-center gap-1 mt-1">
+                  <div className="flex items-center justify-center gap-1 mt-0.5">
                     <Coins className="w-3 h-3 text-amber-500" />
-                    <span className="text-xs font-bold text-amber-600">{pet.coinPrice?.toLocaleString()}</span>
+                    <span className="text-xs font-bold text-amber-700">{pet.coinPrice?.toLocaleString()}</span>
                   </div>
                 )}
               </button>

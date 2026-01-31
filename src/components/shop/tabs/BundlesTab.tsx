@@ -76,9 +76,9 @@ const PetBundlesSection = ({
 }: PetBundlesSectionProps) => {
   return (
     <div>
-      <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-        <PixelIcon name="paw" size={16} /> Pet Bundles
-      </h4>
+      <div className="shop-section-header">
+        <span className="shop-section-title">Pet Bundles</span>
+      </div>
       <div className="space-y-2">
         {PET_BUNDLES.map((bundle) => (
           <PetBundleCard
@@ -237,9 +237,9 @@ const BackgroundBundlesSection = ({
 }: BackgroundBundlesSectionProps) => {
   return (
     <div>
-      <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-        <PixelIcon name="picture-frame" size={16} /> Background Bundles
-      </h4>
+      <div className="shop-section-header">
+        <span className="shop-section-title">Background Bundles</span>
+      </div>
       <div className="space-y-2">
         {BACKGROUND_BUNDLES.map((bundle) => (
           <BackgroundBundleCard

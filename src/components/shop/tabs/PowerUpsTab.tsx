@@ -81,9 +81,9 @@ export const PowerUpsTab = ({
 
       {/* Coin Boosters */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="rocket" size={16} /> Coin Boosters
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Coin Boosters</span>
+        </div>
         <div className="space-y-2">
           {boosters.map((booster) => {
             const boosterActive = isBoosterActive();
@@ -125,9 +125,9 @@ export const PowerUpsTab = ({
 
       {/* Utility Items */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="ice-cube" size={16} /> Streak Protection
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Streak Protection</span>
+        </div>
         <div className="grid grid-cols-3 gap-2">
           {utilities.map((item) => {
             const affordable = canAfford(item.coinPrice || 0);
@@ -160,9 +160,9 @@ export const PowerUpsTab = ({
 
       {/* Coin Packs */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="money-bag" size={16} /> Buy Coins
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Buy Coins</span>
+        </div>
         <div className="space-y-2">
           {coins.map((pack) => (
             <button

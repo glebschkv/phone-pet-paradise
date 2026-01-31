@@ -68,9 +68,9 @@ export const PetsTab = ({
     <div className="space-y-4">
       {/* Pets Section */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="paw" size={16} /> Pets
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Pets</span>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {characters.map((character) => {
             const owned = inventory.ownedCharacters.includes(character.id);
@@ -145,9 +145,9 @@ export const PetsTab = ({
       {/* Backgrounds with Previews Section */}
       {backgroundsWithPreviews.length > 0 && (
         <div>
-          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <PixelIcon name="sun-cloud" size={16} /> Sky Collection
-          </h4>
+          <div className="shop-section-header">
+            <span className="shop-section-title">Sky Collection</span>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {backgroundsWithPreviews.map((bg) => {
               const owned = isOwned(bg.id, 'customize');
@@ -252,9 +252,9 @@ export const PetsTab = ({
       {/* Other Backgrounds Section */}
       {backgroundsWithoutPreviews.length > 0 && (
         <div>
-          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <PixelIcon name="picture-frame" size={16} /> Backgrounds
-          </h4>
+          <div className="shop-section-header">
+            <span className="shop-section-title">Backgrounds</span>
+          </div>
           <div className="grid grid-cols-3 gap-2">
             {backgroundsWithoutPreviews.map((bg) => {
               const owned = isOwned(bg.id, 'customize');
