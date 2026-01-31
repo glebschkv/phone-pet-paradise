@@ -212,6 +212,15 @@ export const useTimerLogic = () => {
         showFocusBonusToast(rewardResult.focusBonusType);
       }
 
+      // Determine focus quality from reward result
+      const focusQuality = state.timerState.sessionType !== 'break'
+        ? (shieldAttempts === 0 && state.hasAppsConfigured
+            ? 'perfect' as const
+            : shieldAttempts <= 2 && state.hasAppsConfigured
+              ? 'good' as const
+              : 'distracted' as const)
+        : undefined;
+
       recordSession(
         state.timerState.sessionType,
         state.timerState.sessionDuration,
@@ -219,7 +228,10 @@ export const useTimerLogic = () => {
         'completed',
         xpEarned,
         state.timerState.category,
-        state.timerState.taskLabel
+        state.timerState.taskLabel,
+        state.timerState.sessionType !== 'break' ? shieldAttempts : undefined,
+        focusQuality,
+        state.hasAppsConfigured,
       );
 
       // Reset display based on mode
