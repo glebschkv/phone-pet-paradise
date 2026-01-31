@@ -30,10 +30,10 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 const TYPE_STYLES: Record<string, { bg: string; border: string }> = {
-  achievement: { bg: 'bg-green-500/8', border: 'border-green-500/20' },
-  improvement: { bg: 'bg-blue-500/8', border: 'border-blue-500/20' },
-  recommendation: { bg: 'bg-amber-500/8', border: 'border-amber-500/20' },
-  trend: { bg: 'bg-purple-500/8', border: 'border-purple-500/20' },
+  achievement: { bg: 'bg-green-500/10', border: 'border-green-500/20' },
+  improvement: { bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+  recommendation: { bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+  trend: { bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
 };
 
 export const AnalyticsInsights = ({ insights }: InsightsProps) => {
