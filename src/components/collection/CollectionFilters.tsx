@@ -100,54 +100,57 @@ export const CollectionFilters = ({
           </button>
         </div>
 
-        {/* Action buttons - only show for pets tab */}
-        {activeTab === "pets" && (
-          <div className="flex items-center gap-2 pb-2.5 pl-3">
-            {/* Search toggle */}
+        {/* Action buttons - always rendered to prevent layout shift, hidden on worlds tab */}
+        <div className={cn(
+          "flex items-center gap-2 pb-2.5 pl-3 transition-opacity duration-150",
+          activeTab !== "pets" && "opacity-0 pointer-events-none"
+        )}>
+          {/* Search toggle */}
+          <button
+            onClick={() => showSearch ? handleCloseSearch() : setShowSearch(true)}
+            className={cn("collection-search-toggle", showSearch && "active")}
+            aria-label={showSearch ? "Close search" : "Search pets"}
+            tabIndex={activeTab !== "pets" ? -1 : undefined}
+          >
+            {showSearch ? <X className="w-4 h-4" /> : <Search className="w-4 h-4" />}
+          </button>
+
+          {/* Sort dropdown */}
+          <div className="relative" ref={sortDropdownRef}>
             <button
-              onClick={() => showSearch ? handleCloseSearch() : setShowSearch(true)}
-              className={cn("collection-search-toggle", showSearch && "active")}
-              aria-label={showSearch ? "Close search" : "Search pets"}
+              onClick={() => setShowSortDropdown(!showSortDropdown)}
+              className="collection-sort-btn"
+              aria-label="Sort pets"
+              tabIndex={activeTab !== "pets" ? -1 : undefined}
             >
-              {showSearch ? <X className="w-4 h-4" /> : <Search className="w-4 h-4" />}
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              <span>{activeSortLabel}</span>
             </button>
 
-            {/* Sort dropdown */}
-            <div className="relative" ref={sortDropdownRef}>
-              <button
-                onClick={() => setShowSortDropdown(!showSortDropdown)}
-                className="collection-sort-btn"
-                aria-label="Sort pets"
-              >
-                <ArrowUpDown className="w-3.5 h-3.5" />
-                <span>{activeSortLabel}</span>
-              </button>
-
-              {showSortDropdown && (
-                <div className="collection-sort-dropdown">
-                  {SORT_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => {
-                        onSortChange(opt.value);
-                        setShowSortDropdown(false);
-                      }}
-                      className={cn(
-                        "collection-sort-option w-full",
-                        sortOption === opt.value && "active"
-                      )}
-                    >
-                      <span>{opt.label}</span>
-                      {sortOption === opt.value && (
-                        <Check className="sort-check w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {showSortDropdown && activeTab === "pets" && (
+              <div className="collection-sort-dropdown">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      onSortChange(opt.value);
+                      setShowSortDropdown(false);
+                    }}
+                    className={cn(
+                      "collection-sort-option w-full",
+                      sortOption === opt.value && "active"
+                    )}
+                  >
+                    <span>{opt.label}</span>
+                    {sortOption === opt.value && (
+                      <Check className="sort-check w-3.5 h-3.5" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Expandable search bar */}
