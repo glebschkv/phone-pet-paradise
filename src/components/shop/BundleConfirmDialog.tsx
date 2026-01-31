@@ -6,6 +6,7 @@ import { getAnimalById } from "@/data/AnimalDatabase";
 import { BOOSTER_TYPES } from "@/hooks/useCoinBooster";
 import { SpritePreview } from "./ShopPreviewComponents";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
 interface BundleConfirmDialogProps {
   open: boolean;
@@ -122,14 +123,12 @@ export const BundleConfirmDialog = ({
                   />
                 </div>
               ) : (
-                <div className="relative">
+                <div className="relative animate-bounce" style={{ animationDuration: '2s' }}>
                   <div
                     className="absolute inset-0 rounded-full blur-xl scale-[2.5]"
                     style={{ background: 'hsl(35 100% 50% / 0.2)' }}
                   />
-                  <span className="text-5xl relative animate-bounce" style={{ animationDuration: '2s' }}>
-                    {bundle.icon}
-                  </span>
+                  <PixelIcon name={bundle.icon} size={64} />
                 </div>
               )}
             </div>

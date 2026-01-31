@@ -187,7 +187,11 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       return { xp: 0, coins: 0 };
     }
 
-    const achievement = achievements.find(a => a.id === achievementId);
+    // Read from localStorage for the most up-to-date achievement state.
+    // Hook state may be stale when multiple useAchievementSystem instances exist
+    // (e.g., Modal instance may not have received the unlock state update).
+    const freshAchievements = loadFromStorage();
+    const achievement = (freshAchievements || achievements).find(a => a.id === achievementId);
     if (!achievement || !achievement.isUnlocked || achievement.rewardsClaimed) {
       return { xp: 0, coins: 0 };
     }
@@ -197,14 +201,20 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
 
     const rewards = calculateRewards(achievement);
 
-    // Mark rewards as claimed in state and persist
-    setAchievements(prev => {
-      const updated = prev.map(a =>
+    // Persist claimed state to storage immediately using fresh data
+    // (avoids overwriting other instances' changes with stale hook state)
+    const baseAchievements = freshAchievements || achievements;
+    const updatedAchievements = baseAchievements.map(a =>
+      a.id === achievementId ? { ...a, rewardsClaimed: true } : a
+    );
+    saveToStorage(updatedAchievements);
+
+    // Update local hook state
+    setAchievements(prev =>
+      prev.map(a =>
         a.id === achievementId ? { ...a, rewardsClaimed: true } : a
-      );
-      saveToStorage(updated);
-      return updated;
-    });
+      )
+    );
 
     // Dispatch event for same-tab sync across hook instances
     window.dispatchEvent(new CustomEvent(ACHIEVEMENT_CLAIMED_EVENT, {

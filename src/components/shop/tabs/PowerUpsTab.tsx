@@ -81,9 +81,9 @@ export const PowerUpsTab = ({
 
       {/* Coin Boosters */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="rocket" size={16} /> Coin Boosters
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Coin Boosters</span>
+        </div>
         <div className="space-y-2">
           {boosters.map((booster) => {
             const boosterActive = isBoosterActive();
@@ -98,10 +98,8 @@ export const PowerUpsTab = ({
                 }}
                 disabled={boosterActive}
                 className={cn(
-                  "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2",
-                  boosterActive
-                    ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border-gray-300"
-                    : "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700"
+                  "shop-list-card purple",
+                  boosterActive && "disabled"
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -125,9 +123,9 @@ export const PowerUpsTab = ({
 
       {/* Utility Items */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="ice-cube" size={16} /> Streak Protection
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Streak Protection</span>
+        </div>
         <div className="grid grid-cols-3 gap-2">
           {utilities.map((item) => {
             const affordable = canAfford(item.coinPrice || 0);
@@ -138,12 +136,9 @@ export const PowerUpsTab = ({
                   setSelectedItem(item);
                   setShowPurchaseConfirm(true);
                 }}
-                className={cn(
-                  "p-3 rounded-xl border-2 text-center transition-all active:scale-95",
-                  "bg-cyan-50 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700"
-                )}
+                className="shop-grid-card cyan"
               >
-                <PixelIcon name={item.icon} size={24} className="block mb-1" />
+                <PixelIcon name={item.icon} size={24} className="block mb-1 mx-auto" />
                 <span className="text-[10px] font-bold block">{item.name}</span>
                 <div className={cn(
                   "flex items-center justify-center gap-0.5 mt-1 text-xs font-bold",
@@ -160,9 +155,9 @@ export const PowerUpsTab = ({
 
       {/* Coin Packs */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="money-bag" size={16} /> Buy Coins
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Buy Coins</span>
+        </div>
         <div className="space-y-2">
           {coins.map((pack) => (
             <button
@@ -172,10 +167,8 @@ export const PowerUpsTab = ({
                 setShowPackConfirm(true);
               }}
               className={cn(
-                "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2",
-                pack.isBestValue
-                  ? "bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-amber-300"
-                  : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                "shop-list-card",
+                pack.isBestValue ? "amber best-value" : ""
               )}
             >
               <div className="flex items-center gap-3">

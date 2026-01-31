@@ -105,14 +105,16 @@ export const WorldGrid = memo(({
             aria-selected={isActive}
             aria-label={isUnlocked ? `${biome.name} world${isActive ? ', currently selected' : ''}` : `${biome.name} world, locked, unlocks at level ${biome.unlockLevel}`}
             className={cn(
-              "w-full retro-card overflow-hidden transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-              isActive && "ring-2 ring-green-400",
-              !isUnlocked && "opacity-50"
+              "w-full overflow-hidden transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[hsl(180,60%,50%)] rounded-lg",
+              isActive
+                ? "ring-2 ring-[hsl(180,60%,50%)] bg-[hsl(256,38%,19%)] border border-[hsl(180,40%,35%)]"
+                : "bg-[hsl(256,35%,17%)] border border-[hsl(255,35%,28%)]",
+              !isUnlocked && "opacity-40"
             )}
           >
             <div className="flex items-stretch">
               {/* Preview Image */}
-              <div className="w-20 h-16 flex-shrink-0 bg-muted overflow-hidden">
+              <div className="w-20 h-16 flex-shrink-0 bg-[hsl(252,30%,13%)] overflow-hidden">
                 {biome.backgroundImage && isUnlocked ? (
                   <img
                     src={biome.backgroundImage}
@@ -122,11 +124,11 @@ export const WorldGrid = memo(({
                     loading="lazy"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                  <div className="w-full h-full flex items-center justify-center">
                     {isUnlocked ? (
-                      <Icon className="w-6 h-6 text-muted-foreground" />
+                      <Icon className="w-6 h-6 text-[hsl(255,22%,42%)]" />
                     ) : (
-                      <Lock className="w-5 h-5 text-muted-foreground" />
+                      <Lock className="w-5 h-5 text-[hsl(255,15%,38%)]" />
                     )}
                   </div>
                 )}
@@ -134,10 +136,10 @@ export const WorldGrid = memo(({
               {/* Info */}
               <div className="flex-1 flex items-center justify-between px-3 py-2">
                 <div className="text-left">
-                  <div className="font-bold text-sm">
+                  <div className="font-bold text-sm text-[hsl(45,20%,80%)]">
                     {isUnlocked ? biome.name : "???"}
                   </div>
-                  <div className="text-[10px] text-muted-foreground">
+                  <div className="text-[10px] text-[hsl(255,18%,48%)]">
                     {isUnlocked ? (
                       isActive ? 'Currently here' : `Level ${biome.unlockLevel}+`
                     ) : (
@@ -148,12 +150,12 @@ export const WorldGrid = memo(({
 
                 {isUnlocked && (
                   isActive ? (
-                    <div className="retro-level-badge px-2 py-1 text-[10px] font-bold flex items-center gap-1">
+                    <div className="px-2 py-1 text-[10px] font-bold flex items-center gap-1 rounded-md bg-[hsl(180,40%,30%)] text-[hsl(180,80%,75%)] border border-[hsl(180,40%,40%)]">
                       <MapPin className="w-3 h-3" />
                       Here
                     </div>
                   ) : (
-                    <div className="retro-stat-pill px-3 py-1 text-xs font-semibold">
+                    <div className="px-3 py-1 text-xs font-semibold rounded-md bg-[hsl(256,30%,24%)] text-[hsl(255,20%,58%)] border border-[hsl(255,30%,32%)]">
                       Visit
                     </div>
                   )

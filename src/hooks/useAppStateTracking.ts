@@ -100,7 +100,7 @@ export const useAppStateTracking = () => {
     // Award XP for focus session (minimum 30 minutes)
     const reward = awardSessionXP(minutesAway);
 
-    if (reward) {
+    if (reward && reward.xpGained > 0) {
       saveState({
         timeAwayMinutes: minutesAway,
         showRewardModal: true,
@@ -161,7 +161,7 @@ export const useAppStateTracking = () => {
   // Manual XP award function for focus timer
   const manualAwardXP = useCallback((minutes: number): XPReward | null => {
     const reward = awardSessionXP(minutes);
-    if (reward) {
+    if (reward && reward.xpGained > 0) {
       saveState({
         timeAwayMinutes: minutes,
         showRewardModal: true,

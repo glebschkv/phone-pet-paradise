@@ -732,6 +732,27 @@
     color: hsl(35 70% 20%);
   }
 
+  .coin-chip:active {
+    transform: scale(0.95);
+  }
+
+  .coin-plus-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, hsl(145 55% 50%) 0%, hsl(145 50% 40%) 100%);
+    border: 1.5px solid hsl(145 45% 35%);
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 1px 0 hsl(145 40% 28%);
+    margin-left: 1px;
+  }
+
   /* Streak chip specific */
   .streak-chip {
     background: linear-gradient(
@@ -887,6 +908,36 @@
     width: 100%;
   }
 
+  /* Dark dock variant for dark-background tabs (collection, challenges) */
+  .dock-bar.dark-context {
+    background: hsl(252 35% 14% / 0.75);
+    border-color: hsl(255 30% 25% / 0.4);
+    box-shadow:
+      0 8px 40px hsl(0 0% 0% / 0.3),
+      0 2px 8px hsl(0 0% 0% / 0.15),
+      inset 0 1px 0 hsl(255 30% 30% / 0.15);
+  }
+
+  .dock-bar.dark-context .dock-item-icon {
+    color: hsl(255 20% 55%);
+  }
+
+  .dock-bar.dark-context .dock-item.active .dock-item-icon {
+    color: hsl(var(--primary));
+  }
+
+  .dock-bar.dark-context .dock-item-label {
+    color: hsl(255 15% 50%);
+  }
+
+  .dock-bar.dark-context .dock-item.active .dock-item-label {
+    color: hsl(var(--primary));
+  }
+
+  .dock-bar.dark-context .dock-active-dot {
+    background: hsl(var(--primary));
+  }
+
   /* Individual dock item */
   .dock-item {
     position: relative;
@@ -974,9 +1025,9 @@
     align-items: center;
     justify-content: center;
     box-shadow:
-      0 4px 20px hsl(var(--primary) / 0.4),
-      0 2px 8px hsl(var(--primary) / 0.3),
-      inset 0 2px 4px hsl(0 0% 100% / 0.2);
+      0 4px 16px hsl(var(--primary) / 0.25),
+      0 2px 6px hsl(var(--primary) / 0.2),
+      inset 0 2px 4px hsl(0 0% 100% / 0.15);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -985,9 +1036,9 @@
   .dock-center-btn:hover {
     transform: scale(1.05);
     box-shadow:
-      0 6px 24px hsl(var(--primary) / 0.5),
-      0 2px 10px hsl(var(--primary) / 0.4),
-      inset 0 2px 4px hsl(0 0% 100% / 0.2);
+      0 6px 20px hsl(var(--primary) / 0.3),
+      0 2px 8px hsl(var(--primary) / 0.25),
+      inset 0 2px 4px hsl(0 0% 100% / 0.15);
   }
 
   .dock-center-btn:active {
@@ -2476,336 +2527,698 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     RETRO SHOP STYLES - Pixel Art Arcade Theme
+     SHOP V2 STYLES – Game-depth aesthetic (thick borders, offset shadows,
+     inset glossy highlights, gradient backgrounds, scanline-ready)
      ═══════════════════════════════════════════════════════════════════════════ */
 
-  /* Main shop container with retro gradient */
-  .retro-shop-container {
+  /* Main shop container */
+  .shop-container {
     background: linear-gradient(180deg,
-      hsl(45 50% 92%) 0%,
-      hsl(40 40% 88%) 30%,
-      hsl(35 35% 85%) 60%,
-      hsl(200 25% 90%) 100%
+      hsl(42 45% 93%) 0%,
+      hsl(38 38% 90%) 40%,
+      hsl(35 32% 88%) 100%
     );
     position: relative;
     overflow-x: hidden;
   }
 
-  .dark .retro-shop-container {
-    background: linear-gradient(180deg,
-      hsl(220 30% 12%) 0%,
-      hsl(230 25% 15%) 50%,
-      hsl(240 20% 18%) 100%
-    );
+  /* Compact header */
+  .shop-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px 6px;
   }
 
-  /* Decorative pixel corners */
-  .retro-corner {
-    position: fixed;
-    width: 40px;
-    height: 40px;
-    pointer-events: none;
-    z-index: 100;
-    opacity: 0.15;
-  }
-
-  .retro-corner-tl {
-    top: 0;
-    left: 0;
-    background:
-      linear-gradient(135deg, hsl(var(--primary)) 25%, transparent 25%),
-      linear-gradient(225deg, hsl(var(--primary)) 25%, transparent 25%);
-    background-size: 8px 8px;
-  }
-
-  .retro-corner-tr {
-    top: 0;
-    right: 0;
-    background:
-      linear-gradient(45deg, hsl(var(--primary)) 25%, transparent 25%),
-      linear-gradient(315deg, hsl(var(--primary)) 25%, transparent 25%);
-    background-size: 8px 8px;
-  }
-
-  /* Shop header card */
-  .retro-shop-header {
-    background: linear-gradient(180deg,
-      hsl(var(--card)) 0%,
-      hsl(var(--card) / 0.95) 100%
-    );
-    border: 3px solid hsl(var(--border));
-    border-radius: 12px;
+  /* Booster pill inline with title */
+  .shop-booster-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: linear-gradient(180deg, hsl(280 55% 94%) 0%, hsl(275 50% 88%) 100%);
+    border: 2px solid hsl(270 45% 72%);
+    border-radius: 8px;
     box-shadow:
-      0 4px 0 hsl(var(--border) / 0.6),
-      0 6px 20px hsl(0 0% 0% / 0.1),
-      inset 0 2px 0 hsl(0 0% 100% / 0.1);
+      0 2px 0 hsl(270 40% 58%),
+      inset 0 1px 0 hsl(280 80% 97% / 0.6);
+  }
+
+  /* Coin badge - compact pill */
+  .shop-coin-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: linear-gradient(180deg,
+      hsl(45 80% 88%) 0%,
+      hsl(40 70% 78%) 100%
+    );
+    border: 2px solid hsl(35 60% 58%);
+    border-radius: 10px;
+    box-shadow:
+      0 2px 0 hsl(35 55% 45%),
+      inset 0 1px 0 hsl(50 90% 95% / 0.6),
+      inset 0 -1px 0 hsl(35 50% 68%);
+  }
+
+  .shop-coin-badge:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 0px 0 hsl(35 55% 45%),
+      inset 0 1px 0 hsl(50 90% 95% / 0.6),
+      inset 0 -1px 0 hsl(35 50% 68%);
+  }
+
+  .shop-coin-plus {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, hsl(145 55% 50%) 0%, hsl(145 50% 40%) 100%);
+    border: 1.5px solid hsl(145 45% 35%);
+    color: white;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 1px 0 hsl(145 40% 28%);
+    margin-left: 2px;
+  }
+
+  /* Inventory button */
+  .shop-inventory-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid hsl(40 25% 70%);
+    background: linear-gradient(180deg, hsl(40 25% 94%) 0%, hsl(38 22% 88%) 100%);
+    color: hsl(35 15% 50%);
+    transition: all 0.15s;
+    box-shadow:
+      0 2px 0 hsl(40 20% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.3);
+  }
+
+  .shop-inventory-btn:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 0px 0 hsl(40 20% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.3);
+  }
+
+  .shop-inventory-btn.active {
+    background: linear-gradient(180deg, hsl(150 40% 90%) 0%, hsl(150 35% 82%) 100%);
+    border-color: hsl(150 40% 55%);
+    color: hsl(150 50% 30%);
+    box-shadow:
+      0 2px 0 hsl(150 40% 42%),
+      inset 0 1px 0 hsl(150 60% 96% / 0.5);
+  }
+
+  /* Horizontal pill tabs */
+  .shop-tabs-bar {
+    display: flex;
+    gap: 6px;
+    padding: 4px 16px 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .shop-tabs-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shop-tab-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+    background: linear-gradient(180deg, hsl(40 25% 94%) 0%, hsl(38 22% 88%) 100%);
+    border: 2px solid hsl(40 20% 74%);
+    color: hsl(35 20% 45%);
+    transition: all 0.15s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow:
+      0 2px 0 hsl(40 18% 62%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .shop-tab-pill:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 0px 0 hsl(40 18% 62%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.35);
+  }
+
+  .shop-tab-pill.active {
+    background: linear-gradient(180deg,
+      hsl(42 88% 62%) 0%,
+      hsl(35 82% 50%) 100%
+    );
+    border-color: hsl(30 78% 42%);
+    color: hsl(30 60% 12%);
+    box-shadow:
+      0 3px 0 hsl(30 75% 34%),
+      inset 0 1px 0 hsl(45 95% 75% / 0.5),
+      inset 0 -1px 0 hsl(30 70% 42%);
+    text-shadow: 0 1px 0 hsl(42 80% 72% / 0.4);
+  }
+
+  /* Section headers */
+  .shop-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  .shop-section-title {
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: hsl(30 45% 28%);
+    position: relative;
+    padding-left: 12px;
+    text-shadow: 0 1px 0 hsl(40 40% 85% / 0.8);
+  }
+
+  .shop-section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 16px;
+    background: linear-gradient(180deg, hsl(42 90% 60%), hsl(30 85% 45%));
+    border-radius: 2px;
+    box-shadow: 0 1px 0 hsl(30 80% 35%);
+  }
+
+  .shop-see-all-btn {
+    font-size: 11px;
+    font-weight: 800;
+    color: hsl(30 60% 42%);
+    padding: 4px 10px;
+    border: 2px solid hsl(30 40% 75%);
+    border-radius: 8px;
+    background: linear-gradient(180deg, hsl(35 30% 93%) 0%, hsl(32 28% 88%) 100%);
+    box-shadow:
+      0 2px 0 hsl(30 35% 65%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    transition: all 0.15s;
+  }
+
+  .shop-see-all-btn:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 0px 0 hsl(30 35% 65%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.3);
+  }
+
+  /* Premium card - enticing upsell */
+  .shop-premium-card {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg,
+      hsl(270 45% 28%) 0%,
+      hsl(260 50% 22%) 50%,
+      hsl(280 40% 20%) 100%
+    );
+    border: 2.5px solid hsl(270 50% 45%);
+    border-radius: 14px;
+    padding: 12px 14px;
+    text-align: left;
+    box-shadow:
+      0 4px 0 hsl(270 45% 18%),
+      inset 0 1px 0 hsl(270 60% 55% / 0.3),
+      0 0 20px hsl(270 60% 40% / 0.2);
     position: relative;
     overflow: hidden;
   }
 
-  .retro-shop-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg,
-      hsl(260 60% 55%),
-      hsl(280 50% 60%),
-      hsl(300 45% 65%),
-      hsl(25 80% 55%)
-    );
+  .shop-premium-card:active {
+    transform: translateY(3px);
+    box-shadow:
+      0 1px 0 hsl(270 45% 18%),
+      inset 0 1px 0 hsl(270 60% 55% / 0.3);
   }
 
-  /* Shop icon */
-  .retro-shop-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(145deg,
-      hsl(260 60% 55%) 0%,
-      hsl(280 55% 50%) 100%
+  .shop-premium-shimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(45 90% 70% / 0.08) 50%,
+      transparent 100%
     );
-    border-radius: 12px;
+    animation: premium-shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes premium-shimmer {
+    0% { left: -50%; }
+    100% { left: 150%; }
+  }
+
+  .shop-premium-crown {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, hsl(45 90% 65%) 0%, hsl(35 85% 50%) 100%);
+    border: 2px solid hsl(30 80% 40%);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     box-shadow:
-      0 3px 0 hsl(260 60% 35%),
-      0 4px 8px hsl(260 60% 30% / 0.3),
-      inset 0 2px 4px hsl(0 0% 100% / 0.2);
+      0 2px 0 hsl(30 75% 32%),
+      inset 0 1px 0 hsl(50 95% 78% / 0.5),
+      0 0 12px hsl(45 90% 60% / 0.3);
   }
 
-  /* Coin display */
-  .retro-coin-display {
-    display: flex;
+  .shop-premium-perk {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: linear-gradient(145deg,
-      hsl(45 90% 88%) 0%,
-      hsl(40 85% 80%) 100%
-    );
-    border: 2px solid hsl(35 70% 60%);
-    border-radius: 20px;
-    box-shadow:
-      0 2px 0 hsl(35 70% 45%),
-      inset 0 2px 4px hsl(50 100% 95% / 0.5);
-  }
-
-  .dark .retro-coin-display {
-    background: linear-gradient(145deg,
-      hsl(40 50% 25%) 0%,
-      hsl(35 45% 20%) 100%
-    );
-    border-color: hsl(40 60% 40%);
-  }
-
-  /* Active booster banner */
-  .retro-booster-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: linear-gradient(135deg,
-      hsl(280 60% 95%) 0%,
-      hsl(260 50% 92%) 100%
-    );
-    border: 2px solid hsl(270 50% 70%);
-    border-radius: 10px;
-    box-shadow:
-      0 2px 0 hsl(270 50% 50% / 0.3),
-      inset 0 1px 0 hsl(0 0% 100% / 0.3);
-  }
-
-  .dark .retro-booster-banner {
-    background: linear-gradient(135deg,
-      hsl(280 40% 20%) 0%,
-      hsl(260 35% 15%) 100%
-    );
-    border-color: hsl(270 50% 50%);
-  }
-
-  /* Category tabs - vertical layout with icon containers */
-  .retro-category-tab {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 6px 8px;
-    background: linear-gradient(180deg,
-      hsl(0 0% 100%) 0%,
-      hsl(40 30% 90%) 100%
-    );
-    border: 2px solid hsl(var(--border));
-    border-radius: 14px;
+    gap: 3px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: hsl(270 40% 35% / 0.6);
+    border: 1px solid hsl(270 45% 50% / 0.3);
+    color: hsl(45 80% 85%);
+    font-size: 10px;
     font-weight: 700;
-    white-space: nowrap;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Premium active badge */
+  .shop-premium-active {
+    background: linear-gradient(180deg, hsl(150 35% 93%) 0%, hsl(150 30% 87%) 100%);
+    border: 2px solid hsl(150 40% 62%);
+    border-radius: 12px;
+    padding: 10px 14px;
     box-shadow:
-      0 2px 0 hsl(var(--border) / 0.6),
-      inset 0 1px 0 hsl(0 0% 100% / 0.6);
-    cursor: pointer;
+      0 2px 0 hsl(150 38% 50%),
+      inset 0 1px 0 hsl(150 50% 96% / 0.5);
+  }
+
+  /* Bundle card with hero image - game depth */
+  .shop-bundle-card {
+    background: linear-gradient(180deg,
+      hsl(40 35% 96%) 0%,
+      hsl(38 30% 91%) 100%
+    );
+    border: 2.5px solid hsl(40 30% 72%);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.15s;
+    box-shadow:
+      0 4px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.2);
     position: relative;
   }
 
-  .retro-category-tab:active {
-    transform: translateY(2px) scale(0.97);
-    box-shadow:
-      0 0 0 hsl(var(--border) / 0.4),
-      inset 0 1px 2px hsl(0 0% 0% / 0.08);
-  }
-
-  .retro-category-tab-active {
-    background: linear-gradient(180deg,
-      hsl(45 90% 65%) 0%,
-      hsl(35 85% 52%) 100%
+  .shop-bundle-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 0% / 0.02) 2px,
+      hsl(0 0% 0% / 0.02) 4px
     );
-    border-color: hsl(30 80% 45%);
-    color: hsl(30 60% 15%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .shop-bundle-card:active {
+    transform: translateY(3px);
     box-shadow:
-      0 3px 0 hsl(30 80% 38%),
-      0 4px 12px hsl(45 90% 50% / 0.3),
-      inset 0 2px 4px hsl(50 100% 85% / 0.5);
+      0 1px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.2);
   }
 
-  .retro-category-tab-active:active {
-    transform: translateY(2px) scale(0.97);
+  .shop-bundle-card.owned {
+    background: linear-gradient(180deg,
+      hsl(145 30% 94%) 0%,
+      hsl(145 28% 88%) 100%
+    );
+    border-color: hsl(145 35% 60%);
     box-shadow:
-      0 0 0 hsl(30 80% 38%),
-      inset 0 1px 2px hsl(30 60% 30% / 0.15);
+      0 4px 0 hsl(145 30% 48%),
+      inset 0 1px 0 hsl(145 45% 96% / 0.4);
   }
 
-  /* Category tab label */
-  .retro-category-tab-label {
-    font-size: 9px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    line-height: 1.1;
-    text-align: center;
-    color: hsl(var(--foreground) / 0.85);
-  }
-
-  .retro-category-tab-active .retro-category-tab-label {
-    color: hsl(30 60% 15%);
-  }
-
-  /* Category icon containers */
-  .retro-category-icon {
-    width: 36px;
-    height: 36px;
-    display: flex;
+  /* Price pill - chunky game button */
+  .shop-price-pill {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    flex-shrink: 0;
-  }
-
-  /* Per-category icon backgrounds */
-  .retro-category-icon-featured {
-    background: linear-gradient(145deg, hsl(42 92% 68%) 0%, hsl(36 88% 55%) 100%);
-    box-shadow:
-      0 2px 0 hsl(34 80% 42%),
-      inset 0 1px 0 hsl(48 100% 82% / 0.5);
-    border: 1.5px solid hsl(34 75% 48%);
-  }
-
-  .retro-category-icon-pets {
-    background: linear-gradient(145deg, hsl(268 45% 68%) 0%, hsl(258 42% 55%) 100%);
-    box-shadow:
-      0 2px 0 hsl(258 42% 42%),
-      inset 0 1px 0 hsl(278 70% 82% / 0.4);
-    border: 1.5px solid hsl(258 40% 50%);
-  }
-
-  .retro-category-icon-bundles {
-    background: linear-gradient(145deg, hsl(348 65% 64%) 0%, hsl(340 58% 52%) 100%);
-    box-shadow:
-      0 2px 0 hsl(340 55% 40%),
-      inset 0 1px 0 hsl(355 80% 82% / 0.4);
-    border: 1.5px solid hsl(340 50% 48%);
-  }
-
-  .retro-category-icon-powerups {
-    background: linear-gradient(145deg, hsl(24 82% 62%) 0%, hsl(16 78% 50%) 100%);
-    box-shadow:
-      0 2px 0 hsl(16 75% 38%),
-      inset 0 1px 0 hsl(30 100% 82% / 0.4);
-    border: 1.5px solid hsl(16 70% 46%);
-  }
-
-  /* Active state: brighten icon containers */
-  .retro-category-tab-active .retro-category-icon {
-    box-shadow:
-      0 2px 0 hsl(30 70% 35% / 0.4),
-      inset 0 1px 0 hsl(0 0% 100% / 0.5);
-    border-color: hsl(30 60% 40% / 0.5);
-    filter: brightness(1.1) saturate(0.9);
-  }
-
-  /* Dark mode adjustments */
-  .dark .retro-category-tab {
+    gap: 3px;
+    padding: 4px 10px;
     background: linear-gradient(180deg,
-      hsl(220 20% 16%) 0%,
-      hsl(220 20% 12%) 100%
+      hsl(45 80% 75%) 0%,
+      hsl(40 75% 62%) 100%
     );
-    border-color: hsl(220 15% 25%);
+    border: 2px solid hsl(35 70% 50%);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    color: hsl(30 65% 18%);
     box-shadow:
-      0 2px 0 hsl(220 15% 10%),
-      inset 0 1px 0 hsl(0 0% 100% / 0.04);
+      0 2px 0 hsl(35 65% 40%),
+      inset 0 1px 0 hsl(50 85% 85% / 0.5);
   }
 
-  .dark .retro-category-tab-active {
+  .shop-price-pill.expensive {
     background: linear-gradient(180deg,
-      hsl(45 70% 45%) 0%,
-      hsl(35 65% 35%) 100%
+      hsl(350 55% 82%) 0%,
+      hsl(350 50% 72%) 100%
     );
-    border-color: hsl(30 60% 30%);
+    border-color: hsl(350 45% 55%);
+    color: hsl(350 55% 25%);
     box-shadow:
-      0 3px 0 hsl(30 60% 22%),
-      0 4px 12px hsl(45 70% 40% / 0.2),
-      inset 0 2px 4px hsl(50 80% 60% / 0.2);
+      0 2px 0 hsl(350 45% 42%),
+      inset 0 1px 0 hsl(350 65% 90% / 0.4);
   }
 
-  .dark .retro-category-tab-label {
-    color: hsl(var(--foreground) / 0.6);
+  /* Pet card for shop - game depth */
+  .shop-pet-card {
+    padding: 14px 10px 10px;
+    border-radius: 12px;
+    border: 2.5px solid hsl(40 30% 72%);
+    background: linear-gradient(180deg,
+      hsl(40 35% 96%) 0%,
+      hsl(38 28% 90%) 100%
+    );
+    text-align: center;
+    transition: all 0.15s;
+    box-shadow:
+      0 3px 0 hsl(40 25% 60%),
+      inset 0 2px 0 hsl(0 0% 100% / 0.15);
+    position: relative;
   }
 
-  .dark .retro-category-tab-active .retro-category-tab-label {
-    color: hsl(48 90% 92%);
+  .shop-pet-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 0% / 0.02) 2px,
+      hsl(0 0% 0% / 0.02) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
   }
 
-  .dark .retro-category-icon-featured {
-    background: linear-gradient(145deg, hsl(42 70% 48%) 0%, hsl(36 65% 38%) 100%);
-    border-color: hsl(34 55% 32%);
-    box-shadow: 0 2px 0 hsl(34 60% 25%), inset 0 1px 0 hsl(48 80% 65% / 0.2);
+  .shop-pet-card:active {
+    transform: translateY(3px);
+    box-shadow:
+      0 0px 0 hsl(40 25% 60%),
+      inset 0 2px 0 hsl(0 0% 100% / 0.15);
   }
 
-  .dark .retro-category-icon-pets {
-    background: linear-gradient(145deg, hsl(268 35% 48%) 0%, hsl(258 32% 38%) 100%);
-    border-color: hsl(258 30% 32%);
-    box-shadow: 0 2px 0 hsl(258 32% 25%), inset 0 1px 0 hsl(278 50% 65% / 0.15);
+  .shop-pet-card.owned {
+    background: linear-gradient(180deg,
+      hsl(145 30% 94%) 0%,
+      hsl(145 28% 88%) 100%
+    );
+    border-color: hsl(145 35% 60%);
+    box-shadow:
+      0 3px 0 hsl(145 30% 48%),
+      inset 0 2px 0 hsl(145 45% 96% / 0.3);
   }
 
-  .dark .retro-category-icon-bundles {
-    background: linear-gradient(145deg, hsl(348 50% 48%) 0%, hsl(340 45% 38%) 100%);
-    border-color: hsl(340 40% 32%);
-    box-shadow: 0 2px 0 hsl(340 42% 25%), inset 0 1px 0 hsl(355 60% 65% / 0.15);
+  /* Generic list card for PowerUps, Bundles tabs */
+  .shop-list-card {
+    border: 2.5px solid hsl(40 30% 72%);
+    background: linear-gradient(180deg,
+      hsl(40 35% 96%) 0%,
+      hsl(38 28% 90%) 100%
+    );
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow:
+      0 3px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.2);
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+    width: 100%;
   }
 
-  .dark .retro-category-icon-powerups {
-    background: linear-gradient(145deg, hsl(24 65% 48%) 0%, hsl(16 60% 38%) 100%);
-    border-color: hsl(16 55% 32%);
-    box-shadow: 0 2px 0 hsl(16 58% 25%), inset 0 1px 0 hsl(30 80% 65% / 0.15);
+  .shop-list-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 0% / 0.02) 2px,
+      hsl(0 0% 0% / 0.02) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
   }
 
-  .dark .retro-category-tab-active .retro-category-icon {
-    filter: brightness(1.15) saturate(0.85);
-    border-color: hsl(30 40% 30% / 0.5);
+  .shop-list-card:active {
+    transform: translateY(3px);
+    box-shadow:
+      0 0px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.2);
   }
+
+  .shop-list-card.purple {
+    border-color: hsl(270 40% 65%);
+    background: linear-gradient(180deg,
+      hsl(275 50% 96%) 0%,
+      hsl(270 45% 90%) 100%
+    );
+    box-shadow:
+      0 3px 0 hsl(270 35% 52%),
+      inset 0 1px 0 hsl(280 60% 98% / 0.4);
+  }
+
+  .shop-list-card.purple:active {
+    box-shadow:
+      0 0px 0 hsl(270 35% 52%),
+      inset 0 1px 0 hsl(280 60% 98% / 0.4);
+  }
+
+  .shop-list-card.purple.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .shop-list-card.cyan {
+    border-color: hsl(185 40% 60%);
+    background: linear-gradient(180deg,
+      hsl(185 50% 95%) 0%,
+      hsl(185 45% 88%) 100%
+    );
+    box-shadow:
+      0 3px 0 hsl(185 35% 48%),
+      inset 0 1px 0 hsl(185 60% 97% / 0.4);
+  }
+
+  .shop-list-card.cyan:active {
+    box-shadow:
+      0 0px 0 hsl(185 35% 48%),
+      inset 0 1px 0 hsl(185 60% 97% / 0.4);
+  }
+
+  .shop-list-card.amber {
+    border-color: hsl(35 55% 60%);
+    background: linear-gradient(180deg,
+      hsl(42 60% 94%) 0%,
+      hsl(38 55% 86%) 100%
+    );
+    box-shadow:
+      0 3px 0 hsl(35 50% 48%),
+      inset 0 1px 0 hsl(45 70% 97% / 0.4);
+  }
+
+  .shop-list-card.amber:active {
+    box-shadow:
+      0 0px 0 hsl(35 50% 48%),
+      inset 0 1px 0 hsl(45 70% 97% / 0.4);
+  }
+
+  .shop-list-card.amber.best-value {
+    border-color: hsl(35 70% 50%);
+    background: linear-gradient(180deg,
+      hsl(45 75% 88%) 0%,
+      hsl(40 70% 78%) 100%
+    );
+    box-shadow:
+      0 3px 0 hsl(35 65% 40%),
+      inset 0 1px 0 hsl(50 85% 95% / 0.5);
+  }
+
+  .shop-list-card.green {
+    border-color: hsl(145 40% 55%);
+    background: linear-gradient(180deg,
+      hsl(145 35% 94%) 0%,
+      hsl(145 30% 87%) 100%
+    );
+    box-shadow:
+      0 3px 0 hsl(145 35% 42%),
+      inset 0 1px 0 hsl(145 50% 96% / 0.4);
+  }
+
+  .shop-list-card.green:active {
+    box-shadow:
+      0 0px 0 hsl(145 35% 42%),
+      inset 0 1px 0 hsl(145 50% 96% / 0.4);
+  }
+
+  /* Small grid card for utilities */
+  .shop-grid-card {
+    border: 2.5px solid hsl(40 30% 72%);
+    background: linear-gradient(180deg,
+      hsl(40 35% 96%) 0%,
+      hsl(38 28% 90%) 100%
+    );
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow:
+      0 3px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.2);
+    text-align: center;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shop-grid-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 0% / 0.02) 2px,
+      hsl(0 0% 0% / 0.02) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .shop-grid-card:active {
+    transform: translateY(3px);
+    box-shadow:
+      0 0px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.2);
+  }
+
+  .shop-grid-card.cyan {
+    border-color: hsl(185 40% 60%);
+    background: linear-gradient(180deg,
+      hsl(185 50% 95%) 0%,
+      hsl(185 45% 88%) 100%
+    );
+    box-shadow:
+      0 3px 0 hsl(185 35% 48%),
+      inset 0 1px 0 hsl(185 60% 97% / 0.4);
+  }
+
+  .shop-grid-card.cyan:active {
+    box-shadow:
+      0 0px 0 hsl(185 35% 48%),
+      inset 0 1px 0 hsl(185 60% 97% / 0.4);
+  }
+
+  .shop-grid-card.equipped {
+    border-color: hsl(270 50% 55%);
+    background: linear-gradient(180deg, hsl(270 45% 95%) 0%, hsl(270 40% 88%) 100%);
+    box-shadow:
+      0 3px 0 hsl(270 40% 42%),
+      inset 0 1px 0 hsl(270 60% 97% / 0.4),
+      0 0 0 2px hsl(270 50% 70% / 0.3);
+  }
+
+  .shop-grid-card.owned {
+    border-color: hsl(145 40% 55%);
+    background: linear-gradient(180deg, hsl(145 35% 94%) 0%, hsl(145 30% 88%) 100%);
+    box-shadow:
+      0 3px 0 hsl(145 35% 42%),
+      inset 0 1px 0 hsl(145 50% 96% / 0.4);
+  }
+
+  /* Background card in PetsTab */
+  .shop-bg-card {
+    border: 2.5px solid hsl(40 30% 72%);
+    background: linear-gradient(180deg,
+      hsl(40 35% 96%) 0%,
+      hsl(38 28% 90%) 100%
+    );
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.15s;
+    box-shadow:
+      0 3px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.15);
+    position: relative;
+  }
+
+  .shop-bg-card:active {
+    transform: translateY(3px);
+    box-shadow:
+      0 0px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.15);
+  }
+
+  .shop-bg-card.equipped {
+    border-color: hsl(270 50% 55%);
+    box-shadow:
+      0 3px 0 hsl(270 45% 42%),
+      inset 0 1px 0 hsl(270 60% 90% / 0.3),
+      0 0 0 2px hsl(270 50% 70% / 0.3);
+  }
+
+  .shop-bg-card.owned {
+    border-color: hsl(145 40% 55%);
+    box-shadow:
+      0 3px 0 hsl(145 35% 42%),
+      inset 0 1px 0 hsl(145 50% 96% / 0.3);
+  }
+
+  .shop-bg-card.coming-soon {
+    opacity: 0.75;
+    border-color: hsl(0 0% 70%);
+    box-shadow:
+      0 3px 0 hsl(0 0% 58%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.1);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     LEGACY RETRO SHOP STYLES (still used by InventoryTab, PurchaseConfirm, etc.)
+     ═══════════════════════════════════════════════════════════════════════════ */
 
   /* Shop cards */
   .retro-shop-card {
@@ -3169,5 +3582,405 @@
   @keyframes coming-soon-shine {
     0% { left: -100%; }
     50%, 100% { left: 200%; }
+  }
+
+  /* ---- COLLECTION PAGE (Game Inventory UI) ---- */
+
+  /* Dark game-style page background for collection */
+  .collection-page-bg {
+    background: linear-gradient(180deg,
+      hsl(252 40% 16%) 0%,
+      hsl(248 35% 13%) 40%,
+      hsl(245 30% 11%) 100%
+    );
+  }
+
+  /* Collection header panel */
+  .collection-header {
+    background: linear-gradient(180deg,
+      hsl(256 35% 20%) 0%,
+      hsl(252 35% 16%) 100%
+    );
+    border-bottom: 1px solid hsl(255 35% 28%);
+  }
+
+  /* Collection tab button (PETS / WORLDS) */
+  .collection-tab {
+    position: relative;
+    padding: 12px 0;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: hsl(255 20% 52%);
+    transition: color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-tab.active {
+    color: hsl(180 80% 72%);
+  }
+
+  /* Animated underline for active tab */
+  .collection-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    right: 15%;
+    height: 2px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(180 100% 60%) 50%,
+      transparent 100%
+    );
+    box-shadow: 0 0 8px hsl(180 100% 60% / 0.6);
+  }
+
+  /* Collection tab stat counter */
+  .collection-tab-count {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.7;
+    margin-top: 1px;
+  }
+
+  .collection-tab.active .collection-tab-count {
+    opacity: 1;
+    color: hsl(180 60% 65%);
+  }
+
+  /* Search toggle button */
+  .collection-search-toggle {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: hsl(256 35% 22%);
+    border: 1.5px solid hsl(255 35% 32%);
+    color: hsl(255 20% 58%);
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-search-toggle:active,
+  .collection-search-toggle.active {
+    background: hsl(255 38% 28%);
+    border-color: hsl(180 50% 45%);
+    color: hsl(180 80% 72%);
+    box-shadow: 0 0 8px hsl(180 100% 50% / 0.2);
+  }
+
+  /* Search input for collection */
+  .collection-search-input {
+    background: hsl(252 30% 14%);
+    border: 1.5px solid hsl(255 35% 28%);
+    border-radius: 8px;
+    color: hsl(45 25% 88%);
+    font-size: 16px; /* 16px prevents iOS auto-zoom on focus */
+    padding: 10px 12px 10px 36px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-search-input::placeholder {
+    color: hsl(255 18% 42%);
+  }
+
+  .collection-search-input:focus {
+    border-color: hsl(180 50% 45%);
+    box-shadow: 0 0 0 2px hsl(180 100% 50% / 0.1);
+  }
+
+  /* Sort button */
+  .collection-sort-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: hsl(256 35% 22%);
+    border: 1.5px solid hsl(255 35% 32%);
+    color: hsl(255 20% 68%);
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-sort-btn:active {
+    background: hsl(255 38% 28%);
+    border-color: hsl(255 45% 45%);
+  }
+
+  /* Sort dropdown */
+  .collection-sort-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 150px;
+    background: hsl(252 35% 18%);
+    border: 1.5px solid hsl(255 35% 30%);
+    border-radius: 10px;
+    padding: 4px;
+    z-index: 50;
+    box-shadow: 0 8px 24px hsl(0 0% 0% / 0.4);
+  }
+
+  .collection-sort-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: hsl(255 20% 68%);
+    transition: all 0.15s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-sort-option:active {
+    background: hsl(255 35% 25%);
+  }
+
+  .collection-sort-option.active {
+    background: hsl(255 35% 25%);
+    color: hsl(180 80% 72%);
+  }
+
+  .collection-sort-option .sort-check {
+    color: hsl(180 80% 60%);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  /* ---- INVENTORY PET CARD ---- */
+
+  .inventory-slot {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 10px;
+    padding: 10px 6px 8px;
+    background: linear-gradient(180deg,
+      hsl(256 38% 19%) 0%,
+      hsl(252 35% 15%) 100%
+    );
+    border: 1.5px solid hsl(255 35% 28%);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .inventory-slot:active {
+    transform: scale(0.97);
+  }
+
+  /* Rarity top accent bar */
+  .inventory-slot::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+  }
+
+  .inventory-slot.rarity-common::before {
+    background: hsl(220 10% 45%);
+  }
+
+  .inventory-slot.rarity-rare::before {
+    background: linear-gradient(90deg, transparent, hsl(210 70% 55%), transparent);
+    box-shadow: 0 0 6px hsl(210 80% 55% / 0.5);
+  }
+
+  .inventory-slot.rarity-epic::before {
+    background: linear-gradient(90deg, transparent, hsl(280 70% 60%), transparent);
+    box-shadow: 0 0 8px hsl(280 80% 60% / 0.6);
+  }
+
+  .inventory-slot.rarity-legendary::before {
+    background: linear-gradient(90deg, transparent, hsl(45 90% 55%), transparent);
+    box-shadow: 0 0 10px hsl(45 100% 55% / 0.7);
+  }
+
+  /* Unlocked slot - subtle glow */
+  .inventory-slot.unlocked {
+    border-color: hsl(255 35% 32%);
+    box-shadow:
+      inset 0 1px 0 hsl(255 30% 27%),
+      0 2px 8px hsl(0 0% 0% / 0.25);
+  }
+
+  .inventory-slot.unlocked:active {
+    box-shadow:
+      inset 0 1px 0 hsl(255 30% 27%),
+      0 1px 4px hsl(0 0% 0% / 0.25);
+  }
+
+  /* Locked slot - dimmed */
+  .inventory-slot.locked {
+    background: linear-gradient(180deg,
+      hsl(255 25% 20%) 0%,
+      hsl(252 22% 16%) 100%
+    );
+    border-color: hsl(255 22% 26%);
+  }
+
+  /* Shop pet slot */
+  .inventory-slot.shop-pet {
+    border-color: hsl(35 60% 40%);
+    background: linear-gradient(180deg,
+      hsl(35 25% 16%) 0%,
+      hsl(30 20% 12%) 100%
+    );
+  }
+
+  .inventory-slot.shop-pet::before {
+    background: linear-gradient(90deg, transparent, hsl(35 80% 55%), transparent);
+    box-shadow: 0 0 8px hsl(35 90% 55% / 0.5);
+  }
+
+  /* Study hours gated slot */
+  .inventory-slot.study-gated {
+    border-color: hsl(220 50% 38%);
+    background: linear-gradient(180deg,
+      hsl(220 25% 16%) 0%,
+      hsl(225 20% 12%) 100%
+    );
+  }
+
+  .inventory-slot.study-gated::before {
+    background: linear-gradient(90deg, transparent, hsl(220 70% 55%), transparent);
+    box-shadow: 0 0 8px hsl(220 80% 55% / 0.5);
+  }
+
+  /* Pet card sprite area */
+  .inventory-sprite-area {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    position: relative;
+  }
+
+  /* Pet card name */
+  .inventory-pet-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: hsl(45 22% 82%);
+    text-align: center;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .inventory-slot.locked .inventory-pet-name {
+    color: hsl(255 15% 50%);
+  }
+
+  /* Rarity indicator dot */
+  .rarity-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin: 0 auto 3px;
+  }
+
+  .rarity-dot.common {
+    background: hsl(220 10% 45%);
+  }
+
+  .rarity-dot.rare {
+    background: hsl(210 70% 55%);
+    box-shadow: 0 0 4px hsl(210 80% 55% / 0.5);
+  }
+
+  .rarity-dot.epic {
+    background: hsl(280 70% 60%);
+    box-shadow: 0 0 4px hsl(280 80% 60% / 0.5);
+  }
+
+  .rarity-dot.legendary {
+    background: hsl(45 90% 55%);
+    box-shadow: 0 0 6px hsl(45 100% 55% / 0.6);
+    animation: legendary-dot-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes legendary-dot-pulse {
+    0%, 100% { box-shadow: 0 0 4px hsl(45 100% 55% / 0.4); }
+    50% { box-shadow: 0 0 10px hsl(45 100% 55% / 0.8); }
+  }
+
+  /* Badge styles for inventory cards */
+  .inventory-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .inventory-badge.shop-badge {
+    background: linear-gradient(135deg, hsl(35 70% 45%), hsl(25 65% 40%));
+    color: hsl(45 100% 90%);
+    border: 1px solid hsl(35 60% 55%);
+    box-shadow: 0 0 6px hsl(35 80% 50% / 0.3);
+  }
+
+  .inventory-badge.study-badge {
+    background: linear-gradient(135deg, hsl(220 60% 45%), hsl(230 55% 40%));
+    color: hsl(210 100% 90%);
+    border: 1px solid hsl(220 50% 55%);
+    box-shadow: 0 0 6px hsl(220 70% 50% / 0.3);
+  }
+
+  .inventory-badge.level-badge {
+    background: hsl(260 20% 22%);
+    color: hsl(260 15% 55%);
+    border: 1px solid hsl(260 20% 30%);
+  }
+
+  /* Favorite heart in inventory */
+  .inventory-fav {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+  }
+
+  /* Home active indicator in inventory */
+  .inventory-home {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+  }
+
+  /* Lock overlay for locked cards */
+  .inventory-lock-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: hsl(260 20% 8% / 0.3);
+    border-radius: 10px;
   }
 }

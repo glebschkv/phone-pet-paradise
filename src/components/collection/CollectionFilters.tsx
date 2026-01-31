@@ -1,7 +1,6 @@
-import { Search, ArrowUpDown } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Search, ArrowUpDown, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CollectionStats } from "./CollectionStats";
 
 export type PetSortOption = "default" | "name" | "rarity" | "owned" | "favorites";
 
@@ -40,67 +39,140 @@ export const CollectionFilters = ({
   petsStats,
   worldsStats,
 }: CollectionFiltersProps) => {
+  const [showSearch, setShowSearch] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (showSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [showSearch]);
+
+  // Close sort dropdown on outside tap
+  useEffect(() => {
+    if (!showSortDropdown) return;
+    const handleTap = (e: MouseEvent | TouchEvent) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target as Node)) {
+        setShowSortDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleTap);
+    document.addEventListener("touchstart", handleTap);
+    return () => {
+      document.removeEventListener("mousedown", handleTap);
+      document.removeEventListener("touchstart", handleTap);
+    };
+  }, [showSortDropdown]);
+
+  const handleCloseSearch = useCallback(() => {
+    setShowSearch(false);
+    onSearchChange("");
+  }, [onSearchChange]);
+
+  const activeSortLabel = SORT_OPTIONS.find(o => o.value === sortOption)?.label || "Default";
+
   return (
-    <div className="retro-card mx-3 mt-3 overflow-hidden">
-      {/* Tabs */}
-      <div className="flex">
-        <button
-          onClick={() => onTabChange("pets")}
-          className={cn(
-            "flex-1 py-3 text-center font-bold text-sm transition-all",
-            activeTab === "pets"
-              ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 border-b-2 border-amber-500"
-              : "text-muted-foreground hover:bg-muted/30"
-          )}
-        >
-          <div>PETS</div>
-          <CollectionStats unlocked={petsStats.unlocked} total={petsStats.total} />
-        </button>
-        <button
-          onClick={() => onTabChange("worlds")}
-          className={cn(
-            "flex-1 py-3 text-center font-bold text-sm transition-all",
-            activeTab === "worlds"
-              ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 border-b-2 border-amber-500"
-              : "text-muted-foreground hover:bg-muted/30"
-          )}
-        >
-          <div>WORLDS</div>
-          <CollectionStats unlocked={worldsStats.unlocked} total={worldsStats.total} />
-        </button>
+    <div className="collection-header px-4 pt-3 pb-0">
+      {/* Top row: Tabs + Actions */}
+      <div className="flex items-end">
+        {/* Tab Buttons */}
+        <div className="flex flex-1 gap-0">
+          <button
+            onClick={() => onTabChange("pets")}
+            className={cn("collection-tab flex-1 text-center", activeTab === "pets" && "active")}
+          >
+            <div>PETS</div>
+            <div className="collection-tab-count">
+              {petsStats.unlocked}/{petsStats.total}
+            </div>
+          </button>
+          <button
+            onClick={() => onTabChange("worlds")}
+            className={cn("collection-tab flex-1 text-center", activeTab === "worlds" && "active")}
+          >
+            <div>WORLDS</div>
+            <div className="collection-tab-count">
+              {worldsStats.unlocked}/{worldsStats.total}
+            </div>
+          </button>
+        </div>
+
+        {/* Action buttons - always rendered to prevent layout shift, hidden on worlds tab */}
+        <div className={cn(
+          "flex items-center gap-2 pb-2.5 pl-3 transition-opacity duration-150",
+          activeTab !== "pets" && "opacity-0 pointer-events-none"
+        )}>
+          {/* Search toggle */}
+          <button
+            onClick={() => showSearch ? handleCloseSearch() : setShowSearch(true)}
+            className={cn("collection-search-toggle", showSearch && "active")}
+            aria-label={showSearch ? "Close search" : "Search pets"}
+            tabIndex={activeTab !== "pets" ? -1 : undefined}
+          >
+            {showSearch ? <X className="w-4 h-4" /> : <Search className="w-4 h-4" />}
+          </button>
+
+          {/* Sort dropdown */}
+          <div className="relative" ref={sortDropdownRef}>
+            <button
+              onClick={() => setShowSortDropdown(!showSortDropdown)}
+              className="collection-sort-btn"
+              aria-label="Sort pets"
+              tabIndex={activeTab !== "pets" ? -1 : undefined}
+            >
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              <span>{activeSortLabel}</span>
+            </button>
+
+            {showSortDropdown && activeTab === "pets" && (
+              <div className="collection-sort-dropdown">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      onSortChange(opt.value);
+                      setShowSortDropdown(false);
+                    }}
+                    className={cn(
+                      "collection-sort-option w-full",
+                      sortOption === opt.value && "active"
+                    )}
+                  >
+                    <span>{opt.label}</span>
+                    {sortOption === opt.value && (
+                      <Check className="sort-check w-3.5 h-3.5" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Search & Sort */}
-      {activeTab === "pets" && (
-        <div className="p-3 border-t border-border/50 space-y-2">
+      {/* Expandable search bar */}
+      {activeTab === "pets" && showSearch && (
+        <div className="pt-3 pb-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search..."
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(260,15%,40%)]" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search pets..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 h-10 bg-background/50 border-2 border-border rounded-lg text-sm"
+              className="collection-search-input"
             />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            {SORT_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => onSortChange(opt.value)}
-                className={cn(
-                  "px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all",
-                  sortOption === opt.value
-                    ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 shadow-sm"
-                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
           </div>
         </div>
       )}
+
+      {/* Divider line */}
+      {!showSearch && activeTab === "pets" && <div className="h-3" />}
+      {activeTab === "worlds" && <div className="h-3" />}
     </div>
   );
 };

@@ -63,12 +63,6 @@ export const SettingsAppearance = ({ settings, onUpdate }: SettingsAppearancePro
         </div>
       </div>
 
-      {/* Preview hint */}
-      <div className="retro-stat-pill p-3 text-center">
-        <p className="text-xs text-muted-foreground">
-          Changes are applied instantly
-        </p>
-      </div>
     </div>
   );
 };

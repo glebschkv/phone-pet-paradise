@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, AlertTriangle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FOCUS_CATEGORIES, FocusCategory } from "@/types/analytics";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { formatTime } from "@/lib/utils";
 
 interface FocusLockScreenProps {
@@ -113,7 +114,7 @@ export const FocusLockScreen = ({
               >
                 <div className="flex items-center gap-2 justify-center">
                   {categoryInfo && (
-                    <span className="text-xl">{categoryInfo.emoji}</span>
+                    <PixelIcon name={categoryInfo.icon} size={22} />
                   )}
                   <span className="text-white/80 text-sm">
                     {taskLabel || categoryInfo?.label || "Focusing"}

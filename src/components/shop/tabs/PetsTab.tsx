@@ -68,9 +68,9 @@ export const PetsTab = ({
     <div className="space-y-4">
       {/* Pets Section */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-          <PixelIcon name="paw" size={16} /> Pets
-        </h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Pets</span>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {characters.map((character) => {
             const owned = inventory.ownedCharacters.includes(character.id);
@@ -145,9 +145,9 @@ export const PetsTab = ({
       {/* Backgrounds with Previews Section */}
       {backgroundsWithPreviews.length > 0 && (
         <div>
-          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <PixelIcon name="sun-cloud" size={16} /> Sky Collection
-          </h4>
+          <div className="shop-section-header">
+            <span className="shop-section-title">Sky Collection</span>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {backgroundsWithPreviews.map((bg) => {
               const owned = isOwned(bg.id, 'customize');
@@ -167,15 +167,10 @@ export const PetsTab = ({
                     }
                   }}
                   className={cn(
-                    "relative rounded-xl border-2 overflow-hidden transition-all",
-                    isComingSoon
-                      ? "border-gray-300 dark:border-gray-600 opacity-80"
-                      : "active:scale-95",
-                    !isComingSoon && isEquipped
-                      ? "border-purple-400 dark:border-purple-500 ring-2 ring-purple-300"
-                      : !isComingSoon && owned
-                      ? "border-green-300 dark:border-green-700"
-                      : !isComingSoon && RARITY_BORDER[bg.rarity || 'common']
+                    "shop-bg-card",
+                    isComingSoon && "coming-soon",
+                    !isComingSoon && isEquipped && "equipped",
+                    !isComingSoon && owned && !isEquipped && "owned"
                   )}
                 >
                   {/* Background Preview Image */}
@@ -252,9 +247,9 @@ export const PetsTab = ({
       {/* Other Backgrounds Section */}
       {backgroundsWithoutPreviews.length > 0 && (
         <div>
-          <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
-            <PixelIcon name="picture-frame" size={16} /> Backgrounds
-          </h4>
+          <div className="shop-section-header">
+            <span className="shop-section-title">Backgrounds</span>
+          </div>
           <div className="grid grid-cols-3 gap-2">
             {backgroundsWithoutPreviews.map((bg) => {
               const owned = isOwned(bg.id, 'customize');
@@ -272,13 +267,9 @@ export const PetsTab = ({
                     }
                   }}
                   className={cn(
-                    "relative p-2 rounded-xl border-2 text-center transition-all active:scale-95",
-                    isEquipped
-                      ? "bg-purple-50 dark:bg-purple-900/20 border-purple-400 ring-2 ring-purple-300"
-                      : owned
-                      ? "bg-green-50 dark:bg-green-900/20 border-green-300"
-                      : RARITY_BG[bg.rarity || 'common'],
-                    !owned && RARITY_BORDER[bg.rarity || 'common']
+                    "shop-grid-card relative",
+                    isEquipped && "equipped",
+                    !isEquipped && owned && "owned"
                   )}
                 >
                   {bg.isLimited && (

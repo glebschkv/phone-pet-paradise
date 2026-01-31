@@ -27,6 +27,23 @@ export const GameUI = () => {
     preloadTabComponents();
   }, []);
 
+  // Update meta theme-color to match current tab's top background color
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+
+    const themeColors: Record<string, string> = {
+      home: 'hsl(200, 60%, 85%)',
+      timer: 'hsl(200, 60%, 85%)',
+      collection: 'hsl(252, 40%, 16%)',
+      settings: 'hsl(200, 60%, 85%)',
+      shop: 'hsl(45, 50%, 92%)',
+      challenges: 'hsl(280, 25%, 8%)',
+    };
+
+    meta.setAttribute('content', themeColors[currentTab] || 'hsl(200, 60%, 85%)');
+  }, [currentTab]);
+
   // Listen for programmatic tab switches (e.g. from collection "Buy from Shop" button)
   useEffect(() => {
     const handleSwitchToTab = (event: CustomEvent<string>) => {
@@ -70,9 +87,13 @@ export const GameUI = () => {
         {currentTab !== "home" && (
           <div
             className={`absolute inset-0 pointer-events-auto overflow-auto pt-safe pb-24 ${
-              currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" : currentTab === "collection" ? "" : "bg-background"
+              currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" :
+              currentTab === "shop" ? "bg-[hsl(45,50%,92%)]" :
+              currentTab === "collection" ? "collection-page-bg" :
+              currentTab === "settings" ? "" :
+              "bg-background"
             }`}
-            style={currentTab === "collection" ? { background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)' } : undefined}
+            style={currentTab === "settings" ? { background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)' } : undefined}
           >
             <TabContent
               currentTab={currentTab}

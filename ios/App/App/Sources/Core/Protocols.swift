@@ -94,6 +94,8 @@ struct BlockingStatus {
     let shieldAttempts: Int
     let lastShieldAttemptTimestamp: TimeInterval
     let hasAppsConfigured: Bool
+    let selectedAppsCount: Int
+    let selectedCategoriesCount: Int
 
     var asDictionary: [String: Any] {
         [
@@ -101,7 +103,9 @@ struct BlockingStatus {
             "focusSessionActive": focusSessionActive,
             "shieldAttempts": shieldAttempts,
             "lastShieldAttemptTimestamp": lastShieldAttemptTimestamp,
-            "hasAppsConfigured": hasAppsConfigured
+            "hasAppsConfigured": hasAppsConfigured,
+            "selectedAppsCount": selectedAppsCount,
+            "selectedCategoriesCount": selectedCategoriesCount
         ]
     }
 }

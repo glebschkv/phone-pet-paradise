@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Heart, ExternalLink, MessageCircle, Star, Sparkles, Clock, Grid3X3, Trophy, Shield, FileText, ScrollText } from "lucide-react";
+import { Heart, ExternalLink, MessageCircle, Shield, FileText, ScrollText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const SettingsAbout = () => {
@@ -10,20 +10,6 @@ export const SettingsAbout = () => {
   const openLink = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
-
-  const features = [
-    { icon: Sparkles, title: "3D Pet Island", description: "Beautiful 3D environment" },
-    { icon: Clock, title: "Focus Timer", description: "Pomodoro-style productivity" },
-    { icon: Grid3X3, title: "Pet Collection", description: "Unlock new companions" },
-    { icon: Trophy, title: "XP System", description: "Level up and earn rewards" },
-  ];
-
-  const techStack = [
-    { label: "Framework", value: "React + TypeScript" },
-    { label: "Styling", value: "Tailwind CSS" },
-    { label: "3D Engine", value: "Three.js" },
-    { label: "Mobile", value: "Capacitor" },
-  ];
 
   return (
     <div className="space-y-3">
@@ -52,38 +38,6 @@ export const SettingsAbout = () => {
         <p className="text-xs text-muted-foreground text-center">
           Stay focused, earn rewards, and grow your island.
         </p>
-      </div>
-
-      {/* Features */}
-      <div className="retro-card p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Star className="w-4 h-4 text-amber-500" />
-          <span className="text-sm font-bold">Features</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div
-                key={index}
-                className="p-3 rounded-lg flex items-start gap-2"
-                style={{
-                  background: 'hsl(var(--card))',
-                  border: '2px solid hsl(var(--border))',
-                  boxShadow: '0 2px 0 hsl(var(--border) / 0.4)'
-                }}
-              >
-                <div className="w-8 h-8 retro-stat-pill rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold truncate">{feature.title}</div>
-                  <div className="text-[10px] text-muted-foreground">{feature.description}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* Legal */}
@@ -128,30 +82,6 @@ export const SettingsAbout = () => {
             <span className="text-sm font-bold flex-1 text-left">Visit NoMo Inc.</span>
             <ExternalLink className="w-4 h-4" />
           </button>
-        </div>
-      </div>
-
-      {/* Tech Stack */}
-      <div className="retro-card p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-sm font-bold">Tech Stack</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {techStack.map((item, index) => (
-            <div
-              key={index}
-              className="p-2 rounded-lg text-center"
-              style={{
-                background: 'hsl(var(--card))',
-                border: '2px solid hsl(var(--border))',
-                boxShadow: '0 2px 0 hsl(var(--border) / 0.4)'
-              }}
-            >
-              <div className="text-[10px] text-muted-foreground">{item.label}</div>
-              <div className="text-xs font-bold">{item.value}</div>
-            </div>
-          ))}
         </div>
       </div>
 

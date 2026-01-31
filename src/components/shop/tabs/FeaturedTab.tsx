@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Crown, ChevronRight, Check, Coins } from "lucide-react";
+import { Crown, ChevronRight, Check, Coins, Sparkles, Zap } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
+// Note: PixelIcon still used for starter bundle icons and best value icon
 import { BackgroundBundle, ShopItem, COIN_PACKS, StarterBundle, CoinPack } from "@/data/ShopData";
 import { BACKGROUND_BUNDLES, STARTER_BUNDLES } from "@/data/ShopData";
 import type { ShopInventory } from "@/hooks/useShop";
@@ -163,31 +164,35 @@ export const FeaturedTab = ({
               <Crown className="w-7 h-7 text-white" style={{ filter: 'drop-shadow(0 2px 0 rgba(0,0,0,0.3))' }} />
             </div>
             <div className="flex-1">
-              <h3
-                className="font-black text-white text-lg uppercase tracking-wider"
-                style={{ textShadow: '0 2px 0 rgba(0,0,0,0.3)' }}
-              >
-                Go Premium
-              </h3>
-              <p className="text-white/80 text-xs">
-                Unlock all features & exclusive pets
-              </p>
+              <div className="flex items-center gap-1.5">
+                <h3
+                  className="font-black text-white text-[15px] tracking-tight"
+                  style={{ textShadow: '0 2px 0 rgba(0,0,0,0.3)' }}
+                >
+                  Go Premium
+                </h3>
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+              </div>
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/15 text-[9px] font-bold text-white/90">
+                  <Zap className="w-2.5 h-2.5" /> 2x Coins
+                </span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/15 text-[9px] font-bold text-white/90">
+                  <Sparkles className="w-2.5 h-2.5" /> All Sounds
+                </span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/15 text-[9px] font-bold text-white/90">
+                  <Crown className="w-2.5 h-2.5" /> Exclusive Pets
+                </span>
+              </div>
             </div>
-            <ChevronRight className="w-6 h-6 text-white/80" />
+            <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+              <span className="font-black text-white text-sm">$4.99</span>
+              <span className="text-white/50 text-[10px] font-bold">/month</span>
+            </div>
           </div>
-          <div
-            className="mt-3 rounded-lg py-2 px-3 flex items-center justify-center relative z-[1]"
-            style={{
-              background: 'hsl(35 80% 45% / 0.4)',
-              border: '2px solid hsl(40 70% 65% / 0.3)',
-            }}
-          >
-            <span
-              className="text-white font-black text-sm uppercase tracking-wider"
-              style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}
-            >
-              Starting at $4.99/mo
-            </span>
+          <div className="relative z-[1] flex items-center justify-center gap-1.5 mt-2.5 pt-2 border-t border-white/10">
+            <span className="text-white/80 text-[11px] font-bold tracking-wide uppercase">See all plans</span>
+            <ChevronRight className="w-3.5 h-3.5 text-white/50" />
           </div>
         </button>
       ) : (
@@ -230,7 +235,7 @@ export const FeaturedTab = ({
         >
           <PixelIcon name="picture-frame" size={16} /> Background Bundles
         </h4>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {BACKGROUND_BUNDLES.map((bundle) => {
             const owned = isBundleOwned(bundle.id);
             const affordable = canAfford(bundle.coinPrice || 0);
@@ -243,7 +248,7 @@ export const FeaturedTab = ({
                     setShowPurchaseConfirm(true);
                   }
                 }}
-                className="w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden"
+                className="w-full rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden"
                 style={owned ? {
                   background: 'linear-gradient(180deg, hsl(140 25% 18%) 0%, hsl(140 30% 14%) 100%)',
                   borderColor: 'hsl(140 40% 35%)',
@@ -253,37 +258,40 @@ export const FeaturedTab = ({
                   boxShadow: '0 3px 0 hsl(260 40% 10%)',
                 }}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-16">
-                    <BundlePreviewCarousel images={bundle.previewImages} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm" style={{ color: 'hsl(260 20% 85%)' }}>{bundle.name}</span>
-                      {owned ? (
-                        <OwnedBadge />
-                      ) : (
-                        <SaveBadge text={`SAVE ${bundle.savings}`} />
-                      )}
+                {/* Hero preview image */}
+                <div className="relative w-full h-36 overflow-hidden rounded-t-xl">
+                  <BundlePreviewCarousel images={bundle.previewImages} />
+                  {owned && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <OwnedBadge />
                     </div>
-                    <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'hsl(260 15% 50%)' }}>
-                      {bundle.description}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
+                  )}
+                  {!owned && (
+                    <div className="absolute top-2 right-2">
+                      <SaveBadge text={`SAVE ${bundle.savings}`} />
+                    </div>
+                  )}
+                </div>
+                {/* Info bar */}
+                <div className="px-3 py-2.5 flex items-center justify-between">
+                  <div className="min-w-0">
+                    <span className="font-bold text-sm block" style={{ color: 'hsl(260 20% 85%)' }}>{bundle.name}</span>
+                    <span className="text-[10px]" style={{ color: 'hsl(260 15% 50%)' }}>{bundle.backgroundIds.length} backgrounds</span>
+                  </div>
+                  {!owned && (
+                    <div className="flex items-center gap-3 flex-shrink-0">
                       <span className="text-[10px] line-through" style={{ color: 'hsl(260 15% 40%)' }}>
                         {bundle.totalValue.toLocaleString()}
                       </span>
-                      {!owned && (
-                        <div className={cn(
-                          "flex items-center gap-1 text-xs font-bold",
-                          affordable ? "text-amber-400" : "text-red-400"
-                        )}>
-                          <Coins className="w-3 h-3" />
-                          {bundle.coinPrice?.toLocaleString()}
-                        </div>
-                      )}
+                      <div className={cn(
+                        "flex items-center gap-1 text-xs font-bold",
+                        affordable ? "text-amber-400" : "text-red-400"
+                      )}>
+                        <Coins className="w-3 h-3" />
+                        <span>{bundle.coinPrice?.toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </button>
             );
@@ -413,7 +421,7 @@ export const FeaturedTab = ({
             See All →
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {bestSellingPets.map((pet) => {
             const owned = inventory.ownedCharacters.includes(pet.id);
             return (
@@ -433,11 +441,11 @@ export const FeaturedTab = ({
                   boxShadow: '0 3px 0 hsl(260 40% 10%)',
                 }}
               >
-                <div className="h-12 mb-1 flex items-center justify-center overflow-hidden">
+                <div className="h-14 mb-1.5 flex items-center justify-center overflow-hidden">
                   {pet.spriteConfig ? (
                     <SpritePreview
                       animal={pet}
-                      scale={Math.min(1.5, 48 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
+                      scale={Math.min(1.8, 56 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
                     />
                   ) : (
                     <span className="text-3xl">{pet.emoji}</span>
@@ -447,7 +455,7 @@ export const FeaturedTab = ({
                 {owned ? (
                   <span className="text-[10px] retro-neon-green font-semibold">Owned</span>
                 ) : (
-                  <div className="flex items-center justify-center gap-1 mt-1">
+                  <div className="flex items-center justify-center gap-1 mt-0.5">
                     <Coins className="w-3 h-3 text-amber-400" />
                     <span className="text-xs font-bold text-amber-400">{pet.coinPrice?.toLocaleString()}</span>
                   </div>

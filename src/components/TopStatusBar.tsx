@@ -164,11 +164,20 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
         </DropdownMenu>
         </div>
 
-        {/* Center section: Coins */}
-        <div className="stat-chip coin-chip">
+        {/* Center section: Coins - tappable to buy more */}
+        <button
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('switchToTab', { detail: 'shop' }));
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('navigateToShopCategory', { detail: 'powerups' }));
+            }, 50);
+          }}
+          className="stat-chip coin-chip"
+        >
           <span className="chip-icon coin-icon">◉</span>
           <span className="chip-value">{coinSystem.balance.toLocaleString()}</span>
-        </div>
+          <span className="coin-plus-badge">+</span>
+        </button>
 
         {/* Right section: Streak + Settings */}
         <div className="top-bar-right">

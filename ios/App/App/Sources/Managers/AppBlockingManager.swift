@@ -36,16 +36,12 @@ final class AppBlockingManager: AppBlockingManaging {
         focusDataManager: FocusDataManager = .shared,
         userDefaults: UserDefaults? = nil
     ) {
-        // Only create ManagedSettingsStore when running in an app extension,
-        // where the managed-settings entitlement is available.
-        // The main app (.app bundle) does not have this entitlement.
+        // ManagedSettingsStore works in both the main app and extensions
+        // as long as the Family Controls entitlement is present.
         if let store = store {
             self.store = store
-        } else if Bundle.main.bundlePath.hasSuffix(".appex") {
-            self.store = ManagedSettingsStore()
         } else {
-            self.store = nil
-            Log.blocking.info("Running in main app - ManagedSettingsStore not available (extension-only entitlement)")
+            self.store = ManagedSettingsStore()
         }
         self.focusDataManager = focusDataManager
         self.userDefaults = userDefaults ?? AppConfig.sharedUserDefaults
@@ -59,9 +55,14 @@ final class AppBlockingManager: AppBlockingManaging {
     }
 
     var hasAppsConfigured: Bool {
-        guard let store = store,
-              let apps = store.shield.applications else { return false }
-        return !apps.isEmpty
+        // Check if shields are currently applied on the store
+        if let store = store,
+           let apps = store.shield.applications,
+           !apps.isEmpty {
+            return true
+        }
+        // Also check if there's a saved selection (apps picked but session not started yet)
+        return userDefaults?.data(forKey: AppConfig.StorageKeys.blockedAppsSelection) != nil
     }
 
     // MARK: - Start Blocking
@@ -160,12 +161,15 @@ final class AppBlockingManager: AppBlockingManaging {
     // MARK: - Blocking Status
 
     func getBlockingStatus() -> BlockingStatus {
-        BlockingStatus(
+        let selection = loadActivitySelection()
+        return BlockingStatus(
             isBlocking: isBlocking,
             focusSessionActive: focusDataManager.isFocusSessionActive,
             shieldAttempts: focusDataManager.shieldAttempts,
             lastShieldAttemptTimestamp: focusDataManager.lastShieldAttemptTimestamp,
-            hasAppsConfigured: hasAppsConfigured
+            hasAppsConfigured: hasAppsConfigured,
+            selectedAppsCount: selection?.applicationTokens.count ?? 0,
+            selectedCategoriesCount: selection?.categoryTokens.count ?? 0
         )
     }
 

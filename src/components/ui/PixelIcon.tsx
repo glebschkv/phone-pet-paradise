@@ -16,6 +16,7 @@ const ICON_NAMES = new Set([
   'ice-cube',
   // Bundles
   'sparkles', 'moon', 'masks', 'leaf', 'crown', 'sun-cloud',
+  'treasure-chest', 'ultra-crown',
   // Background themes
   'island', 'wave', 'cloud', 'sunset', 'sakura',
   'neon-city', 'aurora', 'volcano', 'fish', 'pumpkin', 'christmas-tree',

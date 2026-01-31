@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Coins, ShoppingBag, Zap, Clock, Backpack } from "lucide-react";
-import { PixelIcon } from "@/components/ui/PixelIcon";
+import { Coins, Zap, Clock, Backpack, Star, PawPrint, Gift, Zap as ZapIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
@@ -24,11 +23,11 @@ import { InventoryTab } from "@/components/shop/tabs/InventoryTab";
 import { PurchaseConfirmDialog } from "@/components/shop/PurchaseConfirmDialog";
 import { CharacterUnlockModal } from "@/components/shop/CharacterUnlockModal";
 
-const CATEGORY_ICON_NAMES: Partial<Record<ShopCategory, string>> = {
-  featured: 'star',
-  pets: 'paw',
-  bundles: 'gift',
-  powerups: 'lightning',
+const CATEGORY_ICONS: Record<string, typeof Star> = {
+  featured: Star,
+  pets: PawPrint,
+  bundles: Gift,
+  powerups: ZapIcon,
 };
 
 export const Shop = () => {
@@ -173,108 +172,79 @@ export const Shop = () => {
   };
 
   return (
-    <div className="retro-shop-container h-full flex flex-col">
-      <div className="retro-corner retro-corner-tl" />
-      <div className="retro-corner retro-corner-tr" />
-
-      {/* Header */}
-      <div className="retro-shop-header mx-3 mt-3">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <div className="retro-shop-icon">
-              <ShoppingBag className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-black uppercase tracking-tight">Shop</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                Pets, Items & More
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowInventory(!showInventory)}
-              className={cn(
-                "w-9 h-9 rounded-xl flex items-center justify-center border-2 transition-all active:scale-95",
-                showInventory
-                  ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-300 dark:border-emerald-600"
-                  : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-              )}
-              aria-label="My Items"
-            >
-              <Backpack className={cn(
-                "w-5 h-5 transition-colors",
-                showInventory
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-gray-500 dark:text-gray-400"
-              )} />
-            </button>
-            <div className="retro-coin-display">
-              <Coins className="w-5 h-5 text-amber-600" />
-              <span className="font-black text-amber-700 dark:text-amber-400">
-                {coinBalance.toLocaleString()}
+    <div className="shop-container h-full flex flex-col">
+      {/* Compact Header Row */}
+      <div className="shop-header">
+        <div className="flex items-center gap-2">
+          <h1 className="text-base font-black uppercase tracking-tight text-amber-900">Shop</h1>
+          {/* Active booster pill */}
+          {isBoosterActive() && activeBooster && (
+            <div className="shop-booster-pill">
+              <Zap className="w-3 h-3 text-purple-600 animate-pulse" />
+              <span className="text-[10px] font-bold text-purple-700">
+                {getCurrentMultiplier()}x
               </span>
+              <div className="flex items-center gap-0.5 text-[9px] text-purple-500">
+                <Clock className="w-2.5 h-2.5" />
+                <span className="font-mono font-bold">{getTimeRemainingFormatted()}</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Active booster indicator */}
-        {isBoosterActive() && activeBooster && (
-          <div className="retro-booster-banner mx-4 mb-4">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-purple-600 animate-pulse" />
-              <span className="text-sm font-bold text-purple-700 dark:text-purple-300">
-                {getCurrentMultiplier()}x Boost Active!
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
-              <Clock className="w-3 h-3" />
-              <span className="font-mono font-bold">{getTimeRemainingFormatted()}</span>
-            </div>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowInventory(!showInventory)}
+            className={cn(
+              "shop-inventory-btn",
+              showInventory && "active"
+            )}
+            aria-label="My Items"
+          >
+            <Backpack className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => {
+              setShowInventory(false);
+              setActiveCategory('powerups');
+            }}
+            className="shop-coin-badge"
+            aria-label="Buy Coins"
+          >
+            <Coins className="w-4 h-4 text-amber-600" />
+            <span className="font-black text-sm text-amber-800">
+              {coinBalance.toLocaleString()}
+            </span>
+            <span className="shop-coin-plus">+</span>
+          </button>
+        </div>
       </div>
 
-      {/* Category tabs - hidden when viewing inventory */}
+      {/* Horizontal pill tabs - hidden when viewing inventory */}
       {!showInventory && (
-        <div className="mx-3 mt-3">
-          <div className="flex gap-2 pb-2">
-            {SHOP_CATEGORIES.map((category) => (
+        <div className="shop-tabs-bar">
+          {SHOP_CATEGORIES.map((category) => {
+            const Icon = CATEGORY_ICONS[category.id] || Star;
+            const isActive = activeCategory === category.id;
+            return (
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={cn(
-                  "retro-category-tab",
-                  activeCategory === category.id && "retro-category-tab-active"
-                )}
+                className={cn("shop-tab-pill", isActive && "active")}
               >
-                <div className={`retro-category-icon retro-category-icon-${category.id}`}>
-                  {(() => {
-                    const iconName = CATEGORY_ICON_NAMES[category.id];
-                    if (!iconName) return null;
-                    const isActive = activeCategory === category.id;
-                    return <PixelIcon
-                      name={iconName}
-                      size={18}
-                      className={cn(
-                        isActive ? "opacity-100 drop-shadow-sm" : "opacity-40"
-                      )}
-                    />;
-                  })()}
-                </div>
-                <span className="retro-category-tab-label">{category.name}</span>
+                <Icon className="w-3.5 h-3.5" strokeWidth={isActive ? 2.5 : 2} />
+                <span>{category.name}</span>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
 
       {/* Inventory header when viewing items */}
       {showInventory && (
-        <div className="mx-3 mt-3 flex items-center gap-2 px-1">
-          <Backpack className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          <h2 className="text-sm font-black uppercase tracking-tight text-emerald-700 dark:text-emerald-300">
+        <div className="px-4 pt-2 pb-1 flex items-center gap-2">
+          <Backpack className="w-4 h-4 text-emerald-600" />
+          <h2 className="text-sm font-black uppercase tracking-tight text-emerald-700">
             My Items
           </h2>
         </div>
@@ -282,7 +252,7 @@ export const Shop = () => {
 
       {/* Content - Scrollable area that stops at taskbar */}
       <ScrollArea className="flex-1 min-h-0">
-        <div className="px-3 pt-3 pb-6">
+        <div className="px-4 pt-3 pb-6">
           {showInventory ? (
             <InventoryTab equipBackground={equipBackground} />
           ) : (
