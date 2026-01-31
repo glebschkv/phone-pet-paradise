@@ -732,6 +732,27 @@
     color: hsl(35 70% 20%);
   }
 
+  .coin-chip:active {
+    transform: scale(0.95);
+  }
+
+  .coin-plus-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, hsl(145 55% 50%) 0%, hsl(145 50% 40%) 100%);
+    border: 1.5px solid hsl(145 45% 35%);
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 1px 0 hsl(145 40% 28%);
+    margin-left: 1px;
+  }
+
   /* Streak chip specific */
   .streak-chip {
     background: linear-gradient(
@@ -2561,6 +2582,31 @@
       inset 0 -1px 0 hsl(35 50% 68%);
   }
 
+  .shop-coin-badge:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 0px 0 hsl(35 55% 45%),
+      inset 0 1px 0 hsl(50 90% 95% / 0.6),
+      inset 0 -1px 0 hsl(35 50% 68%);
+  }
+
+  .shop-coin-plus {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, hsl(145 55% 50%) 0%, hsl(145 50% 40%) 100%);
+    border: 1.5px solid hsl(145 45% 35%);
+    color: white;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 1px 0 hsl(145 40% 28%);
+    margin-left: 2px;
+  }
+
   /* Inventory button */
   .shop-inventory-btn {
     width: 34px;
@@ -2707,22 +2753,80 @@
       inset 0 1px 0 hsl(0 0% 100% / 0.3);
   }
 
-  /* Premium strip - compact with game depth */
-  .shop-premium-strip {
+  /* Premium card - enticing upsell */
+  .shop-premium-card {
     display: block;
     width: 100%;
-    background: linear-gradient(180deg,
-      hsl(32 90% 58%) 0%,
-      hsl(24 85% 48%) 100%
+    background: linear-gradient(135deg,
+      hsl(270 45% 28%) 0%,
+      hsl(260 50% 22%) 50%,
+      hsl(280 40% 20%) 100%
     );
-    border: 2.5px solid hsl(20 80% 38%);
-    border-radius: 12px;
-    padding: 10px 14px;
+    border: 2.5px solid hsl(270 50% 45%);
+    border-radius: 14px;
+    padding: 12px 14px;
     text-align: left;
     box-shadow:
-      0 3px 0 hsl(20 75% 30%),
-      inset 0 1px 0 hsl(38 95% 72% / 0.5),
-      inset 0 -1px 0 hsl(20 80% 40%);
+      0 4px 0 hsl(270 45% 18%),
+      inset 0 1px 0 hsl(270 60% 55% / 0.3),
+      0 0 20px hsl(270 60% 40% / 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shop-premium-card:active {
+    transform: translateY(3px);
+    box-shadow:
+      0 1px 0 hsl(270 45% 18%),
+      inset 0 1px 0 hsl(270 60% 55% / 0.3);
+  }
+
+  .shop-premium-shimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(45 90% 70% / 0.08) 50%,
+      transparent 100%
+    );
+    animation: premium-shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes premium-shimmer {
+    0% { left: -50%; }
+    100% { left: 150%; }
+  }
+
+  .shop-premium-crown {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, hsl(45 90% 65%) 0%, hsl(35 85% 50%) 100%);
+    border: 2px solid hsl(30 80% 40%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow:
+      0 2px 0 hsl(30 75% 32%),
+      inset 0 1px 0 hsl(50 95% 78% / 0.5),
+      0 0 12px hsl(45 90% 60% / 0.3);
+  }
+
+  .shop-premium-perk {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: hsl(270 40% 35% / 0.6);
+    border: 1px solid hsl(270 45% 50% / 0.3);
+    color: hsl(45 80% 85%);
+    font-size: 10px;
+    font-weight: 700;
   }
 
   /* Premium active badge */

@@ -203,12 +203,20 @@ export const Shop = () => {
           >
             <Backpack className="w-4 h-4" />
           </button>
-          <div className="shop-coin-badge">
+          <button
+            onClick={() => {
+              setShowInventory(false);
+              setActiveCategory('powerups');
+            }}
+            className="shop-coin-badge"
+            aria-label="Buy Coins"
+          >
             <Coins className="w-4 h-4 text-amber-600" />
             <span className="font-black text-sm text-amber-800">
               {coinBalance.toLocaleString()}
             </span>
-          </div>
+            <span className="shop-coin-plus">+</span>
+          </button>
         </div>
       </div>
 
