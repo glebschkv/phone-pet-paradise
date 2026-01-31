@@ -49,7 +49,7 @@ export const AnalyticsMilestones = ({ milestones }: MilestonesProps) => {
                     {remaining} {milestone.unit} left
                   </span>
                 </div>
-                <div className="h-2 bg-muted/20 rounded-full overflow-hidden">
+                <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
                   <div
                     className={cn(
                       "h-full rounded-full transition-all duration-700",

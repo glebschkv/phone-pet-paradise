@@ -74,7 +74,7 @@ export const AnalyticsFocusQuality = ({ stats }: FocusQualityProps) => {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-lg font-extrabold tabular-nums">{perfectRate}%</span>
-                <span className="text-[8px] text-muted-foreground font-semibold">PERFECT</span>
+                <span className="text-[9px] text-muted-foreground font-semibold">PERFECT</span>
               </div>
             </div>
 
@@ -95,26 +95,26 @@ export const AnalyticsFocusQuality = ({ stats }: FocusQualityProps) => {
 
           {/* Quick stats row */}
           <div className="grid grid-cols-3 gap-2 mb-3">
-            <div className="rounded-lg bg-muted/20 p-2 text-center">
+            <div className="rounded-lg bg-muted/20 p-2.5 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
                 <Eye className="w-3 h-3 text-amber-500" />
               </div>
               <div className="text-xs font-bold tabular-nums">{avgShieldAttempts}</div>
-              <div className="text-[8px] text-muted-foreground font-medium uppercase">Avg Attempts</div>
+              <div className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Avg Attempts</div>
             </div>
-            <div className="rounded-lg bg-muted/20 p-2 text-center">
+            <div className="rounded-lg bg-muted/20 p-2.5 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
                 <Sparkles className="w-3 h-3 text-green-500" />
               </div>
               <div className="text-xs font-bold tabular-nums">{perfectStreak}</div>
-              <div className="text-[8px] text-muted-foreground font-medium uppercase">Perfect Streak</div>
+              <div className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Perfect Streak</div>
             </div>
-            <div className="rounded-lg bg-muted/20 p-2 text-center">
+            <div className="rounded-lg bg-muted/20 p-2.5 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
                 <AlertTriangle className="w-3 h-3 text-red-400" />
               </div>
               <div className="text-xs font-bold tabular-nums">{distracted}</div>
-              <div className="text-[8px] text-muted-foreground font-medium uppercase">Distracted</div>
+              <div className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Distracted</div>
             </div>
           </div>
 
@@ -128,7 +128,7 @@ export const AnalyticsFocusQuality = ({ stats }: FocusQualityProps) => {
                 const weekTotal = week.perfect + week.good + week.distracted;
                 return (
                   <div key={week.week} className="flex-1 flex flex-col items-center gap-1">
-                    <div className="w-full h-14 rounded-md bg-muted/10 flex flex-col-reverse overflow-hidden">
+                    <div className="w-full max-w-[28px] mx-auto h-14 rounded-md bg-muted/10 flex flex-col-reverse overflow-hidden relative">
                       {weekTotal > 0 && (
                         <>
                           <div
@@ -143,6 +143,8 @@ export const AnalyticsFocusQuality = ({ stats }: FocusQualityProps) => {
                             className="w-full bg-green-500/80"
                             style={{ height: `${(week.perfect / weekTotal) * 100}%` }}
                           />
+                          {/* Glossy highlight */}
+                          <div className="absolute inset-x-0 top-0 h-1/3 bg-white/15 rounded-t-md pointer-events-none" />
                         </>
                       )}
                     </div>

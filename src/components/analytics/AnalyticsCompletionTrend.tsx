@@ -55,6 +55,9 @@ export const AnalyticsCompletionTrend = ({ trend }: CompletionTrendProps) => {
               strokeDasharray={circumference}
               strokeDashoffset={offset}
               className={cn("transition-all duration-700", getRateColor(overall.rate))}
+              style={{
+                filter: overall.rate >= 90 ? 'drop-shadow(0 0 4px currentColor)' : undefined,
+              }}
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -99,10 +102,10 @@ export const AnalyticsCompletionTrend = ({ trend }: CompletionTrendProps) => {
                 </span>
               )}
               {/* Bar */}
-              <div className="w-full h-10 rounded-md bg-muted/10 flex items-end overflow-hidden">
+              <div className="w-full max-w-[28px] mx-auto h-10 rounded-md bg-muted/10 flex items-end overflow-hidden">
                 <div
                   className={cn(
-                    "w-full rounded-md transition-all duration-500",
+                    "w-full rounded-md transition-all duration-500 relative overflow-hidden",
                     week.rate >= 90 ? "bg-green-500/70" :
                     week.rate >= 70 ? "bg-blue-500/70" :
                     week.rate >= 50 ? "bg-amber-500/70" :
@@ -110,7 +113,12 @@ export const AnalyticsCompletionTrend = ({ trend }: CompletionTrendProps) => {
                     "bg-muted/20"
                   )}
                   style={{ height: week.total > 0 ? `${Math.max(week.rate, 8)}%` : '4px' }}
-                />
+                >
+                  {/* Glossy highlight */}
+                  {week.total > 0 && (
+                    <div className="absolute inset-x-0 top-0 h-1/3 bg-white/15 rounded-t-md" />
+                  )}
+                </div>
               </div>
               <span className="text-[9px] text-muted-foreground font-medium">{week.week}</span>
             </div>
