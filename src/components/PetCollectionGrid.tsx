@@ -55,7 +55,7 @@ const PetGrid = memo(({
   onPetClick: (pet: AnimalData) => void;
 }) => {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-3">
       {pets.map((pet) => (
         <PetCard
           key={pet.id}
@@ -224,7 +224,7 @@ export const PetCollectionGrid = memo(() => {
       {/* Content - Scrollable area that stops at taskbar */}
       <ScrollArea className="flex-1 min-h-0">
         {activeTab === "pets" && (
-          <div className="px-3 pt-3 pb-6">
+          <div className="px-4 pt-2 pb-28">
             <PetGrid
               pets={filteredPets}
               isAnimalUnlocked={isAnimalUnlocked}
@@ -238,7 +238,7 @@ export const PetCollectionGrid = memo(() => {
         )}
 
         {activeTab === "worlds" && (
-          <div className="px-3 pt-3 pb-6 space-y-4">
+          <div className="px-4 pt-2 pb-28 space-y-4">
             {/* Biome Worlds Section */}
             <WorldGrid
               currentLevel={currentLevel}

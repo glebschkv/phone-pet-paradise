@@ -974,9 +974,9 @@
     align-items: center;
     justify-content: center;
     box-shadow:
-      0 4px 20px hsl(var(--primary) / 0.4),
-      0 2px 8px hsl(var(--primary) / 0.3),
-      inset 0 2px 4px hsl(0 0% 100% / 0.2);
+      0 4px 16px hsl(var(--primary) / 0.25),
+      0 2px 6px hsl(var(--primary) / 0.2),
+      inset 0 2px 4px hsl(0 0% 100% / 0.15);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -985,9 +985,9 @@
   .dock-center-btn:hover {
     transform: scale(1.05);
     box-shadow:
-      0 6px 24px hsl(var(--primary) / 0.5),
-      0 2px 10px hsl(var(--primary) / 0.4),
-      inset 0 2px 4px hsl(0 0% 100% / 0.2);
+      0 6px 20px hsl(var(--primary) / 0.3),
+      0 2px 8px hsl(var(--primary) / 0.25),
+      inset 0 2px 4px hsl(0 0% 100% / 0.15);
   }
 
   .dock-center-btn:active {
@@ -3169,5 +3169,405 @@
   @keyframes coming-soon-shine {
     0% { left: -100%; }
     50%, 100% { left: 200%; }
+  }
+
+  /* ---- COLLECTION PAGE (Game Inventory UI) ---- */
+
+  /* Dark game-style page background for collection */
+  .collection-page-bg {
+    background: linear-gradient(180deg,
+      hsl(255 30% 14%) 0%,
+      hsl(250 25% 11%) 40%,
+      hsl(245 20% 9%) 100%
+    );
+  }
+
+  /* Collection header panel */
+  .collection-header {
+    background: linear-gradient(180deg,
+      hsl(260 25% 18%) 0%,
+      hsl(255 25% 14%) 100%
+    );
+    border-bottom: 1px solid hsl(260 30% 25%);
+  }
+
+  /* Collection tab button (PETS / WORLDS) */
+  .collection-tab {
+    position: relative;
+    padding: 12px 0;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: hsl(260 15% 50%);
+    transition: color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-tab.active {
+    color: hsl(180 80% 70%);
+  }
+
+  /* Animated underline for active tab */
+  .collection-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    right: 15%;
+    height: 2px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(180 100% 60%) 50%,
+      transparent 100%
+    );
+    box-shadow: 0 0 8px hsl(180 100% 60% / 0.6);
+  }
+
+  /* Collection tab stat counter */
+  .collection-tab-count {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.7;
+    margin-top: 1px;
+  }
+
+  .collection-tab.active .collection-tab-count {
+    opacity: 1;
+    color: hsl(180 60% 65%);
+  }
+
+  /* Search toggle button */
+  .collection-search-toggle {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: hsl(260 25% 20%);
+    border: 1.5px solid hsl(260 30% 30%);
+    color: hsl(260 15% 55%);
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-search-toggle:active,
+  .collection-search-toggle.active {
+    background: hsl(260 30% 25%);
+    border-color: hsl(180 50% 45%);
+    color: hsl(180 80% 70%);
+    box-shadow: 0 0 8px hsl(180 100% 50% / 0.2);
+  }
+
+  /* Search input for collection */
+  .collection-search-input {
+    background: hsl(260 20% 12%);
+    border: 1.5px solid hsl(260 25% 25%);
+    border-radius: 8px;
+    color: hsl(45 25% 85%);
+    font-size: 16px; /* 16px prevents iOS auto-zoom on focus */
+    padding: 10px 12px 10px 36px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-search-input::placeholder {
+    color: hsl(260 15% 40%);
+  }
+
+  .collection-search-input:focus {
+    border-color: hsl(180 50% 45%);
+    box-shadow: 0 0 0 2px hsl(180 100% 50% / 0.1);
+  }
+
+  /* Sort button */
+  .collection-sort-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: hsl(260 25% 20%);
+    border: 1.5px solid hsl(260 30% 30%);
+    color: hsl(260 15% 65%);
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-sort-btn:active {
+    background: hsl(260 30% 25%);
+    border-color: hsl(260 40% 45%);
+  }
+
+  /* Sort dropdown */
+  .collection-sort-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 150px;
+    background: hsl(260 25% 16%);
+    border: 1.5px solid hsl(260 30% 28%);
+    border-radius: 10px;
+    padding: 4px;
+    z-index: 50;
+    box-shadow: 0 8px 24px hsl(0 0% 0% / 0.4);
+  }
+
+  .collection-sort-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: hsl(260 15% 65%);
+    transition: all 0.15s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collection-sort-option:active {
+    background: hsl(260 30% 22%);
+  }
+
+  .collection-sort-option.active {
+    background: hsl(260 30% 22%);
+    color: hsl(180 80% 70%);
+  }
+
+  .collection-sort-option .sort-check {
+    color: hsl(180 80% 60%);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  /* ---- INVENTORY PET CARD ---- */
+
+  .inventory-slot {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 10px;
+    padding: 10px 6px 8px;
+    background: linear-gradient(180deg,
+      hsl(260 20% 17%) 0%,
+      hsl(255 22% 13%) 100%
+    );
+    border: 1.5px solid hsl(260 25% 25%);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .inventory-slot:active {
+    transform: scale(0.97);
+  }
+
+  /* Rarity top accent bar */
+  .inventory-slot::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+  }
+
+  .inventory-slot.rarity-common::before {
+    background: hsl(220 10% 45%);
+  }
+
+  .inventory-slot.rarity-rare::before {
+    background: linear-gradient(90deg, transparent, hsl(210 70% 55%), transparent);
+    box-shadow: 0 0 6px hsl(210 80% 55% / 0.5);
+  }
+
+  .inventory-slot.rarity-epic::before {
+    background: linear-gradient(90deg, transparent, hsl(280 70% 60%), transparent);
+    box-shadow: 0 0 8px hsl(280 80% 60% / 0.6);
+  }
+
+  .inventory-slot.rarity-legendary::before {
+    background: linear-gradient(90deg, transparent, hsl(45 90% 55%), transparent);
+    box-shadow: 0 0 10px hsl(45 100% 55% / 0.7);
+  }
+
+  /* Unlocked slot - subtle glow */
+  .inventory-slot.unlocked {
+    border-color: hsl(260 25% 30%);
+    box-shadow:
+      inset 0 1px 0 hsl(260 20% 25%),
+      0 2px 8px hsl(0 0% 0% / 0.3);
+  }
+
+  .inventory-slot.unlocked:active {
+    box-shadow:
+      inset 0 1px 0 hsl(260 20% 25%),
+      0 1px 4px hsl(0 0% 0% / 0.3);
+  }
+
+  /* Locked slot - dimmed */
+  .inventory-slot.locked {
+    background: linear-gradient(180deg,
+      hsl(260 15% 13%) 0%,
+      hsl(255 15% 10%) 100%
+    );
+    border-color: hsl(260 15% 20%);
+  }
+
+  /* Shop pet slot */
+  .inventory-slot.shop-pet {
+    border-color: hsl(35 60% 40%);
+    background: linear-gradient(180deg,
+      hsl(35 25% 16%) 0%,
+      hsl(30 20% 12%) 100%
+    );
+  }
+
+  .inventory-slot.shop-pet::before {
+    background: linear-gradient(90deg, transparent, hsl(35 80% 55%), transparent);
+    box-shadow: 0 0 8px hsl(35 90% 55% / 0.5);
+  }
+
+  /* Study hours gated slot */
+  .inventory-slot.study-gated {
+    border-color: hsl(220 50% 38%);
+    background: linear-gradient(180deg,
+      hsl(220 25% 16%) 0%,
+      hsl(225 20% 12%) 100%
+    );
+  }
+
+  .inventory-slot.study-gated::before {
+    background: linear-gradient(90deg, transparent, hsl(220 70% 55%), transparent);
+    box-shadow: 0 0 8px hsl(220 80% 55% / 0.5);
+  }
+
+  /* Pet card sprite area */
+  .inventory-sprite-area {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    position: relative;
+  }
+
+  /* Pet card name */
+  .inventory-pet-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: hsl(45 20% 80%);
+    text-align: center;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .inventory-slot.locked .inventory-pet-name {
+    color: hsl(260 10% 40%);
+  }
+
+  /* Rarity indicator dot */
+  .rarity-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin: 0 auto 3px;
+  }
+
+  .rarity-dot.common {
+    background: hsl(220 10% 45%);
+  }
+
+  .rarity-dot.rare {
+    background: hsl(210 70% 55%);
+    box-shadow: 0 0 4px hsl(210 80% 55% / 0.5);
+  }
+
+  .rarity-dot.epic {
+    background: hsl(280 70% 60%);
+    box-shadow: 0 0 4px hsl(280 80% 60% / 0.5);
+  }
+
+  .rarity-dot.legendary {
+    background: hsl(45 90% 55%);
+    box-shadow: 0 0 6px hsl(45 100% 55% / 0.6);
+    animation: legendary-dot-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes legendary-dot-pulse {
+    0%, 100% { box-shadow: 0 0 4px hsl(45 100% 55% / 0.4); }
+    50% { box-shadow: 0 0 10px hsl(45 100% 55% / 0.8); }
+  }
+
+  /* Badge styles for inventory cards */
+  .inventory-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .inventory-badge.shop-badge {
+    background: linear-gradient(135deg, hsl(35 70% 45%), hsl(25 65% 40%));
+    color: hsl(45 100% 90%);
+    border: 1px solid hsl(35 60% 55%);
+    box-shadow: 0 0 6px hsl(35 80% 50% / 0.3);
+  }
+
+  .inventory-badge.study-badge {
+    background: linear-gradient(135deg, hsl(220 60% 45%), hsl(230 55% 40%));
+    color: hsl(210 100% 90%);
+    border: 1px solid hsl(220 50% 55%);
+    box-shadow: 0 0 6px hsl(220 70% 50% / 0.3);
+  }
+
+  .inventory-badge.level-badge {
+    background: hsl(260 20% 22%);
+    color: hsl(260 15% 55%);
+    border: 1px solid hsl(260 20% 30%);
+  }
+
+  /* Favorite heart in inventory */
+  .inventory-fav {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+  }
+
+  /* Home active indicator in inventory */
+  .inventory-home {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+  }
+
+  /* Lock overlay for locked cards */
+  .inventory-lock-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: hsl(260 20% 8% / 0.3);
+    border-radius: 10px;
   }
 }
