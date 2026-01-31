@@ -22,6 +22,8 @@ export function isValidSubscriptionTier(value: unknown): value is SubscriptionTi
 }
 
 // Multipliers and benefits per tier
+export type AnalyticsAccess = 'basic' | 'full';
+
 export const TIER_BENEFITS = {
   free: {
     coinMultiplier: 1,
@@ -32,6 +34,9 @@ export const TIER_BENEFITS = {
     battlePassIncluded: false,
     soundMixingSlots: 1,
     focusPresetSlots: 1,
+    dailySpinLimit: 1,
+    loginCoinMultiplier: 1,
+    analyticsAccess: 'basic' as AnalyticsAccess,
   },
   premium: {
     coinMultiplier: 1.5,
@@ -42,6 +47,9 @@ export const TIER_BENEFITS = {
     battlePassIncluded: false,
     soundMixingSlots: 2,
     focusPresetSlots: 3,
+    dailySpinLimit: 2,
+    loginCoinMultiplier: 1.5,
+    analyticsAccess: 'full' as AnalyticsAccess,
   },
   premium_plus: {
     coinMultiplier: 2,
@@ -52,6 +60,9 @@ export const TIER_BENEFITS = {
     battlePassIncluded: true,
     soundMixingSlots: 3,
     focusPresetSlots: 5,
+    dailySpinLimit: 3,
+    loginCoinMultiplier: 2,
+    analyticsAccess: 'full' as AnalyticsAccess,
   },
   lifetime: {
     coinMultiplier: 2.5,
@@ -63,6 +74,9 @@ export const TIER_BENEFITS = {
     battlePassIncluded: true,
     soundMixingSlots: 3,
     focusPresetSlots: 10,
+    dailySpinLimit: 3,
+    loginCoinMultiplier: 2,
+    analyticsAccess: 'full' as AnalyticsAccess,
   },
 } as const;
 
@@ -92,13 +106,13 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'monthly',
     features: [
       '1.5x Coin & XP multiplier',
+      '2 Lucky Wheel spins/day',
+      '1.5x Daily login coins',
+      'Full analytics dashboard',
       'All 13 ambient sounds',
       'Auto-break Pomodoro cycles',
-      'Session notes & reflections',
-      'Focus analytics dashboard',
       '2 Streak Freezes/month',
       'Sound mixing (2 layers)',
-      '3 Focus presets',
     ],
     iapProductId: 'co.nomoinc.nomo.premium.monthly',
     bonusCoins: 500,
@@ -113,13 +127,13 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'yearly',
     features: [
       '1.5x Coin & XP multiplier',
+      '2 Lucky Wheel spins/day',
+      '1.5x Daily login coins',
+      'Full analytics dashboard',
       'All 13 ambient sounds',
       'Auto-break Pomodoro cycles',
-      'Session notes & reflections',
-      'Focus analytics dashboard',
       '2 Streak Freezes/month',
       'Sound mixing (2 layers)',
-      '3 Focus presets',
     ],
     iapProductId: 'co.nomoinc.nomo.premium.yearly',
     savings: 'Save 33%',
@@ -136,12 +150,12 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'monthly',
     features: [
       '2x Coin & XP multiplier',
+      '3 Lucky Wheel spins/day',
+      '2x Daily login coins',
       'Everything in Premium',
       'Battle Pass Premium included',
-      'Sound mixing (3 layers)',
-      '5 Focus presets',
       '5 Streak Freezes/month',
-      'Early access to features',
+      'Sound mixing (3 layers)',
       'Exclusive profile frames',
     ],
     iapProductId: 'co.nomoinc.nomo.premiumplus.monthly',
@@ -157,12 +171,12 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'yearly',
     features: [
       '2x Coin & XP multiplier',
+      '3 Lucky Wheel spins/day',
+      '2x Daily login coins',
       'Everything in Premium',
       'Battle Pass Premium included',
-      'Sound mixing (3 layers)',
-      '5 Focus presets',
       '5 Streak Freezes/month',
-      'Early access to features',
+      'Sound mixing (3 layers)',
       'Exclusive profile frames',
     ],
     iapProductId: 'co.nomoinc.nomo.premiumplus.yearly',
@@ -179,12 +193,12 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'lifetime',
     features: [
       '2.5x Coin & XP multiplier',
+      '3 Lucky Wheel spins/day',
+      '2x Daily login coins',
       'Everything in Premium+',
       'No recurring fees ever',
-      'All future updates included',
       'Exclusive Founder badge',
       'Founder-only legendary pet',
-      '7 Streak Freezes/month',
       '10 Focus presets',
     ],
     iapProductId: 'co.nomoinc.nomo.lifetime',
@@ -466,6 +480,21 @@ export const usePremiumStatus = () => {
     return getTierBenefits().monthlyStreakFreezes;
   }, [getTierBenefits]);
 
+  // Get daily lucky wheel spin limit
+  const getDailySpinLimit = useCallback(() => {
+    return getTierBenefits().dailySpinLimit;
+  }, [getTierBenefits]);
+
+  // Get daily login coin multiplier
+  const getLoginCoinMultiplier = useCallback(() => {
+    return getTierBenefits().loginCoinMultiplier;
+  }, [getTierBenefits]);
+
+  // Check if user has full analytics access
+  const hasFullAnalytics = useCallback(() => {
+    return getTierBenefits().analyticsAccess === 'full';
+  }, [getTierBenefits]);
+
   // Check and grant monthly streak freezes if needed
   const checkAndGrantMonthlyStreakFreezes = useCallback((): { granted: boolean; amount: number } => {
     if (state.tier === 'free') {
@@ -723,6 +752,9 @@ export const usePremiumStatus = () => {
     getFocusPresetSlots,
     hasBattlePassIncluded,
     getMonthlyStreakFreezes,
+    getDailySpinLimit,
+    getLoginCoinMultiplier,
+    hasFullAnalytics,
     // Grants
     checkAndGrantMonthlyStreakFreezes,
     grantBonusCoins,

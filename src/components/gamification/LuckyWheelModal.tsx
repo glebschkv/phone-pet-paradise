@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLuckyWheel, SpinResult } from '@/hooks/useLuckyWheel';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { cn } from '@/lib/utils';
-import { Sparkles, Clock, History, Gift, Zap, X } from 'lucide-react';
+import { Sparkles, Clock, History, Gift, Zap, X, Crown } from 'lucide-react';
 import { LuckyWheelPrize } from '@/data/GamificationData';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 
@@ -21,6 +22,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
   const {
     isSpinning,
     canSpinToday,
+    spinsRemainingToday,
     getTimeUntilNextSpin,
     spin,
     getWheelConfig,
@@ -28,6 +30,9 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
     getRecentWins,
     prizes,
   } = useLuckyWheel();
+
+  const { getDailySpinLimit, isPremium } = usePremiumStatus();
+  const dailySpinLimit = getDailySpinLimit();
 
   const [rotation, setRotation] = useState(0);
   const [currentPrize, setCurrentPrize] = useState<LuckyWheelPrize | null>(null);
@@ -42,7 +47,8 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
   const stats = getStats();
   const recentWins = getRecentWins(5);
   const timeUntilNext = getTimeUntilNextSpin();
-  const canSpin = canSpinToday() && !isSpinning && !localSpinning;
+  const remaining = spinsRemainingToday(dailySpinLimit);
+  const canSpin = canSpinToday(dailySpinLimit) && !isSpinning && !localSpinning;
 
   // Listen for transitionend to precisely sync reward reveal
   useEffect(() => {
@@ -129,7 +135,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
     setShowCelebration(false);
 
     try {
-      const prize = await spin();
+      const prize = await spin(dailySpinLimit);
 
       // Calculate target rotation
       const prizeIndex = prizes.findIndex(p => p.id === prize.id);
@@ -467,33 +473,46 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
         </div>
 
         {/* Spin Button */}
-        <div className="px-6 pb-4">
+        <div className="px-6 pb-4 space-y-2">
           {canSpin ? (
-            <button
-              className={cn(
-                "w-full retro-arcade-btn retro-arcade-btn-yellow py-4 text-lg flex items-center justify-center gap-2 touch-manipulation select-none",
-                localSpinning ? "opacity-50 cursor-not-allowed" : "active:scale-95"
+            <>
+              <button
+                className={cn(
+                  "w-full retro-arcade-btn retro-arcade-btn-yellow py-4 text-lg flex items-center justify-center gap-2 touch-manipulation select-none",
+                  localSpinning ? "opacity-50 cursor-not-allowed" : "active:scale-95"
+                )}
+                onClick={handleSpin}
+                disabled={localSpinning}
+              >
+                {localSpinning ? (
+                  <span className="animate-pulse retro-pixel-text">SPINNING...</span>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5" />
+                    <span className="retro-pixel-text">SPIN!</span>
+                  </>
+                )}
+              </button>
+              {dailySpinLimit > 1 && (
+                <p className="text-center text-xs retro-pixel-text" style={{ color: 'hsl(260 30% 60%)' }}>
+                  {remaining} / {dailySpinLimit} spins remaining today
+                </p>
               )}
-              onClick={handleSpin}
-              disabled={localSpinning}
-            >
-              {localSpinning ? (
-                <span className="animate-pulse retro-pixel-text">SPINNING...</span>
-              ) : (
-                <>
-                  <Zap className="w-5 h-5" />
-                  <span className="retro-pixel-text">SPIN!</span>
-                </>
-              )}
-            </button>
+            </>
           ) : (
-            <div className="retro-game-card p-4 text-center">
+            <div className="retro-game-card p-4 text-center space-y-2">
               <div className="flex items-center justify-center gap-2 text-purple-400">
                 <Clock className="w-4 h-4" />
                 <span className="retro-pixel-text">
                   Next spin in {timeUntilNext.hours}h {timeUntilNext.minutes}m
                 </span>
               </div>
+              {!isPremium && (
+                <p className="text-[10px] flex items-center justify-center gap-1" style={{ color: 'hsl(35 80% 60%)' }}>
+                  <Crown className="w-3 h-3" />
+                  <span>Premium members get up to 3 spins/day</span>
+                </p>
+              )}
             </div>
           )}
         </div>

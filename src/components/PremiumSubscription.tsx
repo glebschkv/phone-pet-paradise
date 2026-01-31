@@ -5,7 +5,6 @@ import {
   Sparkles,
   Volume2,
   Timer,
-  PenLine,
   BarChart3,
   Zap,
   Star,
@@ -18,6 +17,7 @@ import {
   Infinity as InfinityIcon,
   Loader2,
   Shield,
+  Dices,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePremiumStatus, SUBSCRIPTION_PLANS, SubscriptionPlan } from '@/hooks/usePremiumStatus';
@@ -45,6 +45,11 @@ const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string }> = {
   'Auto-break Pomodoro cycles': { icon: <Timer className="w-3.5 h-3.5" />, label: 'Auto Pomodoro' },
   'Session notes & reflections': { icon: <PenLine className="w-3.5 h-3.5" />, label: 'Session Notes' },
   'Focus analytics dashboard': { icon: <BarChart3 className="w-3.5 h-3.5" />, label: 'Analytics' },
+  '2 Lucky Wheel spins/day': { icon: <Dices className="w-3.5 h-3.5" />, label: '2 Spins/day' },
+  '3 Lucky Wheel spins/day': { icon: <Dices className="w-3.5 h-3.5" />, label: '3 Spins/day' },
+  '1.5x Daily login coins': { icon: <Coins className="w-3.5 h-3.5" />, label: '1.5x Login Coins' },
+  '2x Daily login coins': { icon: <Coins className="w-3.5 h-3.5" />, label: '2x Login Coins' },
+  'Full analytics dashboard': { icon: <BarChart3 className="w-3.5 h-3.5" />, label: 'Full Analytics' },
   '2 Streak Freezes/month': { icon: <Snowflake className="w-3.5 h-3.5" />, label: '2 Freezes/mo' },
   '5 Streak Freezes/month': { icon: <Snowflake className="w-3.5 h-3.5" />, label: '5 Freezes/mo' },
   '7 Streak Freezes/month': { icon: <Snowflake className="w-3.5 h-3.5" />, label: '7 Freezes/mo' },
