@@ -2,6 +2,8 @@ import { useState, useCallback, useRef } from "react";
 import { Timer, Home, ShoppingBag, Grid3X3, Settings, ChevronUp, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const DARK_TABS = new Set(["collection", "challenges"]);
+
 interface TabBarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -94,7 +96,7 @@ export const IOSTabBar = ({ activeTab, onTabChange, isCompact = false, onCompact
 
   return (
     <div className={cn("dock-container", isCompact && "compact")}>
-      <nav className={cn("dock-bar", isCompact && "compact")} role="tablist" aria-label="Main navigation">
+      <nav className={cn("dock-bar", isCompact && "compact", DARK_TABS.has(activeTab) && "dark-context")} role="tablist" aria-label="Main navigation">
         {orderedTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
