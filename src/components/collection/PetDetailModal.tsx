@@ -71,7 +71,7 @@ export const PetDetailModal = ({
               </div>
             ) : !isUnlocked && pet.spriteConfig ? (
               <div className="mb-3 flex items-center justify-center h-[180px] overflow-hidden relative">
-                <div style={{ filter: 'brightness(0.2) saturate(0)' }}>
+                <div style={{ filter: 'brightness(0.5) saturate(0)' }}>
                   <SpritePreview
                     animal={pet}
                     scale={Math.min(4, 180 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
