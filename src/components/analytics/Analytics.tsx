@@ -30,7 +30,6 @@ import {
   LayoutGrid,
   CalendarDays,
   Clock,
-  Sparkles,
 } from "lucide-react";
 
 // Inline upgrade prompt between free sections
@@ -393,11 +392,6 @@ export const Analytics = () => {
             <InlineUpgradePrompt
               icon={CalendarDays}
               text="View your 12-week activity heatmap"
-              onClick={() => setShowPremiumModal(true)}
-            />
-            <InlineUpgradePrompt
-              icon={Sparkles}
-              text="Get AI-powered focus insights"
               onClick={() => setShowPremiumModal(true)}
             />
             <InlineUpgradePrompt
