@@ -1,6 +1,6 @@
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
-import { Heart, ChevronDown, Settings } from "lucide-react";
+import { Heart, ChevronDown, Settings, Star, Flame, Trophy } from "lucide-react";
 import { useState, useCallback } from "react";
 import {
   Popover,
@@ -102,22 +102,33 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
 
                 <div className="stats-grid">
                   <div className="stat-row">
-                    <span className="stat-label">Level</span>
-                    <span className="stat-val">{currentLevel}</span>
-                  </div>
-                  <div className="stat-row">
-                    <span className="stat-label">XP</span>
-                    <span className="stat-val">{currentXP} / {currentXP + xpToNextLevel}</span>
-                  </div>
-                  <div className="stat-row">
-                    <span className="stat-label">Pets Collected</span>
+                    <span className="stat-label">
+                      <Star className="w-3 h-3 inline mr-1 text-amber-500" style={{ filter: 'drop-shadow(0 0 2px hsl(45 100% 50% / 0.5))' }} />
+                      Level
+                    </span>
                     <span className="stat-val">
-                      <Heart className="w-3.5 h-3.5 text-pink-500 fill-current inline mr-1" />
-                      {unlockedAnimals.length}
+                      <span className="retro-level-badge px-1.5 py-0 text-[10px]">{currentLevel}</span>
                     </span>
                   </div>
                   <div className="stat-row">
-                    <span className="stat-label">Best Streak</span>
+                    <span className="stat-label">
+                      <Trophy className="w-3 h-3 inline mr-1 text-purple-500" style={{ filter: 'drop-shadow(0 0 2px hsl(280 100% 50% / 0.4))' }} />
+                      XP
+                    </span>
+                    <span className="stat-val">{currentXP} / {currentXP + xpToNextLevel}</span>
+                  </div>
+                  <div className="stat-row">
+                    <span className="stat-label">
+                      <Heart className="w-3 h-3 inline mr-1 text-pink-500 fill-current" style={{ filter: 'drop-shadow(0 0 2px hsl(340 100% 50% / 0.4))' }} />
+                      Pets Collected
+                    </span>
+                    <span className="stat-val">{unlockedAnimals.length}</span>
+                  </div>
+                  <div className="stat-row">
+                    <span className="stat-label">
+                      <Flame className="w-3 h-3 inline mr-1 text-orange-500" style={{ filter: 'drop-shadow(0 0 2px hsl(25 100% 50% / 0.4))' }} />
+                      Best Streak
+                    </span>
                     <span className="stat-val">{streakData.longestStreak} days</span>
                   </div>
                 </div>
