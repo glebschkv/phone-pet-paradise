@@ -28,6 +28,47 @@ interface FeaturedTabProps {
   canAfford: (price: number) => boolean;
 }
 
+// Neon-styled save badge
+const SaveBadge = ({ text, variant = 'green' }: { text: string; variant?: 'green' | 'amber' }) => {
+  const colors = variant === 'green' ? {
+    bg: 'linear-gradient(180deg, hsl(120 70% 45%), hsl(120 75% 35%))',
+    border: 'hsl(120 60% 55%)',
+    glow: '0 0 8px hsl(120 100% 40% / 0.4)',
+  } : {
+    bg: 'linear-gradient(180deg, hsl(35 80% 55%), hsl(35 85% 45%))',
+    border: 'hsl(35 70% 65%)',
+    glow: '0 0 8px hsl(35 100% 50% / 0.4)',
+  };
+
+  return (
+    <span
+      className="px-2 py-0.5 text-white text-[9px] font-black rounded uppercase tracking-wider border"
+      style={{
+        background: colors.bg,
+        borderColor: colors.border,
+        boxShadow: colors.glow,
+        textShadow: '0 1px 0 rgba(0,0,0,0.3)',
+      }}
+    >
+      {text}
+    </span>
+  );
+};
+
+const OwnedBadge = () => (
+  <span
+    className="px-2 py-0.5 text-white text-[9px] font-black rounded uppercase tracking-wider border flex items-center gap-1"
+    style={{
+      background: 'linear-gradient(180deg, hsl(140 60% 40%), hsl(140 65% 32%))',
+      borderColor: 'hsl(140 50% 50%)',
+      boxShadow: '0 0 6px hsl(140 100% 40% / 0.3)',
+      textShadow: '0 1px 0 rgba(0,0,0,0.3)',
+    }}
+  >
+    <Check className="w-2.5 h-2.5" /> OWNED
+  </span>
+);
+
 export const FeaturedTab = ({
   inventory,
   isBundleOwned,
@@ -99,39 +140,81 @@ export const FeaturedTab = ({
         isPurchasing={isPurchasing}
       />
 
-      {/* Premium Hero Card - Clean and Focused */}
+      {/* Premium Hero Card */}
       {!isPremium ? (
         <button
           onClick={() => setShowPremiumModal(true)}
-          className="w-full bg-gradient-to-br from-amber-400 via-orange-400 to-orange-500 rounded-2xl p-4 text-left shadow-lg active:scale-[0.98] transition-transform"
+          className="w-full rounded-xl p-4 text-left active:scale-[0.98] transition-transform border-[3px] overflow-hidden relative"
+          style={{
+            background: 'linear-gradient(135deg, hsl(35 90% 55%) 0%, hsl(25 90% 50%) 100%)',
+            borderColor: 'hsl(40 80% 65%)',
+            boxShadow: '0 5px 0 hsl(25 80% 30%), 0 0 20px hsl(35 100% 50% / 0.3)',
+          }}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-              <Crown className="w-7 h-7 text-white" />
+          <div className="retro-scanlines opacity-10" />
+          <div className="flex items-center gap-3 relative z-[1]">
+            <div
+              className="w-14 h-14 rounded-xl flex items-center justify-center"
+              style={{
+                background: 'hsl(35 80% 45% / 0.5)',
+                border: '2px solid hsl(40 70% 70% / 0.5)',
+              }}
+            >
+              <Crown className="w-7 h-7 text-white" style={{ filter: 'drop-shadow(0 2px 0 rgba(0,0,0,0.3))' }} />
             </div>
             <div className="flex-1">
-              <h3 className="font-black text-white text-lg">Go Premium</h3>
-              <p className="text-white/80 text-sm">
+              <h3
+                className="font-black text-white text-lg uppercase tracking-wider"
+                style={{ textShadow: '0 2px 0 rgba(0,0,0,0.3)' }}
+              >
+                Go Premium
+              </h3>
+              <p className="text-white/80 text-xs">
                 Unlock all features & exclusive pets
               </p>
             </div>
             <ChevronRight className="w-6 h-6 text-white/80" />
           </div>
-          <div className="mt-3 bg-white/20 backdrop-blur rounded-xl py-2 px-3 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">Starting at $4.99/mo</span>
+          <div
+            className="mt-3 rounded-lg py-2 px-3 flex items-center justify-center relative z-[1]"
+            style={{
+              background: 'hsl(35 80% 45% / 0.4)',
+              border: '2px solid hsl(40 70% 65% / 0.3)',
+            }}
+          >
+            <span
+              className="text-white font-black text-sm uppercase tracking-wider"
+              style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}
+            >
+              Starting at $4.99/mo
+            </span>
           </div>
         </button>
       ) : (
-        <div className="bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-2xl p-4 border border-green-300 dark:border-green-700">
+        <div
+          className="rounded-xl p-4 border-[3px]"
+          style={{
+            background: 'linear-gradient(180deg, hsl(140 30% 20%) 0%, hsl(140 35% 15%) 100%)',
+            borderColor: 'hsl(140 50% 40%)',
+            boxShadow: '0 4px 0 hsl(140 40% 12%), 0 0 10px hsl(140 100% 40% / 0.15)',
+          }}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{
+                background: 'hsl(140 60% 40%)',
+                border: '2px solid hsl(140 50% 55%)',
+                boxShadow: '0 3px 0 hsl(140 60% 25%)',
+              }}
+            >
               <Check className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-green-800 dark:text-green-300">
+              <h3 className="font-black retro-neon-green text-sm uppercase tracking-wider">
                 {currentPlan?.name || 'Premium'} Active
               </h3>
-              <p className="text-xs text-green-600 dark:text-green-400">
+              <p className="text-[11px]" style={{ color: 'hsl(140 20% 55%)' }}>
                 You have full access
               </p>
             </div>
@@ -141,7 +224,10 @@ export const FeaturedTab = ({
 
       {/* Background Bundles */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+        <h4
+          className="text-sm font-black mb-2 px-1 flex items-center gap-2 uppercase tracking-wider"
+          style={{ color: 'hsl(260 20% 75%)' }}
+        >
           <PixelIcon name="picture-frame" size={16} /> Background Bundles
         </h4>
         <div className="space-y-2">
@@ -157,12 +243,15 @@ export const FeaturedTab = ({
                     setShowPurchaseConfirm(true);
                   }
                 }}
-                className={cn(
-                  "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden",
-                  owned
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                    : "bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border-sky-200 dark:border-sky-700"
-                )}
+                className="w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden"
+                style={owned ? {
+                  background: 'linear-gradient(180deg, hsl(140 25% 18%) 0%, hsl(140 30% 14%) 100%)',
+                  borderColor: 'hsl(140 40% 35%)',
+                } : {
+                  background: 'linear-gradient(180deg, hsl(260 25% 20%) 0%, hsl(260 30% 15%) 100%)',
+                  borderColor: 'hsl(200 40% 40%)',
+                  boxShadow: '0 3px 0 hsl(260 40% 10%)',
+                }}
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-16">
@@ -170,28 +259,24 @@ export const FeaturedTab = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm">{bundle.name}</span>
+                      <span className="font-bold text-sm" style={{ color: 'hsl(260 20% 85%)' }}>{bundle.name}</span>
                       {owned ? (
-                        <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center gap-1">
-                          <Check className="w-2.5 h-2.5" /> OWNED
-                        </span>
+                        <OwnedBadge />
                       ) : (
-                        <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
-                          SAVE {bundle.savings}
-                        </span>
+                        <SaveBadge text={`SAVE ${bundle.savings}`} />
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                    <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'hsl(260 15% 50%)' }}>
                       {bundle.description}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-muted-foreground line-through">
+                      <span className="text-[10px] line-through" style={{ color: 'hsl(260 15% 40%)' }}>
                         {bundle.totalValue.toLocaleString()}
                       </span>
                       {!owned && (
                         <div className={cn(
                           "flex items-center gap-1 text-xs font-bold",
-                          affordable ? "text-amber-600" : "text-red-500"
+                          affordable ? "text-amber-400" : "text-red-400"
                         )}>
                           <Coins className="w-3 h-3" />
                           {bundle.coinPrice?.toLocaleString()}
@@ -208,7 +293,10 @@ export const FeaturedTab = ({
 
       {/* Special Bundles */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+        <h4
+          className="text-sm font-black mb-2 px-1 flex items-center gap-2 uppercase tracking-wider"
+          style={{ color: 'hsl(260 20% 75%)' }}
+        >
           <PixelIcon name="gift" size={16} /> Special Bundles
         </h4>
         <div className="space-y-2">
@@ -228,34 +316,35 @@ export const FeaturedTab = ({
                   setSelectedBundle(bundle);
                   setShowBundleConfirm(true);
                 }}
-                className={cn(
-                  "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2",
-                  alreadyPurchased
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                    : "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-700"
-                )}
+                className="w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2"
+                style={alreadyPurchased ? {
+                  background: 'linear-gradient(180deg, hsl(140 25% 18%) 0%, hsl(140 30% 14%) 100%)',
+                  borderColor: 'hsl(140 40% 35%)',
+                } : {
+                  background: 'linear-gradient(180deg, hsl(260 25% 20%) 0%, hsl(260 30% 15%) 100%)',
+                  borderColor: 'hsl(280 45% 45%)',
+                  boxShadow: '0 3px 0 hsl(260 40% 10%), 0 0 10px hsl(280 80% 50% / 0.1)',
+                }}
               >
                 <div className="flex items-center gap-3">
                   <PixelIcon name={bundle.icon} size={30} />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold">{bundle.name}</span>
+                      <span className="font-bold" style={{ color: 'hsl(260 20% 85%)' }}>{bundle.name}</span>
                       {alreadyPurchased ? (
-                        <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center gap-1">
-                          <Check className="w-2.5 h-2.5" /> OWNED
-                        </span>
+                        <OwnedBadge />
                       ) : (
-                        <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full">
-                          SAVE {bundle.savings}
-                        </span>
+                        <SaveBadge text={`SAVE ${bundle.savings}`} />
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                    <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'hsl(260 15% 50%)' }}>
                       {bundle.description}
                     </p>
                   </div>
                   {!alreadyPurchased && (
-                    <span className="text-lg font-black text-purple-600 dark:text-purple-400">
+                    <span
+                      className="text-lg font-black retro-pixel-text retro-neon-pink flex-shrink-0"
+                    >
                       {bundle.iapPrice}
                     </span>
                   )}
@@ -268,7 +357,10 @@ export const FeaturedTab = ({
 
       {/* Best Value Coin Pack */}
       <div>
-        <h4 className="text-sm font-bold mb-2 px-1 flex items-center gap-2">
+        <h4
+          className="text-sm font-black mb-2 px-1 flex items-center gap-2 uppercase tracking-wider"
+          style={{ color: 'hsl(260 20% 75%)' }}
+        >
           <PixelIcon name="money-bag" size={16} /> Best Value
         </h4>
         <button
@@ -276,26 +368,29 @@ export const FeaturedTab = ({
             setSelectedBundle(bestValuePack);
             setShowBundleConfirm(true);
           }}
-          className="w-full p-4 rounded-xl text-left bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 active:scale-[0.98] transition-transform"
+          className="w-full p-4 rounded-xl text-left active:scale-[0.98] transition-transform border-[3px] relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(180deg, hsl(260 25% 20%) 0%, hsl(260 30% 15%) 100%)',
+            borderColor: 'hsl(35 80% 50%)',
+            boxShadow: '0 4px 0 hsl(260 40% 10%), 0 0 15px hsl(35 100% 50% / 0.15)',
+          }}
         >
           <div className="flex items-center gap-3">
             <PixelIcon name="trophy" size={36} />
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-bold">{bestValuePack.name}</span>
-                <span className="px-2 py-0.5 bg-amber-500 text-white text-[9px] font-bold rounded-full">
-                  BEST VALUE
-                </span>
+                <span className="font-bold" style={{ color: 'hsl(260 20% 85%)' }}>{bestValuePack.name}</span>
+                <SaveBadge text="BEST VALUE" variant="amber" />
               </div>
               <div className="flex items-center gap-1 mt-1">
-                <Coins className="w-4 h-4 text-amber-500" />
-                <span className="text-amber-600 dark:text-amber-400 font-bold">{bestValuePack.coinAmount.toLocaleString()}</span>
+                <Coins className="w-4 h-4 text-amber-400" />
+                <span className="text-amber-400 font-bold">{bestValuePack.coinAmount.toLocaleString()}</span>
                 {bestValuePack.bonusCoins && bestValuePack.bonusCoins > 0 && (
-                  <span className="text-green-600 dark:text-green-400 font-bold text-sm">+{bestValuePack.bonusCoins.toLocaleString()} bonus</span>
+                  <span className="retro-neon-green font-bold text-sm">+{bestValuePack.bonusCoins.toLocaleString()} bonus</span>
                 )}
               </div>
             </div>
-            <span className="text-xl font-black text-amber-600 dark:text-amber-400">
+            <span className="text-xl font-black retro-pixel-text retro-neon-orange flex-shrink-0">
               {bestValuePack.iapPrice}
             </span>
           </div>
@@ -305,12 +400,15 @@ export const FeaturedTab = ({
       {/* Popular Pets Preview */}
       <div>
         <div className="flex items-center justify-between mb-2 px-1">
-          <h4 className="text-sm font-bold flex items-center gap-2">
+          <h4
+            className="text-sm font-black flex items-center gap-2 uppercase tracking-wider"
+            style={{ color: 'hsl(260 20% 75%)' }}
+          >
             <PixelIcon name="fire" size={16} /> Popular Pets
           </h4>
           <button
             onClick={() => setActiveCategory('pets')}
-            className="text-xs text-amber-600 dark:text-amber-400 font-semibold"
+            className="text-xs font-bold retro-neon-orange"
           >
             See All →
           </button>
@@ -325,12 +423,15 @@ export const FeaturedTab = ({
                   setSelectedItem(pet);
                   if (!owned) setShowPurchaseConfirm(true);
                 }}
-                className={cn(
-                  "p-3 rounded-xl border-2 text-center transition-all active:scale-95",
-                  owned
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                )}
+                className="p-3 rounded-xl border-2 text-center transition-all active:scale-95"
+                style={owned ? {
+                  background: 'linear-gradient(180deg, hsl(140 25% 18%) 0%, hsl(140 30% 14%) 100%)',
+                  borderColor: 'hsl(140 40% 35%)',
+                } : {
+                  background: 'linear-gradient(180deg, hsl(260 25% 20%) 0%, hsl(260 30% 15%) 100%)',
+                  borderColor: 'hsl(260 35% 35%)',
+                  boxShadow: '0 3px 0 hsl(260 40% 10%)',
+                }}
               >
                 <div className="h-12 mb-1 flex items-center justify-center overflow-hidden">
                   {pet.spriteConfig ? (
@@ -342,13 +443,13 @@ export const FeaturedTab = ({
                     <span className="text-3xl">{pet.emoji}</span>
                   )}
                 </div>
-                <span className="text-xs font-bold block">{pet.name}</span>
+                <span className="text-xs font-bold block" style={{ color: 'hsl(260 20% 85%)' }}>{pet.name}</span>
                 {owned ? (
-                  <span className="text-[10px] text-green-600 dark:text-green-400 font-semibold">Owned</span>
+                  <span className="text-[10px] retro-neon-green font-semibold">Owned</span>
                 ) : (
                   <div className="flex items-center justify-center gap-1 mt-1">
-                    <Coins className="w-3 h-3 text-amber-500" />
-                    <span className="text-xs font-bold text-amber-600">{pet.coinPrice?.toLocaleString()}</span>
+                    <Coins className="w-3 h-3 text-amber-400" />
+                    <span className="text-xs font-bold text-amber-400">{pet.coinPrice?.toLocaleString()}</span>
                   </div>
                 )}
               </button>
