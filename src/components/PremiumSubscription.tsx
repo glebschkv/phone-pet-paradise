@@ -18,6 +18,7 @@ import {
   Loader2,
   Shield,
   Dices,
+  PenLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePremiumStatus, SUBSCRIPTION_PLANS, SubscriptionPlan } from '@/hooks/usePremiumStatus';
