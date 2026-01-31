@@ -127,6 +127,79 @@ export const useAnalytics = () => {
     return streak;
   };
 
+  // ============================================================================
+  // FOCUS SCORE (composite 0-100) — must be defined before recordSession
+  // which references focusScore.score in its body and dependency array.
+  // ============================================================================
+  const focusScore = useMemo(() => {
+    const last30Days = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const recentWorkSessions = sessions.filter(s =>
+      s.sessionType !== 'break' && s.startTime >= last30Days
+    );
+
+    if (recentWorkSessions.length === 0) {
+      return { score: 0, breakdown: { completion: 0, consistency: 0, quality: 0, duration: 0 } };
+    }
+
+    // 1. Completion rate (0-25 pts)
+    const completed = recentWorkSessions.filter(s => s.status === 'completed').length;
+    const completionScore = Math.round((completed / recentWorkSessions.length) * 25);
+
+    // 2. Goal consistency (0-25 pts) — days meeting goal out of active days (last 30)
+    let activeDays = 0;
+    let goalDays = 0;
+    for (let i = 0; i < 30; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const stats = dailyStats[dateStr];
+      if (stats && stats.totalFocusTime > 0) {
+        activeDays++;
+        if (stats.goalMet) goalDays++;
+      }
+    }
+    const consistencyScore = activeDays > 0 ? Math.round((goalDays / Math.max(activeDays, 7)) * 25) : 0;
+
+    // 3. Focus quality (0-25 pts) — based on shield attempts / focus quality
+    const sessionsWithQuality = recentWorkSessions.filter(s => s.focusQuality);
+    let qualityScore = 12; // Default middle score when no quality data
+    if (sessionsWithQuality.length > 0) {
+      const perfectCount = sessionsWithQuality.filter(s => s.focusQuality === 'perfect').length;
+      const goodCount = sessionsWithQuality.filter(s => s.focusQuality === 'good').length;
+      const qualityRatio = (perfectCount * 1.0 + goodCount * 0.6) / sessionsWithQuality.length;
+      qualityScore = Math.round(qualityRatio * 25);
+    }
+
+    // 4. Session duration consistency (0-25 pts) — completing planned durations
+    const completedSessions = recentWorkSessions.filter(s => s.status === 'completed');
+    let durationScore = 12;
+    if (completedSessions.length >= 3) {
+      const avgDuration = completedSessions.reduce((sum, s) => sum + s.actualDuration, 0) / completedSessions.length;
+      // Reward longer average sessions (25+ min sweet spot)
+      const durationRatio = Math.min(avgDuration / (25 * 60), 1);
+      // Also reward regularity (low std deviation relative to mean)
+      const durations = completedSessions.map(s => s.actualDuration);
+      const mean = durations.reduce((a, b) => a + b, 0) / durations.length;
+      const variance = durations.reduce((sum, d) => sum + Math.pow(d - mean, 2), 0) / durations.length;
+      const stdDev = Math.sqrt(variance);
+      const regularityRatio = mean > 0 ? Math.max(0, 1 - (stdDev / mean)) : 0;
+
+      durationScore = Math.round(((durationRatio * 0.6) + (regularityRatio * 0.4)) * 25);
+    }
+
+    const totalScore = Math.min(100, completionScore + consistencyScore + qualityScore + durationScore);
+
+    return {
+      score: totalScore,
+      breakdown: {
+        completion: completionScore,
+        consistency: consistencyScore,
+        quality: qualityScore,
+        duration: durationScore,
+      },
+    };
+  }, [sessions, dailyStats]);
+
   // Record a completed session (enhanced with focus quality)
   const recordSession = useCallback((
     sessionType: SessionType,
@@ -478,78 +551,6 @@ export const useAnalytics = () => {
   const thisWeekCategoryDistribution = useMemo(() => {
     return getCategoryDistribution(7);
   }, [getCategoryDistribution]);
-
-  // ============================================================================
-  // FOCUS SCORE (composite 0-100)
-  // ============================================================================
-  const focusScore = useMemo(() => {
-    const last30Days = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    const recentWorkSessions = sessions.filter(s =>
-      s.sessionType !== 'break' && s.startTime >= last30Days
-    );
-
-    if (recentWorkSessions.length === 0) {
-      return { score: 0, breakdown: { completion: 0, consistency: 0, quality: 0, duration: 0 } };
-    }
-
-    // 1. Completion rate (0-25 pts)
-    const completed = recentWorkSessions.filter(s => s.status === 'completed').length;
-    const completionScore = Math.round((completed / recentWorkSessions.length) * 25);
-
-    // 2. Goal consistency (0-25 pts) — days meeting goal out of active days (last 30)
-    let activeDays = 0;
-    let goalDays = 0;
-    for (let i = 0; i < 30; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      const stats = dailyStats[dateStr];
-      if (stats && stats.totalFocusTime > 0) {
-        activeDays++;
-        if (stats.goalMet) goalDays++;
-      }
-    }
-    const consistencyScore = activeDays > 0 ? Math.round((goalDays / Math.max(activeDays, 7)) * 25) : 0;
-
-    // 3. Focus quality (0-25 pts) — based on shield attempts / focus quality
-    const sessionsWithQuality = recentWorkSessions.filter(s => s.focusQuality);
-    let qualityScore = 12; // Default middle score when no quality data
-    if (sessionsWithQuality.length > 0) {
-      const perfectCount = sessionsWithQuality.filter(s => s.focusQuality === 'perfect').length;
-      const goodCount = sessionsWithQuality.filter(s => s.focusQuality === 'good').length;
-      const qualityRatio = (perfectCount * 1.0 + goodCount * 0.6) / sessionsWithQuality.length;
-      qualityScore = Math.round(qualityRatio * 25);
-    }
-
-    // 4. Session duration consistency (0-25 pts) — completing planned durations
-    const completedSessions = recentWorkSessions.filter(s => s.status === 'completed');
-    let durationScore = 12;
-    if (completedSessions.length >= 3) {
-      const avgDuration = completedSessions.reduce((sum, s) => sum + s.actualDuration, 0) / completedSessions.length;
-      // Reward longer average sessions (25+ min sweet spot)
-      const durationRatio = Math.min(avgDuration / (25 * 60), 1);
-      // Also reward regularity (low std deviation relative to mean)
-      const durations = completedSessions.map(s => s.actualDuration);
-      const mean = durations.reduce((a, b) => a + b, 0) / durations.length;
-      const variance = durations.reduce((sum, d) => sum + Math.pow(d - mean, 2), 0) / durations.length;
-      const stdDev = Math.sqrt(variance);
-      const regularityRatio = mean > 0 ? Math.max(0, 1 - (stdDev / mean)) : 0;
-
-      durationScore = Math.round(((durationRatio * 0.6) + (regularityRatio * 0.4)) * 25);
-    }
-
-    const totalScore = Math.min(100, completionScore + consistencyScore + qualityScore + durationScore);
-
-    return {
-      score: totalScore,
-      breakdown: {
-        completion: completionScore,
-        consistency: consistencyScore,
-        quality: qualityScore,
-        duration: durationScore,
-      },
-    };
-  }, [sessions, dailyStats]);
 
   // ============================================================================
   // FOCUS QUALITY STATS
