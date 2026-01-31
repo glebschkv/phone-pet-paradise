@@ -9,6 +9,10 @@ import {
   SessionStatus,
   WeeklyStats,
   FocusCategory,
+  FocusQuality,
+  AnalyticsInsight,
+  Milestone,
+  MonthlyStats,
   DEFAULT_ANALYTICS_SETTINGS,
   DEFAULT_PERSONAL_RECORDS,
   createEmptyDailyStats,
@@ -119,7 +123,7 @@ export const useAnalytics = () => {
     return streak;
   };
 
-  // Record a completed session
+  // Record a completed session (enhanced with focus quality)
   const recordSession = useCallback((
     sessionType: SessionType,
     plannedDuration: number,
@@ -127,7 +131,10 @@ export const useAnalytics = () => {
     status: SessionStatus,
     xpEarned: number = 0,
     category?: FocusCategory,
-    taskLabel?: string
+    taskLabel?: string,
+    shieldAttempts?: number,
+    focusQuality?: FocusQuality,
+    appsBlocked?: boolean,
   ) => {
     const now = Date.now();
     const startTime = now - (actualDuration * 1000);
@@ -146,6 +153,9 @@ export const useAnalytics = () => {
       xpEarned,
       category,
       taskLabel,
+      shieldAttempts,
+      focusQuality,
+      appsBlocked,
     };
 
     // Update sessions list
@@ -453,6 +463,491 @@ export const useAnalytics = () => {
     return getCategoryDistribution(7);
   }, [getCategoryDistribution]);
 
+  // ============================================================================
+  // FOCUS SCORE (composite 0-100)
+  // ============================================================================
+  const focusScore = useMemo(() => {
+    const last30Days = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const recentWorkSessions = sessions.filter(s =>
+      s.sessionType !== 'break' && s.startTime >= last30Days
+    );
+
+    if (recentWorkSessions.length === 0) {
+      return { score: 0, breakdown: { completion: 0, consistency: 0, quality: 0, duration: 0 } };
+    }
+
+    // 1. Completion rate (0-25 pts)
+    const completed = recentWorkSessions.filter(s => s.status === 'completed').length;
+    const completionScore = Math.round((completed / recentWorkSessions.length) * 25);
+
+    // 2. Goal consistency (0-25 pts) — days meeting goal out of active days (last 30)
+    let activeDays = 0;
+    let goalDays = 0;
+    for (let i = 0; i < 30; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const stats = dailyStats[dateStr];
+      if (stats && stats.totalFocusTime > 0) {
+        activeDays++;
+        if (stats.goalMet) goalDays++;
+      }
+    }
+    const consistencyScore = activeDays > 0 ? Math.round((goalDays / Math.max(activeDays, 7)) * 25) : 0;
+
+    // 3. Focus quality (0-25 pts) — based on shield attempts / focus quality
+    const sessionsWithQuality = recentWorkSessions.filter(s => s.focusQuality);
+    let qualityScore = 12; // Default middle score when no quality data
+    if (sessionsWithQuality.length > 0) {
+      const perfectCount = sessionsWithQuality.filter(s => s.focusQuality === 'perfect').length;
+      const goodCount = sessionsWithQuality.filter(s => s.focusQuality === 'good').length;
+      const qualityRatio = (perfectCount * 1.0 + goodCount * 0.6) / sessionsWithQuality.length;
+      qualityScore = Math.round(qualityRatio * 25);
+    }
+
+    // 4. Session duration consistency (0-25 pts) — completing planned durations
+    const completedSessions = recentWorkSessions.filter(s => s.status === 'completed');
+    let durationScore = 12;
+    if (completedSessions.length >= 3) {
+      const avgDuration = completedSessions.reduce((sum, s) => sum + s.actualDuration, 0) / completedSessions.length;
+      // Reward longer average sessions (25+ min sweet spot)
+      const durationRatio = Math.min(avgDuration / (25 * 60), 1);
+      // Also reward regularity (low std deviation relative to mean)
+      const durations = completedSessions.map(s => s.actualDuration);
+      const mean = durations.reduce((a, b) => a + b, 0) / durations.length;
+      const variance = durations.reduce((sum, d) => sum + Math.pow(d - mean, 2), 0) / durations.length;
+      const stdDev = Math.sqrt(variance);
+      const regularityRatio = mean > 0 ? Math.max(0, 1 - (stdDev / mean)) : 0;
+
+      durationScore = Math.round(((durationRatio * 0.6) + (regularityRatio * 0.4)) * 25);
+    }
+
+    const totalScore = Math.min(100, completionScore + consistencyScore + qualityScore + durationScore);
+
+    return {
+      score: totalScore,
+      breakdown: {
+        completion: completionScore,
+        consistency: consistencyScore,
+        quality: qualityScore,
+        duration: durationScore,
+      },
+    };
+  }, [sessions, dailyStats]);
+
+  // ============================================================================
+  // FOCUS QUALITY STATS
+  // ============================================================================
+  const focusQualityStats = useMemo(() => {
+    const last30Days = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const recentWork = sessions.filter(s =>
+      s.sessionType !== 'break' && s.status === 'completed' && s.startTime >= last30Days
+    );
+
+    const withQuality = recentWork.filter(s => s.focusQuality);
+    const perfect = withQuality.filter(s => s.focusQuality === 'perfect').length;
+    const good = withQuality.filter(s => s.focusQuality === 'good').length;
+    const distracted = withQuality.filter(s => s.focusQuality === 'distracted').length;
+    const total = withQuality.length;
+
+    // Average shield attempts
+    const withShield = recentWork.filter(s => s.shieldAttempts !== undefined);
+    const avgShieldAttempts = withShield.length > 0
+      ? withShield.reduce((sum, s) => sum + (s.shieldAttempts || 0), 0) / withShield.length
+      : 0;
+
+    // Focus quality by week (last 4 weeks)
+    const weeklyQuality: { week: string; perfect: number; good: number; distracted: number }[] = [];
+    for (let w = 3; w >= 0; w--) {
+      const weekStart = Date.now() - ((w + 1) * 7 * 24 * 60 * 60 * 1000);
+      const weekEnd = Date.now() - (w * 7 * 24 * 60 * 60 * 1000);
+      const weekSessions = withQuality.filter(s => s.startTime >= weekStart && s.startTime < weekEnd);
+      weeklyQuality.push({
+        week: `W${4 - w}`,
+        perfect: weekSessions.filter(s => s.focusQuality === 'perfect').length,
+        good: weekSessions.filter(s => s.focusQuality === 'good').length,
+        distracted: weekSessions.filter(s => s.focusQuality === 'distracted').length,
+      });
+    }
+
+    // Perfect focus streak
+    let perfectStreak = 0;
+    const sortedRecent = [...recentWork].sort((a, b) => b.startTime - a.startTime);
+    for (const s of sortedRecent) {
+      if (s.focusQuality === 'perfect') perfectStreak++;
+      else break;
+    }
+
+    return {
+      perfect,
+      good,
+      distracted,
+      total,
+      avgShieldAttempts: Math.round(avgShieldAttempts * 10) / 10,
+      perfectRate: total > 0 ? Math.round((perfect / total) * 100) : 0,
+      weeklyQuality,
+      perfectStreak,
+    };
+  }, [sessions]);
+
+  // ============================================================================
+  // COMPLETION RATE TREND (weekly averages over 4 weeks)
+  // ============================================================================
+  const completionTrend = useMemo(() => {
+    const weeks: { week: string; rate: number; completed: number; total: number }[] = [];
+
+    for (let w = 3; w >= 0; w--) {
+      const weekStart = Date.now() - ((w + 1) * 7 * 24 * 60 * 60 * 1000);
+      const weekEnd = Date.now() - (w * 7 * 24 * 60 * 60 * 1000);
+      const weekSessions = sessions.filter(s =>
+        s.sessionType !== 'break' && s.startTime >= weekStart && s.startTime < weekEnd
+      );
+      const completed = weekSessions.filter(s => s.status === 'completed').length;
+      const total = weekSessions.length;
+      weeks.push({
+        week: `W${4 - w}`,
+        rate: total > 0 ? Math.round((completed / total) * 100) : 0,
+        completed,
+        total,
+      });
+    }
+
+    // Calculate overall counts for last 30 days
+    const last30 = sessions.filter(s =>
+      s.sessionType !== 'break' && s.startTime > Date.now() - (30 * 24 * 60 * 60 * 1000)
+    );
+    const completedCount = last30.filter(s => s.status === 'completed').length;
+    const skippedCount = last30.filter(s => s.status === 'skipped').length;
+    const abandonedCount = last30.filter(s => s.status === 'abandoned').length;
+
+    return {
+      weeks,
+      overall: {
+        completed: completedCount,
+        skipped: skippedCount,
+        abandoned: abandonedCount,
+        total: last30.length,
+        rate: last30.length > 0 ? Math.round((completedCount / last30.length) * 100) : 100,
+      },
+    };
+  }, [sessions]);
+
+  // ============================================================================
+  // MILESTONES
+  // ============================================================================
+  const milestones = useMemo((): Milestone[] => {
+    const totalHours = Math.floor(records.totalFocusTime / 3600);
+    const totalSess = records.totalSessions;
+
+    const hourMilestones = [10, 25, 50, 100, 250, 500, 1000];
+    const sessionMilestones = [10, 25, 50, 100, 250, 500, 1000];
+    const streakMilestones = [3, 7, 14, 30, 60, 100, 365];
+
+    const result: Milestone[] = [];
+
+    // Next hour milestone
+    const nextHourMilestone = hourMilestones.find(m => m > totalHours);
+    if (nextHourMilestone) {
+      result.push({
+        id: 'hours',
+        label: `${nextHourMilestone}h Focus Time`,
+        target: nextHourMilestone,
+        current: totalHours,
+        unit: 'hours',
+        icon: 'Clock',
+        color: 'text-blue-500',
+      });
+    }
+
+    // Next session milestone
+    const nextSessionMilestone = sessionMilestones.find(m => m > totalSess);
+    if (nextSessionMilestone) {
+      result.push({
+        id: 'sessions',
+        label: `${nextSessionMilestone} Sessions`,
+        target: nextSessionMilestone,
+        current: totalSess,
+        unit: 'sessions',
+        icon: 'Zap',
+        color: 'text-purple-500',
+      });
+    }
+
+    // Next streak milestone
+    const nextStreakMilestone = streakMilestones.find(m => m > currentGoalStreak);
+    if (nextStreakMilestone) {
+      result.push({
+        id: 'streak',
+        label: `${nextStreakMilestone}-Day Streak`,
+        target: nextStreakMilestone,
+        current: currentGoalStreak,
+        unit: 'days',
+        icon: 'Flame',
+        color: 'text-orange-500',
+      });
+    }
+
+    // Streak record
+    if (currentGoalStreak > 0 && currentGoalStreak <= records.longestGoalStreak) {
+      const remaining = records.longestGoalStreak - currentGoalStreak + 1;
+      if (remaining <= 10 && remaining > 0) {
+        result.push({
+          id: 'streak-record',
+          label: 'Beat Streak Record',
+          target: records.longestGoalStreak + 1,
+          current: currentGoalStreak,
+          unit: 'days',
+          icon: 'Trophy',
+          color: 'text-amber-500',
+        });
+      }
+    }
+
+    return result.slice(0, 4);
+  }, [records, currentGoalStreak]);
+
+  // ============================================================================
+  // MONTHLY SUMMARY
+  // ============================================================================
+  const currentMonthStats = useMemo((): MonthlyStats => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const dayOfMonth = now.getDate();
+
+    let totalFocus = 0;
+    let totalSess = 0;
+    let daysActive = 0;
+    let goalsMet = 0;
+    let bestDay = { date: '', focusTime: 0 };
+    const categoryTotals: Partial<Record<FocusCategory, number>> = {};
+
+    let totalCompleted = 0;
+    let totalAttempted = 0;
+
+    for (let d = 1; d <= dayOfMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const stats = dailyStats[dateStr];
+      if (stats) {
+        totalFocus += stats.totalFocusTime;
+        totalSess += stats.sessionsCompleted;
+        if (stats.totalFocusTime > 0) daysActive++;
+        if (stats.goalMet) goalsMet++;
+        if (stats.totalFocusTime > bestDay.focusTime) {
+          bestDay = { date: dateStr, focusTime: stats.totalFocusTime };
+        }
+        // Aggregate categories
+        if (stats.categoryTime) {
+          Object.entries(stats.categoryTime).forEach(([cat, time]) => {
+            categoryTotals[cat as FocusCategory] = (categoryTotals[cat as FocusCategory] || 0) + time;
+          });
+        }
+        totalCompleted += stats.sessionsCompleted;
+        totalAttempted += stats.sessionsCompleted + stats.sessionsAbandoned;
+      }
+    }
+
+    // Find top category
+    let topCategory: { category: FocusCategory; time: number } | null = null;
+    let maxCatTime = 0;
+    Object.entries(categoryTotals).forEach(([cat, time]) => {
+      if (time > maxCatTime) {
+        maxCatTime = time;
+        topCategory = { category: cat as FocusCategory, time };
+      }
+    });
+
+    return {
+      month: monthStr,
+      totalFocusTime: totalFocus,
+      totalSessions: totalSess,
+      daysActive,
+      goalsMet,
+      totalDays: daysInMonth,
+      bestDay,
+      topCategory,
+      avgDailyFocus: daysActive > 0 ? Math.round(totalFocus / daysActive) : 0,
+      completionRate: totalAttempted > 0 ? Math.round((totalCompleted / totalAttempted) * 100) : 100,
+    };
+  }, [dailyStats]);
+
+  // ============================================================================
+  // AI INSIGHTS (generated from data patterns)
+  // ============================================================================
+  const insights = useMemo((): AnalyticsInsight[] => {
+    const generated: AnalyticsInsight[] = [];
+
+    // 1. Week-over-week improvement
+    if (weekOverWeekChange > 15) {
+      generated.push({
+        id: 'wow-up',
+        type: 'achievement',
+        icon: 'TrendingUp',
+        title: 'On a roll!',
+        description: `You focused ${weekOverWeekChange}% more than last week. Keep the momentum going!`,
+        color: 'text-green-500',
+      });
+    } else if (weekOverWeekChange < -20 && lastWeekStats.totalFocusTime > 0) {
+      generated.push({
+        id: 'wow-down',
+        type: 'recommendation',
+        icon: 'AlertCircle',
+        title: 'Focus dip detected',
+        description: `Your focus time dropped ${Math.abs(weekOverWeekChange)}% vs last week. Try scheduling your sessions in advance.`,
+        color: 'text-amber-500',
+      });
+    }
+
+    // 2. Best focus time recommendation
+    if (bestFocusHours.length > 0) {
+      const bestHour = bestFocusHours[0].hour;
+      const period = bestHour < 12 ? 'morning' : bestHour < 17 ? 'afternoon' : 'evening';
+      generated.push({
+        id: 'best-time',
+        type: 'recommendation',
+        icon: 'Clock',
+        title: `You're a ${period} focuser`,
+        description: `Your peak productivity is at ${bestHour > 12 ? bestHour - 12 : bestHour}${bestHour >= 12 ? 'PM' : 'AM'}. Try scheduling deep work sessions then.`,
+        color: 'text-blue-500',
+      });
+    }
+
+    // 3. Streak progress
+    if (currentGoalStreak > 0) {
+      const nextMilestone = [3, 7, 14, 30, 60, 100].find(m => m > currentGoalStreak);
+      if (nextMilestone && (nextMilestone - currentGoalStreak) <= 3) {
+        generated.push({
+          id: 'streak-close',
+          type: 'achievement',
+          icon: 'Flame',
+          title: 'Streak milestone incoming!',
+          description: `Just ${nextMilestone - currentGoalStreak} more day${nextMilestone - currentGoalStreak > 1 ? 's' : ''} to reach a ${nextMilestone}-day streak!`,
+          color: 'text-orange-500',
+        });
+      }
+    }
+
+    // 4. Completion rate feedback
+    if (completionRate < 70 && sessions.length >= 5) {
+      generated.push({
+        id: 'completion-low',
+        type: 'recommendation',
+        icon: 'Target',
+        title: 'Try shorter sessions',
+        description: `Your completion rate is ${completionRate}%. Starting with shorter focus blocks can help build consistency.`,
+        color: 'text-amber-500',
+      });
+    } else if (completionRate >= 90 && sessions.length >= 10) {
+      generated.push({
+        id: 'completion-high',
+        type: 'achievement',
+        icon: 'CheckCircle',
+        title: 'Session master!',
+        description: `${completionRate}% completion rate! You rarely quit a session early — that's elite focus.`,
+        color: 'text-green-500',
+      });
+    }
+
+    // 5. Category diversity
+    const catDist = getCategoryDistribution(7);
+    const activeCats = Object.values(catDist).filter(v => v > 0).length;
+    if (activeCats >= 3) {
+      generated.push({
+        id: 'diverse',
+        type: 'trend',
+        icon: 'LayoutGrid',
+        title: 'Well-rounded focus',
+        description: `You worked across ${activeCats} categories this week. Balanced focus leads to balanced growth.`,
+        color: 'text-purple-500',
+      });
+    }
+
+    // 6. Personal record proximity
+    if (todayStats.totalFocusTime > 0 && records.mostFocusInDay > 0) {
+      const ratio = todayStats.totalFocusTime / records.mostFocusInDay;
+      if (ratio >= 0.7 && ratio < 1.0) {
+        generated.push({
+          id: 'record-close',
+          type: 'achievement',
+          icon: 'Trophy',
+          title: 'Record within reach!',
+          description: `You're at ${Math.round(ratio * 100)}% of your daily focus record. One more session could break it!`,
+          color: 'text-amber-500',
+        });
+      }
+    }
+
+    // 7. Focus quality insight
+    if (focusQualityStats.total >= 5) {
+      if (focusQualityStats.perfectRate >= 60) {
+        generated.push({
+          id: 'quality-high',
+          type: 'achievement',
+          icon: 'Shield',
+          title: 'Laser focus',
+          description: `${focusQualityStats.perfectRate}% of your sessions are distraction-free. App blocking is working for you!`,
+          color: 'text-green-500',
+        });
+      } else if (focusQualityStats.perfectRate < 30 && focusQualityStats.avgShieldAttempts > 3) {
+        generated.push({
+          id: 'quality-low',
+          type: 'recommendation',
+          icon: 'Shield',
+          title: 'Tame distractions',
+          description: `Avg ${focusQualityStats.avgShieldAttempts} app-open attempts per session. Try enabling strict mode for better focus.`,
+          color: 'text-red-500',
+        });
+      }
+    }
+
+    return generated.slice(0, 5);
+  }, [weekOverWeekChange, lastWeekStats, bestFocusHours, currentGoalStreak, completionRate, sessions, getCategoryDistribution, todayStats, records, focusQualityStats]);
+
+  // ============================================================================
+  // PERSONALIZED TEASER MESSAGES (for locked section)
+  // ============================================================================
+  const premiumTeasers = useMemo((): string[] => {
+    const teasers: string[] = [];
+
+    // Records teasers
+    if (records.totalSessions > 0) {
+      teasers.push(`You've completed ${records.totalSessions} sessions — see all your personal records`);
+    }
+
+    // Category teaser
+    const catDist = getCategoryDistribution(7);
+    const activeCats = Object.values(catDist).filter(v => v > 0).length;
+    if (activeCats > 0) {
+      teasers.push(`You focused across ${activeCats} categories this week — see the full breakdown`);
+    }
+
+    // Week comparison teaser
+    if (weekOverWeekChange !== 0) {
+      const direction = weekOverWeekChange > 0 ? 'more' : 'less';
+      teasers.push(`You focused ${Math.abs(weekOverWeekChange)}% ${direction} than last week — unlock the full comparison`);
+    }
+
+    // Best hours teaser
+    if (bestFocusHours.length > 0) {
+      teasers.push(`Your peak focus hours have shifted — discover when you're most productive`);
+    }
+
+    // Heatmap teaser
+    const activeDaysCount = Object.values(dailyStats).filter(s => s.totalFocusTime > 0).length;
+    if (activeDaysCount > 7) {
+      teasers.push(`${activeDaysCount} active days tracked — see your full activity heatmap`);
+    }
+
+    // Focus score teaser
+    if (focusScore.score > 0) {
+      teasers.push(`Your Focus Score is ${focusScore.score}/100 — see what's driving it`);
+    }
+
+    return teasers;
+  }, [records, getCategoryDistribution, weekOverWeekChange, bestFocusHours, dailyStats, focusScore]);
+
   // Format duration helper
   const formatDuration = useCallback((seconds: number, format: 'short' | 'long' = 'short') => {
     const hours = Math.floor(seconds / 3600);
@@ -506,6 +1001,15 @@ export const useAnalytics = () => {
     completionRate,
     weekOverWeekChange,
     thisWeekCategoryDistribution,
+
+    // New computed
+    focusScore,
+    focusQualityStats,
+    completionTrend,
+    milestones,
+    currentMonthStats,
+    insights,
+    premiumTeasers,
 
     // Actions
     recordSession,

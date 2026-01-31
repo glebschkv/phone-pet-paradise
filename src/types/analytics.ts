@@ -15,6 +15,8 @@ export const FOCUS_CATEGORIES: { id: FocusCategory; label: string; emoji: string
   { id: 'other', label: 'Other', emoji: '✨', icon: 'sparkles', color: 'bg-gray-500' },
 ];
 
+export type FocusQuality = 'perfect' | 'good' | 'distracted';
+
 export interface FocusSession {
   id: string;
   startTime: number; // timestamp
@@ -24,9 +26,51 @@ export interface FocusSession {
   sessionType: SessionType;
   status: SessionStatus;
   xpEarned: number;
-  // New fields for task/intention tracking
+  // Task/intention tracking
   category?: FocusCategory;
-  taskLabel?: string; // Optional custom task description
+  taskLabel?: string;
+  // Focus quality tracking
+  shieldAttempts?: number;
+  focusQuality?: FocusQuality;
+  appsBlocked?: boolean;
+  // Session reflection
+  rating?: number; // 1-5
+  hasNotes?: boolean;
+}
+
+// Insight generated from analytics data
+export interface AnalyticsInsight {
+  id: string;
+  type: 'improvement' | 'achievement' | 'recommendation' | 'trend';
+  icon: string; // lucide icon name
+  title: string;
+  description: string;
+  color: string; // tailwind color class
+}
+
+// Milestone tracking
+export interface Milestone {
+  id: string;
+  label: string;
+  target: number;
+  current: number;
+  unit: string;
+  icon: string;
+  color: string;
+}
+
+// Monthly summary
+export interface MonthlyStats {
+  month: string; // YYYY-MM
+  totalFocusTime: number;
+  totalSessions: number;
+  daysActive: number;
+  goalsMet: number;
+  totalDays: number;
+  bestDay: { date: string; focusTime: number };
+  topCategory: { category: FocusCategory; time: number } | null;
+  avgDailyFocus: number;
+  completionRate: number;
 }
 
 export interface DailyStats {
