@@ -55,17 +55,6 @@ interface AppLifecycleEvent {
   shieldAttempts?: number;
 }
 
-// Module-level initialization cache — prevents duplicate native bridge calls
-// when multiple components independently use useDeviceActivity().
-interface InitCache {
-  isPermissionGranted: boolean;
-  isMonitoring: boolean;
-  blockingStatus: BlockingStatus;
-  pluginAvailable: boolean;
-}
-let globalInitStarted = false;
-let globalInitPromise: Promise<InitCache | null> | null = null;
-
 // Storage key for selected apps (web simulation)
 const SELECTED_APPS_KEY = 'nomoPhone_selectedApps';
 
@@ -128,113 +117,55 @@ export const useDeviceActivity = () => {
   // Check if we're on native platform
   const isNative = Capacitor.isNativePlatform();
 
-  // Perform the actual native initialization (called only once across all hook instances)
-  const doNativeInit = async (): Promise<InitCache | null> => {
-    // Verify the native plugin bridge is working
-    const { result: echoResult, success: echoSuccess } = await safePluginCall(
-      () => DeviceActivity.echo(),
-      { pluginLoaded: false, platform: 'unknown', timestamp: 0 },
-      'echo'
-    );
-
-    if (echoSuccess) {
-      deviceActivityLogger.debug(`Plugin bridge OK: platform=${echoResult.platform}, loaded=${echoResult.pluginLoaded}`);
-    } else {
-      deviceActivityLogger.warn('Plugin echo failed - native bridge may not be available');
-    }
-
-    // Check permissions
-    const { result: permissions, success: permissionSuccess } = await safePluginCall(
-      () => DeviceActivity.checkPermissions(),
-      { status: 'notDetermined' as const, familyControlsEnabled: false },
-      'checkPermissions'
-    );
-
-    if (!permissionSuccess) {
-      return null; // Caller handles retry
-    }
-
-    const isGranted = permissions.status === 'granted';
-
-    // Get blocking status
-    const { result: blockingStatus } = await safePluginCall(
-      () => DeviceActivity.getBlockingStatus(),
-      {
-        isBlocking: false,
-        focusSessionActive: false,
-        shieldAttempts: 0,
-        lastShieldAttemptTimestamp: 0,
-        hasAppsConfigured: false,
-        selectedAppsCount: 0,
-        selectedCategoriesCount: 0,
-      } as BlockingStatus,
-      'getBlockingStatus'
-    );
-
-    let isMonitoring = false;
-    if (isGranted) {
-      const { result: monitoring } = await safePluginCall(
-        () => DeviceActivity.startMonitoring(),
-        { success: false, monitoring: false, startTime: 0 },
-        'startMonitoring'
-      );
-      isMonitoring = monitoring.monitoring;
-    }
-
-    return {
-      isPermissionGranted: isGranted,
-      isMonitoring,
-      blockingStatus,
-      pluginAvailable: true,
-    };
-  };
-
-  // Apply init cache to local state
-  const applyInitCache = (cache: InitCache) => {
-    setState(prev => ({
-      ...prev,
-      isPermissionGranted: cache.isPermissionGranted,
-      isMonitoring: cache.isMonitoring,
-      isBlocking: cache.blockingStatus.isBlocking,
-      hasAppsConfigured: cache.blockingStatus.hasAppsConfigured,
-      shieldAttempts: cache.blockingStatus.shieldAttempts,
-      lastShieldAttemptTimestamp: cache.blockingStatus.lastShieldAttemptTimestamp,
-      selectedAppsCount: cache.blockingStatus.selectedAppsCount,
-      selectedCategoriesCount: cache.blockingStatus.selectedCategoriesCount,
-      pluginAvailable: cache.pluginAvailable,
-      pluginError: null,
-      isLoading: false,
-    }));
-  };
-
-  // Initialize device activity monitoring (deduplicated across all hook instances)
+  // Initialize device activity monitoring (with automatic retry on failure)
   const initialize = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
-      // If another instance already completed initialization, reuse the cached result
-      if (globalInitStarted && globalInitPromise) {
-        const cached = await globalInitPromise;
-        if (cached) {
-          applyInitCache(cached);
-          return;
+      // First, verify the native plugin bridge is working with a simple echo call
+      const { result: echoResult, success: echoSuccess } = await safePluginCall(
+        () => DeviceActivity.echo(),
+        { pluginLoaded: false, platform: 'unknown', timestamp: 0 },
+        'echo'
+      );
+
+      if (echoSuccess) {
+        deviceActivityLogger.debug(`Plugin bridge OK: platform=${echoResult.platform}, loaded=${echoResult.pluginLoaded}`);
+        // Log entitlement diagnostic info
+        const diag = echoResult as Record<string, unknown>;
+        if (diag.familyControlsEntitlementInProfile !== undefined) {
+          deviceActivityLogger.info(
+            `[DIAG] Family Controls entitlement in provisioning profile: ${diag.familyControlsEntitlementInProfile ? 'YES' : 'NO ❌'}`
+          );
+          deviceActivityLogger.info(
+            `[DIAG] Initial auth status: ${diag.initialAuthStatus}, Bundle ID: ${diag.bundleId}`
+          );
+          if (!diag.familyControlsEntitlementInProfile) {
+            deviceActivityLogger.error(
+              '[DIAG] Family Controls entitlement is MISSING from provisioning profile! ' +
+              'Screen Time permissions will always fail. Fix: In Xcode, toggle "Automatically manage signing" off then on, ' +
+              'or manually create a profile in the Apple Developer Portal.'
+            );
+          }
         }
-        // cached is null means the first attempt failed — fall through to retry
+      } else {
+        deviceActivityLogger.warn('Plugin echo failed - native bridge may not be available');
       }
 
-      // Mark as started synchronously to prevent concurrent initialization
-      globalInitStarted = true;
-      globalInitPromise = doNativeInit();
+      // Check permissions with safe wrapper.
+      // Even if this fails, we DON'T mark the plugin as unavailable -
+      // we treat permissions as "not determined" and let the user try requesting.
+      const { result: permissions, success: permissionSuccess } = await safePluginCall(
+        () => DeviceActivity.checkPermissions(),
+        { status: 'notDetermined' as const, familyControlsEnabled: false },
+        'checkPermissions'
+      );
 
-      const result = await globalInitPromise;
-
-      if (!result) {
-        // Init failed — schedule retry if we haven't exhausted attempts
-        globalInitStarted = false;
-        globalInitPromise = null;
+      if (!permissionSuccess) {
+        // Retry before giving up
         if (initRetryCountRef.current < MAX_INIT_RETRIES) {
           initRetryCountRef.current += 1;
-          const retryDelay = Math.pow(2, initRetryCountRef.current) * 1000;
+          const retryDelay = Math.pow(2, initRetryCountRef.current) * 1000; // 2s, 4s, 8s
           deviceActivityLogger.debug(
             `DeviceActivity init failed, scheduling retry ${initRetryCountRef.current}/${MAX_INIT_RETRIES} in ${retryDelay}ms`
           );
@@ -242,26 +173,68 @@ export const useDeviceActivity = () => {
           setTimeout(() => { initialize(); }, retryDelay);
           return;
         }
-        deviceActivityLogger.warn('checkPermissions failed - treating as notDetermined');
-        setState(prev => ({ ...prev, isLoading: false, pluginAvailable: true }));
-        return;
+        // All retries exhausted — still keep plugin available so user can try requesting permissions
+        deviceActivityLogger.warn('checkPermissions failed - treating as notDetermined, user can still request permissions');
       }
 
+      // Plugin responded — reset retry counter
       initRetryCountRef.current = 0;
-      applyInitCache(result);
+
+      const isGranted = permissions.status === 'granted';
+
+      // Get blocking status with safe wrapper
+      const { result: blockingStatus } = await safePluginCall(
+        () => DeviceActivity.getBlockingStatus(),
+        {
+          isBlocking: false,
+          focusSessionActive: false,
+          shieldAttempts: 0,
+          lastShieldAttemptTimestamp: 0,
+          hasAppsConfigured: false,
+          selectedAppsCount: 0,
+          selectedCategoriesCount: 0,
+        } as BlockingStatus,
+        'getBlockingStatus'
+      );
+
+      setState(prev => ({
+        ...prev,
+        isPermissionGranted: isGranted,
+        isBlocking: blockingStatus.isBlocking,
+        hasAppsConfigured: blockingStatus.hasAppsConfigured,
+        shieldAttempts: blockingStatus.shieldAttempts,
+        lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
+        selectedAppsCount: blockingStatus.selectedAppsCount,
+        selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
+        pluginAvailable: true,
+        pluginError: null,
+      }));
+
+      if (isGranted) {
+        // Start monitoring if permissions granted
+        const { result: monitoring } = await safePluginCall(
+          () => DeviceActivity.startMonitoring(),
+          { success: false, monitoring: false, startTime: 0 },
+          'startMonitoring'
+        );
+        setState(prev => ({
+          ...prev,
+          isMonitoring: monitoring.monitoring
+        }));
+      }
     } catch (error) {
       deviceActivityLogger.error('Failed to initialize device activity:', error);
       const err = error instanceof Error ? error : new Error(String(error));
       pluginErrorRef.current = err;
       reportError(err, { context: 'DeviceActivity.initialize' });
-      globalInitStarted = false;
-      globalInitPromise = null;
+      // Even on error, keep plugin available so user can retry
       setState(prev => ({
         ...prev,
         pluginAvailable: true,
         pluginError: err,
-        isLoading: false,
       }));
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
     }
   }, []);
 

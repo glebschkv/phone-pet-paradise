@@ -75,6 +75,115 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
         pluginLoadedSuccessfully = true
         Log.app.info("DeviceActivityPlugin loaded successfully")
+
+        // Diagnostic: check Family Controls entitlement status at startup
+        diagnoseEntitlement()
+    }
+
+    /// Checks if the Family Controls entitlement is properly configured
+    /// by reading the embedded provisioning profile and checking initial auth status.
+    /// Also checks whether extension .appex bundles are embedded correctly.
+    private func diagnoseEntitlement() {
+        Log.app.info("=== FAMILY CONTROLS DIAGNOSTIC ===")
+
+        // Check 1: Initial authorization status from AuthorizationCenter
+        if #available(iOS 16.0, *) {
+            let rawStatus = FamilyControls.AuthorizationCenter.shared.authorizationStatus
+            Log.app.info("[DIAG] AuthorizationCenter.authorizationStatus = \(rawStatus)")
+            Log.app.info("[DIAG] Raw value description: \(String(describing: rawStatus))")
+        }
+
+        // Check 2: Look for Family Controls entitlement in embedded profile
+        if let profilePath = Bundle.main.path(forResource: "embedded", ofType: "mobileprovision"),
+           let profileData = try? Data(contentsOf: URL(fileURLWithPath: profilePath)) {
+            let profileString = String(data: profileData, encoding: .ascii) ?? ""
+            let hasFamilyControls = profileString.contains("com.apple.developer.family-controls")
+            Log.app.info("[DIAG] Provisioning profile found: YES")
+            Log.app.info("[DIAG] Family Controls entitlement in profile: \(hasFamilyControls ? "YES ✅" : "NO ⚠️ (may be normal for dev builds)")")
+        } else {
+            Log.app.info("[DIAG] Provisioning profile found: NO (simulator build or missing)")
+        }
+
+        // Check 3: Bundle ID
+        Log.app.info("[DIAG] Bundle ID: \(Bundle.main.bundleIdentifier ?? "unknown")")
+
+        // Check 4: Look for embedded extensions (.appex bundles in PlugIns directory)
+        Log.app.info("=== EXTENSION DIAGNOSTIC ===")
+        let bundlePath = Bundle.main.bundlePath
+        let plugInsPath = (bundlePath as NSString).appendingPathComponent("PlugIns")
+        let fileManager = FileManager.default
+
+        if fileManager.fileExists(atPath: plugInsPath) {
+            Log.app.info("[EXT] PlugIns directory: EXISTS ✅")
+            do {
+                let contents = try fileManager.contentsOfDirectory(atPath: plugInsPath)
+                Log.app.info("[EXT] PlugIns contents: \(contents.joined(separator: ", "))")
+
+                for item in contents {
+                    let appexPath = (plugInsPath as NSString).appendingPathComponent(item)
+                    Log.app.info("[EXT] --- Extension: \(item) ---")
+
+                    // Read the extension's Info.plist
+                    let infoPlistPath = (appexPath as NSString).appendingPathComponent("Info.plist")
+                    if let infoPlist = NSDictionary(contentsOfFile: infoPlistPath) {
+                        // Get bundle identifier
+                        let bundleId = infoPlist["CFBundleIdentifier"] as? String ?? "unknown"
+                        Log.app.info("[EXT]   Bundle ID: \(bundleId)")
+
+                        // Get executable name
+                        let executable = infoPlist["CFBundleExecutable"] as? String ?? "unknown"
+                        Log.app.info("[EXT]   Executable: \(executable)")
+
+                        // Get minimum OS version
+                        let minOS = infoPlist["MinimumOSVersion"] as? String ?? "unknown"
+                        Log.app.info("[EXT]   MinimumOSVersion: \(minOS)")
+
+                        // Get NSExtension dictionary
+                        if let nsExtension = infoPlist["NSExtension"] as? [String: Any] {
+                            let pointId = nsExtension["NSExtensionPointIdentifier"] as? String ?? "MISSING!"
+                            let principalClass = nsExtension["NSExtensionPrincipalClass"] as? String ?? "MISSING!"
+                            Log.app.info("[EXT]   NSExtensionPointIdentifier: \(pointId)")
+                            Log.app.info("[EXT]   NSExtensionPrincipalClass: \(principalClass)")
+
+                            // Check if the extension point identifier is correct for shield config
+                            if item.contains("Shield") || item.contains("shield") {
+                                if pointId == "com.apple.ManagedSettingsUI.shield-configuration-service" {
+                                    Log.app.info("[EXT]   Shield extension point: CORRECT ✅")
+                                } else {
+                                    Log.app.info("[EXT]   Shield extension point: WRONG ❌ (expected com.apple.ManagedSettingsUI.shield-configuration-service)")
+                                }
+                            }
+                        } else {
+                            Log.app.info("[EXT]   NSExtension: MISSING! ❌")
+                        }
+
+                        // Check if the executable binary exists
+                        let execPath = (appexPath as NSString).appendingPathComponent(executable)
+                        let execExists = fileManager.fileExists(atPath: execPath)
+                        Log.app.info("[EXT]   Executable binary exists: \(execExists ? "YES ✅" : "NO ❌")")
+
+                        // Check if the extension has its own embedded.mobileprovision
+                        let extProfilePath = (appexPath as NSString).appendingPathComponent("embedded.mobileprovision")
+                        let hasProfile = fileManager.fileExists(atPath: extProfilePath)
+                        Log.app.info("[EXT]   Has embedded.mobileprovision: \(hasProfile ? "YES" : "NO")")
+
+                        if hasProfile, let profileData = try? Data(contentsOf: URL(fileURLWithPath: extProfilePath)) {
+                            let profileStr = String(data: profileData, encoding: .ascii) ?? ""
+                            let extHasFC = profileStr.contains("com.apple.developer.family-controls")
+                            Log.app.info("[EXT]   Extension profile has Family Controls: \(extHasFC ? "YES ✅" : "NO ❌")")
+                        }
+                    } else {
+                        Log.app.info("[EXT]   Info.plist: MISSING or UNREADABLE ❌")
+                    }
+                }
+            } catch {
+                Log.app.info("[EXT] Error reading PlugIns directory: \(error)")
+            }
+        } else {
+            Log.app.info("[EXT] PlugIns directory: DOES NOT EXIST ❌ — No extensions are embedded!")
+        }
+
+        Log.app.info("=== END DIAGNOSTIC ===")
     }
 
     deinit {
@@ -86,10 +195,31 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     /// Simple echo method to verify the native plugin bridge is working.
     /// Returns immediately without accessing any managers or entitlements.
     @objc func echo(_ call: CAPPluginCall) {
+        // Include entitlement diagnostic in echo response
+        var hasEntitlementInProfile = false
+        if let profilePath = Bundle.main.path(forResource: "embedded", ofType: "mobileprovision"),
+           let profileData = try? Data(contentsOf: URL(fileURLWithPath: profilePath)) {
+            let profileString = String(data: profileData, encoding: .ascii) ?? ""
+            hasEntitlementInProfile = profileString.contains("com.apple.developer.family-controls")
+        }
+
+        var initialAuthStatus = "unknown"
+        if #available(iOS 16.0, *) {
+            let status = FamilyControls.AuthorizationCenter.shared.authorizationStatus
+            switch status {
+            case .notDetermined: initialAuthStatus = "notDetermined"
+            case .denied: initialAuthStatus = "denied"
+            case .approved: initialAuthStatus = "approved"
+            @unknown default: initialAuthStatus = "unknown(\(status))"
+            }
+        }
+
         call.resolve([
             "pluginLoaded": pluginLoadedSuccessfully,
             "platform": "ios",
             "timestamp": Date().timeIntervalSince1970,
+            "familyControlsEntitlementInProfile": hasEntitlementInProfile,
+            "initialAuthStatus": initialAuthStatus,
             "bundleId": Bundle.main.bundleIdentifier ?? "unknown"
         ])
     }

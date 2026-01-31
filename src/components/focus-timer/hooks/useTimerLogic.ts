@@ -51,9 +51,10 @@ export const useTimerLogic = () => {
   // App blocking integration
   const {
     isPermissionGranted: appBlockingEnabled,
+    hasAppsConfigured,
+    blockedAppsCount,
     startAppBlocking,
     stopAppBlocking,
-    getBlockingStatus,
     triggerHaptic,
   } = useDeviceActivity();
 
@@ -83,12 +84,16 @@ export const useTimerLogic = () => {
   // Store latest values in refs to avoid callback dependency bloat
   const stateRef = useRef({
     timerState,
+    hasAppsConfigured,
+    blockedAppsCount,
     isAmbientPlaying,
   });
 
   useEffect(() => {
     stateRef.current = {
       timerState,
+      hasAppsConfigured,
+      blockedAppsCount,
       isAmbientPlaying,
     };
   });
@@ -170,15 +175,7 @@ export const useTimerLogic = () => {
       clearPersistence();
 
       let shieldAttempts = 0;
-      let freshHasAppsConfigured = false;
-      let freshBlockedAppsCount = 0;
-      if (state.timerState.sessionType !== 'break') {
-        // Fetch fresh blocking status from native before stopping — useDeviceActivity
-        // instances have independent state, so the ref values may be stale.
-        const freshStatus = await getBlockingStatus();
-        freshHasAppsConfigured = freshStatus.hasAppsConfigured;
-        freshBlockedAppsCount = freshStatus.selectedAppsCount + freshStatus.selectedCategoriesCount;
-
+      if (state.timerState.sessionType !== 'break' && state.hasAppsConfigured) {
         const blockingResult = await stopAppBlocking();
         shieldAttempts = blockingResult.shieldAttempts;
       }
@@ -196,8 +193,8 @@ export const useTimerLogic = () => {
         const rewardResult = await awardSessionRewards(
           completedMinutes,
           shieldAttempts,
-          freshHasAppsConfigured,
-          freshBlockedAppsCount,
+          state.hasAppsConfigured,
+          state.blockedAppsCount,
           {
             sessionType: state.timerState.sessionType,
             sessionDuration: state.timerState.sessionDuration,
@@ -267,7 +264,6 @@ export const useTimerLogic = () => {
     }
   }, [
     clearPersistence,
-    getBlockingStatus,
     stopAppBlocking,
     stopAmbientSound,
     playCompletionSound,
@@ -298,6 +294,8 @@ export const useTimerLogic = () => {
     setShowIntentionModal,
     intervalRef,
     appBlockingEnabled,
+    hasAppsConfigured,
+    blockedAppsCount,
     startAppBlocking,
     stopAppBlocking,
     triggerHaptic,

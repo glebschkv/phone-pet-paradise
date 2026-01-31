@@ -60,12 +60,6 @@
 		<string>processing</string>
 	</array>
 
-	<!-- Permitted Background Task Identifiers -->
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>co.nomoinc.nomo.background-tracking</string>
-	</array>
-
 	<!-- Screen Time API Usage -->
 	<key>NSUserActivityTypes</key>
 	<array>
