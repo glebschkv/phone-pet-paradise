@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Crown, ChevronRight, Check, Coins } from "lucide-react";
+import { Crown, ChevronRight, Check, Coins, Sparkles, Zap } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 // Note: PixelIcon still used for starter bundle icons and best value icon
@@ -100,22 +100,42 @@ export const FeaturedTab = ({
         isPurchasing={isPurchasing}
       />
 
-      {/* Premium Strip - Compact */}
+      {/* Premium Card - Enticing */}
       {!isPremium ? (
         <button
           onClick={() => setShowPremiumModal(true)}
-          className="shop-premium-strip active:scale-[0.98] transition-transform"
+          className="shop-premium-card"
         >
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-              <Crown className="w-5 h-5 text-white" />
+          <div className="shop-premium-shimmer" />
+          <div className="relative z-[1] flex items-start gap-3">
+            <div className="shop-premium-crown">
+              <Crown className="w-5 h-5 text-amber-900" />
             </div>
             <div className="flex-1 min-w-0">
-              <span className="font-black text-white text-sm">Go Premium</span>
-              <span className="text-white/70 text-xs ml-1.5">Unlock everything</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-white text-[15px] tracking-tight">Go Premium</span>
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+              </div>
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                <span className="shop-premium-perk">
+                  <Zap className="w-2.5 h-2.5" /> 2x Coins
+                </span>
+                <span className="shop-premium-perk">
+                  <Sparkles className="w-2.5 h-2.5" /> All Sounds
+                </span>
+                <span className="shop-premium-perk">
+                  <Crown className="w-2.5 h-2.5" /> Exclusive Pets
+                </span>
+              </div>
             </div>
-            <span className="text-white/90 font-bold text-xs whitespace-nowrap">$4.99/mo</span>
-            <ChevronRight className="w-4 h-4 text-white/60 flex-shrink-0" />
+            <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+              <span className="font-black text-white text-sm">$4.99</span>
+              <span className="text-white/50 text-[10px] font-bold">/month</span>
+            </div>
+          </div>
+          <div className="relative z-[1] flex items-center justify-center gap-1.5 mt-2.5 pt-2 border-t border-white/10">
+            <span className="text-white/80 text-[11px] font-bold tracking-wide uppercase">See all plans</span>
+            <ChevronRight className="w-3.5 h-3.5 text-white/50" />
           </div>
         </button>
       ) : (
