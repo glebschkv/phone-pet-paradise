@@ -29,17 +29,17 @@ export const BundleConfirmDialog = ({
   const isCoinPack = 'coinAmount' in bundle;
 
   // Build contents list for starter bundles
-  const contentItems: { icon: React.ReactNode; label: string; sublabel?: string; highlight?: boolean; glowColor?: string }[] = [];
+  const contentItems: { icon: React.ReactNode; label: string; sublabel?: string; highlight?: boolean; variant?: 'legendary' | 'epic' }[] = [];
 
   if (isStarterBundle) {
     const starterBundle = bundle as StarterBundle;
 
     if (starterBundle.contents.coins > 0) {
       contentItems.push({
-        icon: <Coins className="w-4.5 h-4.5 text-amber-400" />,
+        icon: <Coins className="w-4 h-4 text-amber-400" />,
         label: `${starterBundle.contents.coins.toLocaleString()} Coins`,
         highlight: true,
-        glowColor: 'hsl(35 100% 50% / 0.3)',
+        variant: 'legendary',
       });
     }
 
@@ -47,10 +47,9 @@ export const BundleConfirmDialog = ({
       const booster = BOOSTER_TYPES.find(b => b.id === starterBundle.contents.boosterId);
       if (booster) {
         contentItems.push({
-          icon: <Zap className="w-4.5 h-4.5 text-yellow-400" />,
+          icon: <Zap className="w-4 h-4 text-yellow-400" />,
           label: booster.name,
           sublabel: booster.description,
-          glowColor: 'hsl(50 100% 50% / 0.3)',
         });
       }
     }
@@ -62,34 +61,33 @@ export const BundleConfirmDialog = ({
           icon: <span className="text-base leading-none">{animal.emoji}</span>,
           label: animal.name,
           sublabel: `${animal.rarity.charAt(0).toUpperCase() + animal.rarity.slice(1)} Pet`,
-          glowColor: 'hsl(280 100% 50% / 0.3)',
+          variant: 'epic',
         });
       }
     }
 
     if (starterBundle.contents.streakFreezes && starterBundle.contents.streakFreezes > 0) {
       contentItems.push({
-        icon: <Shield className="w-4.5 h-4.5 text-cyan-400" />,
+        icon: <Shield className="w-4 h-4 text-cyan-400" />,
         label: `${starterBundle.contents.streakFreezes} Streak Freeze${starterBundle.contents.streakFreezes > 1 ? 's' : ''}`,
         sublabel: 'Protect your streaks',
-        glowColor: 'hsl(190 100% 50% / 0.3)',
       });
     }
   } else if (isCoinPack) {
     const coinPack = bundle as CoinPack;
     contentItems.push({
-      icon: <Coins className="w-4.5 h-4.5 text-amber-400" />,
+      icon: <Coins className="w-4 h-4 text-amber-400" />,
       label: `${coinPack.coinAmount.toLocaleString()} Coins`,
       highlight: true,
-      glowColor: 'hsl(35 100% 50% / 0.3)',
+      variant: 'legendary',
     });
     if (coinPack.bonusCoins && coinPack.bonusCoins > 0) {
       contentItems.push({
-        icon: <Sparkles className="w-4.5 h-4.5 text-green-400" />,
+        icon: <Sparkles className="w-4 h-4 text-green-400" />,
         label: `+${coinPack.bonusCoins.toLocaleString()} Bonus`,
         sublabel: 'Free extra coins!',
         highlight: true,
-        glowColor: 'hsl(140 100% 50% / 0.3)',
+        variant: 'legendary',
       });
     }
   }
@@ -177,58 +175,41 @@ export const BundleConfirmDialog = ({
             )}
           </div>
 
-          {/* Contents section — dark retro body */}
-          <div
-            className="p-4 space-y-3"
-            style={{ background: 'linear-gradient(180deg, hsl(260 28% 13%) 0%, hsl(275 22% 10%) 100%)' }}
-          >
-            {/* Top shine */}
-            <div
-              className="absolute top-0 left-0 right-0 h-[1px]"
-              style={{ background: 'linear-gradient(90deg, transparent 0%, hsl(260 40% 40%) 50%, transparent 100%)' }}
-            />
-
-            <p className="text-[11px] text-center leading-relaxed" style={{ color: 'hsl(260 20% 55%)' }}>
+          {/* Contents section */}
+          <div className="p-4 space-y-3">
+            <p className="text-[11px] text-center leading-relaxed text-purple-300/60">
               {bundle.description}
             </p>
 
-            {/* Contents list — retro styled */}
+            {/* Contents list */}
             <div className="space-y-1.5">
-              <div
-                className="text-[9px] font-black uppercase tracking-[0.2em] text-center"
-                style={{ color: 'hsl(260 25% 45%)' }}
-              >
+              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-center text-purple-400/50">
                 Includes
               </div>
               <div className="space-y-1.5">
                 {contentItems.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg border"
-                    style={{
-                      background: 'linear-gradient(180deg, hsl(260 25% 22%) 0%, hsl(260 30% 17%) 100%)',
-                      borderColor: 'hsl(260 35% 30%)',
-                    }}
+                    className={cn("retro-reward-item", item.variant)}
                   >
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                      className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
                       style={{
                         background: 'hsl(260 30% 18%)',
-                        border: '2px solid hsl(260 35% 32%)',
-                        boxShadow: item.glowColor ? `0 0 8px ${item.glowColor}` : undefined,
+                        border: '2px solid hsl(260 35% 30%)',
                       }}
                     >
                       {item.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div
-                        className="text-sm font-bold"
-                        style={{ color: item.highlight ? 'hsl(35 90% 65%)' : 'hsl(260 20% 80%)' }}
-                      >
+                      <div className={cn(
+                        "text-sm font-bold",
+                        item.highlight ? "text-amber-300" : "text-purple-100/90"
+                      )}>
                         {item.label}
                       </div>
                       {item.sublabel && (
-                        <div className="text-[10px] leading-tight" style={{ color: 'hsl(260 15% 50%)' }}>
+                        <div className="text-[10px] leading-tight text-purple-300/50">
                           {item.sublabel}
                         </div>
                       )}
@@ -238,21 +219,21 @@ export const BundleConfirmDialog = ({
               </div>
             </div>
 
-            {/* Purchase button — retro arcade style */}
+            {/* Purchase button */}
             <button
               onClick={onPurchase}
               disabled={isPurchasing}
               className="w-full py-3 rounded-lg border-[3px] font-black uppercase tracking-wider text-sm transition-all flex items-center justify-center gap-2 text-white active:translate-y-1"
               style={isPurchasing ? {
-                background: 'linear-gradient(180deg, hsl(260 20% 25%) 0%, hsl(260 25% 18%) 100%)',
-                borderColor: 'hsl(260 20% 35%)',
-                color: 'hsl(260 15% 45%)',
+                background: 'hsl(260 20% 20%)',
+                borderColor: 'hsl(260 20% 30%)',
+                color: 'hsl(260 15% 40%)',
                 boxShadow: '0 4px 0 hsl(260 30% 12%)',
                 cursor: 'not-allowed',
               } : {
-                background: 'linear-gradient(180deg, hsl(140 65% 45%) 0%, hsl(140 70% 38%) 50%, hsl(140 75% 30%) 100%)',
+                background: 'linear-gradient(180deg, hsl(140 65% 45%) 0%, hsl(140 70% 35%) 100%)',
                 borderColor: 'hsl(140 55% 55%)',
-                boxShadow: '0 5px 0 hsl(140 75% 20%), inset 0 2px 0 hsl(140 50% 60%), 0 0 15px hsl(140 100% 40% / 0.3)',
+                boxShadow: '0 5px 0 hsl(140 75% 20%), inset 0 2px 0 hsl(140 50% 60%)',
                 textShadow: '0 2px 0 rgba(0,0,0,0.3)',
               }}
             >
@@ -269,7 +250,7 @@ export const BundleConfirmDialog = ({
               )}
             </button>
 
-            {/* Cancel button — subtle retro border */}
+            {/* Cancel button */}
             <button
               onClick={() => onOpenChange(false)}
               disabled={isPurchasing}
@@ -278,9 +259,9 @@ export const BundleConfirmDialog = ({
                 isPurchasing && "opacity-50 cursor-not-allowed"
               )}
               style={{
-                background: 'transparent',
-                border: '2px solid hsl(260 30% 30%)',
-                color: 'hsl(260 20% 55%)',
+                background: 'hsl(260 25% 20%)',
+                border: '2px solid hsl(260 30% 35%)',
+                color: 'hsl(260 20% 65%)',
               }}
             >
               Cancel
