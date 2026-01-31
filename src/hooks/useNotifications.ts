@@ -25,9 +25,10 @@ interface NotificationOptions {
   }>;
 }
 
-// Module-level flag to ensure notifications are only initialized once
+// Module-level flags to ensure notifications are only initialized once
 // across all component instances and remounts.
 let globalNotificationsInitialized = false;
+let globalInitializationStarted = false;
 
 export const useNotifications = () => {
   const [permissions, setPermissions] = useState<NotificationPermissions>({
@@ -103,11 +104,14 @@ export const useNotifications = () => {
   }, []);
 
   const initializeNotifications = useCallback(async () => {
-    // Check module-level flag to prevent re-initialization across remounts
-    if (isInitialized || globalNotificationsInitialized) {
+    // Synchronous lock prevents concurrent initialization from multiple hook instances.
+    // Without this, multiple instances mounting simultaneously would all pass the async
+    // guard before any of them finishes and sets the flag.
+    if (globalInitializationStarted) {
       if (!isInitialized) setIsInitialized(true);
       return;
     }
+    globalInitializationStarted = true;
 
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -158,7 +162,7 @@ export const useNotifications = () => {
       globalNotificationsInitialized = true;
       setIsInitialized(true);
     }
-  }, [isInitialized, setupNotificationListeners]);
+  }, [setupNotificationListeners]);
 
   const scheduleLocalNotification = useCallback(async (options: NotificationOptions) => {
     if (!permissions.localEnabled) {
