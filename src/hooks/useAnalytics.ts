@@ -177,13 +177,13 @@ export const useAnalytics = () => {
     const isWorkSession = sessionType !== 'break';
 
     const newHourlyFocus = { ...existingStats.hourlyFocus };
-    if (isWorkSession && status === 'completed') {
+    if (isWorkSession && status !== 'abandoned') {
       newHourlyFocus[hour] = (newHourlyFocus[hour] || 0) + safeActual;
     }
 
     // Update category time tracking
     const newCategoryTime = { ...(existingStats.categoryTime || {}) };
-    if (isWorkSession && status === 'completed' && category) {
+    if (isWorkSession && status !== 'abandoned' && category) {
       newCategoryTime[category] = (newCategoryTime[category] || 0) + safeActual;
     }
 
@@ -208,43 +208,46 @@ export const useAnalytics = () => {
     saveDailyStats(newDailyStats);
 
     // Update personal records
-    if (isWorkSession && status === 'completed') {
+    // Track total focus time for ALL work sessions (matches dailyStats accumulation)
+    if (isWorkSession) {
       const newRecords = { ...records };
       let recordsUpdated = false;
 
-      // Longest session
-      if (safeActual > records.longestSession) {
-        newRecords.longestSession = safeActual;
-        newRecords.longestSessionDate = dateStr;
-        recordsUpdated = true;
-      }
-
-      // Most focus in a day
-      if (updatedStats.totalFocusTime > records.mostFocusInDay) {
-        newRecords.mostFocusInDay = updatedStats.totalFocusTime;
-        newRecords.mostFocusInDayDate = dateStr;
-        recordsUpdated = true;
-      }
-
-      // Most sessions in a day
-      if (updatedStats.sessionsCompleted > records.mostSessionsInDay) {
-        newRecords.mostSessionsInDay = updatedStats.sessionsCompleted;
-        newRecords.mostSessionsInDayDate = dateStr;
-        recordsUpdated = true;
-      }
-
-      // Update totals
+      // Total focus time — counts all work session time (completed, skipped, abandoned)
+      // This keeps records.totalFocusTime consistent with sum of dailyStats.totalFocusTime
       newRecords.totalFocusTime = records.totalFocusTime + safeActual;
-      newRecords.totalSessions = records.totalSessions + 1;
       recordsUpdated = true;
 
-      // Check goal streak
-      const newGoalStreak = calculateGoalStreak(newDailyStats, settings.dailyGoalMinutes);
-      setCurrentGoalStreak(newGoalStreak);
+      if (status === 'completed') {
+        // Completed session count
+        newRecords.totalSessions = records.totalSessions + 1;
 
-      if (newGoalStreak > records.longestGoalStreak) {
-        newRecords.longestGoalStreak = newGoalStreak;
-        newRecords.longestGoalStreakDate = dateStr;
+        // Longest session
+        if (safeActual > records.longestSession) {
+          newRecords.longestSession = safeActual;
+          newRecords.longestSessionDate = dateStr;
+        }
+
+        // Most focus in a day
+        if (updatedStats.totalFocusTime > records.mostFocusInDay) {
+          newRecords.mostFocusInDay = updatedStats.totalFocusTime;
+          newRecords.mostFocusInDayDate = dateStr;
+        }
+
+        // Most sessions in a day
+        if (updatedStats.sessionsCompleted > records.mostSessionsInDay) {
+          newRecords.mostSessionsInDay = updatedStats.sessionsCompleted;
+          newRecords.mostSessionsInDayDate = dateStr;
+        }
+
+        // Check goal streak
+        const newGoalStreak = calculateGoalStreak(newDailyStats, settings.dailyGoalMinutes);
+        setCurrentGoalStreak(newGoalStreak);
+
+        if (newGoalStreak > records.longestGoalStreak) {
+          newRecords.longestGoalStreak = newGoalStreak;
+          newRecords.longestGoalStreakDate = dateStr;
+        }
       }
 
       if (recordsUpdated) {
