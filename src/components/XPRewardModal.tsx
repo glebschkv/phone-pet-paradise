@@ -1,8 +1,9 @@
 import { useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { XPReward } from "@/hooks/useXPSystem";
-import { Star, Gift, Zap, Trophy, Flame } from "lucide-react";
+import { Star, Gift, Zap, Trophy, Flame, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface XPRewardModalProps {
   isOpen: boolean;
@@ -20,7 +21,6 @@ export const XPRewardModal = ({
   levelProgress
 }: XPRewardModalProps) => {
   // Cache last valid reward so content persists during Dialog close animation
-  // (prevents abrupt unmount that can leave stale overlay in DOM)
   const lastRewardRef = useRef<XPReward | null>(null);
   if (reward) lastRewardRef.current = reward;
   const displayReward = reward || lastRewardRef.current;
@@ -29,35 +29,56 @@ export const XPRewardModal = ({
 
   return (
     <Dialog open={isOpen && !!reward} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm mx-auto retro-card border-2 border-border max-h-[90vh] overflow-y-auto p-0">
-        {/* Header */}
-        <div className="bg-gradient-to-b from-primary/20 to-transparent p-6 text-center">
-          <div className="mx-auto w-14 h-14 retro-level-badge rounded-xl flex items-center justify-center mb-4">
-            <Zap className="w-7 h-7" />
-          </div>
+      <DialogContent className="retro-modal max-w-[320px] p-0 overflow-hidden border-0 max-h-[90vh] overflow-y-auto">
+        <VisuallyHidden>
+          <DialogTitle>Session Complete</DialogTitle>
+        </VisuallyHidden>
 
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+        {/* Header */}
+        <div className="retro-modal-header p-5 text-center relative">
+          <div className="retro-scanlines opacity-20" />
+
+          <div className="relative z-[1]">
+            <div
+              className="mx-auto w-14 h-14 rounded-xl flex items-center justify-center mb-3"
+              style={{
+                background: 'linear-gradient(180deg, hsl(45 90% 55%), hsl(35 85% 45%))',
+                border: '3px solid hsl(30 70% 40%)',
+                boxShadow: '0 3px 0 hsl(30 70% 30%), 0 0 15px hsl(45 100% 50% / 0.4)',
+              }}
+            >
+              <Zap className="w-7 h-7 text-amber-900" style={{ filter: 'drop-shadow(0 1px 0 rgba(255,255,255,0.3))' }} />
+            </div>
+
+            <h2
+              className="text-xl font-black uppercase tracking-tight text-white"
+              style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.5), 0 2px 0 rgba(0,0,0,0.3)' }}
+            >
               Session Complete!
-            </DialogTitle>
-          </DialogHeader>
+            </h2>
+          </div>
         </div>
 
-        <div className="px-5 pb-5 space-y-5">
-          {/* XP Gained - Big emphasis */}
-          <div className="retro-stat-pill p-4 text-center">
-            {/* Bonus XP Badge */}
+        {/* Body */}
+        <div className="p-4 space-y-4">
+          {/* XP Gained */}
+          <div className={cn("retro-reward-item legendary", "flex-col !items-center !gap-1 py-3")}>
             {displayReward.hasBonusXP && (
               <div
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full mb-2 text-xs font-bold animate-pulse"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded text-[10px] font-black uppercase tracking-wider mb-1 animate-pulse border"
                 style={{
                   background: displayReward.bonusType === 'jackpot'
-                    ? 'linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24)'
+                    ? 'linear-gradient(180deg, hsl(45 90% 55%), hsl(40 85% 45%))'
                     : displayReward.bonusType === 'super_lucky'
-                    ? 'linear-gradient(90deg, #a855f7, #8b5cf6, #a855f7)'
-                    : 'linear-gradient(90deg, #22c55e, #16a34a, #22c55e)',
+                    ? 'linear-gradient(180deg, hsl(280 70% 55%), hsl(280 75% 45%))'
+                    : 'linear-gradient(180deg, hsl(140 65% 45%), hsl(140 70% 35%))',
+                  borderColor: displayReward.bonusType === 'jackpot'
+                    ? 'hsl(35 80% 40%)'
+                    : displayReward.bonusType === 'super_lucky'
+                    ? 'hsl(280 60% 55%)'
+                    : 'hsl(140 55% 35%)',
                   color: 'white',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                  textShadow: '0 1px 0 rgba(0,0,0,0.3)',
                 }}
               >
                 <Flame className="w-3 h-3" />
@@ -66,32 +87,33 @@ export const XPRewardModal = ({
                 {displayReward.bonusType === 'lucky' && 'LUCKY! +25% XP'}
               </div>
             )}
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <Star className="w-5 h-5 text-yellow-500" />
-              <span className="text-2xl font-bold tabular-nums">
+            <div className="flex items-center justify-center gap-2">
+              <Star className="w-5 h-5 text-amber-400" style={{ filter: 'drop-shadow(0 0 4px hsl(45 100% 50% / 0.6))' }} />
+              <span className="text-2xl font-black tabular-nums text-amber-300" style={{ textShadow: '0 0 8px hsl(45 100% 50% / 0.4)' }}>
                 +{displayReward.xpGained}
               </span>
-              <span className="text-sm font-semibold text-muted-foreground">XP</span>
+              <span className="text-sm font-bold text-amber-400/70">XP</span>
             </div>
             {displayReward.hasBonusXP && displayReward.bonusXP > 0 && (
-              <p className="text-xs text-green-500 font-semibold">
+              <p className="text-[10px] text-green-400 font-bold">
                 (+{displayReward.bonusXP} bonus XP!)
               </p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] text-amber-400/50">
               Great focus session!
             </p>
           </div>
 
           {/* Level Progress Bar */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <div className="retro-level-badge px-2 py-0.5 text-xs">
-                  <span className="font-bold">LV.{newLevel}</span>
-                </div>
+            <div className="flex items-center justify-between">
+              <div className="retro-level-badge px-2 py-0.5 text-xs">
+                <span className="font-bold">LV.{newLevel}</span>
               </div>
-              <span className="text-xs font-mono text-muted-foreground">
+              <span
+                className="text-xs font-mono font-bold"
+                style={{ color: 'hsl(260 20% 65%)' }}
+              >
                 {Math.round(levelProgress)}%
               </span>
             </div>
@@ -107,20 +129,25 @@ export const XPRewardModal = ({
 
           {/* Level Up Celebration */}
           {displayReward.leveledUp && (
-            <div className="relative overflow-hidden rounded-lg p-4 text-center"
+            <div
+              className="relative overflow-hidden rounded-lg p-4 text-center animate-pulse"
               style={{
                 background: 'linear-gradient(180deg, hsl(45 100% 60%) 0%, hsl(40 90% 50%) 100%)',
-                border: '2px solid hsl(35 80% 40%)',
-                boxShadow: '0 3px 0 hsl(35 70% 30%), inset 0 1px 0 hsl(50 100% 80% / 0.5)'
+                border: '3px solid hsl(35 80% 40%)',
+                boxShadow: '0 4px 0 hsl(35 70% 30%), inset 0 1px 0 hsl(50 100% 80% / 0.5), 0 0 20px hsl(45 100% 50% / 0.4)',
               }}
             >
               <div className="flex items-center justify-center gap-2 mb-1">
                 <Trophy className="w-6 h-6 text-amber-900" />
-                <span className="text-lg font-bold text-amber-900">
-                  LEVEL UP!
+                <span
+                  className="text-lg font-black uppercase tracking-wide text-amber-900"
+                  style={{ textShadow: '0 1px 0 hsl(45 100% 70% / 0.5)' }}
+                >
+                  Level Up!
                 </span>
+                <Sparkles className="w-5 h-5 text-amber-700 animate-spin" style={{ animationDuration: '3s' }} />
               </div>
-              <p className="text-sm text-amber-800 font-medium">
+              <p className="text-sm text-amber-800 font-bold">
                 You reached Level {displayReward.newLevel}!
               </p>
             </div>
@@ -128,34 +155,62 @@ export const XPRewardModal = ({
 
           {/* Unlocked Rewards */}
           {displayReward.unlockedRewards.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Gift className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold">New Unlocks</span>
+            <div className="space-y-2">
+              <div
+                className="text-[9px] font-black uppercase tracking-[0.2em] text-center"
+                style={{ color: 'hsl(260 25% 45%)' }}
+              >
+                <Gift className="w-3 h-3 inline mr-1" />
+                New Unlocks
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {displayReward.unlockedRewards.map((unlock, index) => (
                   <div
                     key={index}
-                    className="retro-stat-pill p-3"
+                    className={cn(
+                      "retro-reward-item",
+                      unlock.type === 'biome' ? '' : 'epic'
+                    )}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-sm">{unlock.name}</span>
-                      <Badge
-                        className={`text-[10px] px-2 py-0.5 ${
-                          unlock.type === 'biome'
-                            ? 'bg-primary/20 text-primary border-primary/30'
-                            : 'bg-pink-500/20 text-pink-600 border-pink-500/30'
-                        }`}
-                        variant="outline"
-                      >
-                        {unlock.type === 'biome' ? 'World' : 'Pet'}
-                      </Badge>
+                    <div
+                      className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: unlock.type === 'biome'
+                          ? 'linear-gradient(180deg, hsl(260 30% 22%), hsl(260 35% 16%))'
+                          : 'linear-gradient(180deg, hsl(320 35% 25%), hsl(320 30% 18%))',
+                        border: unlock.type === 'biome'
+                          ? '2px solid hsl(260 35% 30%)'
+                          : '2px solid hsl(320 40% 35%)',
+                      }}
+                    >
+                      {unlock.type === 'biome' ? (
+                        <span className="text-sm">🌍</span>
+                      ) : (
+                        <span className="text-sm">🐾</span>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {unlock.description}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-purple-100/90">{unlock.name}</span>
+                        <span
+                          className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded"
+                          style={{
+                            background: unlock.type === 'biome'
+                              ? 'hsl(260 40% 30%)'
+                              : 'hsl(320 40% 30%)',
+                            color: unlock.type === 'biome'
+                              ? 'hsl(260 60% 75%)'
+                              : 'hsl(320 60% 75%)',
+                          }}
+                        >
+                          {unlock.type === 'biome' ? 'World' : 'Pet'}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-purple-300/50">
+                        {unlock.description}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -165,14 +220,7 @@ export const XPRewardModal = ({
           {/* Continue Button */}
           <button
             onClick={onClose}
-            className="w-full py-3 px-6 font-bold text-sm rounded-lg transition-all active:scale-95 touch-manipulation"
-            style={{
-              background: 'linear-gradient(180deg, hsl(260 60% 60%) 0%, hsl(260 60% 50%) 100%)',
-              border: '2px solid hsl(260 50% 40%)',
-              boxShadow: '0 3px 0 hsl(260 50% 35%), inset 0 1px 0 hsl(260 70% 75% / 0.4)',
-              color: 'white',
-              textShadow: '0 1px 0 hsl(260 50% 30% / 0.3)'
-            }}
+            className="retro-arcade-btn retro-arcade-btn-purple w-full py-3 text-sm tracking-wider touch-manipulation"
           >
             Continue
           </button>

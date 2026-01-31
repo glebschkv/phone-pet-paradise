@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { Button } from '@/components/ui/button';
 import { useMilestoneCelebrations } from '@/hooks/useMilestoneCelebrations';
 import { cn } from '@/lib/utils';
 import { Milestone } from '@/data/GamificationData';
-import { PartyPopper, Sparkles, Star, Gift } from 'lucide-react';
+import { Sparkles, Gift } from 'lucide-react';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 
 interface MilestoneCelebrationProps {
@@ -15,13 +14,11 @@ interface MilestoneCelebrationProps {
 export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProps) => {
   const { showCelebration, pendingCelebration, dismissCelebration, getCelebrationType } = useMilestoneCelebrations();
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: string; delay: number }[]>([]);
-  // Cache last valid celebration data so content persists during Dialog close animation
   const lastCelebrationRef = useRef<Milestone | null>(null);
   if (pendingCelebration) lastCelebrationRef.current = pendingCelebration;
 
   const celebrationType = getCelebrationType();
 
-  // Generate celebration particles
   useEffect(() => {
     if (showCelebration && pendingCelebration) {
       const newParticles = [];
@@ -55,19 +52,6 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
     }
   };
 
-  const getBackgroundGradient = (type: string | null): string => {
-    switch (type) {
-      case 'fireworks':
-        return 'from-indigo-900 via-purple-900 to-pink-900';
-      case 'stars':
-        return 'from-yellow-900 via-amber-800 to-orange-900';
-      case 'rainbow':
-        return 'from-pink-500 via-purple-500 to-blue-500';
-      default:
-        return 'from-blue-600 via-purple-600 to-pink-600';
-    }
-  };
-
   const handleClaim = () => {
     if (pendingCelebration && onClaimReward) {
       onClaimReward(pendingCelebration);
@@ -80,16 +64,15 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
 
   return (
     <Dialog open={showCelebration && !!pendingCelebration} onOpenChange={handleClaim}>
-      <DialogContent className="max-w-sm p-0 overflow-hidden border-0">
+      <DialogContent className="retro-modal max-w-[320px] p-0 overflow-hidden border-0">
         <VisuallyHidden>
           <DialogTitle>Milestone Celebration</DialogTitle>
         </VisuallyHidden>
-        {/* Celebration background */}
-        <div className={cn(
-          "relative min-h-[400px] flex flex-col items-center justify-center p-6",
-          "bg-gradient-to-br",
-          getBackgroundGradient(celebrationType)
-        )}>
+
+        {/* Header with particles */}
+        <div className="retro-modal-header relative overflow-hidden" style={{ padding: '32px 24px 24px' }}>
+          <div className="retro-scanlines opacity-15" />
+
           {/* Animated particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {particles.map(particle => (
@@ -98,10 +81,10 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
                 className="absolute animate-celebration-particle"
                 style={{
                   left: `${particle.x}%`,
-                  top: `-10%`,
+                  top: '-10%',
                   backgroundColor: particle.color,
-                  width: celebrationType === 'stars' ? '12px' : '8px',
-                  height: celebrationType === 'stars' ? '12px' : '8px',
+                  width: celebrationType === 'stars' ? '10px' : '6px',
+                  height: celebrationType === 'stars' ? '10px' : '6px',
                   borderRadius: celebrationType === 'stars' ? '0' : '50%',
                   transform: celebrationType === 'stars' ? 'rotate(45deg)' : 'none',
                   animationDelay: `${particle.delay}s`,
@@ -111,82 +94,112 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
             ))}
           </div>
 
-          {/* Glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-
           {/* Content */}
-          <div className="relative z-10 text-center space-y-4">
+          <div className="relative z-[1] text-center">
             {/* Icon */}
-            <div className="relative inline-block">
-              <div className="animate-bounce">
-                <PixelIcon name={displayCelebration.emoji} size={96} />
+            <div className="relative inline-block mb-3">
+              <div
+                className="absolute inset-0 rounded-full blur-xl scale-[2.5]"
+                style={{ background: 'hsl(45 100% 50% / 0.2)' }}
+              />
+              <div className="relative animate-bounce" style={{ animationDuration: '2s' }}>
+                <PixelIcon name={displayCelebration.emoji} size={80} />
               </div>
-              <div className="absolute -top-2 -right-2">
-                {celebrationType === 'stars' ? (
-                  <Star className="w-8 h-8 text-yellow-400 fill-yellow-400 animate-pulse" />
-                ) : celebrationType === 'fireworks' ? (
-                  <Sparkles className="w-8 h-8 text-yellow-400 animate-ping" />
-                ) : (
-                  <PartyPopper className="w-8 h-8 text-white animate-pulse" />
-                )}
+              <div className="absolute -top-1 -right-1">
+                <Sparkles className="w-6 h-6 text-amber-300 animate-ping" style={{ animationDuration: '2s' }} />
               </div>
             </div>
 
             {/* Title */}
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-1 animate-in slide-in-from-bottom duration-500">
-                {displayCelebration.title}
-              </h2>
-              <p className="text-white/80 text-lg animate-in slide-in-from-bottom duration-700">
-                {displayCelebration.description}
-              </p>
-            </div>
+            <h2
+              className="text-2xl font-black uppercase tracking-tight text-white mb-1"
+              style={{ textShadow: '0 0 15px hsl(45 100% 50% / 0.5), 0 0 30px hsl(280 80% 60% / 0.3), 0 2px 0 rgba(0,0,0,0.3)' }}
+            >
+              {displayCelebration.title}
+            </h2>
+            <p className="text-sm text-purple-200/80" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}>
+              {displayCelebration.description}
+            </p>
+          </div>
+        </div>
 
-            {/* Rewards */}
-            {displayCelebration.rewards && (
-              <div className="flex items-center justify-center gap-4 mt-4 animate-in fade-in duration-1000">
+        {/* Body */}
+        <div className="p-4 space-y-3">
+          {/* Rewards */}
+          {displayCelebration.rewards && (
+            <div className="space-y-1.5">
+              <div
+                className="text-[9px] font-black uppercase tracking-[0.2em] text-center"
+                style={{ color: 'hsl(260 25% 45%)' }}
+              >
+                Rewards
+              </div>
+              <div className="space-y-1.5">
                 {displayCelebration.rewards.xp && (
-                  <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
-                    <div className="text-2xl font-bold text-yellow-400">+{displayCelebration.rewards.xp}</div>
-                    <div className="text-white/70 text-sm">XP</div>
+                  <div className="retro-reward-item legendary">
+                    <div
+                      className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: 'hsl(260 30% 18%)',
+                        border: '2px solid hsl(260 35% 30%)',
+                      }}
+                    >
+                      <PixelIcon name="star" size={16} />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-sm font-bold text-amber-300">+{displayCelebration.rewards.xp} XP</span>
+                    </div>
                   </div>
                 )}
                 {displayCelebration.rewards.coins && (
-                  <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
-                    <div className="text-2xl font-bold text-amber-400">+{displayCelebration.rewards.coins}</div>
-                    <div className="text-white/70 text-sm">Coins</div>
+                  <div className="retro-reward-item legendary">
+                    <div
+                      className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: 'hsl(260 30% 18%)',
+                        border: '2px solid hsl(260 35% 30%)',
+                      }}
+                    >
+                      <PixelIcon name="coin" size={16} />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-sm font-bold text-amber-300">+{displayCelebration.rewards.coins} Coins</span>
+                    </div>
                   </div>
                 )}
                 {displayCelebration.rewards.badge && (
-                  <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
-                    <PixelIcon name="sports-medal" size={28} />
-                    <div className="text-white/70 text-sm">Badge</div>
+                  <div className="retro-reward-item epic">
+                    <div
+                      className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: 'hsl(280 30% 20%)',
+                        border: '2px solid hsl(280 40% 35%)',
+                      }}
+                    >
+                      <PixelIcon name="sports-medal" size={16} />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-sm font-bold text-purple-200/90">New Badge!</span>
+                    </div>
                   </div>
                 )}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Claim button */}
-            <Button
-              size="lg"
-              onClick={handleClaim}
-              className="mt-6 bg-white text-purple-600 hover:bg-white/90 font-bold px-8 animate-in slide-in-from-bottom duration-1000"
-            >
-              <Gift className="w-5 h-5 mr-2" />
-              Claim Rewards!
-            </Button>
-          </div>
+          {/* Claim button */}
+          <button
+            onClick={handleClaim}
+            className={cn(
+              "retro-arcade-btn retro-arcade-btn-green w-full py-3 text-sm tracking-wider touch-manipulation",
+              "flex items-center justify-center gap-2"
+            )}
+          >
+            <Gift className="w-5 h-5" />
+            Claim Rewards!
+          </button>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
-
-// Add this CSS to your global styles for the particle animation
-// @keyframes celebration-particle {
-//   0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-//   100% { transform: translateY(500px) rotate(720deg); opacity: 0; }
-// }
-// .animate-celebration-particle {
-//   animation: celebration-particle 2s ease-out forwards;
-// }
