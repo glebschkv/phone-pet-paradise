@@ -19,7 +19,6 @@ import {
 import type { ShopInventory } from "@/hooks/useShop";
 import { AnimalData, getAnimalById } from "@/data/AnimalDatabase";
 import { SpritePreview, BundlePreviewCarousel } from "../ShopPreviewComponents";
-import { RARITY_BG, RARITY_BORDER } from "../styles";
 
 interface BundlesTabProps {
   inventory: ShopInventory;
@@ -139,13 +138,8 @@ const PetBundleCard = ({
     <button
       onClick={handleClick}
       className={cn(
-        "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden",
-        allOwned
-          ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-          : partialOwned
-          ? "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700"
-          : RARITY_BG[bundle.rarity || 'common'],
-        !allOwned && RARITY_BORDER[bundle.rarity || 'common']
+        "shop-list-card",
+        allOwned ? "green" : partialOwned ? "amber" : ""
       )}
     >
       <div className="flex items-start gap-3">
@@ -289,10 +283,8 @@ const BackgroundBundleCard = ({
     <button
       onClick={handleClick}
       className={cn(
-        "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2 overflow-hidden",
-        owned
-          ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-          : "bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border-sky-200 dark:border-sky-700"
+        "shop-list-card",
+        owned && "green"
       )}
     >
       <div className="flex items-start gap-3">

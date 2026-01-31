@@ -223,10 +223,8 @@ export const FeaturedTab = ({
                   setShowBundleConfirm(true);
                 }}
                 className={cn(
-                  "w-full p-3 rounded-xl text-left transition-all active:scale-[0.98] border-2",
-                  alreadyPurchased
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                    : "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-700"
+                  "shop-list-card",
+                  alreadyPurchased ? "green" : "purple"
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -270,7 +268,7 @@ export const FeaturedTab = ({
             setSelectedBundle(bestValuePack);
             setShowBundleConfirm(true);
           }}
-          className="w-full p-4 rounded-xl text-left bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 active:scale-[0.98] transition-transform"
+          className="shop-list-card amber best-value"
         >
           <div className="flex items-center gap-3">
             <PixelIcon name="trophy" size={36} />
