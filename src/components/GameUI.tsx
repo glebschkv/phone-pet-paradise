@@ -35,7 +35,7 @@ export const GameUI = () => {
     const themeColors: Record<string, string> = {
       home: 'hsl(200, 60%, 85%)',
       timer: 'hsl(200, 60%, 85%)',
-      collection: 'hsl(255, 30%, 14%)',
+      collection: 'hsl(252, 40%, 16%)',
       settings: 'hsl(200, 60%, 85%)',
       shop: 'hsl(45, 50%, 92%)',
       challenges: 'hsl(280, 25%, 8%)',
