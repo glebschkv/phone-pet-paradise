@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { Timer, Home, ShoppingBag, Grid3X3, Settings, Sparkles, ChevronUp, Trophy } from "lucide-react";
+import { Timer, Home, ShoppingBag, Grid3X3, Settings, ChevronUp, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TabBarProps {
@@ -138,13 +138,6 @@ export const IOSTabBar = ({ activeTab, onTabChange, isCompact = false, onCompact
                 )}
               >
                 <Icon className="dock-item-icon" strokeWidth={2.5} />
-                {/* Sparkle effect when active */}
-                {isActive && !isCompact && (
-                  <Sparkles
-                    className="absolute -top-1 -right-1 w-4 h-4 text-yellow-300 animate-pulse"
-                    strokeWidth={2}
-                  />
-                )}
                 {/* Expand indicator when compact */}
                 {isCompact && (
                   <ChevronUp
