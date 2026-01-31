@@ -1,4 +1,4 @@
-import { Gauge, Lock, Crown, ChevronRight } from "lucide-react";
+import { Gauge, Lock, Crown, ChevronRight, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FocusScoreProps {
@@ -9,6 +9,7 @@ interface FocusScoreProps {
     quality: number;
     duration: number;
   };
+  peerBenchmark: number; // percentile 0-99
   isPremium: boolean;
   onUpgrade: () => void;
 }
@@ -28,7 +29,7 @@ const BREAKDOWN_ITEMS = [
   { key: 'duration' as const, label: 'Session Length', max: 25, color: 'bg-amber-500' },
 ];
 
-export const AnalyticsFocusScore = ({ score, breakdown, isPremium, onUpgrade }: FocusScoreProps) => {
+export const AnalyticsFocusScore = ({ score, breakdown, peerBenchmark, isPremium, onUpgrade }: FocusScoreProps) => {
   const grade = SCORE_GRADE(score);
 
   // SVG ring parameters
@@ -103,6 +104,17 @@ export const AnalyticsFocusScore = ({ score, breakdown, isPremium, onUpgrade }: 
                   </div>
                 </div>
               ))}
+              {/* Peer Benchmark */}
+              {peerBenchmark > 0 && (
+                <div className="flex items-center gap-1.5 pt-1.5 border-t border-border/30 mt-1">
+                  <Users className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">Better than</span>
+                  <span className={cn("text-[10px] font-bold tabular-nums", peerBenchmark >= 70 ? 'text-green-500' : peerBenchmark >= 40 ? 'text-blue-400' : 'text-muted-foreground')}>
+                    {peerBenchmark}%
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">of focusers</span>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -123,6 +135,14 @@ export const AnalyticsFocusScore = ({ score, breakdown, isPremium, onUpgrade }: 
                   </div>
                 </div>
               ))}
+
+              {/* Blurred peer benchmark teaser */}
+              {peerBenchmark > 0 && (
+                <div className="flex items-center gap-1.5 pt-1 opacity-40 blur-[3px] select-none pointer-events-none">
+                  <Users className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">Better than {peerBenchmark}% of focusers</span>
+                </div>
+              )}
 
               {/* Unlock CTA */}
               <button

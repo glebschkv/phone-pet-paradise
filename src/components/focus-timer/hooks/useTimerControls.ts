@@ -8,7 +8,7 @@
 import { useCallback } from "react";
 import { toast } from 'sonner';
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { FocusCategory } from "@/types/analytics";
+import { FocusCategory, FocusQuality } from "@/types/analytics";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { TimerState } from "./useTimerPersistence";
 
@@ -154,15 +154,29 @@ export const useTimerControls = ({
       elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
     }
 
-    if (timerState.sessionType !== 'break' && timerState.sessionType !== 'countup' && hasAppsConfigured) {
-      await stopAppBlocking();
-    }
-    // Also stop blocking for countup mode
-    if (timerState.sessionType === 'countup' && hasAppsConfigured) {
-      await stopAppBlocking();
+    // Stop app blocking with error handling — always clean up even if this fails
+    let shieldAttempts = 0;
+    const isWorkSession = timerState.sessionType !== 'break';
+    if (isWorkSession && hasAppsConfigured) {
+      try {
+        const result = await stopAppBlocking();
+        shieldAttempts = result.shieldAttempts;
+      } catch (e) {
+        console.error('Failed to stop app blocking:', e);
+      }
     }
 
-    if (timerState.isRunning && elapsedSeconds > 60) {
+    // Determine focus quality for abandoned sessions
+    let focusQuality: FocusQuality | undefined;
+    if (isWorkSession && elapsedSeconds > 0) {
+      focusQuality = shieldAttempts === 0 && hasAppsConfigured
+        ? 'perfect'
+        : shieldAttempts <= 2 && hasAppsConfigured
+          ? 'good'
+          : 'distracted';
+    }
+
+    if (timerState.isRunning && elapsedSeconds > 10) {
       recordSession(
         timerState.sessionType,
         timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
@@ -170,7 +184,10 @@ export const useTimerControls = ({
         'abandoned',
         0,
         timerState.category,
-        timerState.taskLabel
+        timerState.taskLabel,
+        isWorkSession ? shieldAttempts : undefined,
+        focusQuality,
+        hasAppsConfigured,
       );
     }
 
@@ -223,9 +240,17 @@ export const useTimerControls = ({
     }
 
     const completedMinutes = Math.ceil(elapsedSeconds / 60);
+    const isWorkSession = timerState.sessionType !== 'break';
 
-    if (timerState.sessionType !== 'break' && hasAppsConfigured) {
-      await stopAppBlocking();
+    // Stop app blocking with error handling
+    let shieldAttempts = 0;
+    if (isWorkSession && hasAppsConfigured) {
+      try {
+        const result = await stopAppBlocking();
+        shieldAttempts = result.shieldAttempts;
+      } catch (e) {
+        console.error('Failed to stop app blocking:', e);
+      }
     }
 
     if (intervalRef.current) {
@@ -237,7 +262,7 @@ export const useTimerControls = ({
 
     let xpEarned = 0;
     // Both countdown and countup focus sessions can earn XP
-    if (timerState.sessionType !== 'break' && completedMinutes >= 25) {
+    if (isWorkSession && completedMinutes >= 25) {
       try {
         const reward = await awardXP(completedMinutes);
         xpEarned = reward?.xpGained || 0;
@@ -258,7 +283,17 @@ export const useTimerControls = ({
       });
     }
 
-    if (elapsedSeconds > 60) {
+    // Determine focus quality for skipped sessions
+    let focusQuality: FocusQuality | undefined;
+    if (isWorkSession && elapsedSeconds > 0) {
+      focusQuality = shieldAttempts === 0 && hasAppsConfigured
+        ? 'perfect'
+        : shieldAttempts <= 2 && hasAppsConfigured
+          ? 'good'
+          : 'distracted';
+    }
+
+    if (elapsedSeconds > 10) {
       recordSession(
         timerState.sessionType,
         timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
@@ -266,7 +301,10 @@ export const useTimerControls = ({
         'skipped',
         xpEarned,
         timerState.category,
-        timerState.taskLabel
+        timerState.taskLabel,
+        isWorkSession ? shieldAttempts : undefined,
+        focusQuality,
+        hasAppsConfigured,
       );
     }
 

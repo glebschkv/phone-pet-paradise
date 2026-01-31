@@ -6,6 +6,9 @@ import { AnalyticsStatCards } from "./AnalyticsStatCards";
 import { AnalyticsGoalRing } from "./AnalyticsGoalRing";
 import { AnalyticsWeeklyChart } from "./AnalyticsWeeklyChart";
 import { AnalyticsFocusScore } from "./AnalyticsFocusScore";
+import { AnalyticsFocusScoreTrend } from "./AnalyticsFocusScoreTrend";
+import { AnalyticsWeeklyReport } from "./AnalyticsWeeklyReport";
+import { AnalyticsStreakAlert } from "./AnalyticsStreakAlert";
 import { AnalyticsHeatmap } from "./AnalyticsHeatmap";
 import { AnalyticsBestHours } from "./AnalyticsBestHours";
 import { AnalyticsSessionHistory } from "./AnalyticsSessionHistory";
@@ -27,6 +30,7 @@ import {
   LayoutGrid,
   CalendarDays,
   Clock,
+  Sparkles,
 } from "lucide-react";
 
 // Inline upgrade prompt between free sections
@@ -80,6 +84,8 @@ export const Analytics = () => {
     currentGoalStreak,
     thisWeekCategoryDistribution,
     focusScore,
+    focusScoreHistory,
+    peerBenchmark,
     focusQualityStats,
     completionTrend,
     milestones,
@@ -142,10 +148,20 @@ export const Analytics = () => {
           formatDuration={formatDuration}
         />
 
+        {/* Streak Alert — shows when streak is at risk */}
+        <AnalyticsStreakAlert
+          currentStreak={streakData.currentStreak}
+          lastSessionDate={streakData.lastSessionDate}
+          streakFreezeCount={streakData.streakFreezeCount}
+          dailyGoalMinutes={settings.dailyGoalMinutes}
+          todayFocusMinutes={Math.floor(todayStats.totalFocusTime / 60)}
+        />
+
         {/* Focus Score — Free tier shows score, premium shows breakdown */}
         <AnalyticsFocusScore
           score={focusScore.score}
           breakdown={focusScore.breakdown}
+          peerBenchmark={peerBenchmark}
           isPremium={fullAnalytics}
           onUpgrade={() => setShowPremiumModal(true)}
         />
@@ -172,8 +188,28 @@ export const Analytics = () => {
             ================================================================ */}
         {fullAnalytics ? (
           <>
+            {/* Weekly Report */}
+            <AnalyticsWeeklyReport
+              thisWeek={thisWeekStats}
+              lastWeek={lastWeekStats}
+              focusScore={focusScore.score}
+              weekOverWeekChange={weekOverWeekChange}
+              categoryDistribution={thisWeekCategoryDistribution}
+              formatDuration={formatDuration}
+              isPremium={fullAnalytics}
+              onUpgrade={() => setShowPremiumModal(true)}
+            />
+
             {/* Smart Insights */}
             <AnalyticsInsights insights={insights} />
+
+            {/* Focus Score Trend */}
+            <AnalyticsFocusScoreTrend
+              history={focusScoreHistory}
+              currentScore={focusScore.score}
+              isPremium={fullAnalytics}
+              onUpgrade={() => setShowPremiumModal(true)}
+            />
 
             {/* Category Breakdown */}
             <AnalyticsCategoryBreakdown
@@ -234,8 +270,20 @@ export const Analytics = () => {
         ) : (
           <>
             {/* ================================================================
-                LOCKED SECTION — Personalized teasers + blurred previews
+                LOCKED SECTION — Free teasers + paywall + blurred previews
                 ================================================================ */}
+
+            {/* Weekly Report teaser — free tier gets summary only */}
+            <AnalyticsWeeklyReport
+              thisWeek={thisWeekStats}
+              lastWeek={lastWeekStats}
+              focusScore={focusScore.score}
+              weekOverWeekChange={weekOverWeekChange}
+              categoryDistribution={thisWeekCategoryDistribution}
+              formatDuration={formatDuration}
+              isPremium={false}
+              onUpgrade={() => setShowPremiumModal(true)}
+            />
 
             {/* First insight teaser — show one free insight to hook users */}
             {insights.length > 0 && (
@@ -246,6 +294,14 @@ export const Analytics = () => {
                 )}
               </div>
             )}
+
+            {/* Score trend teaser — blurred sparkline */}
+            <AnalyticsFocusScoreTrend
+              history={focusScoreHistory}
+              currentScore={focusScore.score}
+              isPremium={false}
+              onUpgrade={() => setShowPremiumModal(true)}
+            />
 
             {/* Inline prompt for category */}
             <InlineUpgradePrompt
@@ -311,7 +367,7 @@ export const Analytics = () => {
 
                   {/* Feature count */}
                   <div className="flex items-center gap-3 text-[10px]" style={{ color: 'hsl(260 20% 45%)' }}>
-                    <span>12 Premium Features</span>
+                    <span>15 Premium Features</span>
                     <span>|</span>
                     <span>Unlimited History</span>
                   </div>
@@ -337,6 +393,11 @@ export const Analytics = () => {
             <InlineUpgradePrompt
               icon={CalendarDays}
               text="View your 12-week activity heatmap"
+              onClick={() => setShowPremiumModal(true)}
+            />
+            <InlineUpgradePrompt
+              icon={Sparkles}
+              text="Get AI-powered focus insights"
               onClick={() => setShowPremiumModal(true)}
             />
             <InlineUpgradePrompt
