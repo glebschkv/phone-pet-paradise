@@ -176,8 +176,12 @@ export const useTimerLogic = () => {
 
       let shieldAttempts = 0;
       if (state.timerState.sessionType !== 'break' && state.hasAppsConfigured) {
-        const blockingResult = await stopAppBlocking();
-        shieldAttempts = blockingResult.shieldAttempts;
+        try {
+          const blockingResult = await stopAppBlocking();
+          shieldAttempts = blockingResult.shieldAttempts;
+        } catch (e) {
+          console.error('Failed to stop app blocking:', e);
+        }
       }
 
       if (state.isAmbientPlaying) {
