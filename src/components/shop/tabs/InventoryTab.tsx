@@ -42,9 +42,8 @@ export const InventoryTab = ({ equipBackground }: InventoryTabProps) => {
     <div className="space-y-5">
       {/* Consumables Section */}
       <div>
-        <div className="flex items-center gap-2 mb-2.5 px-1">
-          <PixelIcon name="backpack" size={16} />
-          <h4 className="text-xs font-black uppercase tracking-wide">Consumables</h4>
+        <div className="shop-section-header">
+          <span className="shop-section-title">Consumables</span>
         </div>
         <div className="grid grid-cols-2 gap-2.5">
           {/* Streak Freezes */}
@@ -118,12 +117,13 @@ export const InventoryTab = ({ equipBackground }: InventoryTabProps) => {
 
       {/* Owned Backgrounds */}
       <div>
-        <div className="flex items-center gap-2 mb-2.5 px-1">
-          <PixelIcon name="picture-frame" size={16} />
-          <h4 className="text-xs font-black uppercase tracking-wide">Backgrounds</h4>
-          {ownedBgData.length > 0 && (
-            <span className="text-[10px] font-bold text-muted-foreground">({ownedBgData.length})</span>
-          )}
+        <div className="shop-section-header">
+          <span className="shop-section-title">
+            Backgrounds
+            {ownedBgData.length > 0 && (
+              <span className="ml-1.5 text-[10px] font-bold text-amber-700/50">({ownedBgData.length})</span>
+            )}
+          </span>
         </div>
         {ownedBgData.length > 0 ? (
           <div className="grid grid-cols-3 gap-2">
@@ -185,14 +185,15 @@ export const InventoryTab = ({ equipBackground }: InventoryTabProps) => {
 
       {/* Owned Exclusive Pets */}
       <div>
-        <div className="flex items-center gap-2 mb-2.5 px-1">
-          <PixelIcon name="paw" size={16} />
-          <h4 className="text-xs font-black uppercase tracking-wide">Exclusive Pets</h4>
-          {ownedExclusivePets.length > 0 && (
-            <span className="text-[10px] font-bold text-muted-foreground">
-              ({ownedExclusivePets.length}/{allExclusivePets.length})
-            </span>
-          )}
+        <div className="shop-section-header">
+          <span className="shop-section-title">
+            Exclusive Pets
+            {ownedExclusivePets.length > 0 && (
+              <span className="ml-1.5 text-[10px] font-bold text-amber-700/50">
+                ({ownedExclusivePets.length}/{allExclusivePets.length})
+              </span>
+            )}
+          </span>
         </div>
         {ownedExclusivePets.length > 0 ? (
           <div className="grid grid-cols-2 gap-2.5">
