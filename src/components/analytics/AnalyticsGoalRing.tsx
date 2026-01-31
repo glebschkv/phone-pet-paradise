@@ -14,8 +14,8 @@ export const AnalyticsGoalRing = ({
   goalStreak,
   formatDuration,
 }: GoalRingProps) => {
-  const percentage = Math.min(100, Math.round((currentMinutes / goalMinutes) * 100));
-  const isGoalMet = currentMinutes >= goalMinutes;
+  const percentage = goalMinutes > 0 ? Math.min(100, Math.round((currentMinutes / goalMinutes) * 100)) : 0;
+  const isGoalMet = goalMinutes > 0 && currentMinutes >= goalMinutes;
 
   // SVG circle parameters
   const size = 128;

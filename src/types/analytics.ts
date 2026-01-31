@@ -84,6 +84,8 @@ export interface DailyStats {
   hourlyFocus: Record<number, number>; // hour (0-23) -> seconds focused
   // Category breakdown for task/intention tracking
   categoryTime?: Partial<Record<FocusCategory, number>>; // category -> seconds focused
+  // Focus score snapshot (recorded daily for trend tracking)
+  focusScore?: number;
 }
 
 export interface AnalyticsSettings {

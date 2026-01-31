@@ -52,22 +52,26 @@ export const useAnalytics = () => {
 
   // Load data from localStorage on mount
   useEffect(() => {
-    const loadedSessions = storage.get<FocusSession[]>(STORAGE_KEYS.ANALYTICS_SESSIONS) || [];
-    const loadedDailyStats = storage.get<Record<string, DailyStats>>(STORAGE_KEYS.ANALYTICS_DAILY_STATS) || {};
-    const loadedSettings = storage.get<AnalyticsSettings>(STORAGE_KEYS.ANALYTICS_SETTINGS) || DEFAULT_ANALYTICS_SETTINGS;
-    const loadedRecords = storage.get<PersonalRecords>(STORAGE_KEYS.ANALYTICS_RECORDS) || {
-      ...DEFAULT_PERSONAL_RECORDS,
-      joinedDate: getTodayString(),
-    };
+    try {
+      const loadedSessions = storage.get<FocusSession[]>(STORAGE_KEYS.ANALYTICS_SESSIONS) || [];
+      const loadedDailyStats = storage.get<Record<string, DailyStats>>(STORAGE_KEYS.ANALYTICS_DAILY_STATS) || {};
+      const loadedSettings = storage.get<AnalyticsSettings>(STORAGE_KEYS.ANALYTICS_SETTINGS) || DEFAULT_ANALYTICS_SETTINGS;
+      const loadedRecords = storage.get<PersonalRecords>(STORAGE_KEYS.ANALYTICS_RECORDS) || {
+        ...DEFAULT_PERSONAL_RECORDS,
+        joinedDate: getTodayString(),
+      };
 
-    setSessions(loadedSessions);
-    setDailyStats(loadedDailyStats);
-    setSettings(loadedSettings);
-    setRecords(loadedRecords);
+      setSessions(loadedSessions);
+      setDailyStats(loadedDailyStats);
+      setSettings(loadedSettings);
+      setRecords(loadedRecords);
 
-    // Calculate current goal streak
-    const streak = calculateGoalStreak(loadedDailyStats, loadedSettings.dailyGoalMinutes);
-    setCurrentGoalStreak(streak);
+      // Calculate current goal streak
+      const streak = calculateGoalStreak(loadedDailyStats, loadedSettings.dailyGoalMinutes);
+      setCurrentGoalStreak(streak);
+    } catch (e) {
+      console.error('Failed to load analytics data:', e);
+    }
     setIsLoaded(true);
   }, []);
 
@@ -80,25 +84,25 @@ export const useAnalytics = () => {
 
     const prunedSessions = newSessions.filter(s => s.startTime >= cutoffTimestamp);
     setSessions(prunedSessions);
-    storage.set(STORAGE_KEYS.ANALYTICS_SESSIONS, prunedSessions);
+    try { storage.set(STORAGE_KEYS.ANALYTICS_SESSIONS, prunedSessions); } catch (e) { console.error('Failed to save sessions:', e); }
   }, []);
 
   // Save daily stats
   const saveDailyStats = useCallback((newStats: Record<string, DailyStats>) => {
     setDailyStats(newStats);
-    storage.set(STORAGE_KEYS.ANALYTICS_DAILY_STATS, newStats);
+    try { storage.set(STORAGE_KEYS.ANALYTICS_DAILY_STATS, newStats); } catch (e) { console.error('Failed to save daily stats:', e); }
   }, []);
 
   // Save settings
   const saveSettings = useCallback((newSettings: AnalyticsSettings) => {
     setSettings(newSettings);
-    storage.set(STORAGE_KEYS.ANALYTICS_SETTINGS, newSettings);
+    try { storage.set(STORAGE_KEYS.ANALYTICS_SETTINGS, newSettings); } catch (e) { console.error('Failed to save settings:', e); }
   }, []);
 
   // Save records
   const saveRecords = useCallback((newRecords: PersonalRecords) => {
     setRecords(newRecords);
-    storage.set(STORAGE_KEYS.ANALYTICS_RECORDS, newRecords);
+    try { storage.set(STORAGE_KEYS.ANALYTICS_RECORDS, newRecords); } catch (e) { console.error('Failed to save records:', e); }
   }, []);
 
   // Calculate goal streak from daily stats
@@ -136,8 +140,14 @@ export const useAnalytics = () => {
     focusQuality?: FocusQuality,
     appsBlocked?: boolean,
   ) => {
+    // Input validation — clamp values to sane ranges
+    const safePlanned = Math.max(0, Math.min(plannedDuration, 86400)); // max 24h
+    const safeActual = Math.max(0, Math.min(actualDuration, 86400));
+    const safeXp = Math.max(0, xpEarned);
+    const safeShieldAttempts = shieldAttempts !== undefined ? Math.max(0, shieldAttempts) : undefined;
+
     const now = Date.now();
-    const startTime = now - (actualDuration * 1000);
+    const startTime = now - (safeActual * 1000);
     const dateStr = getDateString(startTime);
     const hour = getHour(startTime);
 
@@ -146,14 +156,14 @@ export const useAnalytics = () => {
       id: generateId(),
       startTime,
       endTime: now,
-      plannedDuration,
-      actualDuration,
+      plannedDuration: safePlanned,
+      actualDuration: safeActual,
       sessionType,
       status,
-      xpEarned,
+      xpEarned: safeXp,
       category,
       taskLabel,
-      shieldAttempts,
+      shieldAttempts: safeShieldAttempts,
       focusQuality,
       appsBlocked,
     };
@@ -167,71 +177,77 @@ export const useAnalytics = () => {
     const isWorkSession = sessionType !== 'break';
 
     const newHourlyFocus = { ...existingStats.hourlyFocus };
-    if (isWorkSession && status === 'completed') {
-      newHourlyFocus[hour] = (newHourlyFocus[hour] || 0) + actualDuration;
+    if (isWorkSession && status !== 'abandoned') {
+      newHourlyFocus[hour] = (newHourlyFocus[hour] || 0) + safeActual;
     }
 
     // Update category time tracking
     const newCategoryTime = { ...(existingStats.categoryTime || {}) };
-    if (isWorkSession && status === 'completed' && category) {
-      newCategoryTime[category] = (newCategoryTime[category] || 0) + actualDuration;
+    if (isWorkSession && status !== 'abandoned' && category) {
+      newCategoryTime[category] = (newCategoryTime[category] || 0) + safeActual;
     }
 
     const updatedStats: DailyStats = {
       ...existingStats,
-      totalFocusTime: existingStats.totalFocusTime + (isWorkSession ? actualDuration : 0),
-      totalBreakTime: existingStats.totalBreakTime + (!isWorkSession ? actualDuration : 0),
+      totalFocusTime: existingStats.totalFocusTime + (isWorkSession ? safeActual : 0),
+      totalBreakTime: existingStats.totalBreakTime + (!isWorkSession ? safeActual : 0),
       sessionsCompleted: existingStats.sessionsCompleted + (status === 'completed' && isWorkSession ? 1 : 0),
       sessionsAbandoned: existingStats.sessionsAbandoned + (status === 'abandoned' ? 1 : 0),
       longestSession: isWorkSession && status === 'completed'
-        ? Math.max(existingStats.longestSession, actualDuration)
+        ? Math.max(existingStats.longestSession, safeActual)
         : existingStats.longestSession,
-      goalMet: (existingStats.totalFocusTime + (isWorkSession ? actualDuration : 0)) >= settings.dailyGoalMinutes * 60,
+      goalMet: (existingStats.totalFocusTime + (isWorkSession ? safeActual : 0)) >= settings.dailyGoalMinutes * 60,
       hourlyFocus: newHourlyFocus,
       categoryTime: newCategoryTime,
     };
+
+    // Snapshot focus score for today (used for trend tracking)
+    updatedStats.focusScore = focusScore.score;
 
     const newDailyStats = { ...dailyStats, [dateStr]: updatedStats };
     saveDailyStats(newDailyStats);
 
     // Update personal records
-    if (isWorkSession && status === 'completed') {
+    // Track total focus time for ALL work sessions (matches dailyStats accumulation)
+    if (isWorkSession) {
       const newRecords = { ...records };
       let recordsUpdated = false;
 
-      // Longest session
-      if (actualDuration > records.longestSession) {
-        newRecords.longestSession = actualDuration;
-        newRecords.longestSessionDate = dateStr;
-        recordsUpdated = true;
-      }
-
-      // Most focus in a day
-      if (updatedStats.totalFocusTime > records.mostFocusInDay) {
-        newRecords.mostFocusInDay = updatedStats.totalFocusTime;
-        newRecords.mostFocusInDayDate = dateStr;
-        recordsUpdated = true;
-      }
-
-      // Most sessions in a day
-      if (updatedStats.sessionsCompleted > records.mostSessionsInDay) {
-        newRecords.mostSessionsInDay = updatedStats.sessionsCompleted;
-        newRecords.mostSessionsInDayDate = dateStr;
-        recordsUpdated = true;
-      }
-
-      // Update totals
-      newRecords.totalFocusTime = records.totalFocusTime + actualDuration;
-      newRecords.totalSessions = records.totalSessions + 1;
+      // Total focus time — counts all work session time (completed, skipped, abandoned)
+      // This keeps records.totalFocusTime consistent with sum of dailyStats.totalFocusTime
+      newRecords.totalFocusTime = records.totalFocusTime + safeActual;
       recordsUpdated = true;
 
-      // Check goal streak
-      const newGoalStreak = calculateGoalStreak(newDailyStats, settings.dailyGoalMinutes);
-      setCurrentGoalStreak(newGoalStreak);
+      if (status === 'completed') {
+        // Completed session count
+        newRecords.totalSessions = records.totalSessions + 1;
 
-      if (newGoalStreak > records.longestGoalStreak) {
-        newRecords.longestGoalStreak = newGoalStreak;
-        newRecords.longestGoalStreakDate = dateStr;
+        // Longest session
+        if (safeActual > records.longestSession) {
+          newRecords.longestSession = safeActual;
+          newRecords.longestSessionDate = dateStr;
+        }
+
+        // Most focus in a day
+        if (updatedStats.totalFocusTime > records.mostFocusInDay) {
+          newRecords.mostFocusInDay = updatedStats.totalFocusTime;
+          newRecords.mostFocusInDayDate = dateStr;
+        }
+
+        // Most sessions in a day
+        if (updatedStats.sessionsCompleted > records.mostSessionsInDay) {
+          newRecords.mostSessionsInDay = updatedStats.sessionsCompleted;
+          newRecords.mostSessionsInDayDate = dateStr;
+        }
+
+        // Check goal streak
+        const newGoalStreak = calculateGoalStreak(newDailyStats, settings.dailyGoalMinutes);
+        setCurrentGoalStreak(newGoalStreak);
+
+        if (newGoalStreak > records.longestGoalStreak) {
+          newRecords.longestGoalStreak = newGoalStreak;
+          newRecords.longestGoalStreakDate = dateStr;
+        }
       }
 
       if (recordsUpdated) {
@@ -240,7 +256,7 @@ export const useAnalytics = () => {
     }
 
     return session;
-  }, [sessions, dailyStats, records, settings.dailyGoalMinutes, saveSessions, saveDailyStats, saveRecords]);
+  }, [sessions, dailyStats, records, settings.dailyGoalMinutes, focusScore.score, saveSessions, saveDailyStats, saveRecords]);
 
   // Update analytics settings
   const updateSettings = useCallback((updates: Partial<AnalyticsSettings>) => {
@@ -410,7 +426,7 @@ export const useAnalytics = () => {
       s.startTime > Date.now() - (30 * 24 * 60 * 60 * 1000) // Last 30 days
     );
 
-    if (recentSessions.length === 0) return 100;
+    if (recentSessions.length === 0) return 0;
 
     const completed = recentSessions.filter(s => s.status === 'completed').length;
     return Math.round((completed / recentSessions.length) * 100);
@@ -627,7 +643,7 @@ export const useAnalytics = () => {
         skipped: skippedCount,
         abandoned: abandonedCount,
         total: last30.length,
-        rate: last30.length > 0 ? Math.round((completedCount / last30.length) * 100) : 100,
+        rate: last30.length > 0 ? Math.round((completedCount / last30.length) * 100) : 0,
       },
     };
   }, [sessions]);
@@ -689,7 +705,7 @@ export const useAnalytics = () => {
 
     // Streak record
     if (currentGoalStreak > 0 && currentGoalStreak <= records.longestGoalStreak) {
-      const remaining = records.longestGoalStreak - currentGoalStreak + 1;
+      const remaining = records.longestGoalStreak - currentGoalStreak;
       if (remaining <= 10 && remaining > 0) {
         result.push({
           id: 'streak-record',
@@ -769,7 +785,7 @@ export const useAnalytics = () => {
       bestDay,
       topCategory,
       avgDailyFocus: daysActive > 0 ? Math.round(totalFocus / daysActive) : 0,
-      completionRate: totalAttempted > 0 ? Math.round((totalCompleted / totalAttempted) * 100) : 100,
+      completionRate: totalAttempted > 0 ? Math.round((totalCompleted / totalAttempted) * 100) : 0,
     };
   }, [dailyStats]);
 
@@ -809,7 +825,7 @@ export const useAnalytics = () => {
         type: 'recommendation',
         icon: 'Clock',
         title: `You're a ${period} focuser`,
-        description: `Your peak productivity is at ${bestHour > 12 ? bestHour - 12 : bestHour}${bestHour >= 12 ? 'PM' : 'AM'}. Try scheduling deep work sessions then.`,
+        description: `Your peak productivity is at ${bestHour === 0 ? 12 : bestHour > 12 ? bestHour - 12 : bestHour}${bestHour >= 12 ? 'PM' : 'AM'}. Try scheduling deep work sessions then.`,
         color: 'text-blue-500',
       });
     }
@@ -902,8 +918,72 @@ export const useAnalytics = () => {
       }
     }
 
+    // 8. Total focus hours — shocking stat
+    if (records.totalFocusTime > 3600) {
+      const totalHrs = Math.floor(records.totalFocusTime / 3600);
+      const workDays = (records.totalFocusTime / (8 * 3600)).toFixed(1);
+      generated.push({
+        id: 'total-hours',
+        type: 'achievement',
+        icon: 'Clock',
+        title: `${totalHrs} hours of focus`,
+        description: `That's ${workDays} full work days of pure focus. Every minute adds up.`,
+        color: 'text-blue-500',
+      });
+    }
+
+    // 9. Day-of-week pattern
+    const dayTotals: Record<number, number> = {};
+    Object.entries(dailyStats).forEach(([dateStr, stats]) => {
+      const day = new Date(dateStr).getDay();
+      dayTotals[day] = (dayTotals[day] || 0) + stats.totalFocusTime;
+    });
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const sortedDays = Object.entries(dayTotals).sort(([, a], [, b]) => b - a);
+    if (sortedDays.length >= 2) {
+      const bestDayIdx = parseInt(sortedDays[0][0]);
+      const worstDayIdx = parseInt(sortedDays[sortedDays.length - 1][0]);
+      const bestTotal = sortedDays[0][1];
+      const worstTotal = sortedDays[sortedDays.length - 1][1];
+      if (bestTotal > 0 && worstTotal >= 0 && bestDayIdx !== worstDayIdx) {
+        const ratio = worstTotal > 0 ? (bestTotal / worstTotal).toFixed(1) : '∞';
+        generated.push({
+          id: 'day-pattern',
+          type: 'trend',
+          icon: 'TrendingUp',
+          title: `${dayNames[bestDayIdx]}s are your power day`,
+          description: `You focus ${ratio}x more on ${dayNames[bestDayIdx]}s vs ${dayNames[worstDayIdx]}s.`,
+          color: 'text-purple-500',
+        });
+      }
+    }
+
+    // 10. Projected milestone
+    if (records.totalSessions >= 5) {
+      const daysSinceJoin = Math.max(1, Math.floor((Date.now() - new Date(records.joinedDate).getTime()) / (24 * 60 * 60 * 1000)));
+      const dailyRate = records.totalFocusTime / daysSinceJoin;
+      if (dailyRate > 0) {
+        const nextTarget = [100, 250, 500, 1000].find(h => h > Math.floor(records.totalFocusTime / 3600));
+        if (nextTarget) {
+          const secondsNeeded = nextTarget * 3600 - records.totalFocusTime;
+          const daysToTarget = Math.ceil(secondsNeeded / dailyRate);
+          const targetDate = new Date();
+          targetDate.setDate(targetDate.getDate() + daysToTarget);
+          const dateStr = targetDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+          generated.push({
+            id: 'projection',
+            type: 'trend',
+            icon: 'Target',
+            title: `${nextTarget}h by ${dateStr}`,
+            description: `At your current pace, you'll hit ${nextTarget} total focus hours by ${dateStr}.`,
+            color: 'text-blue-500',
+          });
+        }
+      }
+    }
+
     return generated.slice(0, 5);
-  }, [weekOverWeekChange, lastWeekStats, bestFocusHours, currentGoalStreak, completionRate, sessions, getCategoryDistribution, todayStats, records, focusQualityStats]);
+  }, [weekOverWeekChange, lastWeekStats, bestFocusHours, currentGoalStreak, completionRate, sessions, getCategoryDistribution, todayStats, records, focusQualityStats, dailyStats]);
 
   // ============================================================================
   // PERSONALIZED TEASER MESSAGES (for locked section)
@@ -948,10 +1028,43 @@ export const useAnalytics = () => {
     return teasers;
   }, [records, getCategoryDistribution, weekOverWeekChange, bestFocusHours, dailyStats, focusScore]);
 
+  // ============================================================================
+  // FOCUS SCORE HISTORY (for trend sparkline)
+  // ============================================================================
+  const focusScoreHistory = useMemo((): { date: string; score: number }[] => {
+    const result: { date: string; score: number }[] = [];
+    const today = new Date();
+
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const stats = dailyStats[dateStr];
+      if (stats?.focusScore !== undefined) {
+        result.push({ date: dateStr, score: stats.focusScore });
+      }
+    }
+
+    return result;
+  }, [dailyStats]);
+
+  // ============================================================================
+  // PEER BENCHMARK (simulated percentile based on score distribution)
+  // ============================================================================
+  const peerBenchmark = useMemo((): number => {
+    // Use a sigmoid-like curve centered around score 50
+    // This gives realistic-feeling percentiles without real user data
+    if (focusScore.score === 0) return 0;
+    const x = (focusScore.score - 45) / 15; // normalize around 45 (slightly below center)
+    const percentile = Math.round(100 / (1 + Math.exp(-x)));
+    return Math.max(5, Math.min(99, percentile)); // clamp 5-99
+  }, [focusScore.score]);
+
   // Format duration helper
   const formatDuration = useCallback((seconds: number, format: 'short' | 'long' = 'short') => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+    const safe = Math.max(0, Math.floor(seconds));
+    const hours = Math.floor(safe / 3600);
+    const minutes = Math.floor((safe % 3600) / 60);
 
     if (format === 'long') {
       if (hours > 0) {
@@ -1004,6 +1117,8 @@ export const useAnalytics = () => {
 
     // New computed
     focusScore,
+    focusScoreHistory,
+    peerBenchmark,
     focusQualityStats,
     completionTrend,
     milestones,
