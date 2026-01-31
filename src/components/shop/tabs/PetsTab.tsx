@@ -167,15 +167,10 @@ export const PetsTab = ({
                     }
                   }}
                   className={cn(
-                    "relative rounded-xl border-2 overflow-hidden transition-all",
-                    isComingSoon
-                      ? "border-gray-300 dark:border-gray-600 opacity-80"
-                      : "active:scale-95",
-                    !isComingSoon && isEquipped
-                      ? "border-purple-400 dark:border-purple-500 ring-2 ring-purple-300"
-                      : !isComingSoon && owned
-                      ? "border-green-300 dark:border-green-700"
-                      : !isComingSoon && RARITY_BORDER[bg.rarity || 'common']
+                    "shop-bg-card",
+                    isComingSoon && "coming-soon",
+                    !isComingSoon && isEquipped && "equipped",
+                    !isComingSoon && owned && !isEquipped && "owned"
                   )}
                 >
                   {/* Background Preview Image */}
@@ -272,13 +267,9 @@ export const PetsTab = ({
                     }
                   }}
                   className={cn(
-                    "relative p-2 rounded-xl border-2 text-center transition-all active:scale-95",
-                    isEquipped
-                      ? "bg-purple-50 dark:bg-purple-900/20 border-purple-400 ring-2 ring-purple-300"
-                      : owned
-                      ? "bg-green-50 dark:bg-green-900/20 border-green-300"
-                      : RARITY_BG[bg.rarity || 'common'],
-                    !owned && RARITY_BORDER[bg.rarity || 'common']
+                    "shop-grid-card relative",
+                    isEquipped && "equipped",
+                    !isEquipped && owned && "owned"
                   )}
                 >
                   {bg.isLimited && (
