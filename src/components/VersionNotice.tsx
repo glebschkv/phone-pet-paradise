@@ -21,7 +21,7 @@ export const VersionNotice = () => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleDismiss}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleDismiss(); }}>
       <DialogContent className="max-w-sm mx-auto retro-card border-2 border-border max-h-[90vh] overflow-y-auto p-0">
         <VisuallyHidden>
           <DialogTitle>Version 1.0</DialogTitle>

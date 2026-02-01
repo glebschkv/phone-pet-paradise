@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { SplashScreen } from "@/components/SplashScreen";
@@ -46,11 +46,12 @@ const Index = () => {
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   usePerformanceMonitor(); // Initialize performance monitoring
 
-  // Hide splash screens once the Index page has mounted.
-  // This runs AFTER: WKWebView load → React mount → lazy import → auth check,
-  // so the splash stays visible through the entire cold start sequence.
+  // Hide splash screens once after auth check resolves.
+  // Ref guard prevents duplicate hide calls from React StrictMode double-mount.
+  const splashHidden = useRef(false);
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !splashHidden.current) {
+      splashHidden.current = true;
       NativeSplash.hide().catch(() => { /* Not on native */ });
       const htmlSplash = document.getElementById('splash-screen');
       if (htmlSplash) {
