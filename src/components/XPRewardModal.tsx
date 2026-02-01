@@ -28,7 +28,7 @@ export const XPRewardModal = ({
   if (!displayReward) return null;
 
   return (
-    <Dialog open={isOpen && !!reward} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="retro-modal max-w-[320px] p-0 overflow-hidden border-0 max-h-[90vh] overflow-y-auto">
         <VisuallyHidden>
           <DialogTitle>Session Complete</DialogTitle>

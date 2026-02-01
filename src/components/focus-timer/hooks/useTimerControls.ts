@@ -73,15 +73,9 @@ export const useTimerControls = ({
   const startTimerWithIntent = useCallback(async (category: FocusCategory, taskLabel?: string) => {
     setShowIntentionModal(false);
 
-    if (appBlockingEnabled && hasAppsConfigured && blockedAppsCount > 0) {
-      const result = await startAppBlocking();
-      if (result.appsBlocked > 0) {
-        triggerHaptic('light');
-      }
-    }
-
     const now = Date.now();
 
+    // Update UI state FIRST for instant visual feedback
     if (timerState.isCountup) {
       // Countup mode: start from 0, duration is max 6 hours
       setDisplayTime(0);
@@ -103,6 +97,17 @@ export const useTimerControls = ({
         sessionDuration: timerState.timeLeft,
         category,
         taskLabel,
+      });
+    }
+
+    // Start app blocking AFTER UI update — don't block the visual transition
+    if (appBlockingEnabled && hasAppsConfigured && blockedAppsCount > 0) {
+      startAppBlocking().then((result) => {
+        if (result.appsBlocked > 0) {
+          triggerHaptic('light');
+        }
+      }).catch((e) => {
+        console.error('Failed to start app blocking:', e);
       });
     }
   }, [saveTimerState, timerState.timeLeft, timerState.isCountup, appBlockingEnabled, hasAppsConfigured, blockedAppsCount, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
@@ -158,43 +163,9 @@ export const useTimerControls = ({
       elapsedSeconds = timerState.sessionDuration - timerState.timeLeft;
     }
 
-    // Stop app blocking with error handling — always clean up even if this fails
-    let shieldAttempts = 0;
     const isWorkSession = timerState.sessionType !== 'break';
-    if (isWorkSession && hasAppsConfigured) {
-      try {
-        const result = await stopAppBlocking();
-        shieldAttempts = result.shieldAttempts;
-      } catch (e) {
-        console.error('Failed to stop app blocking:', e);
-      }
-    }
 
-    // Determine focus quality for abandoned sessions
-    let focusQuality: FocusQuality | undefined;
-    if (isWorkSession && elapsedSeconds > 0) {
-      focusQuality = shieldAttempts === 0 && hasAppsConfigured
-        ? 'perfect'
-        : shieldAttempts <= 2 && hasAppsConfigured
-          ? 'good'
-          : 'distracted';
-    }
-
-    if (timerState.isRunning && elapsedSeconds > 10) {
-      recordSession(
-        timerState.sessionType,
-        timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
-        elapsedSeconds,
-        'abandoned',
-        0,
-        timerState.category,
-        timerState.taskLabel,
-        isWorkSession ? shieldAttempts : undefined,
-        focusQuality,
-        hasAppsConfigured,
-      );
-    }
-
+    // Reset UI IMMEDIATELY for instant visual feedback
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -229,6 +200,42 @@ export const useTimerControls = ({
         isCountup: false,
       });
     }
+
+    // Async cleanup AFTER UI is reset — stop app blocking and record session
+    let shieldAttempts = 0;
+    if (isWorkSession && hasAppsConfigured) {
+      try {
+        const result = await stopAppBlocking();
+        shieldAttempts = result.shieldAttempts;
+      } catch (e) {
+        console.error('Failed to stop app blocking:', e);
+      }
+    }
+
+    // Determine focus quality for abandoned sessions
+    let focusQuality: FocusQuality | undefined;
+    if (isWorkSession && elapsedSeconds > 0) {
+      focusQuality = shieldAttempts === 0 && hasAppsConfigured
+        ? 'perfect'
+        : shieldAttempts <= 2 && hasAppsConfigured
+          ? 'good'
+          : 'distracted';
+    }
+
+    if (timerState.isRunning && elapsedSeconds > 10) {
+      recordSession(
+        timerState.sessionType,
+        timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
+        elapsedSeconds,
+        'abandoned',
+        0,
+        timerState.category,
+        timerState.taskLabel,
+        isWorkSession ? shieldAttempts : undefined,
+        focusQuality,
+        hasAppsConfigured,
+      );
+    }
   }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
   const skipTimer = useCallback(async () => {
@@ -246,7 +253,43 @@ export const useTimerControls = ({
     const completedMinutes = Math.ceil(elapsedSeconds / 60);
     const isWorkSession = timerState.sessionType !== 'break';
 
-    // Stop app blocking with error handling
+    // Reset UI IMMEDIATELY for instant visual feedback
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    clearPersistence();
+
+    if (timerState.isCountup || selectedPreset.isCountup) {
+      // Countup mode: reset to 0
+      setDisplayTime(0);
+      saveTimerState({
+        isRunning: false,
+        timeLeft: 0,
+        elapsedTime: 0,
+        sessionDuration: MAX_COUNTUP_DURATION,
+        startTime: null,
+        category: undefined,
+        taskLabel: undefined,
+        isCountup: true,
+      });
+    } else {
+      // Countdown mode: reset to full duration
+      const fullDuration = selectedPreset.duration * 60;
+      setDisplayTime(fullDuration);
+      saveTimerState({
+        isRunning: false,
+        timeLeft: fullDuration,
+        sessionDuration: fullDuration,
+        startTime: null,
+        category: undefined,
+        taskLabel: undefined,
+        isCountup: false,
+      });
+    }
+
+    // Async cleanup AFTER UI is reset
     let shieldAttempts = 0;
     if (isWorkSession && hasAppsConfigured) {
       try {
@@ -256,13 +299,6 @@ export const useTimerControls = ({
         console.error('Failed to stop app blocking:', e);
       }
     }
-
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    clearPersistence();
 
     let xpEarned = 0;
     // Both countdown and countup focus sessions can earn XP
@@ -321,34 +357,6 @@ export const useTimerControls = ({
           scheduleRewardNotification(xpEarned);
         }
       }
-    }
-
-    if (timerState.isCountup || selectedPreset.isCountup) {
-      // Countup mode: reset to 0
-      setDisplayTime(0);
-      saveTimerState({
-        isRunning: false,
-        timeLeft: 0,
-        elapsedTime: 0,
-        sessionDuration: MAX_COUNTUP_DURATION,
-        startTime: null,
-        category: undefined,
-        taskLabel: undefined,
-        isCountup: true,
-      });
-    } else {
-      // Countdown mode: reset to full duration
-      const fullDuration = selectedPreset.duration * 60;
-      setDisplayTime(fullDuration);
-      saveTimerState({
-        isRunning: false,
-        timeLeft: fullDuration,
-        sessionDuration: fullDuration,
-        startTime: null,
-        category: undefined,
-        taskLabel: undefined,
-        isCountup: false,
-      });
     }
   }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, recordStreakSession, scheduleStreakNotification, scheduleRewardNotification, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
