@@ -15,19 +15,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <!-- Purple glow circle (ambient light behind title) -->
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="glow-circle">
-                                <rect key="frame" x="37.5" y="173.5" width="300" height="300"/>
-                                <color key="backgroundColor" red="0.6588235294" green="0.3333333333" blue="0.9686274510" alpha="0.12" colorSpace="custom" customColorSpace="sRGB"/>
+                            <!-- Ambient purple glow (wide soft rectangle behind title area) -->
+                            <view alpha="0.08" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="glow-rect">
+                                <rect key="frame" x="37.5" y="213" width="300" height="200"/>
+                                <color key="backgroundColor" red="0.6588235294" green="0.3333333333" blue="0.9686274510" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="300" id="glow-w"/>
-                                    <constraint firstAttribute="height" constant="300" id="glow-h"/>
+                                    <constraint firstAttribute="height" constant="200" id="glow-h"/>
                                 </constraints>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                        <real key="value" value="150"/>
-                                    </userDefinedRuntimeAttribute>
-                                </userDefinedRuntimeAttributes>
                             </view>
                             <!-- NOMO title -->
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="NOMO" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nomo-title-label">
@@ -43,44 +38,39 @@
                             </label>
                             <!-- Loading bar track -->
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bar-track">
-                                <rect key="frame" x="97.5" y="400" width="180" height="6"/>
+                                <rect key="frame" x="97.5" y="400" width="180" height="4"/>
                                 <subviews>
                                     <!-- Loading bar fill (~35% progress) -->
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bar-fill">
-                                        <rect key="frame" x="1" y="1" width="62" height="4"/>
+                                        <rect key="frame" x="0" y="0" width="62" height="4"/>
                                         <color key="backgroundColor" red="0.6588235294" green="0.3333333333" blue="0.9686274510" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="4" id="fill-h"/>
                                             <constraint firstAttribute="width" constant="62" id="fill-w"/>
                                         </constraints>
-                                        <userDefinedRuntimeAttributes>
-                                            <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                                <real key="value" value="2"/>
-                                            </userDefinedRuntimeAttribute>
-                                        </userDefinedRuntimeAttributes>
                                     </view>
                                 </subviews>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.08" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="180" id="track-w"/>
-                                    <constraint firstAttribute="height" constant="6" id="track-h"/>
-                                    <!-- Fill: left-aligned with 1pt padding, vertically centered -->
-                                    <constraint firstItem="bar-fill" firstAttribute="leading" secondItem="bar-track" secondAttribute="leading" constant="1" id="fill-lead"/>
-                                    <constraint firstItem="bar-fill" firstAttribute="centerY" secondItem="bar-track" secondAttribute="centerY" id="fill-cy"/>
+                                    <constraint firstAttribute="height" constant="4" id="track-h"/>
+                                    <constraint firstItem="bar-fill" firstAttribute="leading" secondItem="bar-track" secondAttribute="leading" id="fill-lead"/>
+                                    <constraint firstItem="bar-fill" firstAttribute="top" secondItem="bar-track" secondAttribute="top" id="fill-top"/>
+                                    <constraint firstItem="bar-fill" firstAttribute="bottom" secondItem="bar-track" secondAttribute="bottom" id="fill-bot"/>
                                 </constraints>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                        <real key="value" value="3"/>
-                                    </userDefinedRuntimeAttribute>
-                                    <userDefinedRuntimeAttribute type="boolean" keyPath="clipsToBounds" value="YES"/>
-                                </userDefinedRuntimeAttributes>
                             </view>
+                            <!-- Subtle loading dots hint -->
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Loading…" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="loading-label">
+                                <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                                <color key="textColor" red="0.6588235294" green="0.5098039216" blue="0.8627450980" alpha="0.35" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.039215686274509803" green="0.0" blue="0.078431372549019607" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <!-- Glow circle: centered horizontally, above vertical center -->
-                            <constraint firstItem="glow-circle" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="glow-cx"/>
-                            <constraint firstItem="glow-circle" firstAttribute="centerY" secondItem="launch-root-view" secondAttribute="centerY" constant="-60" id="glow-cy"/>
+                            <!-- Glow: centered, above vertical center -->
+                            <constraint firstItem="glow-rect" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="glow-cx"/>
+                            <constraint firstItem="glow-rect" firstAttribute="centerY" secondItem="launch-root-view" secondAttribute="centerY" constant="-40" id="glow-cy"/>
                             <!-- NOMO title: centered -->
                             <constraint firstItem="nomo-title-label" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="title-cx"/>
                             <constraint firstItem="nomo-title-label" firstAttribute="centerY" secondItem="launch-root-view" secondAttribute="centerY" constant="-10" id="title-cy"/>
@@ -90,6 +80,9 @@
                             <!-- Loading bar: centered, below tagline -->
                             <constraint firstItem="bar-track" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="bar-cx"/>
                             <constraint firstItem="bar-track" firstAttribute="top" secondItem="tagline-label" secondAttribute="bottom" constant="40" id="bar-top"/>
+                            <!-- Loading text: centered, below bar -->
+                            <constraint firstItem="loading-label" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="load-cx"/>
+                            <constraint firstItem="loading-label" firstAttribute="top" secondItem="bar-track" secondAttribute="bottom" constant="12" id="load-top"/>
                         </constraints>
                     </view>
                 </viewController>
