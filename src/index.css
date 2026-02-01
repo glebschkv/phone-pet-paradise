@@ -249,8 +249,10 @@
   /* iOS-style button press effect */
   .active-scale {
     transition: transform 0.15s ease-out;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
-  
+
   .active-scale:active {
     transform: scale(0.95);
   }
@@ -1951,14 +1953,37 @@
     color: white;
     text-shadow: 0 2px 0 hsl(350 100% 20%);
     transition: all 0.1s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .retro-arcade-btn:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 8px 0 hsl(350 90% 25%),
-      inset 0 2px 0 hsl(350 60% 70%),
-      0 0 25px hsl(350 100% 50% / 0.6);
+  /* Only apply hover on devices that support real hover (not touch) */
+  @media (hover: hover) {
+    .retro-arcade-btn:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 8px 0 hsl(350 90% 25%),
+        inset 0 2px 0 hsl(350 60% 70%),
+        0 0 25px hsl(350 100% 50% / 0.6);
+    }
+    .retro-arcade-btn-green:hover {
+      box-shadow:
+        0 8px 0 hsl(120 80% 18%),
+        inset 0 2px 0 hsl(120 50% 60%),
+        0 0 25px hsl(120 100% 40% / 0.6);
+    }
+    .retro-arcade-btn-yellow:hover {
+      box-shadow:
+        0 8px 0 hsl(45 100% 25%),
+        inset 0 2px 0 hsl(45 70% 70%),
+        0 0 25px hsl(45 100% 50% / 0.6);
+    }
+    .retro-arcade-btn-purple:hover {
+      box-shadow:
+        0 8px 0 hsl(280 80% 25%),
+        inset 0 2px 0 hsl(280 50% 70%),
+        0 0 25px hsl(280 100% 50% / 0.6);
+    }
   }
 
   .retro-arcade-btn:active {
@@ -1976,10 +2001,19 @@
       hsl(120 80% 25%) 100%
     );
     border-color: hsl(120 60% 55%);
+    text-shadow: 0 2px 0 hsl(120 100% 15%);
     box-shadow:
       0 6px 0 hsl(120 80% 18%),
       inset 0 2px 0 hsl(120 50% 60%),
       0 0 15px hsl(120 100% 40% / 0.4);
+  }
+
+  .retro-arcade-btn-green:active {
+    transform: translateY(4px);
+    box-shadow:
+      0 2px 0 hsl(120 80% 18%),
+      inset 0 2px 0 hsl(120 50% 60%),
+      0 0 10px hsl(120 100% 40% / 0.3);
   }
 
   .retro-arcade-btn-yellow {
@@ -1997,6 +2031,14 @@
     text-shadow: 0 1px 0 hsl(45 100% 70%);
   }
 
+  .retro-arcade-btn-yellow:active {
+    transform: translateY(4px);
+    box-shadow:
+      0 2px 0 hsl(45 100% 25%),
+      inset 0 2px 0 hsl(45 70% 70%),
+      0 0 10px hsl(45 100% 50% / 0.3);
+  }
+
   .retro-arcade-btn-purple {
     background: linear-gradient(180deg,
       hsl(280 70% 55%) 0%,
@@ -2008,6 +2050,14 @@
       0 6px 0 hsl(280 80% 25%),
       inset 0 2px 0 hsl(280 50% 70%),
       0 0 15px hsl(280 100% 50% / 0.4);
+  }
+
+  .retro-arcade-btn-purple:active {
+    transform: translateY(4px);
+    box-shadow:
+      0 2px 0 hsl(280 80% 25%),
+      inset 0 2px 0 hsl(280 50% 70%),
+      0 0 10px hsl(280 100% 50% / 0.3);
   }
 
   /* Retro Progress Bar (Health Bar Style) */

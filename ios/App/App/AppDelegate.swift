@@ -5,14 +5,14 @@ import Capacitor
  * AppDelegate
  *
  * Main application delegate for NoMo Phone.
- * Handles app lifecycle, URL schemes, and background task registration.
+ * Handles app launch, scene configuration, URL schemes, and background tasks.
+ *
+ * UIScene lifecycle adopted — SceneDelegate handles per-scene events
+ * (foreground/background/active), while AppDelegate handles global events
+ * (launch, terminate, background tasks, scene configuration).
  */
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
-    // MARK: - Properties
-
-    var window: UIWindow?
 
     // MARK: - App Lifecycle
 
@@ -26,58 +26,33 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Register background tasks early
         registerBackgroundTasks()
 
-        // Show the animated splash once UIKit has finished setting up the window.
-        // Runs on the next run-loop iteration so window + rootVC are available.
-        DispatchQueue.main.async { [weak self] in
-            self?.showAnimatedSplash()
-        }
-
         return true
     }
 
-    // MARK: - Animated Splash
+    // MARK: - Scene Configuration
 
-    private func showAnimatedSplash() {
-        guard let rootVC = window?.rootViewController else {
-            Log.lifecycle.info("No rootVC yet — skipping animated splash")
-            return
-        }
-
-        let splash = AnimatedSplashViewController()
-        splash.view.frame = rootVC.view.bounds
-        splash.view.autoresizingMask = [UIView.AutoresizingMask.flexibleWidth, UIView.AutoresizingMask.flexibleHeight]
-        rootVC.addChild(splash)
-        rootVC.view.addSubview(splash.view)
-        splash.didMove(toParent: rootVC)
-
-        Log.lifecycle.info("Animated splash presented")
+    func application(
+        _ application: UIApplication,
+        configurationForConnecting connectingSceneSession: UISceneSession,
+        options: UIScene.ConnectionOptions
+    ) -> UISceneConfiguration {
+        let config = UISceneConfiguration(
+            name: "Default Configuration",
+            sessionRole: connectingSceneSession.role
+        )
+        config.delegateClass = SceneDelegate.self
+        config.storyboard = UIStoryboard(name: "Main", bundle: nil)
+        return config
     }
 
-    func applicationWillResignActive(_ application: UIApplication) {
-        Log.lifecycle.debug("Application will resign active")
+    func application(
+        _ application: UIApplication,
+        didDiscardSceneSessions sceneSessions: Set<UISceneSession>
+    ) {
+        Log.lifecycle.debug("Discarded \(sceneSessions.count) scene session(s)")
     }
 
-    func applicationDidEnterBackground(_ application: UIApplication) {
-        Log.lifecycle.debug("Application did enter background")
-        // BackgroundTaskManager lifecycle is handled by DeviceActivityPlugin's
-        // NotificationCenter observers — no need to call it here too
-    }
-
-    func applicationWillEnterForeground(_ application: UIApplication) {
-        Log.lifecycle.debug("Application will enter foreground")
-        // BackgroundTaskManager lifecycle is handled by DeviceActivityPlugin's
-        // NotificationCenter observers — no need to call it here too
-    }
-
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        Log.lifecycle.debug("Application did become active")
-    }
-
-    func applicationWillTerminate(_ application: UIApplication) {
-        Log.lifecycle.info("Application will terminate")
-    }
-
-    // MARK: - URL Handling
+    // MARK: - URL Handling (fallback for non-scene flows)
 
     func application(
         _ app: UIApplication,
@@ -101,11 +76,116 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         )
     }
 
+    // MARK: - Termination
+
+    func applicationWillTerminate(_ application: UIApplication) {
+        Log.lifecycle.info("Application will terminate")
+    }
+
     // MARK: - Background Tasks
 
     private func registerBackgroundTasks() {
         BackgroundTaskManager.shared.registerBackgroundTasks()
         Log.background.info("Background tasks registered from AppDelegate")
+    }
+}
+
+// MARK: - Scene Delegate
+// Defined in the same file as AppDelegate so Xcode always compiles it
+// without needing a separate entry in the build sources list.
+
+/// Handles per-scene lifecycle events: foreground, background, URL opening, etc.
+/// The animated splash is presented here (instead of AppDelegate) because
+/// the window is owned by the scene in UIScene-based apps.
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+
+    var window: UIWindow?
+
+    // MARK: - Scene Lifecycle
+
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
+        guard let _ = scene as? UIWindowScene else { return }
+        Log.lifecycle.info("Scene connected")
+
+        // Show the animated splash once UIKit has finished setting up the window.
+        // Runs on the next run-loop iteration so window + rootVC are available.
+        DispatchQueue.main.async { [weak self] in
+            self?.showAnimatedSplash()
+        }
+
+        // Handle URLs passed at launch
+        if !connectionOptions.urlContexts.isEmpty {
+            self.scene(scene, openURLContexts: connectionOptions.urlContexts)
+        }
+
+        // Handle universal links passed at launch
+        if let userActivity = connectionOptions.userActivities.first {
+            self.scene(scene, continue: userActivity)
+        }
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        Log.lifecycle.debug("Scene did become active")
+    }
+
+    func sceneWillResignActive(_ scene: UIScene) {
+        Log.lifecycle.debug("Scene will resign active")
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        Log.lifecycle.debug("Scene did enter background")
+    }
+
+    func sceneWillEnterForeground(_ scene: UIScene) {
+        Log.lifecycle.debug("Scene will enter foreground")
+    }
+
+    func sceneDidDisconnect(_ scene: UIScene) {
+        Log.lifecycle.debug("Scene disconnected")
+    }
+
+    // MARK: - URL Handling
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        for context in URLContexts {
+            Log.app.debug("Scene opened with URL: \(context.url.absoluteString)")
+            _ = ApplicationDelegateProxy.shared.application(
+                UIApplication.shared,
+                open: context.url,
+                options: [:]
+            )
+        }
+    }
+
+    func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        Log.app.debug("Scene continuing user activity: \(userActivity.activityType)")
+        _ = ApplicationDelegateProxy.shared.application(
+            UIApplication.shared,
+            continue: userActivity,
+            restorationHandler: { _ in }
+        )
+    }
+
+    // MARK: - Animated Splash
+
+    private func showAnimatedSplash() {
+        guard let rootVC = window?.rootViewController else {
+            Log.lifecycle.info("No rootVC yet — skipping animated splash")
+            return
+        }
+
+        let splash = AnimatedSplashViewController()
+        splash.view.frame = rootVC.view.bounds
+        splash.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        rootVC.addChild(splash)
+        rootVC.view.addSubview(splash.view)
+        splash.didMove(toParent: rootVC)
+
+        Log.lifecycle.info("Animated splash presented")
     }
 }
 
@@ -118,7 +198,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 /// with a continuously-animating loading bar so users know the app is alive.
 ///
 /// Lifecycle:
-///   1. AppDelegate adds this as a child VC overlay in didFinishLaunching
+///   1. SceneDelegate adds this as a child VC overlay when the scene connects
 ///   2. The loading bar animates while WKWebView + React initialize behind it
 ///   3. JS calls DeviceActivity.dismissSplash() → posts notification
 ///   4. This VC fades out and removes itself, revealing the web content
@@ -273,7 +353,7 @@ final class AnimatedSplashViewController: UIViewController {
     }
 
     private func setupTagline() {
-        taglineLabel.text = "FOCUS  ·  GROW  ·  COLLECT"
+        taglineLabel.text = "FOCUS  \u{00B7}  GROW  \u{00B7}  COLLECT"
         taglineLabel.font = UIFont.systemFont(ofSize: 11, weight: .regular)
         taglineLabel.textColor = tagClr
         taglineLabel.textAlignment = .center
