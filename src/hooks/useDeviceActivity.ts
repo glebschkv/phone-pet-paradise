@@ -353,16 +353,21 @@ export const useDeviceActivity = () => {
           'getBlockingStatus-afterPermission'
         );
 
-        setState(prev => ({
-          ...prev,
-          isMonitoring: monitoring.monitoring,
-          isBlocking: blockingStatus.isBlocking,
-          hasAppsConfigured: blockingStatus.hasAppsConfigured,
-          shieldAttempts: blockingStatus.shieldAttempts,
-          lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
-          selectedAppsCount: blockingStatus.selectedAppsCount,
-          selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
-        }));
+        setState(prev => {
+          const updated = {
+            ...prev,
+            isMonitoring: monitoring.monitoring,
+            isBlocking: blockingStatus.isBlocking,
+            hasAppsConfigured: blockingStatus.hasAppsConfigured,
+            shieldAttempts: blockingStatus.shieldAttempts,
+            lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
+            selectedAppsCount: blockingStatus.selectedAppsCount,
+            selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
+          };
+          // Keep init cache in sync so remounts get fresh data
+          _nativeInitResult = updated;
+          return updated;
+        });
 
         toast.success("Screen Time Access Granted", {
           description: "You can now block distracting apps during focus sessions!",
@@ -586,12 +591,17 @@ export const useDeviceActivity = () => {
         } as BlockingStatus,
         'getBlockingStatus-afterPicker'
       );
-      setState(prev => ({
-        ...prev,
-        hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
-        selectedAppsCount: status.selectedAppsCount || appsSelected,
-        selectedCategoriesCount: status.selectedCategoriesCount || categoriesSelected,
-      }));
+      setState(prev => {
+        const updated = {
+          ...prev,
+          hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
+          selectedAppsCount: status.selectedAppsCount || appsSelected,
+          selectedCategoriesCount: status.selectedCategoriesCount || categoriesSelected,
+        };
+        // Keep the init cache in sync so remounts don't revert to stale counts
+        _nativeInitResult = updated;
+        return updated;
+      });
     } else if (result?.cancelled) {
       deviceActivityLogger.info('App picker cancelled by user');
     }
