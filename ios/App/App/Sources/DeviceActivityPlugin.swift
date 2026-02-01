@@ -47,7 +47,8 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "stopMonitoring", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getUsageData", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "recordActiveTime", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "triggerHapticFeedback", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "triggerHapticFeedback", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "dismissSplash", returnType: CAPPluginReturnPromise)
     ]
 
     // MARK: - Managers (lazy to avoid crashes if entitlements are missing)
@@ -425,6 +426,23 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
             await hapticManager.triggerFeedbackAsync(style: style)
             await MainActor.run {
                 call.resolveSuccess()
+            }
+        }
+    }
+
+    // MARK: - Splash
+
+    /// Dismiss the native animated splash screen overlay.
+    /// Called from JS once the web app is ready to show content.
+    @objc func dismissSplash(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            if let splash = AnimatedSplashViewController.shared {
+                splash.dismiss {
+                    call.resolve(["success": true])
+                }
+            } else {
+                // Already dismissed or never shown
+                call.resolve(["success": true, "note": "alreadyDismissed"])
             }
         }
     }

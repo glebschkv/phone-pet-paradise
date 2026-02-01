@@ -26,7 +26,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Register background tasks early
         registerBackgroundTasks()
 
+        // Show the animated splash once UIKit has finished setting up the window.
+        // Runs on the next run-loop iteration so window + rootVC are available.
+        DispatchQueue.main.async { [weak self] in
+            self?.showAnimatedSplash()
+        }
+
         return true
+    }
+
+    // MARK: - Animated Splash
+
+    private func showAnimatedSplash() {
+        guard let rootVC = window?.rootViewController else {
+            Log.lifecycle.info("No rootVC yet — skipping animated splash")
+            return
+        }
+
+        let splash = AnimatedSplashViewController()
+        splash.view.frame = rootVC.view.bounds
+        splash.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        rootVC.addChild(splash)
+        rootVC.view.addSubview(splash.view)
+        splash.didMove(toParent: rootVC)
+
+        AnimatedSplashViewController.shared = splash
+        Log.lifecycle.info("Animated splash presented")
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

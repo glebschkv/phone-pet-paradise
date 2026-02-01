@@ -90,4 +90,7 @@ export interface DeviceActivityPlugin {
 
   // Haptic feedback
   triggerHapticFeedback(options: { style: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' }): Promise<{ success: boolean }>;
+
+  // Splash screen
+  dismissSplash(): Promise<{ success: boolean; note?: string }>;
 }

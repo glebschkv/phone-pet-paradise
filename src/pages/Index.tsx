@@ -3,6 +3,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { SplashScreen } from "@/components/SplashScreen";
 import { SplashScreen as NativeSplash } from '@capacitor/splash-screen';
+import { DeviceActivity } from '@/plugins/device-activity';
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
@@ -59,17 +60,16 @@ const Index = () => {
   useEffect(() => {
     if (!isLoading && !_splashHidden) {
       _splashHidden = true;
-      // 1. Hide Capacitor's native splash — reveals the HTML neon splash underneath
+      // 1. Dismiss the native animated splash (AnimatedSplashViewController)
+      //    which fades out with a 0.4s animation revealing the web content.
+      DeviceActivity.dismissSplash().catch(() => { /* Not on native */ });
+      // 2. Also hide Capacitor's built-in splash overlay
       NativeSplash.hide().catch(() => { /* Not on native */ });
-      // 2. Fade the HTML splash after a short delay so the neon loading screen
-      //    is visible for at least a moment (otherwise both hide simultaneously
-      //    and users see a jarring flash)
+      // 3. Fade the HTML splash (fallback for web / first-paint coverage)
       const htmlSplash = document.getElementById('splash-screen');
       if (htmlSplash) {
-        setTimeout(() => {
-          htmlSplash.style.opacity = '0';
-          setTimeout(() => htmlSplash.remove(), 350);
-        }, 600);
+        htmlSplash.style.opacity = '0';
+        setTimeout(() => htmlSplash.remove(), 400);
       }
     }
   }, [isLoading]);
