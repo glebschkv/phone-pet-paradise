@@ -66,7 +66,7 @@ export const SettingsAbout = () => {
           </button>
 
           <button
-            onClick={() => openLink('mailto:suchkov.gleb@icloud.com')}
+            onClick={() => openLink('mailto:support@nomoinc.co')}
             className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
           >
             <MessageCircle className="w-5 h-5" />

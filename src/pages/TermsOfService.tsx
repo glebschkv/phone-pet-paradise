@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const TermsOfService = () => {
   const navigate = useNavigate();
-  const lastUpdated = 'November 29, 2024';
+  const lastUpdated = 'December 3, 2024';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-indigo-950 text-white">
@@ -206,7 +206,7 @@ const TermsOfService = () => {
             </p>
             <div className="bg-white/5 rounded-lg p-4 space-y-1">
               <p className="text-white font-medium">NoMo Inc.</p>
-              <p className="text-white/80">Email: suchkov.gleb@icloud.com</p>
+              <p className="text-white/80">Email: support@nomoinc.co</p>
               <p className="text-white/80">Website: https://nomoinc.co</p>
             </div>
           </section>

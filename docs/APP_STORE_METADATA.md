@@ -111,28 +111,45 @@ Start your journey to better focus today!
 - Sexual Content or Nudity: None
 - Profanity or Crude Humor: None
 - Alcohol, Tobacco, or Drug Use: None
-- Simulated Gambling: None
+- Simulated Gambling: Infrequent/Mild
 - Horror/Fear Themes: None
 - Mature/Suggestive Themes: None
 - Medical/Treatment Information: None
 - Unrestricted Web Access: No
 - Gambling and Contests: No
 
-**Recommended Age Rating**: 4+
+**Recommended Age Rating**: 12+ (due to Infrequent/Mild Simulated Gambling for Lucky Wheel feature)
 
 ### In-App Purchases to Create
 
+#### Subscriptions
+
 | Reference Name | Product ID | Type | Price |
 |---------------|------------|------|-------|
-| Premium Monthly | co.nomoinc.nomo.premium.monthly | Auto-Renewable | $5.99 |
-| Premium Yearly | co.nomoinc.nomo.premium.yearly | Auto-Renewable | $44.99 |
-| Premium Plus Monthly | co.nomoinc.nomo.premiumplus.monthly | Auto-Renewable | $9.99 |
-| Premium Plus Yearly | co.nomoinc.nomo.premiumplus.yearly | Auto-Renewable | $79.99 |
-| Lifetime Access | co.nomoinc.nomo.lifetime | Non-Consumable | $99.99 |
-| 100 Coins | co.nomoinc.nomo.coins.100 | Consumable | $0.99 |
-| 500 Coins | co.nomoinc.nomo.coins.500 | Consumable | $3.99 |
-| 1200 Coins | co.nomoinc.nomo.coins.1200 | Consumable | $7.99 |
+| Premium Monthly | co.nomoinc.nomo.premium.monthly | Auto-Renewable | $4.99 |
+| Premium Yearly | co.nomoinc.nomo.premium.yearly | Auto-Renewable | $39.99 |
+| Premium Plus Monthly | co.nomoinc.nomo.premiumplus.monthly | Auto-Renewable | $8.99 |
+| Premium Plus Yearly | co.nomoinc.nomo.premiumplus.yearly | Auto-Renewable | $64.99 |
+| Lifetime Access | co.nomoinc.nomo.lifetime | Non-Consumable | $149.99 |
+
+#### Coin Packs
+
+| Reference Name | Product ID | Type | Price |
+|---------------|------------|------|-------|
+| Starter Coin Pack (500 coins) | co.nomoinc.nomo.coins.starter | Consumable | $0.99 |
+| Value Coin Pack (1,500 coins) | co.nomoinc.nomo.coins.value | Consumable | $2.99 |
+| Premium Coin Pack (5,000 coins) | co.nomoinc.nomo.coins.premium | Consumable | $7.99 |
+| Mega Coin Pack (15,000 coins) | co.nomoinc.nomo.coins.mega | Consumable | $19.99 |
+| Ultra Coin Pack (40,000 coins) | co.nomoinc.nomo.coins.ultra | Consumable | $49.99 |
+
+#### Bundles
+
+| Reference Name | Product ID | Type | Price |
+|---------------|------------|------|-------|
+| Welcome Bundle | co.nomoinc.nomo.bundle.welcome | Non-Consumable | $1.99 |
 | Starter Bundle | co.nomoinc.nomo.bundle.starter | Non-Consumable | $4.99 |
+| Collector Bundle | co.nomoinc.nomo.bundle.collector | Non-Consumable | $14.99 |
+| Ultimate Bundle | co.nomoinc.nomo.bundle.ultimate | Non-Consumable | $29.99 |
 
 ---
 

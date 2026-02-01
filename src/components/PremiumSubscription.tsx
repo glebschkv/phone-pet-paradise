@@ -511,10 +511,32 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
               {isRestoring ? 'Restoring...' : 'Restore Purchases'}
             </button>
 
-            {/* Terms */}
-            <p className="text-[9px] text-center leading-relaxed pb-1" style={{ color: 'hsl(260 15% 40%)' }}>
-              Subscriptions auto-renew unless cancelled 24h before period ends. Manage in Apple ID settings.
-            </p>
+            {/* Subscription Terms - Required by App Store Guidelines 3.1.2 */}
+            <div className="text-[9px] text-center leading-relaxed pb-1 space-y-1" style={{ color: 'hsl(260 15% 40%)' }}>
+              <p>
+                Payment will be charged to your Apple ID account at confirmation of purchase.
+                Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period.
+                Your account will be charged for renewal within 24 hours prior to the end of the current period.
+                You can manage and cancel subscriptions in your Apple ID account settings.
+              </p>
+              <p>
+                <button
+                  onClick={() => window.open('/terms', '_self')}
+                  className="underline"
+                  style={{ color: 'hsl(260 30% 55%)' }}
+                >
+                  Terms of Use
+                </button>
+                {' · '}
+                <button
+                  onClick={() => window.open('/privacy', '_self')}
+                  className="underline"
+                  style={{ color: 'hsl(260 30% 55%)' }}
+                >
+                  Privacy Policy
+                </button>
+              </p>
+            </div>
           </div>
         </>
       </DialogContent>
