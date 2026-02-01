@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client'
+import { SplashScreen } from '@capacitor/splash-screen'
 import { logger } from "@/lib/logger";
 import App from './App.tsx'
 import './index.css'
@@ -33,10 +34,16 @@ const initializeTheme = () => {
 
 initializeTheme();
 
-// Remove the inline HTML splash screen once React takes over
+// Remove the inline HTML splash screen and hide the native Capacitor
+// splash once React takes over. The native splash is kept visible until
+// now (launchAutoHide: false) so the user doesn't see a blank screen
+// during the 5-8s WKWebView cold start.
 const splashEl = document.getElementById('splash-screen');
 if (splashEl) {
   splashEl.remove();
 }
+SplashScreen.hide().catch(() => {
+  // Not on native — ignore
+});
 
 createRoot(document.getElementById("root")!).render(<App />);

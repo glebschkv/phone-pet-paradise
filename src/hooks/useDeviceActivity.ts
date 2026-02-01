@@ -78,10 +78,17 @@ export const DEFAULT_BLOCKED_APPS: SimulatedBlockedApp[] = [
 ];
 
 // Module-level guard: ensures native initialization only runs once
-// even when multiple components mount useDeviceActivity simultaneously
+// even when multiple components mount useDeviceActivity simultaneously.
+// Call _invalidateInitCache() when state changes significantly (e.g. permissions granted).
 let _nativeInitStarted = false;
 let _nativeInitResult: DeviceActivityState | null = null;
 let _nativeInitPromise: Promise<DeviceActivityState> | null = null;
+
+function _invalidateInitCache() {
+  _nativeInitResult = null;
+  _nativeInitStarted = false;
+  _nativeInitPromise = null;
+}
 
 export const useDeviceActivity = () => {
   const [state, setState] = useState<DeviceActivityState>(() => {
@@ -318,6 +325,10 @@ export const useDeviceActivity = () => {
       }));
 
       if (isGranted) {
+        // Permission state changed — invalidate the cached init result
+        // so any component that remounts gets the updated state
+        _invalidateInitCache();
+
         // Start monitoring after permissions granted
         const { result: monitoring } = await safePluginCall(
           () => DeviceActivity.startMonitoring(),
