@@ -661,6 +661,10 @@ export const useDeviceActivity = () => {
     );
   }, [state.pluginAvailable]);
 
+  // Stable ref for triggerHaptic so the lifecycle listener doesn't churn
+  const triggerHapticRef = useRef(triggerHaptic);
+  triggerHapticRef.current = triggerHaptic;
+
   // Handle app lifecycle events
   useEffect(() => {
     const handleAppLifecycle = (event: CustomEvent<AppLifecycleEvent>) => {
@@ -675,9 +679,9 @@ export const useDeviceActivity = () => {
         shieldAttempts: attempts ?? prev.shieldAttempts,
       }));
 
-      // Trigger haptic feedback for certain events
+      // Trigger haptic feedback only when returning after significant time away
       if (appState === 'active' && timeAwayMinutes && timeAwayMinutes > 5) {
-        triggerHaptic('success');
+        triggerHapticRef.current('success');
       }
     };
 
@@ -687,7 +691,7 @@ export const useDeviceActivity = () => {
     return () => {
       window.removeEventListener('appLifecycleChange', handleAppLifecycle as EventListener);
     };
-  }, [triggerHaptic]);
+  }, []);
 
   // Initialize on mount
   useEffect(() => {

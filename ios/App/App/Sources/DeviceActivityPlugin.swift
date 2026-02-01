@@ -471,10 +471,8 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc private func appWillEnterForeground() {
         backgroundManager.appWillEnterForeground()
-        notifyJS("appLifecycleChange", data: [
-            "state": "foreground",
-            "timestamp": Date().timeIntervalSince1970
-        ])
+        // Don't notify JS here — appDidBecomeActive fires right after
+        // and sending both causes duplicate state updates + re-render cascades
     }
 
     @objc private func appDidBecomeActive() {

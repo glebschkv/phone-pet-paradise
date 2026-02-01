@@ -17,6 +17,7 @@ final class BackgroundTaskManager: BackgroundTaskManaging {
 
     private let taskScheduler: BGTaskScheduler
     private var onBackgroundEvent: (([String: Any]) -> Void)?
+    private var isRegistered = false
 
     // MARK: - Initialization
 
@@ -35,6 +36,11 @@ final class BackgroundTaskManager: BackgroundTaskManaging {
     // MARK: - Registration
 
     func registerBackgroundTasks() {
+        guard !isRegistered else {
+            Log.background.debug("Background tasks already registered, skipping")
+            return
+        }
+
         Log.background.operationStart("registerBackgroundTasks")
 
         taskScheduler.register(
@@ -49,12 +55,18 @@ final class BackgroundTaskManager: BackgroundTaskManaging {
             self?.handleBackgroundRefresh(task: refreshTask)
         }
 
+        isRegistered = true
         Log.background.success("Background tasks registered")
     }
 
     // MARK: - Scheduling
 
     func scheduleBackgroundRefresh() {
+        guard isRegistered else {
+            Log.background.debug("Skipping background refresh schedule — tasks not registered")
+            return
+        }
+
         let request = BGAppRefreshTaskRequest(identifier: AppConfig.backgroundTaskIdentifier)
         request.earliestBeginDate = Date(
             timeIntervalSinceNow: AppConfig.backgroundRefreshIntervalMinutes * 60
