@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { SplashScreen } from "@/components/SplashScreen";
@@ -26,6 +26,10 @@ const LoadingFallback = () => (
   </div>
 );
 
+// Module-level guard: survives component remounts (Suspense re-resolution,
+// route transitions) so the native splash is only ever hidden once.
+let _splashHidden = false;
+
 // Map biome names to background theme IDs
 const BIOME_TO_BACKGROUND: Record<string, string> = {
   'Meadow': 'day',
@@ -47,14 +51,14 @@ const Index = () => {
   usePerformanceMonitor(); // Initialize performance monitoring
 
   // Hide splash screens once after auth check resolves.
-  // Ref guard prevents duplicate hide calls from React StrictMode double-mount.
+  // Module-level _splashHidden survives component remounts (Suspense, route
+  // changes) so the native bridge call only fires once per app session.
   // Sequence: hide native splash first (reveals HTML neon splash underneath),
   // then fade the HTML splash after a brief delay so users see the branded
   // loading screen instead of an instant jump to content.
-  const splashHidden = useRef(false);
   useEffect(() => {
-    if (!isLoading && !splashHidden.current) {
-      splashHidden.current = true;
+    if (!isLoading && !_splashHidden) {
+      _splashHidden = true;
       // 1. Hide Capacitor's native splash — reveals the HTML neon splash underneath
       NativeSplash.hide().catch(() => { /* Not on native */ });
       // 2. Fade the HTML splash after a short delay so the neon loading screen

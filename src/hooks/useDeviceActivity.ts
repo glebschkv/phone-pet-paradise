@@ -96,6 +96,26 @@ function _invalidateInitCache() {
   _nativeInitPromise = null;
 }
 
+// ── Cross-instance state synchronisation ──
+// Multiple components (e.g. AppBlockingSection and useTimerLogic) each call
+// useDeviceActivity(), creating independent React state.  When one instance
+// updates permissions or app selection, the others must be notified so they
+// don't act on stale values (e.g. the timer thinking permissions are still
+// "notDetermined" even though the user just granted them).
+const STATE_SYNC_EVENT = 'deviceActivity:stateSync';
+const _stateSubscribers = new Set<(patch: Partial<DeviceActivityState>) => void>();
+
+function _broadcastStatePatch(patch: Partial<DeviceActivityState>) {
+  // Update the init cache so future mounts also get fresh data
+  if (_nativeInitResult) {
+    _nativeInitResult = { ..._nativeInitResult, ...patch };
+  }
+  // Notify every mounted hook instance
+  _stateSubscribers.forEach(fn => fn(patch));
+  // Also fire a DOM event for any non-hook listeners
+  window.dispatchEvent(new CustomEvent(STATE_SYNC_EVENT, { detail: patch }));
+}
+
 export const useDeviceActivity = () => {
   const [state, setState] = useState<DeviceActivityState>(() => {
     // If we already have a cached init result, use it immediately
@@ -118,6 +138,16 @@ export const useDeviceActivity = () => {
       pluginError: null,
     };
   });
+
+  // Subscribe to cross-instance state updates so this instance stays in sync
+  // when another instance (e.g. settings page) changes permissions or selection.
+  useEffect(() => {
+    const applyPatch = (patch: Partial<DeviceActivityState>) => {
+      setState(prev => ({ ...prev, ...patch }));
+    };
+    _stateSubscribers.add(applyPatch);
+    return () => { _stateSubscribers.delete(applyPatch); };
+  }, []);
 
   // Track plugin initialization errors
   const pluginErrorRef = useRef<Error | null>(null);
@@ -273,6 +303,9 @@ export const useDeviceActivity = () => {
         // Cache the final state so subsequent hook mounts get it immediately
         const finalState = { ...prev, isLoading: false };
         _nativeInitResult = finalState;
+        // Broadcast to all instances so any that mounted before init
+        // finishes also get the real native state
+        _broadcastStatePatch(finalState);
         return finalState;
       });
     }
@@ -377,21 +410,25 @@ export const useDeviceActivity = () => {
           'getBlockingStatus-afterPermission'
         );
 
+        const permPatch = {
+          isPermissionGranted: true,
+          isMonitoring: monitoring.monitoring,
+          isBlocking: blockingStatus.isBlocking,
+          hasAppsConfigured: blockingStatus.hasAppsConfigured,
+          shieldAttempts: blockingStatus.shieldAttempts,
+          lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
+          selectedAppsCount: blockingStatus.selectedAppsCount,
+          selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
+        };
+
         setState(prev => {
-          const updated = {
-            ...prev,
-            isMonitoring: monitoring.monitoring,
-            isBlocking: blockingStatus.isBlocking,
-            hasAppsConfigured: blockingStatus.hasAppsConfigured,
-            shieldAttempts: blockingStatus.shieldAttempts,
-            lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
-            selectedAppsCount: blockingStatus.selectedAppsCount,
-            selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
-          };
-          // Keep init cache in sync so remounts get fresh data
+          const updated = { ...prev, ...permPatch };
           _nativeInitResult = updated;
           return updated;
         });
+
+        // Broadcast to all other useDeviceActivity instances (e.g. the timer)
+        _broadcastStatePatch(permPatch);
 
         toast.success("Screen Time Access Granted", {
           description: "You can now block distracting apps during focus sessions!",
@@ -439,6 +476,19 @@ export const useDeviceActivity = () => {
     if (!state.pluginAvailable) {
       deviceActivityLogger.warn('startAppBlocking called but plugin is unavailable');
       return fallbackResult;
+    }
+
+    // Pre-flight: re-check permissions from native to avoid stale React state.
+    // This is a safety net — the cross-instance sync should keep values current,
+    // but a direct native check is the source of truth.
+    const { result: perms } = await safePluginCall(
+      () => DeviceActivity.checkPermissions(),
+      { status: 'notDetermined' as const, familyControlsEnabled: false },
+      'checkPermissions-preBlock'
+    );
+    if (perms.status !== 'granted') {
+      deviceActivityLogger.warn(`startAppBlocking: permissions are '${perms.status}', not blocking`);
+      return { ...fallbackResult, note: `Permissions ${perms.status}` };
     }
 
     const { result, success } = await safePluginCall(
@@ -625,17 +675,21 @@ export const useDeviceActivity = () => {
         } as BlockingStatus,
         'getBlockingStatus-afterPicker'
       );
+      const pickerPatch = {
+        hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
+        selectedAppsCount: status.selectedAppsCount || appsSelected,
+        selectedCategoriesCount: status.selectedCategoriesCount || categoriesSelected,
+      };
+
       setState(prev => {
-        const updated = {
-          ...prev,
-          hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
-          selectedAppsCount: status.selectedAppsCount || appsSelected,
-          selectedCategoriesCount: status.selectedCategoriesCount || categoriesSelected,
-        };
+        const updated = { ...prev, ...pickerPatch };
         // Keep the init cache in sync so remounts don't revert to stale counts
         _nativeInitResult = updated;
         return updated;
       });
+
+      // Broadcast to all other useDeviceActivity instances
+      _broadcastStatePatch(pickerPatch);
     } else if (result?.cancelled) {
       deviceActivityLogger.info('App picker cancelled by user');
     }

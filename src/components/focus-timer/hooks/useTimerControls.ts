@@ -100,17 +100,20 @@ export const useTimerControls = ({
       });
     }
 
-    // Start app blocking AFTER UI update — don't block the visual transition
-    if (appBlockingEnabled && hasAppsConfigured && blockedAppsCount > 0) {
+    // Start app blocking AFTER UI update — don't block the visual transition.
+    // We intentionally use a loose guard here: startAppBlocking() does its own
+    // pre-flight permission & status checks against the native plugin, so we
+    // only skip the call for obviously-impossible scenarios (break sessions).
+    if (selectedPreset.type !== 'break') {
       startAppBlocking().then((result) => {
-        if (result.appsBlocked > 0) {
+        if (result.appsBlocked > 0 || result.categoriesBlocked > 0) {
           triggerHaptic('light');
         }
       }).catch((e) => {
         console.error('Failed to start app blocking:', e);
       });
     }
-  }, [saveTimerState, timerState.timeLeft, timerState.isCountup, appBlockingEnabled, hasAppsConfigured, blockedAppsCount, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
+  }, [saveTimerState, timerState.timeLeft, timerState.isCountup, selectedPreset.type, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
 
   const pauseTimer = useCallback(() => {
     const now = Date.now();
