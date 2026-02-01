@@ -4,9 +4,15 @@
 // Define the plugin using the CAP_PLUGIN Macro, and
 // each method the plugin supports using the CAP_PLUGIN_METHOD macro.
 CAP_PLUGIN(DeviceActivityPlugin, "DeviceActivity",
+           // Diagnostic methods
+           CAP_PLUGIN_METHOD(echo, CAPPluginReturnPromise);
+
            // Permission methods
            CAP_PLUGIN_METHOD(requestPermissions, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(checkPermissions, CAPPluginReturnPromise);
+
+           // Settings
+           CAP_PLUGIN_METHOD(openSettings, CAPPluginReturnPromise);
 
            // App selection methods
            CAP_PLUGIN_METHOD(openAppPicker, CAPPluginReturnPromise);
