@@ -39,9 +39,15 @@ async function safePluginCall<T>(
     const result = await pluginCall();
     return { result, success: true };
   } catch (error) {
-    deviceActivityLogger.error(`[${errorContext}] Plugin call failed:`, error);
-    if (error instanceof Error) {
-      reportError(error, { context: errorContext, plugin: 'DeviceActivity' });
+    const errMsg = error instanceof Error ? error.message : String(error);
+    // "not implemented" is expected on simulator / when plugin isn't loaded — don't spam errors
+    if (errMsg.includes('not implemented') || errMsg.includes('not available') || errMsg.includes('Plugin not installed')) {
+      deviceActivityLogger.debug(`[${errorContext}] Plugin not available on this platform`);
+    } else {
+      deviceActivityLogger.error(`[${errorContext}] Plugin call failed:`, error);
+      if (error instanceof Error) {
+        reportError(error, { context: errorContext, plugin: 'DeviceActivity' });
+      }
     }
     return { result: fallback, success: false };
   }
@@ -139,34 +145,31 @@ export const useDeviceActivity = () => {
   // Core native initialization logic (called only once across all hook instances)
   const _doNativeInit = useCallback(async () => {
     try {
-      // First, verify the native plugin bridge is working with a simple echo call
-      const { result: echoResult, success: echoSuccess } = await safePluginCall(
-        () => DeviceActivity.echo(),
-        { pluginLoaded: false, platform: 'unknown', timestamp: 0 },
-        'echo'
-      );
-
-      if (echoSuccess) {
+      // Verify the native plugin bridge is working — bail immediately if not available
+      try {
+        const echoResult = await DeviceActivity.echo();
         deviceActivityLogger.debug(`Plugin bridge OK: platform=${echoResult.platform}, loaded=${echoResult.pluginLoaded}`);
         // Log entitlement diagnostic info
         const diag = echoResult as Record<string, unknown>;
         if (diag.familyControlsEntitlementInProfile !== undefined) {
           deviceActivityLogger.info(
-            `[DIAG] Family Controls entitlement in provisioning profile: ${diag.familyControlsEntitlementInProfile ? 'YES' : 'NO ❌'}`
+            `[DIAG] Family Controls entitlement: ${diag.familyControlsEntitlementInProfile ? 'YES' : 'NO ❌'}`
           );
           deviceActivityLogger.info(
             `[DIAG] Initial auth status: ${diag.initialAuthStatus}, Bundle ID: ${diag.bundleId}`
           );
-          if (!diag.familyControlsEntitlementInProfile) {
-            deviceActivityLogger.error(
-              '[DIAG] Family Controls entitlement is MISSING from provisioning profile! ' +
-              'Screen Time permissions will always fail. Fix: In Xcode, toggle "Automatically manage signing" off then on, ' +
-              'or manually create a profile in the Apple Developer Portal.'
-            );
-          }
         }
-      } else {
-        deviceActivityLogger.warn('Plugin echo failed - native bridge may not be available');
+      } catch (echoError) {
+        const errMsg = echoError instanceof Error ? echoError.message : String(echoError);
+        if (errMsg.includes('not implemented') || errMsg.includes('not available') || errMsg.includes('Plugin not installed')) {
+          // Plugin is not available (simulator, missing entitlement, etc.)
+          // Bail immediately — no point calling checkPermissions, requestPermissions, etc.
+          deviceActivityLogger.debug('DeviceActivity plugin not available on this platform — skipping all native calls');
+          setState(prev => ({ ...prev, pluginAvailable: false }));
+          return;
+        }
+        // Non-fatal error — continue with degraded functionality
+        deviceActivityLogger.warn('Plugin echo failed with unexpected error:', errMsg);
       }
 
       // Check permissions with safe wrapper.
@@ -284,6 +287,7 @@ export const useDeviceActivity = () => {
 
   // Open device Settings (for re-enabling denied permissions)
   const openSettings = useCallback(async () => {
+    if (_nativeInitResult && !_nativeInitResult.pluginAvailable) return;
     await safePluginCall(
       () => DeviceActivity.openSettings(),
       { success: false },
@@ -293,6 +297,11 @@ export const useDeviceActivity = () => {
 
   // Request permissions
   const requestPermissions = useCallback(async () => {
+    // If init detected plugin as unavailable, don't attempt native calls
+    if (_nativeInitResult && !_nativeInitResult.pluginAvailable) {
+      deviceActivityLogger.debug('requestPermissions skipped — plugin unavailable');
+      return;
+    }
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
