@@ -41,6 +41,11 @@ final class AnimatedSplashViewController: UIViewController {
     private let textClr  = UIColor(red: 226/255, green: 212/255, blue: 240/255, alpha: 1)// #e2d4f0
     private let tagClr   = UIColor(red: 168/255, green: 130/255, blue: 220/255, alpha: 0.6)
 
+    // MARK: - Notification
+
+    /// Posted by DeviceActivityPlugin.dismissSplash to trigger the fade-out.
+    static let dismissNotification = Notification.Name("AnimatedSplashDismiss")
+
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
@@ -51,6 +56,17 @@ final class AnimatedSplashViewController: UIViewController {
         setupTitle()
         setupTagline()
         setupLoadingBar()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleDismissNotification),
+            name: Self.dismissNotification,
+            object: nil
+        )
+    }
+
+    @objc private func handleDismissNotification() {
+        dismiss(completion: nil)
     }
 
     override func viewDidLayoutSubviews() {

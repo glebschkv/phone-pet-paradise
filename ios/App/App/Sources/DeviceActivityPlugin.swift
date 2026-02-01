@@ -434,16 +434,15 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
     /// Dismiss the native animated splash screen overlay.
     /// Called from JS once the web app is ready to show content.
+    /// Uses NotificationCenter to avoid a direct type dependency on
+    /// AnimatedSplashViewController (which lives in a separate file).
     @objc func dismissSplash(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            if let splash = AnimatedSplashViewController.shared {
-                splash.dismiss {
-                    call.resolve(["success": true])
-                }
-            } else {
-                // Already dismissed or never shown
-                call.resolve(["success": true, "note": "alreadyDismissed"])
-            }
+            NotificationCenter.default.post(
+                name: Notification.Name("AnimatedSplashDismiss"),
+                object: nil
+            )
+            call.resolve(["success": true])
         }
     }
 
