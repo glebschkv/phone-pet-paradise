@@ -15,13 +15,30 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <!-- Ambient purple glow (wide soft rectangle behind title area) -->
-                            <view alpha="0.08" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="glow-rect">
-                                <rect key="frame" x="37.5" y="213" width="300" height="200"/>
+                            <!-- ── Layered glow: 3 overlapping rects at low alpha ──
+                                 Where they overlap the alphas stack, creating a
+                                 stepped radial gradient without cornerRadius.
+                                 Outer=0.015, Mid=0.025, Inner=0.035
+                                 Center overlap: ~0.075 total (subtle purple haze) -->
+                            <view alpha="0.015" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="glow-outer">
                                 <color key="backgroundColor" red="0.6588235294" green="0.3333333333" blue="0.9686274510" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="300" id="glow-w"/>
-                                    <constraint firstAttribute="height" constant="200" id="glow-h"/>
+                                    <constraint firstAttribute="width" constant="360" id="go-w"/>
+                                    <constraint firstAttribute="height" constant="280" id="go-h"/>
+                                </constraints>
+                            </view>
+                            <view alpha="0.025" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="glow-mid">
+                                <color key="backgroundColor" red="0.6588235294" green="0.3333333333" blue="0.9686274510" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="260" id="gm-w"/>
+                                    <constraint firstAttribute="height" constant="180" id="gm-h"/>
+                                </constraints>
+                            </view>
+                            <view alpha="0.035" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="glow-inner">
+                                <color key="backgroundColor" red="0.6588235294" green="0.3333333333" blue="0.9686274510" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="160" id="gi-w"/>
+                                    <constraint firstAttribute="height" constant="90" id="gi-h"/>
                                 </constraints>
                             </view>
                             <!-- NOMO title -->
@@ -32,57 +49,49 @@
                             </label>
                             <!-- Tagline -->
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Focus · Grow · Collect" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tagline-label">
-                                <fontDescription key="fontDescription" type="system" pointSize="11"/>
-                                <color key="textColor" red="0.6588235294" green="0.5098039216" blue="0.8627450980" alpha="0.6" colorSpace="custom" customColorSpace="sRGB"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <color key="textColor" red="0.6588235294" green="0.5098039216" blue="0.8627450980" alpha="0.5" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <!-- Loading bar track -->
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bar-track">
-                                <rect key="frame" x="97.5" y="400" width="180" height="4"/>
                                 <subviews>
-                                    <!-- Loading bar fill (~35% progress) -->
+                                    <!-- Loading bar fill (~35%) -->
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bar-fill">
-                                        <rect key="frame" x="0" y="0" width="62" height="4"/>
                                         <color key="backgroundColor" red="0.6588235294" green="0.3333333333" blue="0.9686274510" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
-                                            <constraint firstAttribute="height" constant="4" id="fill-h"/>
-                                            <constraint firstAttribute="width" constant="62" id="fill-w"/>
+                                            <constraint firstAttribute="width" constant="70" id="fill-w"/>
                                         </constraints>
                                     </view>
                                 </subviews>
-                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.08" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.06" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="180" id="track-w"/>
-                                    <constraint firstAttribute="height" constant="4" id="track-h"/>
+                                    <constraint firstAttribute="width" constant="200" id="track-w"/>
+                                    <constraint firstAttribute="height" constant="3" id="track-h"/>
                                     <constraint firstItem="bar-fill" firstAttribute="leading" secondItem="bar-track" secondAttribute="leading" id="fill-lead"/>
                                     <constraint firstItem="bar-fill" firstAttribute="top" secondItem="bar-track" secondAttribute="top" id="fill-top"/>
                                     <constraint firstItem="bar-fill" firstAttribute="bottom" secondItem="bar-track" secondAttribute="bottom" id="fill-bot"/>
                                 </constraints>
                             </view>
-                            <!-- Subtle loading dots hint -->
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Loading…" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="loading-label">
-                                <fontDescription key="fontDescription" type="system" pointSize="10"/>
-                                <color key="textColor" red="0.6588235294" green="0.5098039216" blue="0.8627450980" alpha="0.35" colorSpace="custom" customColorSpace="sRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.039215686274509803" green="0.0" blue="0.078431372549019607" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <!-- Glow: centered, above vertical center -->
-                            <constraint firstItem="glow-rect" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="glow-cx"/>
-                            <constraint firstItem="glow-rect" firstAttribute="centerY" secondItem="launch-root-view" secondAttribute="centerY" constant="-40" id="glow-cy"/>
-                            <!-- NOMO title: centered -->
+                            <!-- All 3 glow layers share the same center point -->
+                            <constraint firstItem="glow-outer" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="go-cx"/>
+                            <constraint firstItem="glow-outer" firstAttribute="centerY" secondItem="launch-root-view" secondAttribute="centerY" constant="-30" id="go-cy"/>
+                            <constraint firstItem="glow-mid" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="gm-cx"/>
+                            <constraint firstItem="glow-mid" firstAttribute="centerY" secondItem="launch-root-view" secondAttribute="centerY" constant="-30" id="gm-cy"/>
+                            <constraint firstItem="glow-inner" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="gi-cx"/>
+                            <constraint firstItem="glow-inner" firstAttribute="centerY" secondItem="launch-root-view" secondAttribute="centerY" constant="-30" id="gi-cy"/>
+                            <!-- NOMO title: centered, slightly above vertical center -->
                             <constraint firstItem="nomo-title-label" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="title-cx"/>
-                            <constraint firstItem="nomo-title-label" firstAttribute="centerY" secondItem="launch-root-view" secondAttribute="centerY" constant="-10" id="title-cy"/>
+                            <constraint firstItem="nomo-title-label" firstAttribute="centerY" secondItem="launch-root-view" secondAttribute="centerY" constant="-30" id="title-cy"/>
                             <!-- Tagline: centered, below title -->
                             <constraint firstItem="tagline-label" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="tag-cx"/>
-                            <constraint firstItem="tagline-label" firstAttribute="top" secondItem="nomo-title-label" secondAttribute="bottom" constant="6" id="tag-top"/>
+                            <constraint firstItem="tagline-label" firstAttribute="top" secondItem="nomo-title-label" secondAttribute="bottom" constant="8" id="tag-top"/>
                             <!-- Loading bar: centered, below tagline -->
                             <constraint firstItem="bar-track" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="bar-cx"/>
-                            <constraint firstItem="bar-track" firstAttribute="top" secondItem="tagline-label" secondAttribute="bottom" constant="40" id="bar-top"/>
-                            <!-- Loading text: centered, below bar -->
-                            <constraint firstItem="loading-label" firstAttribute="centerX" secondItem="launch-root-view" secondAttribute="centerX" id="load-cx"/>
-                            <constraint firstItem="loading-label" firstAttribute="top" secondItem="bar-track" secondAttribute="bottom" constant="12" id="load-top"/>
+                            <constraint firstItem="bar-track" firstAttribute="top" secondItem="tagline-label" secondAttribute="bottom" constant="44" id="bar-top"/>
                         </constraints>
                     </view>
                 </viewController>
