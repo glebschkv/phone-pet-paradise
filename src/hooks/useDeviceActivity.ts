@@ -149,6 +149,21 @@ export const useDeviceActivity = () => {
       try {
         const echoResult = await DeviceActivity.echo();
         deviceActivityLogger.debug(`Plugin bridge OK: platform=${echoResult.platform}, loaded=${echoResult.pluginLoaded}`);
+
+        // CRITICAL: If running on native iOS but echo responded from the web fallback,
+        // the native plugin isn't loaded (missing from capacitor.config.json packageClassList).
+        // The web fallback returns fake success for ALL calls — startAppBlocking returns
+        // { success: true, appsBlocked: 1 } without actually blocking anything.
+        // Detect this and bail so callers know the plugin is genuinely unavailable.
+        if (Capacitor.isNativePlatform() && echoResult.platform === 'web') {
+          deviceActivityLogger.warn(
+            'Native platform detected but DeviceActivity responded from web fallback — ' +
+            'native plugin not loaded. Run "npm run ios" to rebuild with the config patch.'
+          );
+          setState(prev => ({ ...prev, pluginAvailable: false }));
+          return;
+        }
+
         // Log entitlement diagnostic info
         const diag = echoResult as Record<string, unknown>;
         if (diag.familyControlsEntitlementInProfile !== undefined) {
@@ -433,6 +448,10 @@ export const useDeviceActivity = () => {
     );
 
     if (!success) {
+      deviceActivityLogger.warn('startAppBlocking native call failed — apps will NOT be blocked');
+      toast.error("App Blocking Failed", {
+        description: "Could not block apps. Check Screen Time permissions and try again.",
+      });
       return result;
     }
 
@@ -445,6 +464,12 @@ export const useDeviceActivity = () => {
     if (result.appsBlocked > 0 || result.categoriesBlocked > 0) {
       toast.success("Focus Mode Active", {
         description: `Blocking ${result.appsBlocked} apps and ${result.categoriesBlocked} categories`,
+      });
+    } else if (result.success) {
+      // Native call succeeded but reported 0 apps blocked — selection may be missing
+      deviceActivityLogger.warn('startAppBlocking succeeded but 0 apps blocked — no selection data in UserDefaults?');
+      toast.warning("No Apps Blocked", {
+        description: "No apps were blocked. Try re-selecting apps in Focus Settings.",
       });
     }
 
