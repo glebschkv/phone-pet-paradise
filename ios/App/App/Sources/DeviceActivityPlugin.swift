@@ -76,8 +76,11 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         pluginLoadedSuccessfully = true
         Log.app.info("DeviceActivityPlugin loaded successfully")
 
-        // Diagnostic: check Family Controls entitlement status at startup
-        diagnoseEntitlement()
+        // Diagnostic: check Family Controls entitlement status off the main thread
+        // (reads the embedded provisioning profile from disk — file I/O)
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            self?.diagnoseEntitlement()
+        }
     }
 
     /// Checks if the Family Controls entitlement is properly configured

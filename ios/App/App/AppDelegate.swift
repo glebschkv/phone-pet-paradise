@@ -30,11 +30,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         Log.app.info("\(AppConfig.appName) v\(AppConfig.fullVersion)")
 
         // Pre-warm WKWebView XPC processes as early as possible.
-        // The Networking/GPU/WebContent processes take 2-8s on cold start.
-        // Creating a throwaway WKWebView here kicks off those launches in
-        // parallel with background task registration and UI setup.
-        prewarmWebView = WKWebView(frame: .zero)
-        prewarmWebView?.loadHTMLString("", baseURL: nil)
+        // The Networking/GPU/WebContent processes take 2-14s on cold start.
+        // Creating a throwaway WKWebView kicks off Networking/GPU/WebContent
+        // process launches in parallel with plugin registration and UI setup.
+        // IMPORTANT: Keep this view alive until XPC processes finish —
+        // releasing it too early causes "XPC connection interrupted" and
+        // forces Capacitor's WebView to restart them from scratch.
+        let config = WKWebViewConfiguration()
+        config.suppressesIncrementalRendering = true
+        prewarmWebView = WKWebView(frame: .zero, configuration: config)
+        prewarmWebView?.loadHTMLString("<body style='background:#0a0014'></body>", baseURL: nil)
+
+        // Release the pre-warm view after 30s — by then Capacitor's WebView
+        // owns the XPC connections and the throwaway is no longer needed.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { [weak self] in
+            self?.prewarmWebView = nil
+        }
 
         // Register background tasks early
         registerBackgroundTasks()
@@ -60,11 +71,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         Log.lifecycle.debug("Application did become active")
-        // Release the pre-warm WebView — Capacitor's WebView is running now.
-        // The XPC processes stay alive once launched so this just frees the view.
-        if prewarmWebView != nil {
-            prewarmWebView = nil
-        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
