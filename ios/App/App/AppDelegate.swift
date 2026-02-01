@@ -1,6 +1,5 @@
 import UIKit
 import Capacitor
-import WebKit
 
 /**
  * AppDelegate
@@ -15,11 +14,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
-    /// Throwaway WKWebView used to pre-warm the Networking/GPU/WebContent
-    /// XPC processes. Creating this early causes iOS to start those processes
-    /// in parallel with the rest of app setup, shaving time off the cold start.
-    private var prewarmWebView: WKWebView?
-
     // MARK: - App Lifecycle
 
     func application(
@@ -28,24 +22,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         Log.lifecycle.info("Application did finish launching")
         Log.app.info("\(AppConfig.appName) v\(AppConfig.fullVersion)")
-
-        // Pre-warm WKWebView XPC processes as early as possible.
-        // The Networking/GPU/WebContent processes take 2-14s on cold start.
-        // Creating a throwaway WKWebView kicks off Networking/GPU/WebContent
-        // process launches in parallel with plugin registration and UI setup.
-        // IMPORTANT: Keep this view alive until XPC processes finish —
-        // releasing it too early causes "XPC connection interrupted" and
-        // forces Capacitor's WebView to restart them from scratch.
-        let config = WKWebViewConfiguration()
-        config.suppressesIncrementalRendering = true
-        prewarmWebView = WKWebView(frame: .zero, configuration: config)
-        prewarmWebView?.loadHTMLString("<body style='background:#0a0014'></body>", baseURL: nil)
-
-        // Release the pre-warm view after 30s — by then Capacitor's WebView
-        // owns the XPC connections and the throwaway is no longer needed.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { [weak self] in
-            self?.prewarmWebView = nil
-        }
 
         // Register background tasks early
         registerBackgroundTasks()

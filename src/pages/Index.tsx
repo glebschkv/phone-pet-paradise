@@ -48,15 +48,24 @@ const Index = () => {
 
   // Hide splash screens once after auth check resolves.
   // Ref guard prevents duplicate hide calls from React StrictMode double-mount.
+  // Sequence: hide native splash first (reveals HTML neon splash underneath),
+  // then fade the HTML splash after a brief delay so users see the branded
+  // loading screen instead of an instant jump to content.
   const splashHidden = useRef(false);
   useEffect(() => {
     if (!isLoading && !splashHidden.current) {
       splashHidden.current = true;
+      // 1. Hide Capacitor's native splash — reveals the HTML neon splash underneath
       NativeSplash.hide().catch(() => { /* Not on native */ });
+      // 2. Fade the HTML splash after a short delay so the neon loading screen
+      //    is visible for at least a moment (otherwise both hide simultaneously
+      //    and users see a jarring flash)
       const htmlSplash = document.getElementById('splash-screen');
       if (htmlSplash) {
-        htmlSplash.style.opacity = '0';
-        setTimeout(() => htmlSplash.remove(), 350);
+        setTimeout(() => {
+          htmlSplash.style.opacity = '0';
+          setTimeout(() => htmlSplash.remove(), 350);
+        }, 600);
       }
     }
   }, [isLoading]);
