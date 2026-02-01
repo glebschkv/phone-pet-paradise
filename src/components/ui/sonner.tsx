@@ -8,6 +8,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme="dark"
       position="top-center"
       className="toaster group"
+      style={{ '--offset': 'max(14px, env(safe-area-inset-top, 14px))' } as React.CSSProperties}
       toastOptions={{
         duration: 3000,
         classNames: {
