@@ -131,34 +131,17 @@ export const useNativePluginStatus = () => {
 
     const errors: Error[] = [];
 
-    // Use lightweight echo/ping calls for health checks instead of heavy
-    // business-logic calls. The actual hooks (useDeviceActivity, useStoreKit)
-    // already call checkPermissions/getSubscriptionStatus on their own init.
-    const deviceActivityResult = await checkPluginHealth(
-      'DeviceActivity',
-      async () => await DeviceActivity.echo()
-    );
-    if (deviceActivityResult.error) {
-      errors.push(deviceActivityResult.error);
-    }
+    // Run all health checks in PARALLEL to avoid serializing bridge round-trips.
+    // Sequential checks were adding ~300-600ms+ of idle wait time during startup.
+    const [deviceActivityResult, storeKitResult, widgetDataResult] = await Promise.all([
+      checkPluginHealth('DeviceActivity', async () => await DeviceActivity.echo()),
+      checkPluginHealth('StoreKit', async () => await StoreKit.getSubscriptionStatus()),
+      checkPluginHealth('WidgetData', async () => await WidgetDataPlugin.loadData()),
+    ]);
 
-    // Check StoreKit plugin with lightweight call
-    const storeKitResult = await checkPluginHealth(
-      'StoreKit',
-      async () => await StoreKit.getSubscriptionStatus()
-    );
-    if (storeKitResult.error) {
-      errors.push(storeKitResult.error);
-    }
-
-    // Check WidgetData plugin with lightweight call
-    const widgetDataResult = await checkPluginHealth(
-      'WidgetData',
-      async () => await WidgetDataPlugin.loadData()
-    );
-    if (widgetDataResult.error) {
-      errors.push(widgetDataResult.error);
-    }
+    if (deviceActivityResult.error) errors.push(deviceActivityResult.error);
+    if (storeKitResult.error) errors.push(storeKitResult.error);
+    if (widgetDataResult.error) errors.push(widgetDataResult.error);
 
     const plugins: PluginHealthStatus = {
       deviceActivity: deviceActivityResult.status,
@@ -222,10 +205,12 @@ export const useNativePluginStatus = () => {
     [state.isNative, state.plugins]
   );
 
-  // Run initial check after first paint — defer so the UI renders immediately
-  // instead of blocking on sequential plugin health checks with retries
+  // Run initial check well after first paint — defer so the UI renders and
+  // becomes interactive before health checks saturate the native bridge.
+  // 300ms gives React time to commit, paint, and process the initial render
+  // plus any pending user interactions (e.g. taps on already-visible buttons).
   useEffect(() => {
-    const id = setTimeout(checkAllPlugins, 50);
+    const id = setTimeout(checkAllPlugins, 300);
     return () => clearTimeout(id);
   }, [checkAllPlugins]);
 
