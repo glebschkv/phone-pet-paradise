@@ -131,16 +131,18 @@ export const useNativePluginStatus = () => {
 
     const errors: Error[] = [];
 
-    // Check DeviceActivity plugin
+    // Use lightweight echo/ping calls for health checks instead of heavy
+    // business-logic calls. The actual hooks (useDeviceActivity, useStoreKit)
+    // already call checkPermissions/getSubscriptionStatus on their own init.
     const deviceActivityResult = await checkPluginHealth(
       'DeviceActivity',
-      async () => await DeviceActivity.checkPermissions()
+      async () => await DeviceActivity.echo()
     );
     if (deviceActivityResult.error) {
       errors.push(deviceActivityResult.error);
     }
 
-    // Check StoreKit plugin
+    // Check StoreKit plugin with lightweight call
     const storeKitResult = await checkPluginHealth(
       'StoreKit',
       async () => await StoreKit.getSubscriptionStatus()
@@ -149,7 +151,7 @@ export const useNativePluginStatus = () => {
       errors.push(storeKitResult.error);
     }
 
-    // Check WidgetData plugin
+    // Check WidgetData plugin with lightweight call
     const widgetDataResult = await checkPluginHealth(
       'WidgetData',
       async () => await WidgetDataPlugin.loadData()

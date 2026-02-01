@@ -35,12 +35,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidEnterBackground(_ application: UIApplication) {
         Log.lifecycle.debug("Application did enter background")
-        BackgroundTaskManager.shared.appDidEnterBackground()
+        // BackgroundTaskManager lifecycle is handled by DeviceActivityPlugin's
+        // NotificationCenter observers — no need to call it here too
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
         Log.lifecycle.debug("Application will enter foreground")
-        BackgroundTaskManager.shared.appWillEnterForeground()
+        // BackgroundTaskManager lifecycle is handled by DeviceActivityPlugin's
+        // NotificationCenter observers — no need to call it here too
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {

@@ -77,21 +77,33 @@ export const DEFAULT_BLOCKED_APPS: SimulatedBlockedApp[] = [
   { id: 'discord', name: 'Discord', icon: '💬', isBlocked: false },
 ];
 
+// Module-level guard: ensures native initialization only runs once
+// even when multiple components mount useDeviceActivity simultaneously
+let _nativeInitStarted = false;
+let _nativeInitResult: DeviceActivityState | null = null;
+let _nativeInitPromise: Promise<DeviceActivityState> | null = null;
+
 export const useDeviceActivity = () => {
-  const [state, setState] = useState<DeviceActivityState>({
-    isPermissionGranted: false,
-    isMonitoring: false,
-    timeAwayMinutes: 0,
-    lastActiveTime: Date.now(),
-    isLoading: true,
-    isBlocking: false,
-    hasAppsConfigured: false,
-    shieldAttempts: 0,
-    lastShieldAttemptTimestamp: 0,
-    selectedAppsCount: 0,
-    selectedCategoriesCount: 0,
-    pluginAvailable: true,
-    pluginError: null,
+  const [state, setState] = useState<DeviceActivityState>(() => {
+    // If we already have a cached init result, use it immediately
+    if (_nativeInitResult) {
+      return { ..._nativeInitResult, isLoading: false };
+    }
+    return {
+      isPermissionGranted: false,
+      isMonitoring: false,
+      timeAwayMinutes: 0,
+      lastActiveTime: Date.now(),
+      isLoading: true,
+      isBlocking: false,
+      hasAppsConfigured: false,
+      shieldAttempts: 0,
+      lastShieldAttemptTimestamp: 0,
+      selectedAppsCount: 0,
+      selectedCategoriesCount: 0,
+      pluginAvailable: true,
+      pluginError: null,
+    };
   });
 
   // Track plugin initialization errors
@@ -117,11 +129,9 @@ export const useDeviceActivity = () => {
   // Check if we're on native platform
   const isNative = Capacitor.isNativePlatform();
 
-  // Initialize device activity monitoring (with automatic retry on failure)
-  const initialize = useCallback(async () => {
+  // Core native initialization logic (called only once across all hook instances)
+  const _doNativeInit = useCallback(async () => {
     try {
-      setState(prev => ({ ...prev, isLoading: true }));
-
       // First, verify the native plugin bridge is working with a simple echo call
       const { result: echoResult, success: echoSuccess } = await safePluginCall(
         () => DeviceActivity.echo(),
@@ -234,9 +244,36 @@ export const useDeviceActivity = () => {
         pluginError: err,
       }));
     } finally {
-      setState(prev => ({ ...prev, isLoading: false }));
+      setState(prev => {
+        // Cache the final state so subsequent hook mounts get it immediately
+        const finalState = { ...prev, isLoading: false };
+        _nativeInitResult = finalState;
+        return finalState;
+      });
     }
   }, []);
+
+  // Dedup wrapper: ensures native init runs only once across all hook instances
+  const initialize = useCallback(async () => {
+    if (_nativeInitResult) {
+      // Already initialized — just apply cached state
+      setState(prev => ({ ...prev, ..._nativeInitResult, isLoading: false }));
+      return;
+    }
+    if (_nativeInitStarted && _nativeInitPromise) {
+      // Another instance is already initializing — wait for it
+      const result = await _nativeInitPromise;
+      setState({ ...result, isLoading: false });
+      return;
+    }
+    // First caller — run the actual init
+    _nativeInitStarted = true;
+    setState(prev => ({ ...prev, isLoading: true }));
+    _nativeInitPromise = _doNativeInit().then(() => {
+      return _nativeInitResult!;
+    });
+    await _nativeInitPromise;
+  }, [_doNativeInit]);
 
   // Open device Settings (for re-enabling denied permissions)
   const openSettings = useCallback(async () => {
