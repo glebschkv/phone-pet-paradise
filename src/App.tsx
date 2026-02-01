@@ -21,11 +21,17 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Hide the native Capacitor splash once React has mounted.
-  // The splash stays visible (launchAutoHide: false) during the WKWebView
-  // cold start so the user never sees a black/blank screen.
+  // Once React has mounted, hide both splash layers:
+  // 1. Native Capacitor splash (launchAutoHide: false keeps it visible during cold start)
+  // 2. HTML splash (#splash-screen in index.html) — fade out then remove
   useEffect(() => {
     NativeSplash.hide().catch(() => { /* Not on native */ });
+
+    const htmlSplash = document.getElementById('splash-screen');
+    if (htmlSplash) {
+      htmlSplash.style.opacity = '0';
+      setTimeout(() => htmlSplash.remove(), 350);
+    }
   }, []);
 
   return (

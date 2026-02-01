@@ -33,12 +33,9 @@ const initializeTheme = () => {
 
 initializeTheme();
 
-// Remove the inline HTML splash screen (if any).
-// The native Capacitor splash is hidden from App.tsx after React mounts,
-// so there's no black gap during the WKWebView cold start.
-const splashEl = document.getElementById('splash-screen');
-if (splashEl) {
-  splashEl.remove();
-}
+// The HTML splash screen (#splash-screen) lives OUTSIDE #root in index.html
+// so it stays visible during React's initial render. App.tsx fades it out
+// once the React tree is mounted. Do NOT remove it here — that causes a
+// brief black flash before React paints.
 
 createRoot(document.getElementById("root")!).render(<App />);
