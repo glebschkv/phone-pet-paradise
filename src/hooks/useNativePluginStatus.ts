@@ -222,9 +222,11 @@ export const useNativePluginStatus = () => {
     [state.isNative, state.plugins]
   );
 
-  // Run initial check on mount
+  // Run initial check after first paint — defer so the UI renders immediately
+  // instead of blocking on sequential plugin health checks with retries
   useEffect(() => {
-    checkAllPlugins();
+    const id = setTimeout(checkAllPlugins, 50);
+    return () => clearTimeout(id);
   }, [checkAllPlugins]);
 
   // Auto-retry if critical errors are detected — plugins may need time to initialise

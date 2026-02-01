@@ -103,9 +103,13 @@ export const useNotifications = () => {
   }, []);
 
   const initializeNotifications = useCallback(async () => {
-    // Check module-level flag to prevent re-initialization across remounts
-    if (isInitialized || globalNotificationsInitialized) {
-      if (!isInitialized) setIsInitialized(true);
+    // Module-level guard — prevents re-initialization across remounts.
+    // IMPORTANT: Do NOT add `isInitialized` to deps — that causes the
+    // callback to be recreated on state change, which triggers the useEffect
+    // cleanup (removing all listeners) and re-run (returning early = listeners
+    // never re-added). Use the module-level flag instead.
+    if (globalNotificationsInitialized) {
+      setIsInitialized(true);
       return;
     }
 
@@ -158,7 +162,7 @@ export const useNotifications = () => {
       globalNotificationsInitialized = true;
       setIsInitialized(true);
     }
-  }, [isInitialized, setupNotificationListeners]);
+  }, [setupNotificationListeners]);
 
   const scheduleLocalNotification = useCallback(async (options: NotificationOptions) => {
     if (!permissions.localEnabled) {
