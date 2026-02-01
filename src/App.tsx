@@ -26,7 +26,7 @@ const App = () => (
         <OfflineProvider>
           <TooltipProvider>
             <Toaster />
-            <PluginUnavailableBanner className="fixed top-0 left-0 right-0 z-50" />
+            <PluginUnavailableBanner className="fixed top-0 left-0 right-0 z-50 pt-safe" />
             <VersionNotice />
             <BrowserRouter>
               <Suspense fallback={<SplashScreen />}>
