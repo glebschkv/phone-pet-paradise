@@ -134,6 +134,7 @@ final class AnimatedSplashViewController: UIViewController {
     private let barTrackView = UIView()
     private let barFillView = UIView()
     private let barGlowView = UIView()
+    private let statusLabel = UILabel()
 
     private var barFillWidthConstraint: NSLayoutConstraint!
     private var trackWidth: CGFloat = 180
@@ -158,6 +159,7 @@ final class AnimatedSplashViewController: UIViewController {
         setupTitle()
         setupTagline()
         setupLoadingBar()
+        setupStatusLabel()
 
         // Listen for dismiss notification from DeviceActivityPlugin
         NotificationCenter.default.addObserver(
@@ -342,6 +344,21 @@ final class AnimatedSplashViewController: UIViewController {
             barFillView.topAnchor.constraint(equalTo: barTrackView.topAnchor),
             barFillView.bottomAnchor.constraint(equalTo: barTrackView.bottomAnchor),
             barFillWidthConstraint,
+        ])
+    }
+
+    private func setupStatusLabel() {
+        statusLabel.text = "Getting everything ready..."
+        statusLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        statusLabel.textColor = tagClr
+        statusLabel.textAlignment = .center
+        statusLabel.alpha = 0.8
+        statusLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(statusLabel)
+
+        NSLayoutConstraint.activate([
+            statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            statusLabel.topAnchor.constraint(equalTo: barTrackView.bottomAnchor, constant: 16),
         ])
     }
 
