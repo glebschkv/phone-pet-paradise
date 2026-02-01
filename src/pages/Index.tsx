@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { SplashScreen } from "@/components/SplashScreen";
+import { SplashScreen as NativeSplash } from '@capacitor/splash-screen';
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
@@ -44,6 +45,20 @@ const Index = () => {
   const hasCompletedOnboarding = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   usePerformanceMonitor(); // Initialize performance monitoring
+
+  // Hide splash screens once the Index page has mounted.
+  // This runs AFTER: WKWebView load → React mount → lazy import → auth check,
+  // so the splash stays visible through the entire cold start sequence.
+  useEffect(() => {
+    if (!isLoading) {
+      NativeSplash.hide().catch(() => { /* Not on native */ });
+      const htmlSplash = document.getElementById('splash-screen');
+      if (htmlSplash) {
+        htmlSplash.style.opacity = '0';
+        setTimeout(() => htmlSplash.remove(), 350);
+      }
+    }
+  }, [isLoading]);
 
   // Use Zustand stores instead of localStorage + events
   const backgroundTheme = useThemeStore((state) => state.homeBackground);

@@ -6,8 +6,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NativePluginProvider } from "@/contexts/NativePluginContext";
 import { OfflineProvider } from "@/contexts/OfflineContext";
 import { PluginUnavailableBanner } from "@/components/PluginUnavailableBanner";
-import { lazy, Suspense, useEffect } from "react";
-import { SplashScreen as NativeSplash } from '@capacitor/splash-screen';
+import { lazy, Suspense } from "react";
 import { SplashScreen } from "@/components/SplashScreen";
 import { VersionNotice } from "@/components/VersionNotice";
 
@@ -21,18 +20,9 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Once React has mounted, hide both splash layers:
-  // 1. Native Capacitor splash (launchAutoHide: false keeps it visible during cold start)
-  // 2. HTML splash (#splash-screen in index.html) — fade out then remove
-  useEffect(() => {
-    NativeSplash.hide().catch(() => { /* Not on native */ });
-
-    const htmlSplash = document.getElementById('splash-screen');
-    if (htmlSplash) {
-      htmlSplash.style.opacity = '0';
-      setTimeout(() => htmlSplash.remove(), 350);
-    }
-  }, []);
+  // Splash screens are hidden by Index.tsx after the main page content
+  // is ready — NOT here in App.tsx, because lazy-loaded routes haven't
+  // resolved yet at this point and hiding now causes a black flash.
 
   return (
     <ErrorBoundary>

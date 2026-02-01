@@ -164,14 +164,12 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc override public func requestPermissions(_ call: CAPPluginCall) {
-        Task {
-            // requestAuthorization no longer throws — it always completes
-            // and we check the resulting status afterwards
+        Task { @MainActor in
+            // Must run on main thread — Apple's authorization dialog
+            // requires the main thread to present the system prompt.
             try? await permissionsManager.requestAuthorization()
             let response = safeDetailedPermissionsCheck()
-            await MainActor.run {
-                call.resolve(response)
-            }
+            call.resolve(response)
         }
     }
 
