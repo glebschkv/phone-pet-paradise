@@ -220,19 +220,28 @@ export const useTimerLogic = () => {
         showFocusBonusToast(rewardResult.focusBonusType);
       }
 
-      // Determine focus quality from reward result
+      // Determine focus quality from shield attempts
+      // When app blocking isn't configured, quality is undefined (neutral) rather
+      // than 'distracted' — users shouldn't be penalized for not using app blocking
       const focusQuality = state.timerState.sessionType !== 'break'
-        ? (shieldAttempts === 0 && state.hasAppsConfigured
-            ? 'perfect' as const
-            : shieldAttempts <= 2 && state.hasAppsConfigured
-              ? 'good' as const
-              : 'distracted' as const)
+        ? (state.hasAppsConfigured
+            ? (shieldAttempts === 0
+                ? 'perfect' as const
+                : shieldAttempts <= 2
+                  ? 'good' as const
+                  : 'distracted' as const)
+            : undefined)
         : undefined;
+
+      // For countup sessions, actualDuration is the elapsed time, not the max duration
+      const actualDuration = state.timerState.isCountup
+        ? (state.timerState.elapsedTime || 0)
+        : state.timerState.sessionDuration;
 
       recordSession(
         state.timerState.sessionType,
         state.timerState.sessionDuration,
-        state.timerState.sessionDuration,
+        actualDuration,
         'completed',
         xpEarned,
         state.timerState.category,

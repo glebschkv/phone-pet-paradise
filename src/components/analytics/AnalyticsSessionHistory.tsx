@@ -1,4 +1,4 @@
-import { History, Check, SkipForward, X, Timer, Coffee, Zap } from "lucide-react";
+import { History, Check, SkipForward, X, Timer, Coffee, Zap, Hourglass } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FocusSession, SessionType, SessionStatus } from "@/types/analytics";
 
@@ -27,6 +27,8 @@ export const AnalyticsSessionHistory = ({ sessions, formatDuration }: SessionHis
         return <Zap className="w-3.5 h-3.5" />;
       case 'break':
         return <Coffee className="w-3.5 h-3.5" />;
+      case 'countup':
+        return <Hourglass className="w-3.5 h-3.5" />;
     }
   };
 
@@ -38,6 +40,8 @@ export const AnalyticsSessionHistory = ({ sessions, formatDuration }: SessionHis
         return 'Deep Work';
       case 'break':
         return 'Break';
+      case 'countup':
+        return 'Open Focus';
     }
   };
 
@@ -49,6 +53,8 @@ export const AnalyticsSessionHistory = ({ sessions, formatDuration }: SessionHis
         return 'text-purple-500 bg-purple-500/10';
       case 'break':
         return 'text-green-500 bg-green-500/10';
+      case 'countup':
+        return 'text-cyan-500 bg-cyan-500/10';
     }
   };
 
