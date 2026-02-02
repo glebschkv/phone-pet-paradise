@@ -4106,4 +4106,354 @@ input, textarea, [contenteditable="true"] {
       0 3px 10px hsl(260 60% 40% / 0.3),
       inset 0 1px 0 hsl(260 70% 75% / 0.3);
   }
+
+  /* ============================================
+     FOCUS TIMER — GAME-DEPTH REDESIGN
+     Matches the retro pixel-art aesthetic used
+     in shop cards, pet collection, and FAB.
+     ============================================ */
+
+  /* ---- Preset Grid Buttons ---- */
+
+  .timer-preset-btn {
+    position: relative;
+    overflow: hidden;
+    border: 2.5px solid hsl(40 30% 72%);
+    background: linear-gradient(180deg,
+      hsl(40 35% 96%) 0%,
+      hsl(38 28% 90%) 100%
+    );
+    border-radius: 12px;
+    padding: 10px 4px;
+    text-align: center;
+    box-shadow:
+      0 3px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Scan-line texture overlay — retro CRT feel */
+  .timer-preset-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 0% / 0.02) 2px,
+      hsl(0 0% 0% / 0.02) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .timer-preset-btn:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow:
+      0 0px 0 hsl(40 25% 60%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+  }
+
+  .timer-preset-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* Selected state — purple game-depth */
+  .timer-preset-btn.selected {
+    border-color: hsl(260 50% 55%);
+    background: linear-gradient(180deg,
+      hsl(260 55% 68%) 0%,
+      hsl(260 55% 54%) 100%
+    );
+    box-shadow:
+      0 3px 0 hsl(260 50% 38%),
+      0 0 12px hsl(260 60% 55% / 0.3),
+      inset 0 1px 0 hsl(0 0% 100% / 0.3);
+  }
+
+  .timer-preset-btn.selected:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow:
+      0 0px 0 hsl(260 50% 38%),
+      0 0 8px hsl(260 60% 55% / 0.2),
+      inset 0 1px 0 hsl(0 0% 100% / 0.3);
+  }
+
+  /* Break preset variant — warm amber */
+  .timer-preset-btn.break-mode:not(.selected) {
+    border-color: hsl(35 40% 68%);
+    background: linear-gradient(180deg,
+      hsl(42 50% 95%) 0%,
+      hsl(38 45% 88%) 100%
+    );
+    box-shadow:
+      0 3px 0 hsl(35 35% 55%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+  }
+
+  /* ---- Timer Header Pill (mode indicator) ---- */
+
+  .timer-header-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: hsl(0 0% 100% / 0.08);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1.5px solid hsl(0 0% 100% / 0.12);
+    box-shadow:
+      0 4px 16px hsl(0 0% 0% / 0.1),
+      inset 0 1px 0 hsl(0 0% 100% / 0.08);
+  }
+
+  .timer-header-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg,
+      hsl(260 60% 68%) 0%,
+      hsl(260 55% 52%) 100%
+    );
+    border: 2px solid hsl(260 50% 40%);
+    box-shadow:
+      0 2px 0 hsl(260 50% 32%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+  }
+
+  .timer-sound-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: hsl(0 0% 100% / 0.1);
+    border: 2px solid hsl(0 0% 100% / 0.15);
+    box-shadow:
+      0 2px 0 hsl(0 0% 0% / 0.1),
+      inset 0 1px 0 hsl(0 0% 100% / 0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .timer-sound-btn:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 0px 0 hsl(0 0% 0% / 0.1),
+      inset 0 1px 0 hsl(0 0% 100% / 0.08);
+  }
+
+  /* ---- Circular Timer Ring Container ---- */
+
+  .timer-ring-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    border-radius: 50%;
+    background: hsl(0 0% 100% / 0.05);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1.5px solid hsl(0 0% 100% / 0.08);
+    box-shadow:
+      0 8px 32px hsl(0 0% 0% / 0.08),
+      inset 0 1px 0 hsl(0 0% 100% / 0.06);
+  }
+
+  /* Status badge below time */
+  .timer-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 8px;
+    background: hsl(0 0% 100% / 0.08);
+    border: 1px solid hsl(0 0% 100% / 0.1);
+    font-size: 11px;
+    font-weight: 600;
+    color: hsl(0 0% 100% / 0.65);
+    letter-spacing: 0.02em;
+    margin-top: 6px;
+  }
+
+  .timer-status-badge.active {
+    background: hsl(260 50% 60% / 0.15);
+    border-color: hsl(260 50% 60% / 0.25);
+    color: hsl(260 70% 82%);
+  }
+
+  /* ---- Timer Control Buttons ---- */
+
+  .timer-btn-start {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(180deg,
+      hsl(145 50% 52%) 0%,
+      hsl(145 50% 42%) 100%
+    );
+    border: 2.5px solid hsl(145 45% 34%);
+    box-shadow:
+      0 4px 0 hsl(145 45% 28%),
+      0 6px 16px hsl(145 50% 35% / 0.3),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timer-btn-start::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 100% / 0.04) 2px,
+      hsl(0 0% 100% / 0.04) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .timer-btn-start:active {
+    transform: translateY(4px);
+    box-shadow:
+      0 0px 0 hsl(145 45% 28%),
+      0 2px 8px hsl(145 50% 35% / 0.2),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+  }
+
+  /* Pause variant */
+  .timer-btn-pause {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(180deg,
+      hsl(35 80% 56%) 0%,
+      hsl(30 75% 46%) 100%
+    );
+    border: 2.5px solid hsl(30 65% 36%);
+    box-shadow:
+      0 4px 0 hsl(30 65% 30%),
+      0 6px 16px hsl(35 70% 40% / 0.3),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timer-btn-pause::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 100% / 0.04) 2px,
+      hsl(0 0% 100% / 0.04) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .timer-btn-pause:active {
+    transform: translateY(4px);
+    box-shadow:
+      0 0px 0 hsl(30 65% 30%),
+      0 2px 8px hsl(35 70% 40% / 0.2),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+  }
+
+  /* Secondary buttons (Stop / Skip) */
+  .timer-btn-secondary {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg,
+      hsl(40 30% 95%) 0%,
+      hsl(38 25% 88%) 100%
+    );
+    border: 2.5px solid hsl(40 25% 70%);
+    box-shadow:
+      0 3px 0 hsl(40 20% 58%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timer-btn-secondary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 0% / 0.02) 2px,
+      hsl(0 0% 0% / 0.02) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .timer-btn-secondary:active {
+    transform: translateY(3px);
+    box-shadow:
+      0 0px 0 hsl(40 20% 58%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+  }
+
+  .timer-btn-secondary .timer-icon-stop {
+    color: hsl(350 55% 50%);
+  }
+
+  .timer-btn-secondary .timer-icon-skip {
+    color: hsl(35 60% 45%);
+  }
+
+  /* ---- Timer progress ring glow ---- */
+
+  .timer-ring-glow {
+    filter: drop-shadow(0 0 6px hsl(260 60% 60% / 0.4));
+  }
+
+  /* ---- "Choose Focus Mode" label ---- */
+
+  .timer-grid-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: hsl(0 0% 100% / 0.45);
+    text-align: center;
+    margin-bottom: 10px;
+  }
 }
