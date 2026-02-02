@@ -4,7 +4,7 @@ export const TimerStats = () => {
   const { todayStats } = useAnalytics();
 
   return (
-    <div className="w-full max-w-sm mt-6">
+    <div className="w-full max-w-sm">
       <div className="retro-card p-4">
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Sessions today</span>
