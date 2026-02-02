@@ -1,4 +1,5 @@
 import UIKit
+import WebKit
 import Capacitor
 
 /**
@@ -186,6 +187,46 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         splash.didMove(toParent: rootVC)
 
         Log.lifecycle.info("Animated splash presented")
+    }
+}
+
+// MARK: - Custom Bridge View Controller
+// Subclass of CAPBridgeViewController that disables WKWebView gestures which
+// conflict with iOS system gesture recognizers, preventing the
+// "System gesture gate timed out" error on touch interactions.
+
+class NomoViewController: CAPBridgeViewController {
+
+    override func capacitorDidLoad() {
+        super.capacitorDidLoad()
+
+        guard let wv = webView else { return }
+
+        // Disable back/forward swipe navigation — the app is a single-page web
+        // app with no browser-style history, and the edge-swipe gesture recognizer
+        // competes with the system's screen-edge gesture gate.
+        wv.allowsBackForwardNavigationGestures = false
+
+        // Disable link previews (3D Touch / long-press previews) — prevents the
+        // web view from installing extra long-press gesture recognizers.
+        wv.allowsLinkPreview = false
+
+        // Let taps pass through immediately rather than waiting for the scroll
+        // view to decide whether the touch is a scroll or a tap. This eliminates
+        // the 150ms delay that contributes to gesture-gate timeouts.
+        wv.scrollView.delaysContentTouches = false
+
+        // Ensure the scroll view doesn't swallow button taps that start on a
+        // subview (which is every tap in a WKWebView).
+        wv.scrollView.canCancelContentTouches = true
+    }
+
+    /// Defer system edge gestures in favour of in-app touch handling.
+    /// This tells iOS "my app needs the screen edges, so wait for my gesture
+    /// recognizers first before triggering Control Center / Notification Center
+    /// / back-swipe", which eliminates gesture-gate contention.
+    override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge {
+        return .all
     }
 }
 
