@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Retro arcade-themed splash/loading screen.
+ * Branded splash/loading screen.
  * Used as Suspense fallback and during auth loading.
  * Matches the inline splash in index.html for seamless transition.
  */
 export const SplashScreen = () => {
   const [progress, setProgress] = useState(0);
+  const [entered, setEntered] = useState(false);
 
   useEffect(() => {
+    // Trigger entrance animation on mount
+    requestAnimationFrame(() => setEntered(true));
+
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) return 100;
-        // Fast start, slow finish for realistic feel
         const increment = prev < 60 ? 8 : prev < 85 ? 3 : 1;
         return Math.min(prev + increment, 100);
       });
@@ -24,77 +27,107 @@ export const SplashScreen = () => {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #0a0014 0%, #1a0530 40%, #0d0020 100%)',
+        background: 'linear-gradient(180deg, #080012 0%, #16042a 40%, #0a0018 100%)',
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Rounded', sans-serif",
       }}
     >
       {/* Scanlines overlay */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.08]"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
+          opacity: 0.03,
+          background: 'repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(255,255,255,1) 2px, rgba(255,255,255,1) 4px)',
         }}
       />
 
-      {/* Ambient glow */}
+      {/* Radial glow */}
       <div
-        className="absolute rounded-full opacity-20 blur-[80px]"
+        className="absolute pointer-events-none"
         style={{
-          width: 300, height: 300,
-          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.6), transparent)',
-          top: '30%', left: '50%', transform: 'translate(-50%, -50%)',
+          width: 360, height: 360,
+          top: '50%', left: '50%',
+          transform: 'translate(-50%, calc(-50% - 60px))',
+          background: 'radial-gradient(circle, rgba(168,85,247,0.22) 0%, rgba(126,34,206,0.08) 45%, transparent 100%)',
+          animation: 'splash-glow 3s ease-in-out infinite alternate',
         }}
       />
 
-      {/* App icon */}
-      <img
-        src="/app-icon.png"
-        alt=""
-        width={72}
-        height={72}
-        className="rounded-2xl mb-5 relative z-10"
+      {/* Content wrapper with entrance animation */}
+      <div
+        className="flex flex-col items-center relative z-10 transition-all duration-[600ms] ease-out"
         style={{
-          boxShadow: '0 0 30px rgba(147, 51, 234, 0.4), 0 4px 20px rgba(0,0,0,0.5)',
-        }}
-      />
-
-      {/* NOMO title */}
-      <h1
-        className="relative z-10 text-5xl font-black tracking-[8px] mb-2"
-        style={{
-          color: '#e2d4f0',
-          textShadow: '0 0 20px rgba(168, 85, 247, 0.8), 0 0 40px rgba(168, 85, 247, 0.4), 0 2px 0 rgba(0,0,0,0.5)',
+          opacity: entered ? 1 : 0,
+          transform: entered ? 'translateY(0)' : 'translateY(14px)',
         }}
       >
-        NOMO
-      </h1>
-
-      {/* Tagline */}
-      <p
-        className="relative z-10 text-[11px] tracking-[3px] uppercase mb-10"
-        style={{ color: 'rgba(168, 130, 220, 0.6)' }}
-      >
-        Focus &middot; Grow &middot; Collect
-      </p>
-
-      {/* Loading bar */}
-      <div className="relative z-10 w-[180px]">
-        <div
-          className="h-[6px] rounded-full overflow-hidden"
+        {/* App icon */}
+        <img
+          src="/app-icon.png"
+          alt=""
+          width={96}
+          height={96}
+          className="mb-6"
           style={{
-            background: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(168, 85, 247, 0.2)',
+            borderRadius: 22,
+            boxShadow: '0 0 48px rgba(168, 85, 247, 0.5), 0 6px 24px rgba(0,0,0,0.5)',
+          }}
+        />
+
+        {/* NOMO title */}
+        <h1
+          className="text-[42px] font-extrabold tracking-[12px] mb-2.5"
+          style={{
+            color: '#f0e6ff',
+            textShadow: '0 0 16px rgba(168, 85, 247, 0.55), 0 0 40px rgba(168, 85, 247, 0.25)',
           }}
         >
+          NOMO
+        </h1>
+
+        {/* Tagline */}
+        <p
+          className="text-[11px] font-semibold tracking-[4px] uppercase mb-11"
+          style={{ color: 'rgba(168, 140, 210, 0.55)' }}
+        >
+          Focus &middot; Grow &middot; Collect
+        </p>
+
+        {/* Loading bar */}
+        <div className="w-[220px]">
           <div
-            className="h-full rounded-full transition-all duration-200 ease-out"
-            style={{
-              width: `${progress}%`,
-              background: 'linear-gradient(90deg, #a855f7, #c084fc)',
-              boxShadow: '0 0 10px rgba(168, 85, 247, 0.6)',
-            }}
-          />
+            className="h-1 rounded-sm overflow-hidden relative"
+            style={{ background: 'rgba(168, 85, 247, 0.08)' }}
+          >
+            <div
+              className="h-full rounded-sm transition-all duration-200 ease-out relative"
+              style={{
+                width: `${progress}%`,
+                background: 'linear-gradient(90deg, #a855f7, #c084fc)',
+              }}
+            >
+              {/* Shimmer */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)',
+                  animation: 'splash-shimmer 1.6s ease-in-out infinite',
+                }}
+              />
+            </div>
+          </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes splash-shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(300%); }
+        }
+        @keyframes splash-glow {
+          0% { transform: translate(-50%, calc(-50% - 60px)) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, calc(-50% - 60px)) scale(1.12); opacity: 0.7; }
+        }
+      `}</style>
     </div>
   );
 };
