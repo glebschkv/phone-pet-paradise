@@ -35,4 +35,7 @@ CAP_PLUGIN(DeviceActivityPlugin, "DeviceActivity",
 
            // Haptic feedback
            CAP_PLUGIN_METHOD(triggerHapticFeedback, CAPPluginReturnPromise);
+
+           // Splash
+           CAP_PLUGIN_METHOD(dismissSplash, CAPPluginReturnPromise);
 )
