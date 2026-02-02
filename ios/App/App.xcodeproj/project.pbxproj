@@ -33,10 +33,6 @@
 		SRC00200000000000000001 /* StoreKitPurchaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00200000000000000000 /* StoreKitPurchaseService.swift */; };
 		SRC00210000000000000001 /* StoreKitTransactionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00210000000000000000 /* StoreKitTransactionManager.swift */; };
 		SRC00220000000000000001 /* WidgetDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00220000000000000000 /* WidgetDataManager.swift */; };
-		OBJC0001000000000001 /* DeviceActivityPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = OBJC0001000000000000 /* DeviceActivityPlugin.m */; };
-		OBJC0002000000000001 /* WidgetDataPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = OBJC0002000000000000 /* WidgetDataPlugin.m */; };
-		OBJC0003000000000001 /* StoreKitPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = OBJC0003000000000000 /* StoreKitPlugin.m */; };
-		OBJC0004000000000001 /* AppReviewPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = OBJC0004000000000000 /* AppReviewPlugin.m */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
@@ -70,10 +66,6 @@
 		SRC00200000000000000000 /* StoreKitPurchaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPurchaseService.swift; sourceTree = "<group>"; };
 		SRC00210000000000000000 /* StoreKitTransactionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitTransactionManager.swift; sourceTree = "<group>"; };
 		SRC00220000000000000000 /* WidgetDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataManager.swift; sourceTree = "<group>"; };
-		OBJC0001000000000000 /* DeviceActivityPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DeviceActivityPlugin.m; sourceTree = "<group>"; };
-		OBJC0002000000000000 /* WidgetDataPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WidgetDataPlugin.m; sourceTree = "<group>"; };
-		OBJC0003000000000000 /* StoreKitPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StoreKitPlugin.m; sourceTree = "<group>"; };
-		OBJC0004000000000000 /* AppReviewPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppReviewPlugin.m; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -156,13 +148,9 @@
 				SRCGRP0030000000000000 /* Managers */,
 				SRC00010000000000000000 /* AppConfig.swift */,
 				SRC00020000000000000000 /* AppReviewPlugin.swift */,
-				OBJC0004000000000000 /* AppReviewPlugin.m */,
 				SRC00030000000000000000 /* DeviceActivityPlugin.swift */,
-				OBJC0001000000000000 /* DeviceActivityPlugin.m */,
 				SRC00040000000000000000 /* StoreKitPlugin.swift */,
-				OBJC0003000000000000 /* StoreKitPlugin.m */,
 				SRC00050000000000000000 /* WidgetDataPlugin.swift */,
-				OBJC0002000000000000 /* WidgetDataPlugin.m */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -346,10 +334,6 @@
 				SRC00200000000000000001 /* StoreKitPurchaseService.swift in Sources */,
 				SRC00210000000000000001 /* StoreKitTransactionManager.swift in Sources */,
 				SRC00220000000000000001 /* WidgetDataManager.swift in Sources */,
-				OBJC0001000000000001 /* DeviceActivityPlugin.m in Sources */,
-				OBJC0002000000000001 /* WidgetDataPlugin.m in Sources */,
-				OBJC0003000000000001 /* StoreKitPlugin.m in Sources */,
-				OBJC0004000000000001 /* AppReviewPlugin.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
