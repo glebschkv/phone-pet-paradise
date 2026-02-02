@@ -13,6 +13,21 @@
   background-color: transparent !important;
 }
 
+/*
+ * Fix black overlay persisting after Dialog closes.
+ * When a Radix Dialog closes, its overlay transitions to data-state="closed"
+ * but can remain in the DOM during the fade-out animation. On mobile (especially
+ * iOS/Capacitor), the animation sometimes doesn't complete properly, leaving a
+ * bg-black/80 overlay that blocks interaction until the user taps again.
+ *
+ * - pointer-events: none → clicks pass through immediately (no "tap again to dismiss")
+ * - background-color: transparent → overlay is invisible even if animation stalls
+ */
+[data-dialog-overlay][data-state="closed"] {
+  pointer-events: none !important;
+  background-color: transparent !important;
+}
+
 /* iOS-Style NoMo - Cupertino Design System */
 
 @layer base {
