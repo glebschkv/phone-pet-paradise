@@ -205,6 +205,7 @@ export const useShop = () => {
       addOwned: addOwnedBackground,
       getPrice: (bg) => bg.coinPrice,
       spendPurpose: 'cosmetic',
+      validate: (bg) => bg.comingSoon ? 'This background is not available yet' : null,
       getItemName: (bg) => bg.name,
     });
   }, [genericPurchase, ownedBackgrounds, addOwnedBackground]);

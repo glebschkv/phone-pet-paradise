@@ -36,7 +36,6 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'sky-islands',
     previewImage: '/assets/worlds/SKYBUNDLE1.png',
     bundleId: 'bundle-sky-realms',
-    comingSoon: true,
   },
   {
     id: 'bg-calm-seas',
@@ -49,7 +48,6 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'calm-seas',
     previewImage: '/assets/worlds/SKYBUNDLE2.png',
     bundleId: 'bundle-sky-realms',
-    comingSoon: true,
   },
   {
     id: 'bg-twilight-clouds',
@@ -62,7 +60,6 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'twilight-clouds',
     previewImage: '/assets/worlds/SKYBUNDLE3.png',
     bundleId: 'bundle-sky-realms',
-    comingSoon: true,
   },
   {
     id: 'bg-aurora-horizon',
@@ -75,7 +72,6 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'aurora-horizon',
     previewImage: '/assets/worlds/SKYBUNDLE4.png',
     bundleId: 'bundle-sky-realms',
-    comingSoon: true,
   },
   {
     id: 'bg-sunset-clouds',
@@ -88,7 +84,6 @@ export const SKY_BUNDLE_BACKGROUNDS: PremiumBackground[] = [
     theme: 'sunset-clouds',
     previewImage: '/assets/worlds/SKYBUNDLE5.png',
     bundleId: 'bundle-sky-realms',
-    comingSoon: true,
   },
 ];
 

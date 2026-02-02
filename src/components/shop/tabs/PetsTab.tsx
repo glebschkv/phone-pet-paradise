@@ -255,10 +255,12 @@ export const PetsTab = ({
               const owned = isOwned(bg.id, 'customize');
               const affordable = canAfford(bg.coinPrice || 0);
               const isEquipped = inventory.equippedBackground === bg.id;
+              const isComingSoon = bg.comingSoon && !owned;
               return (
                 <button
                   key={bg.id}
                   onClick={() => {
+                    if (isComingSoon) return;
                     if (owned) {
                       handleEquipBackground(bg.id, { stopPropagation: () => {} } as React.MouseEvent);
                     } else {
@@ -268,6 +270,7 @@ export const PetsTab = ({
                   }}
                   className={cn(
                     "shop-grid-card relative",
+                    isComingSoon && "opacity-60",
                     isEquipped && "equipped",
                     !isEquipped && owned && "owned"
                   )}
@@ -288,7 +291,12 @@ export const PetsTab = ({
                   )}
                   <PixelIcon name={bg.icon} size={24} className="block mb-1" />
                   <span className="text-[10px] font-bold block leading-tight">{bg.name}</span>
-                  {owned ? (
+                  {isComingSoon ? (
+                    <div className="flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold text-gray-400 dark:text-gray-500">
+                      <Clock className="w-2.5 h-2.5" />
+                      Soon
+                    </div>
+                  ) : owned ? (
                     <div className="text-[8px] font-medium mt-1 text-purple-600 dark:text-purple-400">
                       {isEquipped ? "Unequip" : "Equip"}
                     </div>
