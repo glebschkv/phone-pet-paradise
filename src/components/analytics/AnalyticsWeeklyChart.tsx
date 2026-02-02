@@ -10,32 +10,29 @@ interface WeeklyChartProps {
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export const AnalyticsWeeklyChart = ({ dailyStats, dailyGoalMinutes }: WeeklyChartProps) => {
-  // Transform data for chart (last 7 days)
-  const chartData = dailyStats.slice(-7).map((stat, index) => {
-    const date = new Date(stat.date);
+  // Build a lookup from date string to stat
+  const statsByDate = new Map(dailyStats.map(s => [s.date, s]));
+
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  // Build chart data for the last 7 days with correct day labels
+  const chartData = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - (6 - i)); // 6 days ago → today
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     const dayIndex = (date.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+    const stat = statsByDate.get(dateStr);
 
     return {
       day: DAY_LABELS[dayIndex],
-      value: Math.round(stat.totalFocusTime / 60), // Convert to minutes
-      maxValue: Math.round((stat.totalFocusTime + stat.totalBreakTime) / 60),
+      value: stat ? Math.round(stat.totalFocusTime / 60) : 0,
+      maxValue: stat ? Math.round((stat.totalFocusTime + stat.totalBreakTime) / 60) : 0,
       goalValue: dailyGoalMinutes,
-      goalMet: stat.goalMet,
-      isToday: index === dailyStats.length - 1,
+      goalMet: stat?.goalMet || false,
+      isToday: dateStr === todayStr,
     };
   });
-
-  // Ensure we always have 7 days
-  while (chartData.length < 7) {
-    chartData.unshift({
-      day: DAY_LABELS[chartData.length],
-      value: 0,
-      maxValue: 0,
-      goalValue: dailyGoalMinutes,
-      goalMet: false,
-      isToday: false,
-    });
-  }
 
   return (
     <div className="retro-card p-4">
