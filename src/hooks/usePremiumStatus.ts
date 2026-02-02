@@ -188,8 +188,8 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'lifetime',
     name: 'Lifetime',
     description: 'Forever access + founder perks',
-    price: '$149.99',
-    priceValue: 149.99,
+    price: '$179.99',
+    priceValue: 179.99,
     period: 'lifetime',
     features: [
       '2.5x Coin & XP multiplier',
