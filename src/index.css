@@ -28,6 +28,21 @@
   background-color: transparent !important;
 }
 
+/* iOS app hardening: prevent zoom, text selection, and tap delay */
+html, body {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+/* Allow text selection in inputs/textareas where users actually type */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* iOS-Style NoMo - Cupertino Design System */
 
 @layer base {
