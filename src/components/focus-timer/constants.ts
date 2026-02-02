@@ -15,8 +15,8 @@ export interface BackgroundTheme {
 }
 
 export const BACKGROUND_THEMES: BackgroundTheme[] = [
-  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 1 },
-  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 3 },
+  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 1 },
+  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 3 },
   { id: 'sky', name: 'Meadow', icon: Sun, unlockLevel: 5 },
   { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 8 },
   { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 12 },

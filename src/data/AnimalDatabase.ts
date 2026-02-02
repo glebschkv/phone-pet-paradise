@@ -985,12 +985,12 @@ export const BIOME_DATABASE: BiomeData[] = [
   groundLevel: 10
   },
   {
-    name: 'Sunset',
+    name: 'Snow',
     unlockLevel: 5,
-    description: 'Golden fields bathed in warm sunset light.',
-    animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood', 'wild-horse', 'sea-turtle', 'golden-fox'],
-    backgroundImage: '/assets/worlds/autumnbiome1.png',
-    groundLevel: 14
+    description: 'A winter wonderland of magical costume characters.',
+    animals: ['star-wizard', 'mushroom-kid', 'bunny-hood', 'cat-hood'],
+    backgroundImage: '/assets/worlds/snowbiome1.png',
+    groundLevel: 18
   },
   {
     name: 'Night',
@@ -1009,12 +1009,12 @@ export const BIOME_DATABASE: BiomeData[] = [
     groundLevel: 10
   },
   {
-    name: 'Snow',
+    name: 'Sunset',
     unlockLevel: 19,
-    description: 'A winter wonderland of magical costume characters.',
-    animals: ['star-wizard', 'mushroom-kid', 'bunny-hood', 'cat-hood'],
-    backgroundImage: '/assets/worlds/snowbiome1.png',
-    groundLevel: 18
+    description: 'Golden fields bathed in warm sunset light.',
+    animals: ['ember-fox', 'dusk-owl', 'golden-moth', 'shark-hood', 'wild-horse', 'sea-turtle', 'golden-fox'],
+    backgroundImage: '/assets/worlds/autumnbiome1.png',
+    groundLevel: 14
   },
   {
     name: 'City',
