@@ -231,11 +231,130 @@ Our subscription prices are well-positioned:
 
 These are well-positioned. The dual currency (coins OR IAP) pricing gives flexibility.
 
-### 5.6 In-Game Coin Prices: NO CHANGE NEEDED
+### 5.6 In-Game Coin Prices: INCREASE PET PRICES ~3x (REVISED)
 
-Pet prices (800-5,000 coins), backgrounds (600-2,000 coins), and utility items (150-800 coins) are reasonable relative to earn rates (1 coin/minute base, with multipliers).
+> **Correction:** The original analysis only considered focus session earnings (~60 coins/hour).
+> A full coin economy audit reveals **7+ coin sources** that bring actual daily income to
+> **~772 coins/day** for a moderate user -- roughly 10x the session-only estimate.
 
-A free user earns ~60 coins/hour. Buying the cheapest pet (800 coins) takes ~13 hours of focus time. This is a good engagement driver that makes IAP attractive without feeling mandatory.
+#### Full Coin Economy Audit
+
+**All recurring coin sources for a moderate user (2 x 30-min sessions/day):**
+
+| Source | Daily | Weekly | Code Reference |
+|--------|-------|--------|----------------|
+| Focus sessions (2x30min base) | 60 | 420 | `useCoinSystem.ts:229-239` |
+| Perfect focus bonus (50x2) | 100 | 700 | `constants.ts:111-114` |
+| Random session bonus (~15% avg) | 18 | 126 | `useCoinSystem.ts:248-266` |
+| Daily login rewards (785/7 avg) | 112 | 785 | `useDailyLoginRewards.ts:25-33` |
+| Daily quests (3 quests) | 202 | 1,414 | `useQuestSystem.ts:22-58` |
+| Weekly quest (avg) | 82 | 575 | `useQuestSystem.ts:61-97` |
+| Lucky wheel (1 free spin, EV=193) | 193 | 1,351 | `GamificationData.ts:356-367` |
+| Streak bonus (+5/day) | 5 | 35 | `constants.ts:202` |
+| **TOTAL** | **~772** | **~5,406** | |
+
+**Lucky Wheel EV calculation:** (100x22% + 200x18% + 500x12% + 2500x3%) = 193 coins/spin
+
+**One-time coin sources (achievements + milestones) in first 30 days: ~8,000-12,000 coins**
+- Early achievements: First Steps (75), Hour Hero (125), Session Starter (75), etc.
+- Level milestones: Level 5 (400), Level 10 (1,000)
+- Streak milestones: 3-day (100), 7-day (300), 14-day (600)
+- Session milestones: 10 sessions (250), 50 sessions (600)
+- Collection milestones: 5 pets (400)
+- Economy achievements: Penny Pincher (125), Coin Hoarder (350)
+
+**Total first-month income:** ~5,406/week x 4 + ~10,000 one-time = **~31,624 coins**
+
+#### The Problem: Current Pets Are Too Cheap
+
+| Pet | Rarity | Current Price | Days to Buy (Moderate) | Feels Like |
+|-----|--------|---------------|------------------------|------------|
+| Clover Cat | Rare | 800 | **1.0 day** | Trivial |
+| Cat Hood | Rare | 1,500 | **1.9 days** | Easy |
+| Slime King | Epic | 2,000 | **2.6 days** | Easy |
+| Cute Ghost | Epic | 2,500 | **3.2 days** | Easy |
+| Golden Moth | Epic | 3,000 | **3.9 days** | Moderate |
+| Robot Buddy | Epic | 3,500 | **4.5 days** | Moderate |
+| Goblin King | Epic | 4,000 | **5.2 days** | Moderate |
+| Storm Spirit | Legendary | 4,500 | **5.8 days** | Moderate |
+| Kitsune Spirit | Legendary | 5,000 | **6.5 days** | Moderate |
+| Baby Dragon | Legendary | 6,000 | **7.8 days** | Moderate |
+| **ALL 10 PETS** | | **32,800** | **42.5 days (~6 weeks)** | **Too fast** |
+
+**Why this is a problem:**
+1. A "legendary" pet that takes 8 days doesn't feel legendary
+2. Complete collection in 6 weeks provides no long-term engagement
+3. Zero IAP pressure -- why buy $0.99 (600 coins) when you earn that before lunch?
+4. The $4.99 Starter Bundle includes Clover Cat (800 coins) but a free user earns that in 1 day
+5. Coin pack purchases are rendered meaningless by the high free earning rate
+
+#### Recommended New Pet Prices (~3x increase)
+
+Target time-to-buy:
+- **Rare:** 3-5 days (achievable weekend goal)
+- **Epic:** 8-14 days (1-2 week goal, feels earned)
+- **Legendary:** 18-26 days (multi-week aspiration, drives IAP consideration)
+
+| Pet | Rarity | Current | Proposed | Days (Moderate) | Change |
+|-----|--------|---------|----------|-----------------|--------|
+| Clover Cat | Rare | 800 | **2,500** | 3.2 | 3.1x |
+| Cat Hood | Rare | 1,500 | **3,500** | 4.5 | 2.3x |
+| Slime King | Epic | 2,000 | **6,000** | 7.8 | 3.0x |
+| Cute Ghost | Epic | 2,500 | **7,500** | 9.7 | 3.0x |
+| Golden Moth | Epic | 3,000 | **8,500** | 11.0 | 2.8x |
+| Robot Buddy | Epic | 3,500 | **9,500** | 12.3 | 2.7x |
+| Goblin King | Epic | 4,000 | **11,000** | 14.2 | 2.8x |
+| Storm Spirit | Legendary | 4,500 | **15,000** | 19.4 | 3.3x |
+| Kitsune Spirit | Legendary | 5,000 | **16,000** | 20.7 | 3.2x |
+| Baby Dragon | Legendary | 6,000 | **20,000** | 25.9 | 3.3x |
+| **ALL 10 PETS** | | **32,800** | **99,500** | **128.9 days (~4.3 months)** | **3.0x** |
+
+**Why ~3x is the right multiplier:**
+- Complete collection moves from 6 weeks to 4.3 months -- standard for games with 3-6 month seasonal cycles
+- Rare pets at 3-5 days give new players an early win within their first week
+- Epic pets at 8-14 days create meaningful weekly/biweekly goals
+- Legendary pets at 19-26 days create real aspiration and IAP consideration
+- At these prices, a $2.99 coin pack (1,200 coins) buys ~1.5 days of progress -- that's a meaningful value proposition
+- The $14.99 Collector Bundle (with Kitsune Spirit at 16,000 coins) becomes a genuine shortcut worth paying for
+
+#### Pet Bundle Price Adjustments
+
+Bundles should be updated proportionally, maintaining ~20-25% savings:
+
+| Bundle | Current | Proposed | Individual Value | Savings |
+|--------|---------|----------|-----------------|---------|
+| Meadow Friends (Clover Cat + Slime King) | 2,200 | **6,800** | 8,500 | 20% |
+| Night Creatures (Cute Ghost + Golden Moth) | 4,400 | **12,800** | 16,000 | 20% |
+| Costume Kids (Cat Hood + Robot Buddy) | 4,000 | **10,400** | 13,000 | 20% |
+| Mystical Spirits (Kitsune + Storm) | 7,500 | **24,800** | 31,000 | 20% |
+| Complete Collection (all 10) | 18,000 | **79,600** | 99,500 | 20% |
+
+#### Background Prices: INCREASE ~2x
+
+Backgrounds suffer the same problem. Sky Bundle backgrounds at 600-1,000 coins are trivially affordable.
+
+| Background | Current | Proposed |
+|-----------|---------|----------|
+| Sky Islands | 600 | 1,200 |
+| Calm Seas | 600 | 1,200 |
+| Twilight Clouds | 800 | 1,600 |
+| Aurora Horizon | 800 | 1,600 |
+| Sunset Clouds | 1,000 | 2,000 |
+| Sky Realms Bundle | 2,000 | 4,500 (was 3,800 individual, now 7,600) |
+
+#### Utility Items: KEEP CURRENT PRICES
+
+Streak freezes at 150-800 coins are well-priced as small, frequent purchases. They serve as a healthy coin sink and don't need adjustment.
+
+#### Booster Coin Prices: INCREASE ~2x
+
+| Booster | Current | Proposed | Notes |
+|---------|---------|----------|-------|
+| Focus Boost | 200 coins | 400 coins | IAP price stays $0.99 |
+| Super Boost | 500 coins | 1,000 coins | IAP price stays $2.99 |
+| Weekly Pass | 800 coins | 1,500 coins | IAP price stays $4.99 |
+
+This makes the IAP purchase more attractive relative to the coin price.
 
 ---
 
@@ -249,6 +368,10 @@ A free user earns ~60 coins/hour. Buying the cheapest pet (800 coins) takes ~13 
 | Coin value curve | ~2x improvement | ~3.7x improvement | Incentivize larger purchases |
 | Welcome Gift bundle | $1.99 | $2.99 (with more contents) | Align with new minimum IAP floor |
 | Battle Pass | Disabled | Enable | 41% of top games use this; already built |
+| **Pet prices** | **800-6,000** | **2,500-20,000 (~3x)** | **Current prices trivial vs. ~772 coins/day income** |
+| **Pet bundle prices** | **2,200-18,000** | **6,800-79,600 (~3x)** | **Proportional to individual pet increases** |
+| **Background prices** | **600-1,000** | **1,200-2,000 (~2x)** | **Same coin inflation issue** |
+| **Booster coin prices** | **200-800** | **400-1,500 (~2x)** | **Makes IAP alternatives more attractive** |
 
 ### Changes NOT Recommended
 
@@ -257,10 +380,11 @@ A free user earns ~60 coins/hour. Buying the cheapest pet (800 coins) takes ~13 
 | Premium monthly | $4.99 | Matches direct competitors (Talking Tom, Tamagotchi) |
 | Premium+ monthly | $8.99 | Reasonable upsell with battle pass included |
 | Annual discounts | 33-40% | Industry standard |
-| Starter bundles | $4.99-$29.99 | Strong structure with exclusive pets |
+| Starter bundles (IAP prices) | $4.99-$29.99 | Strong structure with exclusive pets |
 | Battle pass pricing | $4.99/$9.99 | On-market |
-| Coin boosters | $0.99-$4.99 | Well-positioned |
-| In-game coin prices | 150-5,000 | Good balance of earn vs. buy |
+| Booster IAP prices | $0.99-$4.99 | Well-positioned |
+| Streak freeze prices | 150-800 coins | Good as frequent small sink |
+| Subscription prices | $4.99-$8.99/mo | Competitive in market |
 
 ---
 
