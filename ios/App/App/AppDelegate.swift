@@ -187,6 +187,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         splash.didMove(toParent: rootVC)
 
         Log.lifecycle.info("Animated splash presented")
+
+        // Safety timeout: force-dismiss splash after 15 seconds even if JS
+        // never calls dismissSplash(). Prevents a permanently frozen UI if
+        // the WebContent process hangs or JS throws during init.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15.0) { [weak splash] in
+            guard let splash = splash, splash.parent != nil else { return }
+            Log.lifecycle.warning("Splash safety timeout — force dismissing after 15s")
+            splash.dismissSplash(completion: nil)
+        }
     }
 }
 
