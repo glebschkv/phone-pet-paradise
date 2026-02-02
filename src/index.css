@@ -236,10 +236,8 @@
     scroll-behavior: smooth;
   }
 
-  /* Prevent body scroll when modal is open */
-  body[data-scroll-locked] {
-    touch-action: none;
-  }
+  /* Radix Dialog handles scroll-lock via overflow:hidden + react-remove-scroll.
+     Do NOT add touch-action:none here — it kills touch responsiveness on iOS WKWebView. */
 
   /* Better touch targets for buttons in scrollable areas */
   .retro-game-card button,

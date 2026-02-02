@@ -88,7 +88,7 @@ export const VersionNotice = () => {
           {/* Dismiss button */}
           <button
             onClick={handleDismiss}
-            className="w-full py-3.5 rounded-lg font-bold text-sm retro-arcade-btn retro-arcade-btn-green transition-all active:scale-95 touch-manipulation"
+            className="w-full py-3.5 rounded-lg font-bold text-sm retro-arcade-btn retro-arcade-btn-green select-none"
           >
             Got it
           </button>
