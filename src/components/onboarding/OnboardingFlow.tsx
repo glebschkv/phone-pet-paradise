@@ -1,115 +1,143 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import {
-  Timer,
-  Heart,
-  Sparkles,
-  Star,
-  ChevronRight,
-  ChevronLeft,
-  Zap
-} from 'lucide-react';
+import { ChevronRight, ChevronLeft, Lock } from 'lucide-react';
+import { useOnboardingStore } from '@/stores/onboardingStore';
+import { getAnimalById } from '@/data/AnimalDatabase';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
 }
 
-// Animated pet sprite component
-const AnimatedPet = ({
+// ─── Starter pet options (first 3 Meadow unlocks) ───────────────────────────
+
+const STARTER_PETS = [
+  {
+    id: 'dewdrop-frog',
+    name: 'Dewdrop Frog',
+    description: 'Cheerful & refreshing',
+  },
+  {
+    id: 'sprout-bunny',
+    name: 'Sprout Bunny',
+    description: 'Gentle & nurturing',
+  },
+  {
+    id: 'petal-puff',
+    name: 'Petal Puff',
+    description: 'Calm & soothing',
+  },
+];
+
+// Locked pet teasers shown on step 4
+const TEASER_PETS = [
+  { id: 'ember-fox', name: 'Ember Fox', biome: 'Sunset', level: 5 },
+  { id: 'luna-moth', name: 'Luna Moth', biome: 'Night', level: 9 },
+  { id: 'flame-spirit', name: 'Flame Spirit', biome: 'Forest', level: 15 },
+];
+
+const ISLAND_SUGGESTIONS = ['Pixel Paradise', 'Sunny Meadow', 'Happy Hollow', 'Cozy Island'];
+
+// ─── Animated idle pet sprite (bounces gently) ──────────────────────────────
+
+const IdlePetSprite = ({
+  idleSprite,
+  size = 64,
+  scale = 2,
+  bounce = true,
+}: {
+  idleSprite: string;
+  size?: number;
+  scale?: number;
+  bounce?: boolean;
+}) => (
+  <motion.div
+    animate={bounce ? { y: [0, -4, 0] } : undefined}
+    transition={bounce ? { duration: 2, repeat: Infinity, ease: 'easeInOut' } : undefined}
+    className="flex items-center justify-center"
+  >
+    <div
+      style={{
+        width: size * scale,
+        height: size * scale,
+        backgroundImage: `url(${idleSprite})`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        imageRendering: 'pixelated',
+      }}
+    />
+  </motion.div>
+);
+
+// ─── Walking pet sprite (animates through frames) ───────────────────────────
+
+const WalkingPetSprite = ({
   spritePath,
   frameCount,
   frameWidth,
   frameHeight,
-  delay = 0,
-  speed = 150,
-  scale = 1,
-  startX = -100,
-  y = 60
+  scale = 2,
+  frameRow = 0,
+  walkRows = 1,
 }: {
   spritePath: string;
   frameCount: number;
   frameWidth: number;
   frameHeight: number;
-  delay?: number;
-  speed?: number;
   scale?: number;
-  startX?: number;
-  y?: number;
+  frameRow?: number;
+  walkRows?: number;
 }) => {
   const [frame, setFrame] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
-
-  useEffect(() => {
-    if (!isVisible) return;
     const interval = setInterval(() => {
-      setFrame(f => (f + 1) % frameCount);
-    }, speed);
+      setFrame((f) => (f + 1) % frameCount);
+    }, 150);
     return () => clearInterval(interval);
-  }, [isVisible, frameCount, speed]);
+  }, [frameCount]);
 
-  if (!isVisible) return null;
+  const row = walkRows > 1 ? frameRow : 0;
 
   return (
-    <motion.div
-      initial={{ x: startX, opacity: 0 }}
-      animate={{ x: '120vw', opacity: 1 }}
-      transition={{
-        x: { duration: 12, ease: 'linear', repeat: Infinity },
-        opacity: { duration: 0.5 }
-      }}
-      className="absolute pointer-events-none"
-      style={{ bottom: `${y}px`, transform: `scale(${scale})` }}
-    >
+    <div className="flex items-center justify-center">
       <div
         style={{
-          width: frameWidth,
-          height: frameHeight,
+          width: frameWidth * scale,
+          height: frameHeight * scale,
           backgroundImage: `url(${spritePath})`,
-          backgroundPosition: `-${frame * frameWidth}px 0`,
+          backgroundPosition: `-${frame * frameWidth * scale}px -${row * frameHeight * scale}px`,
+          backgroundSize: `${frameCount * frameWidth * scale}px ${walkRows * frameHeight * scale}px`,
           imageRendering: 'pixelated',
         }}
       />
-    </motion.div>
+    </div>
   );
 };
 
-// Floating sparkle particles
-const Sparkle = ({ delay }: { delay: number }) => {
-  const randomX = Math.random() * 100;
-  const randomDuration = 3 + Math.random() * 4;
-  const randomSize = 4 + Math.random() * 8;
+// ─── Pixel icon with React-based fallback ───────────────────────────────────
+
+const PixelIcon = ({ src, fallback }: { src: string; fallback: string }) => {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return <span className="text-xl leading-none">{fallback}</span>;
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: '100vh', x: `${randomX}vw` }}
-      animate={{
-        opacity: [0, 1, 1, 0],
-        y: '-20vh',
-      }}
-      transition={{
-        duration: randomDuration,
-        delay,
-        repeat: Infinity,
-        ease: 'linear'
-      }}
-      className="absolute pointer-events-none"
-    >
-      <Star
-        className="text-yellow-300/60"
-        style={{ width: randomSize, height: randomSize }}
-        fill="currentColor"
-      />
-    </motion.div>
+    <img
+      src={src}
+      alt=""
+      className="w-7 h-7"
+      style={{ imageRendering: 'pixelated' }}
+      onError={() => setFailed(true)}
+    />
   );
 };
 
-// Step indicator dots
+// ─── Step indicator dots (warm tan theme) ────────────────────────────────────
+
 const StepDots = ({ current, total }: { current: number; total: number }) => (
   <div className="flex gap-2 justify-center">
     {Array.from({ length: total }).map((_, i) => (
@@ -117,258 +145,153 @@ const StepDots = ({ current, total }: { current: number; total: number }) => (
         key={i}
         initial={false}
         animate={{
-          scale: i === current ? 1.2 : 1,
-          backgroundColor: i === current
-            ? 'hsl(var(--primary))'
-            : i < current
-              ? 'hsl(var(--primary) / 0.5)'
-              : 'hsl(var(--muted-foreground) / 0.3)',
+          width: i === current ? 20 : 8,
         }}
-        className="w-2.5 h-2.5 rounded-full transition-colors"
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="h-2 rounded-full"
+        style={{
+          backgroundColor:
+            i === current
+              ? 'hsl(35 70% 50%)'
+              : i < current
+                ? 'hsl(35 50% 65%)'
+                : 'hsl(35 20% 80%)',
+        }}
       />
     ))}
   </div>
 );
 
-// Pet showcase carousel for step 3
-const PetShowcase = () => {
-  const pets = [
-    { emoji: '🐸', name: 'Dewdrop Frog', color: 'from-green-400 to-emerald-500' },
-    { emoji: '🌱', name: 'Sprout Bunny', color: 'from-lime-400 to-green-500' },
-    { emoji: '🦊', name: 'Ember Fox', color: 'from-orange-400 to-red-500' },
-    { emoji: '🦉', name: 'Dusk Owl', color: 'from-purple-400 to-indigo-500' },
-    { emoji: '🐲', name: 'Baby Dragon', color: 'from-red-400 to-orange-500' },
-  ];
+// ─── Retro styled card (tan borders, warm shadows) ──────────────────────────
 
-  return (
-    <div className="flex justify-center items-end gap-3 h-32">
-      {pets.map((pet, i) => (
-        <motion.div
-          key={pet.name}
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: i * 0.1, type: 'spring', stiffness: 200 }}
-          className="flex flex-col items-center"
-        >
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              delay: i * 0.2,
-              ease: 'easeInOut'
-            }}
-            className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${pet.color} flex items-center justify-center shadow-lg`}
-          >
-            <span className="text-2xl">{pet.emoji}</span>
-          </motion.div>
-          <span className="text-[10px] text-muted-foreground mt-1 text-center leading-tight">
-            {pet.name}
-          </span>
-        </motion.div>
-      ))}
-    </div>
-  );
-};
+const RetroCard = ({
+  children,
+  selected = false,
+  onClick,
+  className = '',
+}: {
+  children: React.ReactNode;
+  selected?: boolean;
+  onClick?: () => void;
+  className?: string;
+}) => (
+  <motion.div
+    whileTap={onClick ? { scale: 0.96 } : undefined}
+    animate={selected ? { scale: 1.03 } : { scale: 1 }}
+    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    onClick={onClick}
+    className={`relative rounded-xl transition-colors duration-200 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+    style={{
+      background: selected
+        ? 'linear-gradient(180deg, hsl(45 60% 95%) 0%, hsl(40 50% 90%) 100%)'
+        : 'linear-gradient(180deg, hsl(40 30% 95%) 0%, hsl(38 25% 91%) 100%)',
+      border: selected ? '2.5px solid hsl(35 70% 50%)' : '2px solid hsl(30 20% 78%)',
+      boxShadow: selected
+        ? 'inset 0 1px 0 hsl(50 60% 96%), 0 4px 12px hsl(35 60% 40% / 0.2), 0 0 0 3px hsl(40 70% 55% / 0.15)'
+        : 'inset 0 1px 0 hsl(40 30% 97%), 0 2px 6px hsl(0 0% 0% / 0.06)',
+    }}
+  >
+    {children}
+  </motion.div>
+);
 
-// Timer preview animation for step 2
-const TimerPreview = () => {
-  const [progress, setProgress] = useState(0);
+// ─── Mini meadow platform (CSS-drawn, responsive) ───────────────────────────
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(p => (p >= 100 ? 0 : p + 2));
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
+const MiniPlatform = ({ children }: { children?: React.ReactNode }) => (
+  <div className="relative w-full flex flex-col items-center">
+    {/* Pet sits on top */}
+    <div className="relative z-10 -mb-3">{children}</div>
+    {/* Grass platform */}
+    <div
+      className="w-48 sm:w-56 h-7 sm:h-8 rounded-lg"
+      style={{
+        background: 'linear-gradient(180deg, hsl(120 45% 55%) 0%, hsl(120 40% 42%) 40%, hsl(25 40% 40%) 100%)',
+        boxShadow: 'inset 0 2px 0 hsl(120 50% 65%), 0 4px 8px hsl(0 0% 0% / 0.15)',
+        border: '2px solid hsl(120 30% 35%)',
+      }}
+    />
+    {/* Ground shadow */}
+    <div className="w-40 sm:w-48 h-2 rounded-full bg-black/10 blur-sm -mt-0.5" />
+  </div>
+);
 
-  return (
-    <div className="relative w-40 h-40 mx-auto">
-      {/* Outer glow */}
-      <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl" />
+// ─── Gold game-style button ─────────────────────────────────────────────────
 
-      {/* Timer ring */}
-      <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-        <circle
-          cx="50"
-          cy="50"
-          r="42"
-          fill="none"
-          stroke="hsl(var(--muted))"
-          strokeWidth="6"
-        />
-        <motion.circle
-          cx="50"
-          cy="50"
-          r="42"
-          fill="none"
-          stroke="url(#timerGradient)"
-          strokeWidth="6"
-          strokeLinecap="round"
-          strokeDasharray={264}
-          strokeDashoffset={264 - (264 * progress) / 100}
-        />
-        <defs>
-          <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="hsl(var(--primary))" />
-            <stop offset="100%" stopColor="#a855f7" />
-          </linearGradient>
-        </defs>
-      </svg>
+const GoldButton = ({
+  children,
+  onClick,
+  disabled = false,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+}) => (
+  <Button
+    onClick={onClick}
+    disabled={disabled}
+    size="lg"
+    className="font-bold tracking-wide border-0"
+    style={{
+      background: disabled
+        ? 'linear-gradient(180deg, hsl(35 20% 70%) 0%, hsl(35 15% 60%) 100%)'
+        : 'linear-gradient(180deg, hsl(45 85% 65%) 0%, hsl(40 80% 50%) 100%)',
+      border: disabled ? '2px solid hsl(35 15% 55%)' : '2px solid hsl(35 70% 40%)',
+      boxShadow: disabled
+        ? 'none'
+        : 'inset 0 1px 0 hsl(50 90% 75%), inset 0 -1px 0 hsl(35 60% 40%), 0 3px 8px hsl(30 50% 20% / 0.25)',
+      color: disabled ? 'hsl(35 10% 85%)' : 'hsl(25 50% 18%)',
+      textShadow: disabled ? 'none' : '0 1px 0 hsl(45 80% 70% / 0.5)',
+    }}
+  >
+    {children}
+  </Button>
+);
 
-      {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <Timer className="w-8 h-8 text-primary mb-1" />
-        <span className="text-2xl font-bold text-foreground">25:00</span>
-        <span className="text-xs text-muted-foreground">Focus Time</span>
-      </div>
-
-      {/* XP indicator */}
-      <motion.div
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.5, type: 'spring' }}
-        className="absolute -right-2 -top-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full px-2 py-1 flex items-center gap-1 shadow-lg"
-      >
-        <Zap className="w-3 h-3 text-white" />
-        <span className="text-xs font-bold text-white">+50 XP</span>
-      </motion.div>
-    </div>
-  );
-};
+// ═════════════════════════════════════════════════════════════════════════════
+// Main OnboardingFlow
+// ═════════════════════════════════════════════════════════════════════════════
 
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [selectedPet, setSelectedPet] = useState<string | null>(null);
+  const [islandName, setIslandName] = useState('');
 
+  const setChosenStarterPet = useOnboardingStore((s) => s.setChosenStarterPet);
+  const setStoredIslandName = useOnboardingStore((s) => s.setIslandName);
 
-  const steps = [
-    {
-      id: 'welcome',
-      title: 'Welcome to',
-      highlight: 'NoMo',
-      description: 'Build your magical island and care for adorable pixel pets',
-      content: (
-        <div className="relative h-48 flex items-center justify-center overflow-hidden">
-          {/* Animated pets walking across */}
-          <AnimatedPet
-            spritePath="/assets/sprites/meadow/dewdrop-frog-walk.png"
-            frameCount={6}
-            frameWidth={64}
-            frameHeight={64}
-            delay={0}
-            scale={1.5}
-            y={20}
-          />
-          <AnimatedPet
-            spritePath="/assets/sprites/sunset/ember-fox-walk.png"
-            frameCount={6}
-            frameWidth={64}
-            frameHeight={64}
-            delay={2000}
-            scale={1.5}
-            y={40}
-          />
-          <AnimatedPet
-            spritePath="/assets/sprites/meadow/sprout-bunny-walk.png"
-            frameCount={6}
-            frameWidth={64}
-            frameHeight={64}
-            delay={4000}
-            scale={1.5}
-            y={60}
-          />
+  const totalSteps = 5;
 
-          {/* Central heart icon */}
-          <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, -5, 0]
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-            className="relative z-10"
-          >
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/30 to-pink-500/30 backdrop-blur-sm flex items-center justify-center border border-primary/20 shadow-2xl">
-              <Heart className="w-14 h-14 text-primary" fill="currentColor" />
-            </div>
-          </motion.div>
-        </div>
-      ),
-    },
-    {
-      id: 'timer',
-      title: 'Focus to',
-      highlight: 'Level Up',
-      description: 'Complete focus sessions to earn XP and unlock new pets',
-      content: <TimerPreview />,
-    },
-    {
-      id: 'pets',
-      title: 'Collect',
-      highlight: 'Cute Pets',
-      description: 'Discover 30+ unique creatures across 7 magical biomes',
-      content: <PetShowcase />,
-    },
-    {
-      id: 'ready',
-      title: 'Ready to',
-      highlight: 'Begin?',
-      description: 'Your paradise awaits. Start focusing and watch it grow!',
-      content: (
-        <div className="relative h-48 flex items-center justify-center">
-          <motion.div
-            animate={{
-              scale: [1, 1.05, 1],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-            className="relative"
-          >
-            <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 flex items-center justify-center shadow-2xl">
-              <Sparkles className="w-16 h-16 text-white" />
-            </div>
-            {/* Orbiting elements */}
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: 'linear',
-                  delay: i * 2.67
-                }}
-                className="absolute inset-0"
-                style={{ transformOrigin: 'center center' }}
-              >
-                <div
-                  className="absolute -top-4 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg"
-                >
-                  <Star className="w-4 h-4 text-yellow-900" fill="currentColor" />
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      ),
-    },
-  ];
+  // Get sprite data for the selected starter pet
+  const selectedPetData = useMemo(() => {
+    if (!selectedPet) return null;
+    return getAnimalById(selectedPet);
+  }, [selectedPet]);
+
+  const starterPetInfo = useMemo(
+    () => STARTER_PETS.find((p) => p.id === selectedPet),
+    [selectedPet]
+  );
+
+  // ── Navigation ──────────────────────────────────────────────────────────
+
+  const canProceed = useCallback(() => {
+    if (currentStep === 1) return selectedPet !== null;
+    return true;
+  }, [currentStep, selectedPet]);
 
   const nextStep = useCallback(() => {
-    if (currentStep < steps.length - 1) {
+    if (!canProceed()) return;
+    if (currentStep < totalSteps - 1) {
       setDirection(1);
       setCurrentStep(currentStep + 1);
     } else {
+      // Save choices to store before completing
+      if (selectedPet) setChosenStarterPet(selectedPet);
+      if (islandName.trim()) setStoredIslandName(islandName.trim());
       onComplete();
     }
-  }, [currentStep, steps.length, onComplete]);
+  }, [currentStep, totalSteps, canProceed, onComplete, selectedPet, islandName, setChosenStarterPet, setStoredIslandName]);
 
   const prevStep = useCallback(() => {
     if (currentStep > 0) {
@@ -381,7 +304,6 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const handleDragEnd = (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
     const swipeThreshold = 50;
     const velocityThreshold = 500;
-
     if (info.offset.x < -swipeThreshold || info.velocity.x < -velocityThreshold) {
       nextStep();
     } else if (info.offset.x > swipeThreshold || info.velocity.x > velocityThreshold) {
@@ -390,121 +312,556 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   };
 
   const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 300 : -300,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (direction: number) => ({
-      x: direction > 0 ? -300 : 300,
-      opacity: 0,
-    }),
+    enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
   };
+
+  // ── Step content renderers ──────────────────────────────────────────────
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return <StepIslandAwaits />;
+      case 1:
+        return (
+          <StepChoosePet
+            selectedPet={selectedPet}
+            onSelectPet={setSelectedPet}
+          />
+        );
+      case 2:
+        return (
+          <StepNameIsland
+            islandName={islandName}
+            onSetIslandName={setIslandName}
+            selectedPetData={selectedPetData}
+          />
+        );
+      case 3:
+        return <StepFocusLoop />;
+      case 4:
+        return (
+          <StepLetsBegin
+            selectedPetData={selectedPetData}
+            petName={starterPetInfo?.name ?? 'your pet'}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  // ── Render ──────────────────────────────────────────────────────────────
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-primary/5" />
+      {/* Sky gradient background matching the main Meadow/Home view */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(180deg, hsl(200 70% 80%) 0%, hsl(200 50% 88%) 40%, hsl(180 30% 90%) 70%, hsl(35 40% 90%) 100%)',
+        }}
+      />
 
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-30">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, hsl(var(--primary) / 0.15) 1px, transparent 0)`,
-            backgroundSize: '32px 32px',
-          }}
-        />
-      </div>
+      {/* Subtle cloud shapes */}
+      <div className="absolute top-[8%] left-[8%] w-20 h-7 rounded-full bg-white/30 blur-sm" />
+      <div className="absolute top-[12%] right-[12%] w-24 h-8 rounded-full bg-white/25 blur-sm" />
+      <div className="absolute top-[6%] left-[45%] w-16 h-5 rounded-full bg-white/20 blur-sm" />
 
-      {/* Floating sparkles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <Sparkle key={i} delay={i * 0.5} />
-        ))}
-      </div>
-
-      {/* Main content */}
-      <div className="relative h-full flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        {/* Step dots - top */}
-        <div className="absolute top-safe pt-8">
-          <StepDots current={currentStep} total={steps.length} />
+      {/* Full-height flex layout: dots → content → nav */}
+      <div className="relative h-full flex flex-col max-w-md mx-auto px-5">
+        {/* Top: Step dots */}
+        <div className="pt-safe flex-shrink-0 flex justify-center pt-6 pb-4">
+          <StepDots current={currentStep} total={totalSteps} />
         </div>
 
-        {/* Content area */}
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentStep}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
-            onDragEnd={handleDragEnd}
-            className="w-full touch-pan-y"
-          >
-            <div className="text-center space-y-6">
-              {/* Title */}
-              <div className="space-y-1">
-                <h1 className="text-2xl font-medium text-muted-foreground">
-                  {steps[currentStep].title}
-                </h1>
-                <motion.h2
-                  className="text-4xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent"
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 200 }}
-                >
-                  {steps[currentStep].highlight}
-                </motion.h2>
-              </div>
+        {/* Middle: Scrollable content area — takes remaining space */}
+        <div className="flex-1 min-h-0 flex items-center overflow-y-auto">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentStep}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleDragEnd}
+              className="w-full touch-pan-y"
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-              {/* Description */}
-              <p className="text-muted-foreground text-lg px-4">
-                {steps[currentStep].description}
-              </p>
-
-              {/* Step-specific content */}
-              <div className="py-4">
-                {steps[currentStep].content}
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation buttons - bottom */}
-        <div className="absolute bottom-safe pb-8 left-6 right-6">
+        {/* Bottom: Navigation buttons */}
+        <div className="flex-shrink-0 pb-safe pb-6 pt-4">
           <div className="flex justify-between items-center gap-4">
             <Button
               variant="ghost"
               onClick={prevStep}
               disabled={currentStep === 0}
-              className={`flex items-center gap-2 transition-opacity ${
+              className={`flex items-center gap-1.5 text-sm transition-opacity ${
                 currentStep === 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'
               }`}
+              style={{ color: 'hsl(30 25% 40%)' }}
             >
               <ChevronLeft className="w-4 h-4" />
               Back
             </Button>
 
-            <Button
+            <GoldButton
               onClick={nextStep}
-              size="lg"
-              className="flex items-center gap-2 px-8 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg shadow-primary/25"
+              disabled={!canProceed()}
             >
-              {currentStep === steps.length - 1 ? "Let's Go!" : 'Next'}
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+              <span className="flex items-center gap-2">
+                {currentStep === totalSteps - 1 ? 'Start My Journey' : 'Next'}
+                <ChevronRight className="w-4 h-4" />
+              </span>
+            </GoldButton>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Step 1: Your Island Awaits
+// ═════════════════════════════════════════════════════════════════════════════
+
+const StepIslandAwaits = () => (
+  <div className="text-center space-y-5">
+    <div className="space-y-1.5">
+      <h1
+        className="text-3xl font-bold"
+        style={{ color: 'hsl(220 25% 15%)' }}
+      >
+        Your island awaits
+      </h1>
+      <p className="text-base px-2" style={{ color: 'hsl(220 15% 45%)' }}>
+        A cozy place where focus grows into something magical
+      </p>
+    </div>
+
+    <div className="py-4">
+      <MiniPlatform>
+        <motion.div
+          animate={{ y: [0, -6, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="w-16 h-16 flex items-center justify-center"
+        >
+          <span
+            className="text-4xl font-bold select-none"
+            style={{
+              color: 'hsl(35 60% 55%)',
+              textShadow: '0 2px 4px hsl(35 40% 30% / 0.2)',
+            }}
+          >
+            ?
+          </span>
+        </motion.div>
+      </MiniPlatform>
+    </div>
+
+    <p
+      className="text-sm px-6 italic"
+      style={{ color: 'hsl(220 15% 55%)' }}
+    >
+      Who will be your first companion?
+    </p>
+  </div>
+);
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Step 2: Choose Your First Friend
+// ═════════════════════════════════════════════════════════════════════════════
+
+const StepChoosePet = ({
+  selectedPet,
+  onSelectPet,
+}: {
+  selectedPet: string | null;
+  onSelectPet: (id: string) => void;
+}) => (
+  <div className="text-center space-y-4">
+    <div className="space-y-1.5">
+      <h1
+        className="text-3xl font-bold"
+        style={{ color: 'hsl(220 25% 15%)' }}
+      >
+        Choose your first friend
+      </h1>
+      <p className="text-base" style={{ color: 'hsl(220 15% 45%)' }}>
+        They'll keep you company while you focus
+      </p>
+    </div>
+
+    <div className="flex justify-center gap-2.5">
+      {STARTER_PETS.map((pet) => {
+        const animalData = getAnimalById(pet.id);
+        const isSelected = selectedPet === pet.id;
+
+        return (
+          <RetroCard
+            key={pet.id}
+            selected={isSelected}
+            onClick={() => onSelectPet(pet.id)}
+            className="flex-1 min-w-0 max-w-[110px]"
+          >
+            <div className="flex flex-col items-center py-2.5 px-1.5 gap-1.5">
+              {/* Sprite — sized relative to card */}
+              <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] flex items-center justify-center overflow-hidden">
+                {animalData?.spriteConfig?.idleSprite ? (
+                  <IdlePetSprite
+                    idleSprite={animalData.spriteConfig.idleSprite}
+                    size={64}
+                    scale={1}
+                    bounce={isSelected}
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-muted rounded-lg" />
+                )}
+              </div>
+
+              {/* Name */}
+              <span
+                className="text-[11px] font-bold leading-tight"
+                style={{
+                  color: isSelected ? 'hsl(35 60% 35%)' : 'hsl(220 15% 35%)',
+                }}
+              >
+                {pet.name}
+              </span>
+
+              {/* Description */}
+              <span
+                className="text-[10px] leading-tight"
+                style={{ color: 'hsl(220 15% 55%)' }}
+              >
+                {pet.description}
+              </span>
+            </div>
+          </RetroCard>
+        );
+      })}
+    </div>
+
+    {!selectedPet && (
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-xs"
+        style={{ color: 'hsl(35 50% 50%)' }}
+      >
+        Tap to choose your companion
+      </motion.p>
+    )}
+  </div>
+);
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Step 3: Name Your Island
+// ═════════════════════════════════════════════════════════════════════════════
+
+const StepNameIsland = ({
+  islandName,
+  onSetIslandName,
+  selectedPetData,
+}: {
+  islandName: string;
+  onSetIslandName: (name: string) => void;
+  selectedPetData: ReturnType<typeof getAnimalById> | null;
+}) => (
+  <div className="text-center space-y-4">
+    <div className="space-y-1.5">
+      <h1
+        className="text-3xl font-bold"
+        style={{ color: 'hsl(220 25% 15%)' }}
+      >
+        Name your island
+      </h1>
+      <p className="text-base" style={{ color: 'hsl(220 15% 45%)' }}>
+        Every great adventure needs a home
+      </p>
+    </div>
+
+    {/* Pet on platform preview */}
+    <div className="py-1">
+      <MiniPlatform>
+        {selectedPetData?.spriteConfig?.idleSprite ? (
+          <IdlePetSprite
+            idleSprite={selectedPetData.spriteConfig.idleSprite}
+            size={64}
+            scale={1.3}
+            bounce
+          />
+        ) : (
+          <div className="w-16 h-16" />
+        )}
+      </MiniPlatform>
+    </div>
+
+    {/* Island name input */}
+    <div className="px-2 space-y-2.5">
+      <input
+        type="text"
+        value={islandName}
+        onChange={(e) => onSetIslandName(e.target.value.slice(0, 20))}
+        placeholder="Cozy Meadow"
+        maxLength={20}
+        className="w-full px-4 py-3 text-center text-base font-medium rounded-xl bg-white/80 transition-all placeholder:text-black/25"
+        style={{
+          color: 'hsl(220 25% 15%)',
+          border: '2px solid hsl(30 25% 72%)',
+          boxShadow: 'inset 0 2px 4px hsl(0 0% 0% / 0.05)',
+          outline: 'none',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = 'hsl(35 70% 50%)';
+          e.currentTarget.style.backgroundColor = 'white';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = 'hsl(30 25% 72%)';
+          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.8)';
+        }}
+      />
+
+      {/* Quick suggestions */}
+      <div className="flex flex-wrap justify-center gap-1.5">
+        {ISLAND_SUGGESTIONS.map((suggestion) => (
+          <button
+            key={suggestion}
+            onClick={() => onSetIslandName(suggestion)}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95"
+            style={{
+              background:
+                islandName === suggestion
+                  ? 'hsl(40 60% 88%)'
+                  : 'hsl(40 25% 93%)',
+              border:
+                islandName === suggestion
+                  ? '1.5px solid hsl(35 50% 60%)'
+                  : '1.5px solid hsl(30 15% 82%)',
+              color: 'hsl(30 30% 35%)',
+            }}
+          >
+            {suggestion}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <p
+      className="text-xs"
+      style={{ color: 'hsl(220 15% 60%)' }}
+    >
+      You can always change this later
+    </p>
+  </div>
+);
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Step 4: Focus Grows Your World
+// ═════════════════════════════════════════════════════════════════════════════
+
+const StepFocusLoop = () => (
+  <div className="text-center space-y-4">
+    <div className="space-y-1.5">
+      <h1
+        className="text-3xl font-bold"
+        style={{ color: 'hsl(220 25% 15%)' }}
+      >
+        Focus grows your world
+      </h1>
+      <p className="text-base" style={{ color: 'hsl(220 15% 45%)' }}>
+        Here's how it works
+      </p>
+    </div>
+
+    {/* 3-step loop visual */}
+    <div className="space-y-2.5 px-1">
+      {[
+        {
+          icon: '/assets/icons/clock.png',
+          fallback: '\u23F1',
+          label: 'Start a focus session',
+          sub: 'Set a timer and stay focused',
+        },
+        {
+          icon: '/assets/icons/star.png',
+          fallback: '\u2B50',
+          label: 'Earn XP as you focus',
+          sub: 'Every minute counts toward leveling up',
+        },
+        {
+          icon: '/assets/icons/paw.png',
+          fallback: '\uD83D\uDC3E',
+          label: 'Unlock new pets & biomes',
+          sub: '50+ creatures across 6 worlds',
+        },
+      ].map((step, i) => (
+        <motion.div
+          key={step.label}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: i * 0.12 }}
+        >
+          <RetroCard className="!rounded-lg">
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                <PixelIcon src={step.icon} fallback={step.fallback} />
+              </div>
+              <div className="text-left min-w-0">
+                <p
+                  className="text-sm font-bold leading-snug"
+                  style={{ color: 'hsl(220 25% 15%)' }}
+                >
+                  {step.label}
+                </p>
+                <p
+                  className="text-xs leading-snug"
+                  style={{ color: 'hsl(220 15% 50%)' }}
+                >
+                  {step.sub}
+                </p>
+              </div>
+            </div>
+          </RetroCard>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* Locked pet teasers */}
+    <div>
+      <p
+        className="text-xs font-medium mb-1.5"
+        style={{ color: 'hsl(220 15% 50%)' }}
+      >
+        Waiting to be discovered...
+      </p>
+      <div className="flex justify-center gap-5">
+        {TEASER_PETS.map((pet) => {
+          const animalData = getAnimalById(pet.id);
+          return (
+            <motion.div
+              key={pet.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+              className="flex flex-col items-center gap-0.5"
+            >
+              <div className="relative w-10 h-10 flex items-center justify-center">
+                {animalData?.spriteConfig?.idleSprite ? (
+                  <div
+                    className="w-full h-full"
+                    style={{
+                      backgroundImage: `url(${animalData.spriteConfig.idleSprite})`,
+                      backgroundSize: 'contain',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'center',
+                      imageRendering: 'pixelated',
+                      filter: 'brightness(0) opacity(0.25)',
+                    }}
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-black/10" />
+                )}
+                <Lock
+                  className="absolute -bottom-0.5 -right-0.5 w-3 h-3"
+                  style={{ color: 'hsl(35 50% 55%)' }}
+                />
+              </div>
+              <span
+                className="text-[9px] font-medium"
+                style={{ color: 'hsl(220 15% 55%)' }}
+              >
+                Lv.{pet.level}
+              </span>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+);
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Step 5: Let's Begin
+// ═════════════════════════════════════════════════════════════════════════════
+
+const StepLetsBegin = ({
+  selectedPetData,
+  petName,
+}: {
+  selectedPetData: ReturnType<typeof getAnimalById> | null;
+  petName: string;
+}) => (
+  <div className="text-center space-y-5">
+    <div className="space-y-1.5">
+      <h1
+        className="text-3xl font-bold"
+        style={{ color: 'hsl(220 25% 15%)' }}
+      >
+        Meet {petName}!
+      </h1>
+      <p className="text-base" style={{ color: 'hsl(220 15% 45%)' }}>
+        Your first focus session is waiting
+      </p>
+    </div>
+
+    <div className="py-2">
+      <MiniPlatform>
+        {selectedPetData?.spriteConfig ? (
+          <WalkingPetSprite
+            spritePath={selectedPetData.spriteConfig.spritePath}
+            frameCount={selectedPetData.spriteConfig.frameCount}
+            frameWidth={selectedPetData.spriteConfig.frameWidth}
+            frameHeight={selectedPetData.spriteConfig.frameHeight}
+            scale={1.8}
+            frameRow={selectedPetData.spriteConfig.frameRow ?? 0}
+            walkRows={selectedPetData.spriteConfig.walkRows ?? 1}
+          />
+        ) : (
+          <div className="w-16 h-16" />
+        )}
+      </MiniPlatform>
+    </div>
+
+    {/* Stats */}
+    <div className="flex justify-center gap-2.5 px-2">
+      {[
+        { value: '50+', label: 'Pets to collect' },
+        { value: '6', label: 'Biomes to explore' },
+        { value: '\u221E', label: 'Focus sessions' },
+      ].map((stat) => (
+        <div
+          key={stat.label}
+          className="flex-1 py-2 px-1.5 rounded-lg text-center"
+          style={{
+            background: 'hsl(40 30% 94%)',
+            border: '1.5px solid hsl(30 20% 82%)',
+          }}
+        >
+          <p
+            className="text-lg font-bold leading-tight"
+            style={{ color: 'hsl(35 60% 42%)' }}
+          >
+            {stat.value}
+          </p>
+          <p
+            className="text-[10px] leading-tight mt-0.5"
+            style={{ color: 'hsl(220 15% 50%)' }}
+          >
+            {stat.label}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
