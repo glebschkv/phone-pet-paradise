@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useXPSystem, XPReward } from '@/hooks/useXPSystem';
 import { useCoinSystem } from '@/hooks/useCoinSystem';
 import { useStreakSystem } from '@/hooks/useStreakSystem';
@@ -31,6 +31,12 @@ export const useAppStateTracking = () => {
     currentReward: null
   });
 
+  // Ref to track lastActiveTime synchronously across rapid visibility changes.
+  // React state updates are async and batched, so reading appState.lastActiveTime
+  // in handleAppActive can return a stale value if handleAppInactive just ran
+  // but React hasn't re-rendered yet. This ref is updated immediately.
+  const lastActiveTimeRef = useRef(Date.now());
+
   // Load saved state from localStorage
   useEffect(() => {
     const savedState = localStorage.getItem(STORAGE_KEY);
@@ -45,6 +51,10 @@ export const useAppStateTracking = () => {
           showRewardModal: false,
           currentReward: null,
         }));
+        // Sync the ref with the loaded timestamp
+        if (parsed.lastActiveTime) {
+          lastActiveTimeRef.current = parsed.lastActiveTime;
+        }
       } catch (error) {
         logger.error('Failed to parse saved app state:', error);
       }
@@ -94,9 +104,14 @@ export const useAppStateTracking = () => {
   // Handle app becoming active (foreground)
   const handleAppActive = useCallback(() => {
     const now = Date.now();
-    const timeAway = now - appState.lastActiveTime;
+    // Read from ref (updated synchronously) instead of React state to avoid
+    // stale closures when visibility changes fire in rapid succession.
+    const timeAway = now - lastActiveTimeRef.current;
     const minutesAway = Math.floor(timeAway / (1000 * 60));
-    
+
+    // Update ref immediately
+    lastActiveTimeRef.current = now;
+
     // Award XP for focus session (minimum 30 minutes)
     const reward = awardSessionXP(minutesAway);
 
@@ -110,12 +125,16 @@ export const useAppStateTracking = () => {
     } else {
       saveState({ lastActiveTime: now });
     }
-  }, [appState.lastActiveTime, awardSessionXP, saveState]);
+  }, [awardSessionXP, saveState]);
 
   // Handle app going to background
   const handleAppInactive = useCallback(() => {
-    saveState({ 
-      lastActiveTime: Date.now(),
+    const now = Date.now();
+    // Update ref immediately so handleAppActive reads the correct value
+    // even if React hasn't re-rendered yet
+    lastActiveTimeRef.current = now;
+    saveState({
+      lastActiveTime: now,
       showRewardModal: false,
       currentReward: null
     });
