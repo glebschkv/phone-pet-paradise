@@ -966,6 +966,10 @@ input, textarea, [contenteditable="true"] {
     color: hsl(var(--primary));
   }
 
+  .dock-bar.dark-context .dock-center-btn .dock-item-icon {
+    color: white;
+  }
+
   .dock-bar.dark-context .dock-item-label {
     color: hsl(255 15% 50%);
   }
