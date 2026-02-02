@@ -10,8 +10,11 @@
  * - Background theme switcher
  *
  * Layout optimized for mobile-first single-screen experience:
- * - Above fold: ViewToggle + Presets + Timer + Controls
+ * - Above fold: Presets + Timer + Controls + Background switcher
  * - Below fold: Secondary features in collapsible section
+ *
+ * Note: ViewToggle and AmbientSoundPicker are rendered by the parent
+ * UnifiedFocusTimer to keep them in a fixed position across view switches.
  */
 
 import { useState } from "react";
@@ -22,18 +25,10 @@ import { TimerPresetGrid } from "./TimerPresetGrid";
 import { TimerStats } from "./TimerStats";
 import { AppBlockingSection } from "./AppBlockingSection";
 import { BackgroundThemeSwitcher } from "./BackgroundThemeSwitcher";
-import { ViewToggle } from "./ViewToggle";
-import { AmbientSoundPicker } from "./AmbientSoundPicker";
 import { TimerPetSprite } from "./TimerPetSprite";
 import { TimerState, TimerPreset } from "./constants";
 
-type TimerViewType = 'timer' | 'stats';
-
 interface TimerViewProps {
-  // View state
-  currentView: TimerViewType;
-  onViewChange: (view: TimerViewType) => void;
-
   // Timer state
   timerState: TimerState;
   displayTime: number;
@@ -55,8 +50,6 @@ interface TimerViewProps {
 }
 
 export const TimerView = ({
-  currentView,
-  onViewChange,
   timerState,
   displayTime,
   elapsedTime,
@@ -74,13 +67,7 @@ export const TimerView = ({
   const [showMore, setShowMore] = useState(false);
 
   return (
-    <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 pt-3 pb-32">
-      {/* Top row: ViewToggle + Ambient Sound */}
-      <div className="mb-3 flex items-center justify-center w-full gap-2">
-        <ViewToggle currentView={currentView} onViewChange={onViewChange} />
-        <AmbientSoundPicker />
-      </div>
-
+    <div className="relative z-10 flex flex-col items-center justify-start px-4 pb-32">
       {/* Preset grid ABOVE timer when not running — pick duration first */}
       {!timerState.isRunning && (
         <div className="mb-4 w-full flex justify-center">
@@ -113,6 +100,15 @@ export const TimerView = ({
         onStop={onStop}
         onSkip={onSkip}
       />
+
+      {/* Background theme switcher — always visible */}
+      <div className="mt-4 w-full flex justify-center">
+        <BackgroundThemeSwitcher
+          currentTheme={backgroundTheme}
+          currentLevel={currentLevel}
+          onThemeChange={onThemeChange}
+        />
+      </div>
 
       {/* App Blocking Section — always visible since it's a key feature */}
       <AppBlockingSection isTimerRunning={timerState.isRunning} />
@@ -150,12 +146,6 @@ export const TimerView = ({
             )}
 
             <TimerStats />
-
-            <BackgroundThemeSwitcher
-              currentTheme={backgroundTheme}
-              currentLevel={currentLevel}
-              onThemeChange={onThemeChange}
-            />
           </div>
         )}
       </div>

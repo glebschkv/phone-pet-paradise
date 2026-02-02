@@ -16,6 +16,8 @@ import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useTimerLogic } from "./focus-timer/hooks/useTimerLogic";
 import { useBackgroundTheme } from "./focus-timer/hooks/useBackgroundTheme";
 import { FocusBackground } from "./focus-timer/backgrounds";
+import { ViewToggle } from "./focus-timer/ViewToggle";
+import { AmbientSoundPicker } from "./focus-timer/AmbientSoundPicker";
 import { TimerView } from "./focus-timer/TimerView";
 import { StatsView } from "./focus-timer/StatsView";
 import { TimerModals } from "./focus-timer/TimerModals";
@@ -62,16 +64,17 @@ export const UnifiedFocusTimer = () => {
     <div className="min-h-screen w-full relative overflow-hidden">
       <FocusBackground theme={backgroundTheme} />
 
+      {/* Fixed top bar: ViewToggle + Ambient Sound — shared across views */}
+      <div className="relative z-10 flex items-center justify-center w-full gap-2 px-4 pt-safe pb-2">
+        <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
+        {currentView === 'timer' && <AmbientSoundPicker />}
+      </div>
+
       {currentView === 'stats' ? (
-        <StatsView
-          currentView={currentView}
-          onViewChange={setCurrentView}
-        />
+        <StatsView />
       ) : (
         <>
           <TimerView
-            currentView={currentView}
-            onViewChange={setCurrentView}
             timerState={timerState}
             displayTime={displayTime}
             elapsedTime={elapsedTime}
