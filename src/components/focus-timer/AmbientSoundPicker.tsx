@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Volume2, VolumeX, Lock, Crown, ChevronDown, Play, Pause, Music } from 'lucide-react';
+import { Volume2, VolumeX, Lock, Crown, ChevronDown, Play, Pause, Music, X, Plus, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -8,7 +8,7 @@ import {
   AmbientSoundCategory,
   AmbientSound,
 } from '@/data/AmbientSoundsData';
-import { useAmbientSound } from '@/hooks/useAmbientSound';
+import { useSoundMixer } from '@/hooks/useSoundMixer';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import {
   Dialog,
@@ -44,15 +44,24 @@ export const AmbientSoundPicker = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<AmbientSoundCategory | 'all'>('all');
   const {
-    currentSound,
-    currentSoundId,
-    volume,
+    layers,
+    masterVolume,
     isPlaying,
-    play,
-    stop,
-    setVolume,
-  } = useAmbientSound();
+    maxLayers,
+    playAll,
+    stopAll,
+    toggle,
+    addLayer,
+    removeLayer,
+    setLayerVolume,
+    setMasterVolume,
+    getLayerDetails,
+    canAddLayer,
+  } = useSoundMixer();
   const { isPremium } = usePremiumStatus();
+
+  const layerDetails = getLayerDetails();
+  const primarySound = layerDetails.length > 0 ? layerDetails[0].sound : null;
 
   const filteredSounds = selectedCategory === 'all'
     ? AMBIENT_SOUNDS
@@ -67,20 +76,38 @@ export const AmbientSoundPicker = () => {
       return;
     }
 
-    if (currentSoundId === sound.id && isPlaying) {
-      stop();
-    } else {
-      play(sound.id);
+    // If sound is already in layers, remove it
+    if (layers.some(l => l.soundId === sound.id)) {
+      removeLayer(sound.id);
+      return;
+    }
+
+    // If at max layers, remove the oldest one first (for free users this replaces the sound)
+    if (!canAddLayer()) {
+      if (layers.length > 0) {
+        removeLayer(layers[0].soundId);
+      }
+    }
+
+    addLayer(sound.id);
+
+    // Auto-play if not already playing
+    if (!isPlaying) {
+      // Small delay to let state update
+      setTimeout(() => playAll(), 50);
     }
   };
 
   const handleToggle = () => {
-    if (isPlaying) {
-      stop();
-    } else if (currentSoundId) {
-      play(currentSoundId);
-    }
+    if (layers.length === 0) return;
+    toggle();
   };
+
+  const triggerLabel = layerDetails.length > 1
+    ? `${layerDetails.length} Sounds`
+    : primarySound
+    ? primarySound.name
+    : 'Sounds';
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -104,7 +131,7 @@ export const AmbientSoundPicker = () => {
             <VolumeX className="w-4 h-4 text-muted-foreground" />
           )}
           <span className="text-xs font-bold">
-            {currentSound ? currentSound.name : 'Sounds'}
+            {triggerLabel}
           </span>
           <ChevronDown className="w-3 h-3 opacity-60" />
         </button>
@@ -134,7 +161,7 @@ export const AmbientSoundPicker = () => {
               <div>
                 <span className="text-base font-bold">Focus Sounds</span>
                 <p className="text-[10px] text-muted-foreground font-normal">
-                  Ambient audio for better concentration
+                  {maxLayers > 1 ? 'Mix ambient sounds for better focus' : 'Ambient audio for better concentration'}
                 </p>
               </div>
             </DialogTitle>
@@ -142,8 +169,8 @@ export const AmbientSoundPicker = () => {
         </div>
 
         <div className="p-4 space-y-4 max-h-[65vh] overflow-y-auto">
-          {/* Now Playing Widget */}
-          {currentSoundId && (
+          {/* Active Layers Widget */}
+          {layers.length > 0 && (
             <div
               className="rounded-xl p-4"
               style={{
@@ -154,20 +181,16 @@ export const AmbientSoundPicker = () => {
                 boxShadow: '0 2px 0 hsl(var(--border) / 0.3), inset 0 1px 0 hsl(0 0% 100% / 0.5)',
               }}
             >
+              {/* Header with play/pause */}
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-                    style={{
-                      background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.5) 100%)',
-                      border: '2px solid hsl(var(--border))',
-                      boxShadow: 'inset 0 2px 4px hsl(0 0% 0% / 0.05)',
-                    }}
-                  >
-                    {currentSound?.icon}
-                  </div>
+                <div className="flex items-center gap-2">
+                  {layers.length > 1 && (
+                    <Layers className="w-4 h-4 text-muted-foreground" />
+                  )}
                   <div>
-                    <p className="text-sm font-bold">{currentSound?.name}</p>
+                    <p className="text-sm font-bold">
+                      {layers.length === 1 ? layerDetails[0]?.sound?.name : `${layers.length} Sound Layers`}
+                    </p>
                     <div className="flex items-center gap-1.5">
                       {isPlaying ? (
                         <>
@@ -203,7 +226,42 @@ export const AmbientSoundPicker = () => {
                 </button>
               </div>
 
-              {/* Volume Control */}
+              {/* Per-layer controls (shown when multiple layers) */}
+              {layers.length > 1 && (
+                <div className="space-y-2 mb-3">
+                  {layerDetails.map((layer) => (
+                    <div
+                      key={layer.soundId}
+                      className="flex items-center gap-2 p-2 rounded-lg"
+                      style={{
+                        background: 'hsl(var(--background) / 0.6)',
+                        border: '1px solid hsl(var(--border) / 0.5)',
+                      }}
+                    >
+                      <span className="text-lg flex-shrink-0">{layer.sound?.icon}</span>
+                      <span className="text-[10px] font-bold flex-shrink-0 w-14 truncate">
+                        {layer.sound?.name}
+                      </span>
+                      <Slider
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={[layer.volume]}
+                        onValueChange={([v]) => setLayerVolume(layer.soundId, v)}
+                        className="flex-1"
+                      />
+                      <button
+                        onClick={() => removeLayer(layer.soundId)}
+                        className="w-5 h-5 rounded-full flex items-center justify-center text-muted-foreground hover:text-red-500 transition-colors flex-shrink-0"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Master Volume Control */}
               <div
                 className="flex items-center gap-3 p-2.5 rounded-lg"
                 style={{
@@ -216,8 +274,14 @@ export const AmbientSoundPicker = () => {
                   min={0}
                   max={100}
                   step={5}
-                  value={[volume]}
-                  onValueChange={([v]) => setVolume(v)}
+                  value={[layers.length === 1 ? layers[0].volume : masterVolume]}
+                  onValueChange={([v]) => {
+                    if (layers.length === 1) {
+                      setLayerVolume(layers[0].soundId, v);
+                    } else {
+                      setMasterVolume(v);
+                    }
+                  }}
                   className="flex-1"
                 />
                 <Volume2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -227,9 +291,26 @@ export const AmbientSoundPicker = () => {
                     background: 'hsl(var(--muted) / 0.5)',
                   }}
                 >
-                  {volume}%
+                  {layers.length === 1 ? layers[0].volume : masterVolume}%
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* Layer slots indicator for premium users */}
+          {isPremium && maxLayers > 1 && (
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-amber-500" />
+                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                  Sound Layers: {layers.length}/{maxLayers}
+                </span>
+              </div>
+              {canAddLayer() && (
+                <span className="text-[10px] text-muted-foreground">
+                  Tap a sound to add a layer
+                </span>
+              )}
             </div>
           )}
 
@@ -283,8 +364,8 @@ export const AmbientSoundPicker = () => {
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {freeSounds.map((sound) => {
-                  const isSelected = currentSoundId === sound.id;
-                  const isCurrentlyPlaying = isSelected && isPlaying;
+                  const isInLayers = layers.some(l => l.soundId === sound.id);
+                  const isCurrentlyPlaying = isInLayers && isPlaying;
 
                   return (
                     <button
@@ -294,11 +375,11 @@ export const AmbientSoundPicker = () => {
                       style={{
                         background: isCurrentlyPlaying
                           ? 'linear-gradient(180deg, hsl(140 40% 92%) 0%, hsl(140 35% 85%) 100%)'
-                          : isSelected
+                          : isInLayers
                           ? 'linear-gradient(180deg, hsl(260 40% 95%) 0%, hsl(260 30% 90%) 100%)'
                           : 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.3) 100%)',
-                        border: `2px solid ${isCurrentlyPlaying ? 'hsl(140 50% 55%)' : isSelected ? 'hsl(260 50% 65%)' : 'hsl(var(--border))'}`,
-                        boxShadow: isCurrentlyPlaying || isSelected
+                        border: `2px solid ${isCurrentlyPlaying ? 'hsl(140 50% 55%)' : isInLayers ? 'hsl(260 50% 65%)' : 'hsl(var(--border))'}`,
+                        boxShadow: isCurrentlyPlaying || isInLayers
                           ? '0 3px 0 hsl(var(--border) / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.4)'
                           : '0 2px 0 hsl(var(--border) / 0.4), inset 0 1px 0 hsl(0 0% 100% / 0.2)',
                       }}
@@ -308,6 +389,11 @@ export const AmbientSoundPicker = () => {
                         {isCurrentlyPlaying && (
                           <div className="text-green-600 dark:text-green-400">
                             <SoundWaveBars isPlaying={true} small />
+                          </div>
+                        )}
+                        {isInLayers && !isCurrentlyPlaying && (
+                          <div className="w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
+                            <span className="text-[8px] text-white font-bold">✓</span>
                           </div>
                         )}
                       </div>
@@ -333,8 +419,8 @@ export const AmbientSoundPicker = () => {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {premiumSounds.map((sound) => {
-                  const isSelected = currentSoundId === sound.id;
-                  const isCurrentlyPlaying = isSelected && isPlaying;
+                  const isInLayers = layers.some(l => l.soundId === sound.id);
+                  const isCurrentlyPlaying = isInLayers && isPlaying;
                   const isLocked = !isPremium;
 
                   return (
@@ -349,10 +435,10 @@ export const AmbientSoundPicker = () => {
                       style={{
                         background: isCurrentlyPlaying
                           ? 'linear-gradient(180deg, hsl(140 40% 92%) 0%, hsl(140 35% 85%) 100%)'
-                          : isSelected
+                          : isInLayers
                           ? 'linear-gradient(180deg, hsl(260 40% 95%) 0%, hsl(260 30% 90%) 100%)'
                           : 'linear-gradient(180deg, hsl(40 60% 96%) 0%, hsl(35 50% 92%) 100%)',
-                        border: `2px solid ${isCurrentlyPlaying ? 'hsl(140 50% 55%)' : isSelected ? 'hsl(260 50% 65%)' : 'hsl(35 45% 75%)'}`,
+                        border: `2px solid ${isCurrentlyPlaying ? 'hsl(140 50% 55%)' : isInLayers ? 'hsl(260 50% 65%)' : 'hsl(35 45% 75%)'}`,
                         boxShadow: '0 2px 0 hsl(var(--border) / 0.4), inset 0 1px 0 hsl(0 0% 100% / 0.3)',
                       }}
                     >
@@ -379,6 +465,11 @@ export const AmbientSoundPicker = () => {
                         {isCurrentlyPlaying && (
                           <div className="text-green-600 dark:text-green-400">
                             <SoundWaveBars isPlaying={true} small />
+                          </div>
+                        )}
+                        {isInLayers && !isCurrentlyPlaying && (
+                          <div className="w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
+                            <span className="text-[8px] text-white font-bold">✓</span>
                           </div>
                         )}
                       </div>
@@ -415,11 +506,11 @@ export const AmbientSoundPicker = () => {
                   <Crown className="w-4 h-4 text-amber-900" />
                 </div>
                 <span className="text-sm font-bold text-amber-800">
-                  Unlock All Sounds
+                  Unlock Sound Mixing
                 </span>
               </div>
               <p className="text-xs text-amber-700 mb-3">
-                Get access to lo-fi beats, nature sounds, binaural waves, and more with Premium!
+                Mix multiple sounds together, plus unlock lo-fi beats, nature sounds, binaural waves, and more with Premium!
               </p>
               <button
                 className="w-full py-2.5 px-4 rounded-lg font-bold text-sm transition-all active:scale-95"
@@ -436,9 +527,9 @@ export const AmbientSoundPicker = () => {
           )}
 
           {/* Turn Off Button */}
-          {currentSoundId && (
+          {layers.length > 0 && (
             <button
-              onClick={() => stop()}
+              onClick={() => stopAll()}
               className="w-full py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.98]"
               style={{
                 background: 'linear-gradient(180deg, hsl(var(--muted) / 0.5) 0%, hsl(var(--muted) / 0.3) 100%)',

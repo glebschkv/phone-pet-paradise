@@ -8,6 +8,8 @@
 import { useCallback } from 'react';
 import { useBackendAppState } from '@/hooks/useBackendAppState';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
+import { useBondSystem } from '@/hooks/useBondSystem';
+import { useActiveHomePets } from '@/stores';
 import { timerLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
@@ -17,6 +19,8 @@ interface RewardResult {
   xpEarned: number;
   coinsEarned: number;
   focusBonusType: string;
+  bondBonusPercent: number;
+  bondPetName: string | null;
   bossDefeated: boolean;
   bossChallenge?: {
     name: string;
@@ -36,6 +40,8 @@ interface SessionInfo {
 export function useTimerRewards() {
   const { awardXP, coinSystem, xpSystem } = useBackendAppState();
   const { recordFocusSession } = useBossChallenges();
+  const { getAbilityBonuses, getBondLevel } = useBondSystem();
+  const activeHomePets = useActiveHomePets();
 
   /**
    * Calculate and award rewards for a completed session
@@ -51,8 +57,32 @@ export function useTimerRewards() {
       xpEarned: 0,
       coinsEarned: 0,
       focusBonusType: '',
+      bondBonusPercent: 0,
+      bondPetName: null,
       bossDefeated: false,
     };
+
+    // Calculate bond bonus from highest-bond active home pet
+    let bondFocusBonus = 0;
+    let bondXPBonus = 0;
+    if (activeHomePets && activeHomePets.length > 0) {
+      let bestPetId: string | null = null;
+      let bestBondLevel = 0;
+      for (const petId of activeHomePets) {
+        const level = getBondLevel(petId);
+        if (level > bestBondLevel) {
+          bestBondLevel = level;
+          bestPetId = petId;
+        }
+      }
+      if (bestPetId && bestBondLevel > 1) {
+        const bonuses = getAbilityBonuses(bestPetId);
+        bondFocusBonus = bonuses.focusBonus || 0;  // % coin bonus
+        bondXPBonus = bonuses.experienceBonus || 0; // % XP bonus
+        result.bondBonusPercent = bondFocusBonus;
+        result.bondPetName = bestPetId;
+      }
+    }
 
     // Calculate focus bonus based on shield attempts
     let focusMultiplier: number = FOCUS_BONUS.DISTRACTED.multiplier;
@@ -80,6 +110,15 @@ export function useTimerRewards() {
             result.xpEarned += bonusXP;
           }
         }
+
+        // Apply pet bond XP bonus
+        if (bondXPBonus > 0 && result.xpEarned > 0 && xpSystem && 'addDirectXP' in xpSystem) {
+          const petBonusXP = Math.floor(result.xpEarned * (bondXPBonus / 100));
+          if (petBonusXP > 0) {
+            (xpSystem as { addDirectXP: (xp: number) => void }).addDirectXP(petBonusXP);
+            result.xpEarned += petBonusXP;
+          }
+        }
       } catch (error) {
         timerLogger.error('Failed to award XP:', error);
       }
@@ -92,6 +131,15 @@ export function useTimerRewards() {
         : FOCUS_BONUS.GOOD_FOCUS.coinBonus;
       coinSystem.addCoins(bonusCoins);
       result.coinsEarned = bonusCoins;
+    }
+
+    // Apply pet bond coin bonus
+    if (bondFocusBonus > 0 && result.coinsEarned > 0 && coinSystem) {
+      const petBonusCoins = Math.floor(result.coinsEarned * (bondFocusBonus / 100));
+      if (petBonusCoins > 0) {
+        coinSystem.addCoins(petBonusCoins);
+        result.coinsEarned += petBonusCoins;
+      }
     }
 
     // Dispatch achievement tracking event for focus sessions
@@ -139,7 +187,7 @@ export function useTimerRewards() {
     }
 
     return result;
-  }, [awardXP, coinSystem, xpSystem, recordFocusSession]);
+  }, [awardXP, coinSystem, xpSystem, recordFocusSession, activeHomePets, getBondLevel, getAbilityBonuses]);
 
   /**
    * Show focus bonus toast notification

@@ -51,7 +51,7 @@ import {
  * SECURITY: Server-side coin validation types
  * All coin operations must be validated server-side to prevent manipulation
  */
-type EarnSource = 'focus_session' | 'daily_reward' | 'achievement' | 'quest_reward' | 'subscription_bonus' | 'lucky_wheel' | 'referral' | 'admin_grant';
+type EarnSource = 'focus_session' | 'daily_reward' | 'achievement' | 'quest_reward' | 'subscription_bonus' | 'lucky_wheel' | 'referral' | 'admin_grant' | 'iap_purchase';
 type SpendPurpose = 'shop_purchase' | 'pet_unlock' | 'cosmetic' | 'booster' | 'streak_freeze';
 
 interface ServerCoinResponse {

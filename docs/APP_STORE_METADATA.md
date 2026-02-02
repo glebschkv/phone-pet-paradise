@@ -20,7 +20,7 @@ Set a focus timer and put your phone away. NoMo detects when you're away from yo
 
 **COLLECT 40+ UNIQUE PETS**
 
-Discover adorable pixel-art companions across four rarity tiers: Common, Rare, Epic, and Legendary. Each pet has its own personality and animations. Feed them, play with them, and watch them grow as you level up together.
+Discover adorable pixel-art companions across four rarity tiers: Common, Rare, Epic, and Legendary. Each pet has its own personality and animations. Bond with them, watch them grow, and earn bonus rewards as your friendship deepens.
 
 **EXPLORE 7 STUNNING WORLDS**
 
@@ -67,7 +67,7 @@ Download NoMo Phone today and start your journey to better focus - one pet at a 
 
 ## Promotional Text (170 characters, updatable anytime)
 
-New: Battle Pass Season 1 is here! Complete daily challenges, unlock exclusive pets, and climb the leaderboard. Plus new Snow World with 5 winter pets to collect.
+New: Sound mixing is here! Layer ambient sounds for the perfect focus vibe. Plus 5 new Sky Realm backgrounds, pet bond bonuses, and special events with double XP.
 
 ---
 
@@ -82,11 +82,13 @@ focus,timer,screen time,digital detox,productivity,pomodoro,pets,pixel,wellness,
 Welcome to NoMo Phone!
 
 - Collect 40+ unique pixel pets
-- Explore 8 beautiful worlds
+- Explore 7 stunning worlds
 - Smart focus timer with rewards
 - Focus Shield to block distracting apps
 - Daily quests and weekly challenges
-- Battle Pass with seasonal rewards
+- Sound mixing with ambient layers (Premium)
+- Pet bond system with reward bonuses
+- 5 purchasable Sky Realm backgrounds
 - Ambient sounds for better focus
 - Streak tracking with freeze tokens
 

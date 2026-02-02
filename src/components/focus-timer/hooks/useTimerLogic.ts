@@ -24,7 +24,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { useTimerPersistence } from "./useTimerPersistence";
 import { useTimerAudio } from "./useTimerAudio";
-import { useAmbientSound } from "@/hooks/useAmbientSound";
+import { useSoundMixer } from "@/hooks/useSoundMixer";
 import { useTimerRewards } from "./useTimerRewards";
 import { useSessionNotes } from "./useSessionNotes";
 import { useBreakTransition } from "./useBreakTransition";
@@ -35,7 +35,7 @@ export const useTimerLogic = () => {
   const { awardXP } = useBackendAppState();
   const { playCompletionSound } = useTimerAudio();
   const { recordSession } = useAnalytics();
-  const { stop: stopAmbientSound, isPlaying: isAmbientPlaying } = useAmbientSound();
+  const { stopAll: stopAmbientSound, isPlaying: isAmbientPlaying } = useSoundMixer();
   const { recordSession: recordStreakSession } = useStreakSystem();
   const { scheduleStreakNotification, scheduleRewardNotification } = useNotifications();
 
