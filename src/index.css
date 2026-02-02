@@ -4194,6 +4194,13 @@ input, textarea, [contenteditable="true"] {
       inset 0 1px 0 hsl(0 0% 100% / 0.25);
   }
 
+  .timer-preset-btn.break-mode:not(.selected):active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow:
+      0 0px 0 hsl(35 35% 55%),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+  }
+
   /* ---- Timer Header Pill (mode indicator) ---- */
 
   .timer-header-pill {
@@ -4229,8 +4236,8 @@ input, textarea, [contenteditable="true"] {
   }
 
   .timer-sound-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 10px;
     display: flex;
     align-items: center;

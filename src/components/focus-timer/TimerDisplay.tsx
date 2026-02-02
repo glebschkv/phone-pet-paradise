@@ -47,7 +47,7 @@ export const TimerDisplay = ({
       <div className="timer-header-pill mb-4">
         <div className="flex items-center gap-3">
           <div className="timer-header-icon" aria-hidden="true">
-            <preset.icon className="w-4.5 h-4.5 text-white" />
+            <preset.icon className="w-5 h-5 text-white" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-white drop-shadow-sm">{preset.name}</h2>
@@ -104,7 +104,7 @@ export const TimerDisplay = ({
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
-                className="transition-all duration-500 ease-out"
+                style={{ transition: 'stroke-dashoffset 0.5s ease-out' }}
               />
               <defs>
                 <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
