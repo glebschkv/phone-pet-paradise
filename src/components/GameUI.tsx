@@ -92,10 +92,13 @@ export const GameUI = () => {
         {/* Full Screen Content */}
         {currentTab !== "home" && (
           <div
-            className={`absolute inset-0 pointer-events-auto overflow-auto pt-safe pb-24 ${
+            className={`absolute inset-0 pointer-events-auto overflow-auto pb-24 ${
+              currentTab === "timer" ? "" : "pt-safe"
+            } ${
               currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" :
               currentTab === "shop" ? "bg-[hsl(45,50%,92%)]" :
               currentTab === "collection" ? "collection-page-bg" :
+              currentTab === "timer" ? "" :
               currentTab === "settings" ? "" :
               "bg-background"
             }`}
