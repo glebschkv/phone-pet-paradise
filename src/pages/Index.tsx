@@ -44,7 +44,6 @@ const Index = () => {
   const { unlockedAnimals, currentLevel, currentBiome } = useBackendAppState();
   const hasCompletedOnboarding = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
-  const chosenStarterPet = useOnboardingStore((s) => s.chosenStarterPet);
   const setActiveHomePets = useCollectionStore((s) => s.setActiveHomePets);
   usePerformanceMonitor(); // Initialize performance monitoring
 

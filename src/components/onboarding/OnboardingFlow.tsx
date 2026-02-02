@@ -319,7 +319,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           />
         );
       case 3:
-        return <StepFocusLoop selectedPetData={selectedPetData} />;
+        return <StepFocusLoop />;
       case 4:
         return (
           <StepLetsBegin
@@ -643,11 +643,7 @@ const StepNameIsland = ({
 // Step 4: Focus Grows Your World
 // ═════════════════════════════════════════════════════════════════════════════
 
-const StepFocusLoop = ({
-  selectedPetData,
-}: {
-  selectedPetData: ReturnType<typeof getAnimalById> | null;
-}) => (
+const StepFocusLoop = () => (
   <div className="text-center space-y-5">
     <div className="space-y-2">
       <h1
