@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { SplashScreen } from "@/components/SplashScreen";
+import { SplashScreen as NativeSplash } from '@capacitor/splash-screen';
+import { DeviceActivity } from '@/plugins/device-activity';
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { useCollectionStore } from "@/stores/collectionStore";
@@ -26,6 +28,10 @@ const LoadingFallback = () => (
   </div>
 );
 
+// Module-level guard: survives component remounts (Suspense re-resolution,
+// route transitions) so the native splash is only ever hidden once.
+let _splashHidden = false;
+
 // Map biome names to background theme IDs
 const BIOME_TO_BACKGROUND: Record<string, string> = {
   'Meadow': 'day',
@@ -46,6 +52,29 @@ const Index = () => {
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   const setActiveHomePets = useCollectionStore((s) => s.setActiveHomePets);
   usePerformanceMonitor(); // Initialize performance monitoring
+
+  // Hide splash screens once after auth check resolves.
+  // Module-level _splashHidden survives component remounts (Suspense, route
+  // changes) so the native bridge call only fires once per app session.
+  // Sequence: hide native splash first (reveals HTML neon splash underneath),
+  // then fade the HTML splash after a brief delay so users see the branded
+  // loading screen instead of an instant jump to content.
+  useEffect(() => {
+    if (!isLoading && !_splashHidden) {
+      _splashHidden = true;
+      // 1. Dismiss the native animated splash (AnimatedSplashViewController)
+      //    which fades out with a 0.4s animation revealing the web content.
+      DeviceActivity.dismissSplash().catch(() => { /* Not on native */ });
+      // 2. Also hide Capacitor's built-in splash overlay
+      NativeSplash.hide().catch(() => { /* Not on native */ });
+      // 3. Fade the HTML splash (fallback for web / first-paint coverage)
+      const htmlSplash = document.getElementById('splash-screen');
+      if (htmlSplash) {
+        htmlSplash.style.opacity = '0';
+        setTimeout(() => htmlSplash.remove(), 400);
+      }
+    }
+  }, [isLoading]);
 
   // Use Zustand stores instead of localStorage + events
   const backgroundTheme = useThemeStore((state) => state.homeBackground);

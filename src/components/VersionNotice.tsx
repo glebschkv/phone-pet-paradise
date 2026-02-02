@@ -21,7 +21,7 @@ export const VersionNotice = () => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleDismiss}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleDismiss(); }}>
       <DialogContent className="max-w-sm mx-auto retro-card border-2 border-border max-h-[90vh] overflow-y-auto p-0">
         <VisuallyHidden>
           <DialogTitle>Version 1.0</DialogTitle>
@@ -88,7 +88,7 @@ export const VersionNotice = () => {
           {/* Dismiss button */}
           <button
             onClick={handleDismiss}
-            className="w-full py-3.5 rounded-lg font-bold text-sm retro-arcade-btn retro-arcade-btn-green transition-all active:scale-95 touch-manipulation"
+            className="w-full py-3.5 rounded-lg font-bold text-sm retro-arcade-btn retro-arcade-btn-green select-none"
           >
             Got it
           </button>

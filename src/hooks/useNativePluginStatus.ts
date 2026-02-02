@@ -131,32 +131,17 @@ export const useNativePluginStatus = () => {
 
     const errors: Error[] = [];
 
-    // Check DeviceActivity plugin
-    const deviceActivityResult = await checkPluginHealth(
-      'DeviceActivity',
-      async () => await DeviceActivity.checkPermissions()
-    );
-    if (deviceActivityResult.error) {
-      errors.push(deviceActivityResult.error);
-    }
+    // Run all health checks in PARALLEL to avoid serializing bridge round-trips.
+    // Sequential checks were adding ~300-600ms+ of idle wait time during startup.
+    const [deviceActivityResult, storeKitResult, widgetDataResult] = await Promise.all([
+      checkPluginHealth('DeviceActivity', async () => await DeviceActivity.echo()),
+      checkPluginHealth('StoreKit', async () => await StoreKit.getSubscriptionStatus()),
+      checkPluginHealth('WidgetData', async () => await WidgetDataPlugin.loadData()),
+    ]);
 
-    // Check StoreKit plugin
-    const storeKitResult = await checkPluginHealth(
-      'StoreKit',
-      async () => await StoreKit.getSubscriptionStatus()
-    );
-    if (storeKitResult.error) {
-      errors.push(storeKitResult.error);
-    }
-
-    // Check WidgetData plugin
-    const widgetDataResult = await checkPluginHealth(
-      'WidgetData',
-      async () => await WidgetDataPlugin.loadData()
-    );
-    if (widgetDataResult.error) {
-      errors.push(widgetDataResult.error);
-    }
+    if (deviceActivityResult.error) errors.push(deviceActivityResult.error);
+    if (storeKitResult.error) errors.push(storeKitResult.error);
+    if (widgetDataResult.error) errors.push(widgetDataResult.error);
 
     const plugins: PluginHealthStatus = {
       deviceActivity: deviceActivityResult.status,
@@ -220,9 +205,13 @@ export const useNativePluginStatus = () => {
     [state.isNative, state.plugins]
   );
 
-  // Run initial check on mount
+  // Run initial check well after first paint — defer so the UI renders and
+  // becomes interactive before health checks saturate the native bridge.
+  // 300ms gives React time to commit, paint, and process the initial render
+  // plus any pending user interactions (e.g. taps on already-visible buttons).
   useEffect(() => {
-    checkAllPlugins();
+    const id = setTimeout(checkAllPlugins, 300);
+    return () => clearTimeout(id);
   }, [checkAllPlugins]);
 
   // Auto-retry if critical errors are detected — plugins may need time to initialise

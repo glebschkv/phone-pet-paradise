@@ -39,9 +39,15 @@ async function safePluginCall<T>(
     const result = await pluginCall();
     return { result, success: true };
   } catch (error) {
-    deviceActivityLogger.error(`[${errorContext}] Plugin call failed:`, error);
-    if (error instanceof Error) {
-      reportError(error, { context: errorContext, plugin: 'DeviceActivity' });
+    const errMsg = error instanceof Error ? error.message : String(error);
+    // "not implemented" is expected on simulator / when plugin isn't loaded — don't spam errors
+    if (errMsg.includes('not implemented') || errMsg.includes('not available') || errMsg.includes('Plugin not installed')) {
+      deviceActivityLogger.debug(`[${errorContext}] Plugin not available on this platform`);
+    } else {
+      deviceActivityLogger.error(`[${errorContext}] Plugin call failed:`, error);
+      if (error instanceof Error) {
+        reportError(error, { context: errorContext, plugin: 'DeviceActivity' });
+      }
     }
     return { result: fallback, success: false };
   }
@@ -77,22 +83,71 @@ export const DEFAULT_BLOCKED_APPS: SimulatedBlockedApp[] = [
   { id: 'discord', name: 'Discord', icon: '💬', isBlocked: false },
 ];
 
+// Module-level guard: ensures native initialization only runs once
+// even when multiple components mount useDeviceActivity simultaneously.
+// Call _invalidateInitCache() when state changes significantly (e.g. permissions granted).
+let _nativeInitStarted = false;
+let _nativeInitResult: DeviceActivityState | null = null;
+let _nativeInitPromise: Promise<DeviceActivityState> | null = null;
+
+function _invalidateInitCache() {
+  _nativeInitResult = null;
+  _nativeInitStarted = false;
+  _nativeInitPromise = null;
+}
+
+// ── Cross-instance state synchronisation ──
+// Multiple components (e.g. AppBlockingSection and useTimerLogic) each call
+// useDeviceActivity(), creating independent React state.  When one instance
+// updates permissions or app selection, the others must be notified so they
+// don't act on stale values (e.g. the timer thinking permissions are still
+// "notDetermined" even though the user just granted them).
+const STATE_SYNC_EVENT = 'deviceActivity:stateSync';
+const _stateSubscribers = new Set<(patch: Partial<DeviceActivityState>) => void>();
+
+function _broadcastStatePatch(patch: Partial<DeviceActivityState>) {
+  // Update the init cache so future mounts also get fresh data
+  if (_nativeInitResult) {
+    _nativeInitResult = { ..._nativeInitResult, ...patch };
+  }
+  // Notify every mounted hook instance
+  _stateSubscribers.forEach(fn => fn(patch));
+  // Also fire a DOM event for any non-hook listeners
+  window.dispatchEvent(new CustomEvent(STATE_SYNC_EVENT, { detail: patch }));
+}
+
 export const useDeviceActivity = () => {
-  const [state, setState] = useState<DeviceActivityState>({
-    isPermissionGranted: false,
-    isMonitoring: false,
-    timeAwayMinutes: 0,
-    lastActiveTime: Date.now(),
-    isLoading: true,
-    isBlocking: false,
-    hasAppsConfigured: false,
-    shieldAttempts: 0,
-    lastShieldAttemptTimestamp: 0,
-    selectedAppsCount: 0,
-    selectedCategoriesCount: 0,
-    pluginAvailable: true,
-    pluginError: null,
+  const [state, setState] = useState<DeviceActivityState>(() => {
+    // If we already have a cached init result, use it immediately
+    if (_nativeInitResult) {
+      return { ..._nativeInitResult, isLoading: false };
+    }
+    return {
+      isPermissionGranted: false,
+      isMonitoring: false,
+      timeAwayMinutes: 0,
+      lastActiveTime: Date.now(),
+      isLoading: true,
+      isBlocking: false,
+      hasAppsConfigured: false,
+      shieldAttempts: 0,
+      lastShieldAttemptTimestamp: 0,
+      selectedAppsCount: 0,
+      selectedCategoriesCount: 0,
+      pluginAvailable: true,
+      pluginError: null,
+    };
   });
+
+  // Subscribe to cross-instance state updates so this instance stays in sync
+  // when another instance (e.g. settings page) changes permissions or selection.
+  useEffect(() => {
+    const applyPatch = (patch: Partial<DeviceActivityState>) => {
+      setState(prev => ({ ...prev, ...patch }));
+    };
+    _stateSubscribers.add(applyPatch);
+    return () => { _stateSubscribers.delete(applyPatch); };
+  }, []);
 
   // Track plugin initialization errors
   const pluginErrorRef = useRef<Error | null>(null);
@@ -117,39 +172,49 @@ export const useDeviceActivity = () => {
   // Check if we're on native platform
   const isNative = Capacitor.isNativePlatform();
 
-  // Initialize device activity monitoring (with automatic retry on failure)
-  const initialize = useCallback(async () => {
+  // Core native initialization logic (called only once across all hook instances)
+  const _doNativeInit = useCallback(async () => {
     try {
-      setState(prev => ({ ...prev, isLoading: true }));
-
-      // First, verify the native plugin bridge is working with a simple echo call
-      const { result: echoResult, success: echoSuccess } = await safePluginCall(
-        () => DeviceActivity.echo(),
-        { pluginLoaded: false, platform: 'unknown', timestamp: 0 },
-        'echo'
-      );
-
-      if (echoSuccess) {
+      // Verify the native plugin bridge is working — bail immediately if not available
+      try {
+        const echoResult = await DeviceActivity.echo();
         deviceActivityLogger.debug(`Plugin bridge OK: platform=${echoResult.platform}, loaded=${echoResult.pluginLoaded}`);
+
+        // CRITICAL: If running on native iOS but echo responded from the web fallback,
+        // the native plugin isn't loaded (missing from capacitor.config.json packageClassList).
+        // The web fallback returns fake success for ALL calls — startAppBlocking returns
+        // { success: true, appsBlocked: 1 } without actually blocking anything.
+        // Detect this and bail so callers know the plugin is genuinely unavailable.
+        if (Capacitor.isNativePlatform() && echoResult.platform === 'web') {
+          deviceActivityLogger.warn(
+            'Native platform detected but DeviceActivity responded from web fallback — ' +
+            'native plugin not loaded. Run "npm run ios" to rebuild with the config patch.'
+          );
+          setState(prev => ({ ...prev, pluginAvailable: false }));
+          return;
+        }
+
         // Log entitlement diagnostic info
         const diag = echoResult as Record<string, unknown>;
         if (diag.familyControlsEntitlementInProfile !== undefined) {
           deviceActivityLogger.info(
-            `[DIAG] Family Controls entitlement in provisioning profile: ${diag.familyControlsEntitlementInProfile ? 'YES' : 'NO ❌'}`
+            `[DIAG] Family Controls entitlement: ${diag.familyControlsEntitlementInProfile ? 'YES' : 'NO ❌'}`
           );
           deviceActivityLogger.info(
             `[DIAG] Initial auth status: ${diag.initialAuthStatus}, Bundle ID: ${diag.bundleId}`
           );
-          if (!diag.familyControlsEntitlementInProfile) {
-            deviceActivityLogger.error(
-              '[DIAG] Family Controls entitlement is MISSING from provisioning profile! ' +
-              'Screen Time permissions will always fail. Fix: In Xcode, toggle "Automatically manage signing" off then on, ' +
-              'or manually create a profile in the Apple Developer Portal.'
-            );
-          }
         }
-      } else {
-        deviceActivityLogger.warn('Plugin echo failed - native bridge may not be available');
+      } catch (echoError) {
+        const errMsg = echoError instanceof Error ? echoError.message : String(echoError);
+        if (errMsg.includes('not implemented') || errMsg.includes('not available') || errMsg.includes('Plugin not installed')) {
+          // Plugin is not available (simulator, missing entitlement, etc.)
+          // Bail immediately — no point calling checkPermissions, requestPermissions, etc.
+          deviceActivityLogger.debug('DeviceActivity plugin not available on this platform — skipping all native calls');
+          setState(prev => ({ ...prev, pluginAvailable: false }));
+          return;
+        }
+        // Non-fatal error — continue with degraded functionality
+        deviceActivityLogger.warn('Plugin echo failed with unexpected error:', errMsg);
       }
 
       // Check permissions with safe wrapper.
@@ -234,12 +299,43 @@ export const useDeviceActivity = () => {
         pluginError: err,
       }));
     } finally {
-      setState(prev => ({ ...prev, isLoading: false }));
+      setState(prev => {
+        // Cache the final state so subsequent hook mounts get it immediately
+        const finalState = { ...prev, isLoading: false };
+        _nativeInitResult = finalState;
+        // Broadcast to all instances so any that mounted before init
+        // finishes also get the real native state
+        _broadcastStatePatch(finalState);
+        return finalState;
+      });
     }
   }, []);
 
+  // Dedup wrapper: ensures native init runs only once across all hook instances
+  const initialize = useCallback(async () => {
+    if (_nativeInitResult) {
+      // Already initialized — just apply cached state
+      setState(prev => ({ ...prev, ..._nativeInitResult, isLoading: false }));
+      return;
+    }
+    if (_nativeInitStarted && _nativeInitPromise) {
+      // Another instance is already initializing — wait for it
+      const result = await _nativeInitPromise;
+      setState({ ...result, isLoading: false });
+      return;
+    }
+    // First caller — run the actual init
+    _nativeInitStarted = true;
+    setState(prev => ({ ...prev, isLoading: true }));
+    _nativeInitPromise = _doNativeInit().then(() => {
+      return _nativeInitResult!;
+    });
+    await _nativeInitPromise;
+  }, [_doNativeInit]);
+
   // Open device Settings (for re-enabling denied permissions)
   const openSettings = useCallback(async () => {
+    if (_nativeInitResult && !_nativeInitResult.pluginAvailable) return;
     await safePluginCall(
       () => DeviceActivity.openSettings(),
       { success: false },
@@ -249,6 +345,11 @@ export const useDeviceActivity = () => {
 
   // Request permissions
   const requestPermissions = useCallback(async () => {
+    // If init detected plugin as unavailable, don't attempt native calls
+    if (_nativeInitResult && !_nativeInitResult.pluginAvailable) {
+      deviceActivityLogger.debug('requestPermissions skipped — plugin unavailable');
+      return;
+    }
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
@@ -281,6 +382,10 @@ export const useDeviceActivity = () => {
       }));
 
       if (isGranted) {
+        // Permission state changed — invalidate the cached init result
+        // so any component that remounts gets the updated state
+        _invalidateInitCache();
+
         // Start monitoring after permissions granted
         const { result: monitoring } = await safePluginCall(
           () => DeviceActivity.startMonitoring(),
@@ -305,8 +410,8 @@ export const useDeviceActivity = () => {
           'getBlockingStatus-afterPermission'
         );
 
-        setState(prev => ({
-          ...prev,
+        const permPatch = {
+          isPermissionGranted: true,
           isMonitoring: monitoring.monitoring,
           isBlocking: blockingStatus.isBlocking,
           hasAppsConfigured: blockingStatus.hasAppsConfigured,
@@ -314,7 +419,16 @@ export const useDeviceActivity = () => {
           lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
           selectedAppsCount: blockingStatus.selectedAppsCount,
           selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
-        }));
+        };
+
+        setState(prev => {
+          const updated = { ...prev, ...permPatch };
+          _nativeInitResult = updated;
+          return updated;
+        });
+
+        // Broadcast to all other useDeviceActivity instances (e.g. the timer)
+        _broadcastStatePatch(permPatch);
 
         toast.success("Screen Time Access Granted", {
           description: "You can now block distracting apps during focus sessions!",
@@ -364,6 +478,19 @@ export const useDeviceActivity = () => {
       return fallbackResult;
     }
 
+    // Pre-flight: re-check permissions from native to avoid stale React state.
+    // This is a safety net — the cross-instance sync should keep values current,
+    // but a direct native check is the source of truth.
+    const { result: perms } = await safePluginCall(
+      () => DeviceActivity.checkPermissions(),
+      { status: 'notDetermined' as const, familyControlsEnabled: false },
+      'checkPermissions-preBlock'
+    );
+    if (perms.status !== 'granted') {
+      deviceActivityLogger.warn(`startAppBlocking: permissions are '${perms.status}', not blocking`);
+      return { ...fallbackResult, note: `Permissions ${perms.status}` };
+    }
+
     const { result, success } = await safePluginCall(
       () => DeviceActivity.startAppBlocking(),
       { ...fallbackResult, note: 'Failed to start blocking' },
@@ -371,6 +498,10 @@ export const useDeviceActivity = () => {
     );
 
     if (!success) {
+      deviceActivityLogger.warn('startAppBlocking native call failed — apps will NOT be blocked');
+      toast.error("App Blocking Failed", {
+        description: "Could not block apps. Check Screen Time permissions and try again.",
+      });
       return result;
     }
 
@@ -383,6 +514,12 @@ export const useDeviceActivity = () => {
     if (result.appsBlocked > 0 || result.categoriesBlocked > 0) {
       toast.success("Focus Mode Active", {
         description: `Blocking ${result.appsBlocked} apps and ${result.categoriesBlocked} categories`,
+      });
+    } else if (result.success) {
+      // Native call succeeded but reported 0 apps blocked — selection may be missing
+      deviceActivityLogger.warn('startAppBlocking succeeded but 0 apps blocked — no selection data in UserDefaults?');
+      toast.warning("No Apps Blocked", {
+        description: "No apps were blocked. Try re-selecting apps in Focus Settings.",
       });
     }
 
@@ -538,12 +675,21 @@ export const useDeviceActivity = () => {
         } as BlockingStatus,
         'getBlockingStatus-afterPicker'
       );
-      setState(prev => ({
-        ...prev,
+      const pickerPatch = {
         hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
         selectedAppsCount: status.selectedAppsCount || appsSelected,
         selectedCategoriesCount: status.selectedCategoriesCount || categoriesSelected,
-      }));
+      };
+
+      setState(prev => {
+        const updated = { ...prev, ...pickerPatch };
+        // Keep the init cache in sync so remounts don't revert to stale counts
+        _nativeInitResult = updated;
+        return updated;
+      });
+
+      // Broadcast to all other useDeviceActivity instances
+      _broadcastStatePatch(pickerPatch);
     } else if (result?.cancelled) {
       deviceActivityLogger.info('App picker cancelled by user');
     }
@@ -661,6 +807,10 @@ export const useDeviceActivity = () => {
     );
   }, [state.pluginAvailable]);
 
+  // Stable ref for triggerHaptic so the lifecycle listener doesn't churn
+  const triggerHapticRef = useRef(triggerHaptic);
+  triggerHapticRef.current = triggerHaptic;
+
   // Handle app lifecycle events
   useEffect(() => {
     const handleAppLifecycle = (event: CustomEvent<AppLifecycleEvent>) => {
@@ -675,9 +825,9 @@ export const useDeviceActivity = () => {
         shieldAttempts: attempts ?? prev.shieldAttempts,
       }));
 
-      // Trigger haptic feedback for certain events
+      // Trigger haptic feedback only when returning after significant time away
       if (appState === 'active' && timeAwayMinutes && timeAwayMinutes > 5) {
-        triggerHaptic('success');
+        triggerHapticRef.current('success');
       }
     };
 
@@ -687,7 +837,7 @@ export const useDeviceActivity = () => {
     return () => {
       window.removeEventListener('appLifecycleChange', handleAppLifecycle as EventListener);
     };
-  }, [triggerHaptic]);
+  }, []);
 
   // Initialize on mount
   useEffect(() => {

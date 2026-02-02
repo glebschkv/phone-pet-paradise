@@ -20,6 +20,8 @@ export const AppBlockingSection = ({
     isBlocking,
     hasAppsConfigured,
     blockedAppsCount,
+    selectedAppsCount,
+    selectedCategoriesCount,
     shieldAttempts,
     isLoading,
     requestPermissions,
@@ -30,6 +32,17 @@ export const AppBlockingSection = ({
   const [hasAttemptedPermission, setHasAttemptedPermission] = useState(false);
 
   const isNativePlatform = Capacitor.isNativePlatform();
+
+  // Build a human-readable label for the blocked selection count
+  const blockedLabel = (() => {
+    if (selectedAppsCount > 0 && selectedCategoriesCount > 0) {
+      return `${selectedAppsCount} app${selectedAppsCount !== 1 ? 's' : ''} & ${selectedCategoriesCount} group${selectedCategoriesCount !== 1 ? 's' : ''}`;
+    }
+    if (selectedCategoriesCount > 0) {
+      return `${selectedCategoriesCount} app group${selectedCategoriesCount !== 1 ? 's' : ''}`;
+    }
+    return `${blockedAppsCount} app${blockedAppsCount !== 1 ? 's' : ''}`;
+  })();
 
   // Handle permission request
   const handleRequestPermission = async () => {
@@ -191,9 +204,9 @@ export const AppBlockingSection = ({
               </h3>
               <p className="text-sm text-white/60">
                 {isBlocking
-                  ? `${blockedAppsCount} app${blockedAppsCount !== 1 ? 's' : ''} blocked`
+                  ? `${blockedLabel} blocked`
                   : hasAppsConfigured
-                    ? `${blockedAppsCount} app${blockedAppsCount !== 1 ? 's' : ''} selected`
+                    ? `${blockedLabel} selected`
                     : 'Tap to select apps'
                 }
               </p>
@@ -242,7 +255,7 @@ export const AppBlockingSection = ({
               <div className="mt-3 flex items-center justify-center gap-2 py-2 px-3 bg-purple-500/10 rounded-lg">
                 <Lock className="w-4 h-4 text-purple-400" />
                 <span className="text-sm text-purple-200">
-                  {blockedAppsCount} app{blockedAppsCount !== 1 ? 's' : ''} will be blocked
+                  {blockedLabel} will be blocked
                 </span>
               </div>
             )}

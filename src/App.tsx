@@ -19,6 +19,9 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
+// Splash screens are hidden by Index.tsx after the main page content
+// is ready — NOT here in App.tsx, because lazy-loaded routes haven't
+// resolved yet at this point and hiding now causes a black flash.
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>

@@ -25,9 +25,11 @@ interface NotificationOptions {
   }>;
 }
 
-// Module-level flag to ensure notifications are only initialized once
-// across all component instances and remounts.
+// Module-level dedup: ensures notification initialization only runs once
+// even when multiple components mount useNotifications simultaneously
+// (e.g. GameUI and TopStatusBar both call useAppStateTracking → useNotifications).
 let globalNotificationsInitialized = false;
+let _notificationInitPromise: Promise<void> | null = null;
 
 export const useNotifications = () => {
   const [permissions, setPermissions] = useState<NotificationPermissions>({
@@ -103,62 +105,78 @@ export const useNotifications = () => {
   }, []);
 
   const initializeNotifications = useCallback(async () => {
-    // Check module-level flag to prevent re-initialization across remounts
-    if (isInitialized || globalNotificationsInitialized) {
-      if (!isInitialized) setIsInitialized(true);
+    // Module-level guard — prevents re-initialization across remounts.
+    // IMPORTANT: Do NOT add `isInitialized` to deps — that causes the
+    // callback to be recreated on state change, which triggers the useEffect
+    // cleanup (removing all listeners) and re-run (returning early = listeners
+    // never re-added). Use the module-level flag instead.
+    if (globalNotificationsInitialized) {
+      setIsInitialized(true);
       return;
     }
 
-    try {
-      if (!Capacitor.isNativePlatform()) {
-        // Web notification setup
-        if ('Notification' in window) {
-          const permission = await Notification.requestPermission();
-          setPermissions({
-            pushEnabled: permission === 'granted',
-            localEnabled: permission === 'granted',
-          });
-        }
-        globalNotificationsInitialized = true;
-        setIsInitialized(true);
-        return;
-      }
-
-      // Request permissions
-      const [_pushPermissions, _localPermissions] = await Promise.all([
-        PushNotifications.requestPermissions(),
-        LocalNotifications.requestPermissions()
-      ]);
-
-      // Check final permission status
-      const [pushStatus, localStatus] = await Promise.all([
-        PushNotifications.checkPermissions(),
-        LocalNotifications.checkPermissions()
-      ]);
-
-      setPermissions({
-        pushEnabled: pushStatus.receive === 'granted',
-        localEnabled: localStatus.display === 'granted',
-      });
-
-      // Register for push notifications if permitted
-      if (pushStatus.receive === 'granted') {
-        await PushNotifications.register();
-      }
-
-      // Setup notification listeners
-      await setupNotificationListeners();
-
-      globalNotificationsInitialized = true;
+    // If another instance is already initializing (race condition: GameUI and
+    // TopStatusBar both call useAppStateTracking → useNotifications, and both
+    // useEffects fire in the same React commit), wait for it instead of
+    // duplicating all bridge calls.
+    if (_notificationInitPromise) {
+      await _notificationInitPromise;
       setIsInitialized(true);
-      logger.debug('Notifications initialized successfully');
-
-    } catch (error) {
-      logger.error('Error initializing notifications:', error);
-      globalNotificationsInitialized = true;
-      setIsInitialized(true);
+      return;
     }
-  }, [isInitialized, setupNotificationListeners]);
+
+    // First caller — claim the init
+    _notificationInitPromise = (async () => {
+      try {
+        if (!Capacitor.isNativePlatform()) {
+          // Web notification setup
+          if ('Notification' in window) {
+            const permission = await Notification.requestPermission();
+            setPermissions({
+              pushEnabled: permission === 'granted',
+              localEnabled: permission === 'granted',
+            });
+          }
+          return;
+        }
+
+        // Request permissions
+        const [_pushPermissions, _localPermissions] = await Promise.all([
+          PushNotifications.requestPermissions(),
+          LocalNotifications.requestPermissions()
+        ]);
+
+        // Check final permission status
+        const [pushStatus, localStatus] = await Promise.all([
+          PushNotifications.checkPermissions(),
+          LocalNotifications.checkPermissions()
+        ]);
+
+        setPermissions({
+          pushEnabled: pushStatus.receive === 'granted',
+          localEnabled: localStatus.display === 'granted',
+        });
+
+        // Register for push notifications if permitted
+        if (pushStatus.receive === 'granted') {
+          await PushNotifications.register();
+        }
+
+        // Setup notification listeners
+        await setupNotificationListeners();
+
+        logger.debug('Notifications initialized successfully');
+
+      } catch (error) {
+        logger.error('Error initializing notifications:', error);
+      } finally {
+        globalNotificationsInitialized = true;
+      }
+    })();
+
+    await _notificationInitPromise;
+    setIsInitialized(true);
+  }, [setupNotificationListeners]);
 
   const scheduleLocalNotification = useCallback(async (options: NotificationOptions) => {
     if (!permissions.localEnabled) {

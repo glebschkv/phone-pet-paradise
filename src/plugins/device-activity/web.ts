@@ -215,6 +215,12 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
     return { success: true };
   }
 
+  // Splash screen
+  async dismissSplash(): Promise<{ success: boolean; note?: string }> {
+    log('Dismiss splash requested (web - no-op)');
+    return { success: true, note: 'web' };
+  }
+
   private setupWebLifecycleListeners() {
     // Clean up any existing listeners first
     this.cleanupWebLifecycleListeners();

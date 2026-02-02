@@ -47,7 +47,8 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "stopMonitoring", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getUsageData", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "recordActiveTime", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "triggerHapticFeedback", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "triggerHapticFeedback", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "dismissSplash", returnType: CAPPluginReturnPromise)
     ]
 
     // MARK: - Managers (lazy to avoid crashes if entitlements are missing)
@@ -76,8 +77,11 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         pluginLoadedSuccessfully = true
         Log.app.info("DeviceActivityPlugin loaded successfully")
 
-        // Diagnostic: check Family Controls entitlement status at startup
-        diagnoseEntitlement()
+        // Diagnostic: check Family Controls entitlement status off the main thread
+        // (reads the embedded provisioning profile from disk — file I/O)
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            self?.diagnoseEntitlement()
+        }
     }
 
     /// Checks if the Family Controls entitlement is properly configured
@@ -164,14 +168,12 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc override public func requestPermissions(_ call: CAPPluginCall) {
-        Task {
-            // requestAuthorization no longer throws — it always completes
-            // and we check the resulting status afterwards
+        Task { @MainActor in
+            // Must run on main thread — Apple's authorization dialog
+            // requires the main thread to present the system prompt.
             try? await permissionsManager.requestAuthorization()
             let response = safeDetailedPermissionsCheck()
-            await MainActor.run {
-                call.resolve(response)
-            }
+            call.resolve(response)
         }
     }
 
@@ -428,6 +430,22 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    // MARK: - Splash
+
+    /// Dismiss the native animated splash screen overlay.
+    /// Called from JS once the web app is ready to show content.
+    /// Uses NotificationCenter to avoid a direct type dependency on
+    /// AnimatedSplashViewController (which lives in a separate file).
+    @objc func dismissSplash(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: Notification.Name("AnimatedSplashDismiss"),
+                object: nil
+            )
+            call.resolve(["success": true])
+        }
+    }
+
     // MARK: - Lifecycle Observers
 
     private func setupLifecycleObservers() {
@@ -471,10 +489,8 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc private func appWillEnterForeground() {
         backgroundManager.appWillEnterForeground()
-        notifyJS("appLifecycleChange", data: [
-            "state": "foreground",
-            "timestamp": Date().timeIntervalSince1970
-        ])
+        // Don't notify JS here — appDidBecomeActive fires right after
+        // and sending both causes duplicate state updates + re-render cascades
     }
 
     @objc private func appDidBecomeActive() {

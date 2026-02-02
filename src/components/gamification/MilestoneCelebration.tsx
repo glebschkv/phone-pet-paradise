@@ -63,7 +63,7 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
   if (!displayCelebration) return null;
 
   return (
-    <Dialog open={showCelebration && !!pendingCelebration} onOpenChange={handleClaim}>
+    <Dialog open={showCelebration && !!pendingCelebration} onOpenChange={(open) => { if (!open) handleClaim(); }}>
       <DialogContent className="retro-modal max-w-[320px] p-0 overflow-hidden border-0">
         <VisuallyHidden>
           <DialogTitle>Milestone Celebration</DialogTitle>

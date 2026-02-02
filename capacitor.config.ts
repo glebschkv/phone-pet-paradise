@@ -4,14 +4,19 @@ const config: CapacitorConfig = {
   appId: 'co.nomoinc.nomo',
   appName: 'NoMo Phone',
   webDir: 'dist',
+  ios: {
+    // Set WKWebView background to dark so there's no white flash between
+    // LaunchScreen.storyboard dismissing and HTML content rendering.
+    backgroundColor: '#0a0014',
+  },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
-      launchAutoHide: true,
-      backgroundColor: '#3b82c7',
+      launchAutoHide: false,
+      backgroundColor: '#0a0014',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
-      showSpinner: false,
+      showSpinner: true,
+      spinnerColor: '#a855f7',
       splashFullScreen: true,
       splashImmersive: true,
     },

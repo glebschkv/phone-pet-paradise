@@ -150,10 +150,16 @@ export const useStoreKit = (): UseStoreKitReturn => {
   const [pluginError, setPluginError] = useState<Error | null>(null);
   // Track if plugin has been verified
   const pluginVerifiedRef = useRef(false);
+  // Mirror pluginAvailable in a ref so callbacks don't need it as a dependency.
+  // This breaks the cycle: pluginAvailable change → callback recreated → useEffect re-run.
+  const pluginAvailableRef = useRef(true);
 
   // Track initialization retry count
   const initRetryCountRef = useRef(0);
   const MAX_INIT_RETRIES = 3;
+
+  // Guard against the initialization useEffect running more than once
+  const initStartedRef = useRef(false);
 
   // Load products from App Store with automatic retry on first failure
   const loadProducts = useCallback(async () => {
@@ -183,9 +189,11 @@ export const useStoreKit = (): UseStoreKitReturn => {
       if (Capacitor.isNativePlatform()) {
         logger.warn('Product fetch failed on native — plugin is still available for purchase attempts');
         pluginVerifiedRef.current = true;
+        pluginAvailableRef.current = true;
         setPluginAvailable(true);
       } else if (!pluginVerifiedRef.current) {
         const err = new Error('StoreKit plugin not available on this platform');
+        pluginAvailableRef.current = false;
         setPluginAvailable(false);
         setPluginError(err);
       }
@@ -193,6 +201,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
     } else {
       pluginVerifiedRef.current = true;
       initRetryCountRef.current = 0;
+      pluginAvailableRef.current = true;
       setPluginAvailable(true);
       setPluginError(null);
       setProducts(result.products);
@@ -204,7 +213,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
 
   // Check current subscription status
   const checkSubscriptionStatus = useCallback(async () => {
-    if (!pluginAvailable) {
+    if (!pluginAvailableRef.current) {
       logger.debug('Skipping subscription check - plugin unavailable');
       return;
     }
@@ -259,7 +268,8 @@ export const useStoreKit = (): UseStoreKitReturn => {
     }
 
     logger.debug('Subscription status:', status);
-  }, [pluginAvailable]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Purchase a product
   const purchaseProduct = useCallback(async (productId: string): Promise<PurchaseResult> => {
@@ -268,7 +278,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       message: 'Purchase failed',
     };
 
-    if (!pluginAvailable) {
+    if (!pluginAvailableRef.current) {
       toast.error('Purchases Unavailable', {
         description: 'In-app purchases are not available. Please restart the app.',
       });
@@ -342,11 +352,12 @@ export const useStoreKit = (): UseStoreKitReturn => {
 
     setIsPurchasing(false);
     return result;
-  }, [checkSubscriptionStatus, pluginAvailable]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkSubscriptionStatus]);
 
   // Restore purchases
   const restorePurchases = useCallback(async (): Promise<boolean> => {
-    if (!pluginAvailable) {
+    if (!pluginAvailableRef.current) {
       toast.error('Restore Unavailable', {
         description: 'In-app purchases are not available. Please restart the app.',
       });
@@ -422,11 +433,12 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setIsLoading(false);
       return false;
     }
-  }, [checkSubscriptionStatus, pluginAvailable]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkSubscriptionStatus]);
 
   // Open subscription management
   const manageSubscriptions = useCallback(async () => {
-    if (!pluginAvailable) {
+    if (!pluginAvailableRef.current) {
       toast.error('Feature Unavailable', {
         description: 'Subscription management is not available. Please restart the app.',
       });
@@ -444,15 +456,20 @@ export const useStoreKit = (): UseStoreKitReturn => {
         description: 'Failed to open subscription management.',
       });
     }
-  }, [pluginAvailable]);
+  }, []);
 
   // Get product by ID
   const getProductById = useCallback((productId: string): StoreKitProduct | undefined => {
     return products.find(p => p.id === productId);
   }, [products]);
 
-  // Initialize on mount
+  // Initialize on mount — runs exactly once per hook instance.
+  // Dependencies intentionally omitted to prevent the re-initialization loop
+  // caused by pluginAvailable → checkSubscriptionStatus → useEffect cascade.
   useEffect(() => {
+    if (initStartedRef.current) return;
+    initStartedRef.current = true;
+
     const initialize = async () => {
       await loadProducts();
       await checkSubscriptionStatus();
@@ -478,7 +495,8 @@ export const useStoreKit = (): UseStoreKitReturn => {
     return () => {
       removeListener?.();
     };
-  }, [loadProducts, checkSubscriptionStatus]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     products,

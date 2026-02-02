@@ -186,7 +186,7 @@ export const TaskIntentionModal = ({
               className={cn(
                 "flex-1 py-2.5 rounded-lg font-bold text-sm tracking-wider uppercase",
                 "retro-arcade-btn retro-arcade-btn-green",
-                "transition-all touch-manipulation select-none active:scale-95"
+                "select-none"
               )}
             >
               Start Focus
