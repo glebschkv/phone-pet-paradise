@@ -158,4 +158,5 @@ export const createEmptyDailyStats = (date: string): DailyStats => ({
   longestSession: 0,
   goalMet: false,
   hourlyFocus: {},
+  categoryTime: {},
 });

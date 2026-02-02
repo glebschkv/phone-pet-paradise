@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import {
   FocusSession,
@@ -18,22 +18,32 @@ import {
   createEmptyDailyStats,
 } from '@/types/analytics';
 
-// Helper to get today's date string
-const getTodayString = () => new Date().toISOString().split('T')[0];
+// Helper to get local YYYY-MM-DD string from a Date
+// Uses local timezone consistently (not UTC) so that sessions near midnight
+// are attributed to the correct local day
+const toLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
-// Helper to get date string from timestamp
-const getDateString = (timestamp: number) => new Date(timestamp).toISOString().split('T')[0];
+// Helper to get today's date string (local timezone)
+const getTodayString = () => toLocalDateString(new Date());
 
-// Helper to get hour from timestamp
+// Helper to get date string from timestamp (local timezone)
+const getDateString = (timestamp: number) => toLocalDateString(new Date(timestamp));
+
+// Helper to get hour from timestamp (local timezone)
 const getHour = (timestamp: number) => new Date(timestamp).getHours();
 
-// Helper to get start of week (Monday)
+// Helper to get start of week (Monday) in local timezone
 const getWeekStart = (date: Date): string => {
   const d = new Date(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   d.setDate(diff);
-  return d.toISOString().split('T')[0];
+  return toLocalDateString(d);
 };
 
 // Helper to generate unique ID
@@ -48,6 +58,18 @@ export const useAnalytics = () => {
   const [settings, setSettings] = useState<AnalyticsSettings>(DEFAULT_ANALYTICS_SETTINGS);
   const [records, setRecords] = useState<PersonalRecords>(DEFAULT_PERSONAL_RECORDS);
   const [currentGoalStreak, setCurrentGoalStreak] = useState(0);
+
+  // Refs for latest state — avoids stale closures in recordSession
+  const sessionsRef = useRef(sessions);
+  const dailyStatsRef = useRef(dailyStats);
+  const settingsRef = useRef(settings);
+  const recordsRef = useRef(records);
+  const focusScoreRef = useRef(0);
+
+  useEffect(() => { sessionsRef.current = sessions; }, [sessions]);
+  useEffect(() => { dailyStatsRef.current = dailyStats; }, [dailyStats]);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+  useEffect(() => { recordsRef.current = records; }, [records]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load data from localStorage on mount
@@ -87,10 +109,21 @@ export const useAnalytics = () => {
     try { storage.set(STORAGE_KEYS.ANALYTICS_SESSIONS, prunedSessions); } catch (e) { console.error('Failed to save sessions:', e); }
   }, []);
 
-  // Save daily stats
+  // Save daily stats (prunes entries older than 90 days)
   const saveDailyStats = useCallback((newStats: Record<string, DailyStats>) => {
-    setDailyStats(newStats);
-    try { storage.set(STORAGE_KEYS.ANALYTICS_DAILY_STATS, newStats); } catch (e) { console.error('Failed to save daily stats:', e); }
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - MAX_SESSION_DAYS);
+    const cutoffStr = toLocalDateString(cutoffDate);
+
+    const prunedStats: Record<string, DailyStats> = {};
+    for (const [dateStr, stats] of Object.entries(newStats)) {
+      if (dateStr >= cutoffStr) {
+        prunedStats[dateStr] = stats;
+      }
+    }
+
+    setDailyStats(prunedStats);
+    try { storage.set(STORAGE_KEYS.ANALYTICS_DAILY_STATS, prunedStats); } catch (e) { console.error('Failed to save daily stats:', e); }
   }, []);
 
   // Save settings
@@ -113,7 +146,7 @@ export const useAnalytics = () => {
     for (let i = 0; i < 365; i++) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(date);
       const dayStats = stats[dateStr];
 
       if (dayStats && dayStats.totalFocusTime >= goalMinutes * 60) {
@@ -151,7 +184,7 @@ export const useAnalytics = () => {
     for (let i = 0; i < 30; i++) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(date);
       const stats = dailyStats[dateStr];
       if (stats && stats.totalFocusTime > 0) {
         activeDays++;
@@ -200,7 +233,11 @@ export const useAnalytics = () => {
     };
   }, [sessions, dailyStats]);
 
+  // Keep focusScore ref in sync
+  useEffect(() => { focusScoreRef.current = focusScore.score; }, [focusScore.score]);
+
   // Record a completed session (enhanced with focus quality)
+  // Reads from refs to avoid stale closures — safe for rapid successive calls
   const recordSession = useCallback((
     sessionType: SessionType,
     plannedDuration: number,
@@ -213,6 +250,12 @@ export const useAnalytics = () => {
     focusQuality?: FocusQuality,
     appsBlocked?: boolean,
   ) => {
+    // Read latest state from refs to avoid stale closure issues
+    const currentSessions = sessionsRef.current;
+    const currentDailyStats = dailyStatsRef.current;
+    const currentRecords = recordsRef.current;
+    const currentSettings = settingsRef.current;
+
     // Input validation — clamp values to sane ranges
     const safePlanned = Math.max(0, Math.min(plannedDuration, 86400)); // max 24h
     const safeActual = Math.max(0, Math.min(actualDuration, 86400));
@@ -242,82 +285,87 @@ export const useAnalytics = () => {
     };
 
     // Update sessions list
-    const newSessions = [...sessions, session];
+    const newSessions = [...currentSessions, session];
     saveSessions(newSessions);
 
     // Update daily stats
-    const existingStats = dailyStats[dateStr] || createEmptyDailyStats(dateStr);
+    const existingStats = currentDailyStats[dateStr] || createEmptyDailyStats(dateStr);
     const isWorkSession = sessionType !== 'break';
+    const isCountedSession = isWorkSession && status !== 'abandoned';
 
     const newHourlyFocus = { ...existingStats.hourlyFocus };
-    if (isWorkSession && status !== 'abandoned') {
+    if (isCountedSession) {
       newHourlyFocus[hour] = (newHourlyFocus[hour] || 0) + safeActual;
     }
 
     // Update category time tracking
     const newCategoryTime = { ...(existingStats.categoryTime || {}) };
-    if (isWorkSession && status !== 'abandoned' && category) {
+    if (isCountedSession && category) {
       newCategoryTime[category] = (newCategoryTime[category] || 0) + safeActual;
     }
 
+    // Only count completed/skipped work sessions toward focus time
+    const focusTimeIncrement = isCountedSession ? safeActual : 0;
+
     const updatedStats: DailyStats = {
       ...existingStats,
-      totalFocusTime: existingStats.totalFocusTime + (isWorkSession ? safeActual : 0),
+      totalFocusTime: existingStats.totalFocusTime + (isWorkSession ? focusTimeIncrement : 0),
       totalBreakTime: existingStats.totalBreakTime + (!isWorkSession ? safeActual : 0),
       sessionsCompleted: existingStats.sessionsCompleted + (status === 'completed' && isWorkSession ? 1 : 0),
       sessionsAbandoned: existingStats.sessionsAbandoned + (status === 'abandoned' ? 1 : 0),
       longestSession: isWorkSession && status === 'completed'
         ? Math.max(existingStats.longestSession, safeActual)
         : existingStats.longestSession,
-      goalMet: (existingStats.totalFocusTime + (isWorkSession ? safeActual : 0)) >= settings.dailyGoalMinutes * 60,
+      goalMet: (existingStats.totalFocusTime + (isWorkSession ? focusTimeIncrement : 0)) >= currentSettings.dailyGoalMinutes * 60,
       hourlyFocus: newHourlyFocus,
       categoryTime: newCategoryTime,
     };
 
-    // Snapshot focus score for today (used for trend tracking)
-    updatedStats.focusScore = focusScore.score;
+    // Snapshot focus score for today (read from ref to avoid dependency)
+    updatedStats.focusScore = focusScoreRef.current;
 
-    const newDailyStats = { ...dailyStats, [dateStr]: updatedStats };
+    const newDailyStats = { ...currentDailyStats, [dateStr]: updatedStats };
     saveDailyStats(newDailyStats);
 
     // Update personal records
-    // Track total focus time for ALL work sessions (matches dailyStats accumulation)
     if (isWorkSession) {
-      const newRecords = { ...records };
+      const newRecords = { ...currentRecords };
       let recordsUpdated = false;
 
-      // Total focus time — counts all work session time (completed, skipped, abandoned)
-      // This keeps records.totalFocusTime consistent with sum of dailyStats.totalFocusTime
-      newRecords.totalFocusTime = records.totalFocusTime + safeActual;
-      recordsUpdated = true;
+      // Only count completed/skipped sessions toward total focus time
+      if (isCountedSession) {
+        newRecords.totalFocusTime = currentRecords.totalFocusTime + safeActual;
+        recordsUpdated = true;
+      }
 
       if (status === 'completed') {
         // Completed session count
-        newRecords.totalSessions = records.totalSessions + 1;
+        newRecords.totalSessions = currentRecords.totalSessions + 1;
+        recordsUpdated = true;
 
         // Longest session
-        if (safeActual > records.longestSession) {
+        if (safeActual > currentRecords.longestSession) {
           newRecords.longestSession = safeActual;
           newRecords.longestSessionDate = dateStr;
         }
 
         // Most focus in a day
-        if (updatedStats.totalFocusTime > records.mostFocusInDay) {
+        if (updatedStats.totalFocusTime > currentRecords.mostFocusInDay) {
           newRecords.mostFocusInDay = updatedStats.totalFocusTime;
           newRecords.mostFocusInDayDate = dateStr;
         }
 
         // Most sessions in a day
-        if (updatedStats.sessionsCompleted > records.mostSessionsInDay) {
+        if (updatedStats.sessionsCompleted > currentRecords.mostSessionsInDay) {
           newRecords.mostSessionsInDay = updatedStats.sessionsCompleted;
           newRecords.mostSessionsInDayDate = dateStr;
         }
 
         // Check goal streak
-        const newGoalStreak = calculateGoalStreak(newDailyStats, settings.dailyGoalMinutes);
+        const newGoalStreak = calculateGoalStreak(newDailyStats, currentSettings.dailyGoalMinutes);
         setCurrentGoalStreak(newGoalStreak);
 
-        if (newGoalStreak > records.longestGoalStreak) {
+        if (newGoalStreak > currentRecords.longestGoalStreak) {
           newRecords.longestGoalStreak = newGoalStreak;
           newRecords.longestGoalStreakDate = dateStr;
         }
@@ -329,19 +377,19 @@ export const useAnalytics = () => {
     }
 
     return session;
-  }, [sessions, dailyStats, records, settings.dailyGoalMinutes, focusScore.score, saveSessions, saveDailyStats, saveRecords]);
+  }, [saveSessions, saveDailyStats, saveRecords]);
 
   // Update analytics settings
   const updateSettings = useCallback((updates: Partial<AnalyticsSettings>) => {
-    const newSettings = { ...settings, ...updates };
+    const newSettings = { ...settingsRef.current, ...updates };
     saveSettings(newSettings);
 
     // Recalculate goal streak if daily goal changed
     if (updates.dailyGoalMinutes !== undefined) {
-      const newStreak = calculateGoalStreak(dailyStats, updates.dailyGoalMinutes);
+      const newStreak = calculateGoalStreak(dailyStatsRef.current, updates.dailyGoalMinutes);
       setCurrentGoalStreak(newStreak);
     }
-  }, [settings, dailyStats, saveSettings]);
+  }, [saveSettings]);
 
   // Get today's stats
   const todayStats = useMemo(() => {
@@ -363,7 +411,7 @@ export const useAnalytics = () => {
     for (let i = 0; i < 7; i++) {
       const date = new Date(weekStart);
       date.setDate(date.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(date);
       const stats = dailyStats[dateStr];
 
       if (stats) {
@@ -402,7 +450,7 @@ export const useAnalytics = () => {
     const thisWeekStart = new Date(getWeekStart(new Date()));
     const lastWeekStart = new Date(thisWeekStart);
     lastWeekStart.setDate(lastWeekStart.getDate() - 7);
-    const weekStartStr = lastWeekStart.toISOString().split('T')[0];
+    const weekStartStr = toLocalDateString(lastWeekStart);
 
     let totalFocus = 0;
     let totalBreak = 0;
@@ -415,7 +463,7 @@ export const useAnalytics = () => {
     for (let i = 0; i < 7; i++) {
       const date = new Date(lastWeekStart);
       date.setDate(date.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(date);
       const stats = dailyStats[dateStr];
 
       if (stats) {
@@ -456,7 +504,7 @@ export const useAnalytics = () => {
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(date);
       result.push(dailyStats[dateStr] || createEmptyDailyStats(dateStr));
     }
 
@@ -499,7 +547,7 @@ export const useAnalytics = () => {
       s.startTime > Date.now() - (30 * 24 * 60 * 60 * 1000) // Last 30 days
     );
 
-    if (recentSessions.length === 0) return 0;
+    if (recentSessions.length === 0) return 100;
 
     const completed = recentSessions.filter(s => s.status === 'completed').length;
     return Math.round((completed / recentSessions.length) * 100);
@@ -1039,7 +1087,7 @@ export const useAnalytics = () => {
     for (let i = 29; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(date);
       const stats = dailyStats[dateStr];
       if (stats?.focusScore !== undefined) {
         result.push({ date: dateStr, score: stats.focusScore });

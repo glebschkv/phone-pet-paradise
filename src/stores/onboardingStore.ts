@@ -14,6 +14,8 @@ interface OnboardingState {
   steps: OnboardingStep[];
   currentStepIndex: number;
   skippedOnboarding: boolean;
+  chosenStarterPet: string | null;
+  islandName: string | null;
 }
 
 interface OnboardingStore extends OnboardingState {
@@ -23,10 +25,13 @@ interface OnboardingStore extends OnboardingState {
   completeStep: (stepId: string) => void;
   setCurrentStep: (index: number) => void;
   isStepCompleted: (stepId: string) => boolean;
+  setChosenStarterPet: (petId: string) => void;
+  setIslandName: (name: string) => void;
 }
 
 const initialState: OnboardingState = {
   hasCompletedOnboarding: false, completedAt: null, steps: [], currentStepIndex: 0, skippedOnboarding: false,
+  chosenStarterPet: null, islandName: null,
 };
 
 export const useOnboardingStore = create<OnboardingStore>()(
@@ -47,6 +52,8 @@ export const useOnboardingStore = create<OnboardingStore>()(
       },
       setCurrentStep: (index) => set({ currentStepIndex: index }),
       isStepCompleted: (stepId) => get().steps.some(s => s.id === stepId && s.completed),
+      setChosenStarterPet: (petId) => set({ chosenStarterPet: petId }),
+      setIslandName: (name) => set({ islandName: name }),
     }),
     {
       name: 'nomo_onboarding',

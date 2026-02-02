@@ -6,6 +6,7 @@ import { SplashScreen as NativeSplash } from '@capacitor/splash-screen';
 import { DeviceActivity } from '@/plugins/device-activity';
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboardingStore } from "@/stores/onboardingStore";
+import { useCollectionStore } from "@/stores/collectionStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -49,6 +50,7 @@ const Index = () => {
   const { unlockedAnimals, currentLevel, currentBiome } = useBackendAppState();
   const hasCompletedOnboarding = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
+  const setActiveHomePets = useCollectionStore((s) => s.setActiveHomePets);
   usePerformanceMonitor(); // Initialize performance monitoring
 
   // Hide splash screens once after auth check resolves.
@@ -126,11 +128,20 @@ const Index = () => {
 
   // Show onboarding if not completed
   if (!hasCompletedOnboarding) {
+    const handleOnboardingComplete = () => {
+      // Set the chosen starter pet as the active home pet
+      const starterPet = useOnboardingStore.getState().chosenStarterPet;
+      if (starterPet) {
+        setActiveHomePets([starterPet]);
+      }
+      completeOnboarding();
+    };
+
     return (
       <PageErrorBoundary pageName="home page">
         <div className="h-screen w-full overflow-hidden bg-gradient-sky relative max-w-screen">
           <Suspense fallback={<LoadingFallback />}>
-            <OnboardingFlow onComplete={completeOnboarding} />
+            <OnboardingFlow onComplete={handleOnboardingComplete} />
           </Suspense>
         </div>
       </PageErrorBoundary>

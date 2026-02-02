@@ -216,11 +216,12 @@ export const useTimerControls = ({
     }
 
     // Determine focus quality for abandoned sessions
+    // When app blocking isn't configured, quality is undefined (neutral)
     let focusQuality: FocusQuality | undefined;
-    if (isWorkSession && elapsedSeconds > 0) {
-      focusQuality = shieldAttempts === 0 && hasAppsConfigured
+    if (isWorkSession && elapsedSeconds > 0 && hasAppsConfigured) {
+      focusQuality = shieldAttempts === 0
         ? 'perfect'
-        : shieldAttempts <= 2 && hasAppsConfigured
+        : shieldAttempts <= 2
           ? 'good'
           : 'distracted';
     }
@@ -327,11 +328,12 @@ export const useTimerControls = ({
     }
 
     // Determine focus quality for skipped sessions
+    // When app blocking isn't configured, quality is undefined (neutral)
     let focusQuality: FocusQuality | undefined;
-    if (isWorkSession && elapsedSeconds > 0) {
-      focusQuality = shieldAttempts === 0 && hasAppsConfigured
+    if (isWorkSession && elapsedSeconds > 0 && hasAppsConfigured) {
+      focusQuality = shieldAttempts === 0
         ? 'perfect'
-        : shieldAttempts <= 2 && hasAppsConfigured
+        : shieldAttempts <= 2
           ? 'good'
           : 'distracted';
     }
