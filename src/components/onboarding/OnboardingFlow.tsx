@@ -54,6 +54,7 @@ const IdlePetSprite = ({
   <motion.div
     animate={bounce ? { y: [0, -4, 0] } : undefined}
     transition={bounce ? { duration: 2, repeat: Infinity, ease: 'easeInOut' } : undefined}
+    className="flex items-center justify-center"
   >
     <div
       style={{
@@ -100,15 +101,37 @@ const WalkingPetSprite = ({
   const row = walkRows > 1 ? frameRow : 0;
 
   return (
-    <div
-      style={{
-        width: frameWidth * scale,
-        height: frameHeight * scale,
-        backgroundImage: `url(${spritePath})`,
-        backgroundPosition: `-${frame * frameWidth * scale}px -${row * frameHeight * scale}px`,
-        backgroundSize: `${frameCount * frameWidth * scale}px ${walkRows * frameHeight * scale}px`,
-        imageRendering: 'pixelated',
-      }}
+    <div className="flex items-center justify-center">
+      <div
+        style={{
+          width: frameWidth * scale,
+          height: frameHeight * scale,
+          backgroundImage: `url(${spritePath})`,
+          backgroundPosition: `-${frame * frameWidth * scale}px -${row * frameHeight * scale}px`,
+          backgroundSize: `${frameCount * frameWidth * scale}px ${walkRows * frameHeight * scale}px`,
+          imageRendering: 'pixelated',
+        }}
+      />
+    </div>
+  );
+};
+
+// ─── Pixel icon with React-based fallback ───────────────────────────────────
+
+const PixelIcon = ({ src, fallback }: { src: string; fallback: string }) => {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return <span className="text-xl leading-none">{fallback}</span>;
+  }
+
+  return (
+    <img
+      src={src}
+      alt=""
+      className="w-7 h-7"
+      style={{ imageRendering: 'pixelated' }}
+      onError={() => setFailed(true)}
     />
   );
 };
@@ -116,17 +139,16 @@ const WalkingPetSprite = ({
 // ─── Step indicator dots (warm tan theme) ────────────────────────────────────
 
 const StepDots = ({ current, total }: { current: number; total: number }) => (
-  <div className="flex gap-2.5 justify-center">
+  <div className="flex gap-2 justify-center">
     {Array.from({ length: total }).map((_, i) => (
       <motion.div
         key={i}
         initial={false}
         animate={{
-          scale: i === current ? 1.2 : 1,
-          width: i === current ? 24 : 10,
+          width: i === current ? 20 : 8,
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="h-2.5 rounded-full"
+        className="h-2 rounded-full"
         style={{
           backgroundColor:
             i === current
@@ -155,7 +177,7 @@ const RetroCard = ({
 }) => (
   <motion.div
     whileTap={onClick ? { scale: 0.96 } : undefined}
-    animate={selected ? { scale: 1.05 } : { scale: 1 }}
+    animate={selected ? { scale: 1.03 } : { scale: 1 }}
     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     onClick={onClick}
     className={`relative rounded-xl transition-colors duration-200 ${onClick ? 'cursor-pointer' : ''} ${className}`}
@@ -173,15 +195,15 @@ const RetroCard = ({
   </motion.div>
 );
 
-// ─── Mini meadow platform (CSS-drawn) ───────────────────────────────────────
+// ─── Mini meadow platform (CSS-drawn, responsive) ───────────────────────────
 
 const MiniPlatform = ({ children }: { children?: React.ReactNode }) => (
   <div className="relative w-full flex flex-col items-center">
     {/* Pet sits on top */}
-    <div className="relative z-10 -mb-4">{children}</div>
+    <div className="relative z-10 -mb-3">{children}</div>
     {/* Grass platform */}
     <div
-      className="w-56 h-8 rounded-lg"
+      className="w-48 sm:w-56 h-7 sm:h-8 rounded-lg"
       style={{
         background: 'linear-gradient(180deg, hsl(120 45% 55%) 0%, hsl(120 40% 42%) 40%, hsl(25 40% 40%) 100%)',
         boxShadow: 'inset 0 2px 0 hsl(120 50% 65%), 0 4px 8px hsl(0 0% 0% / 0.15)',
@@ -189,7 +211,7 @@ const MiniPlatform = ({ children }: { children?: React.ReactNode }) => (
       }}
     />
     {/* Ground shadow */}
-    <div className="w-48 h-3 rounded-full bg-black/10 blur-sm -mt-1" />
+    <div className="w-40 sm:w-48 h-2 rounded-full bg-black/10 blur-sm -mt-0.5" />
   </div>
 );
 
@@ -199,18 +221,16 @@ const GoldButton = ({
   children,
   onClick,
   disabled = false,
-  size = 'default',
 }: {
   children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
-  size?: 'default' | 'lg';
 }) => (
   <Button
     onClick={onClick}
     disabled={disabled}
-    size={size === 'lg' ? 'lg' : 'default'}
-    className="font-bold tracking-wide text-white border-0"
+    size="lg"
+    className="font-bold tracking-wide border-0"
     style={{
       background: disabled
         ? 'linear-gradient(180deg, hsl(35 20% 70%) 0%, hsl(35 15% 60%) 100%)'
@@ -350,35 +370,37 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       <div className="absolute top-[12%] right-[12%] w-24 h-8 rounded-full bg-white/25 blur-sm" />
       <div className="absolute top-[6%] left-[45%] w-16 h-5 rounded-full bg-white/20 blur-sm" />
 
-      {/* Main content */}
-      <div className="relative h-full flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        {/* Step dots */}
-        <div className="absolute top-safe pt-8">
+      {/* Full-height flex layout: dots → content → nav */}
+      <div className="relative h-full flex flex-col max-w-md mx-auto px-5">
+        {/* Top: Step dots */}
+        <div className="pt-safe flex-shrink-0 flex justify-center pt-6 pb-4">
           <StepDots current={currentStep} total={totalSteps} />
         </div>
 
-        {/* Slide content */}
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentStep}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
-            onDragEnd={handleDragEnd}
-            className="w-full touch-pan-y"
-          >
-            {renderStep()}
-          </motion.div>
-        </AnimatePresence>
+        {/* Middle: Scrollable content area — takes remaining space */}
+        <div className="flex-1 min-h-0 flex items-center overflow-y-auto">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentStep}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleDragEnd}
+              className="w-full touch-pan-y"
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-        {/* Bottom navigation */}
-        <div className="absolute bottom-safe pb-8 left-6 right-6">
+        {/* Bottom: Navigation buttons */}
+        <div className="flex-shrink-0 pb-safe pb-6 pt-4">
           <div className="flex justify-between items-center gap-4">
             <Button
               variant="ghost"
@@ -396,7 +418,6 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             <GoldButton
               onClick={nextStep}
               disabled={!canProceed()}
-              size="lg"
             >
               <span className="flex items-center gap-2">
                 {currentStep === totalSteps - 1 ? 'Start My Journey' : 'Next'}
@@ -415,8 +436,8 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
 // ═════════════════════════════════════════════════════════════════════════════
 
 const StepIslandAwaits = () => (
-  <div className="text-center space-y-6">
-    <div className="space-y-2">
+  <div className="text-center space-y-5">
+    <div className="space-y-1.5">
       <h1
         className="text-3xl font-bold"
         style={{ color: 'hsl(220 25% 15%)' }}
@@ -428,13 +449,12 @@ const StepIslandAwaits = () => (
       </p>
     </div>
 
-    <div className="py-6">
+    <div className="py-4">
       <MiniPlatform>
-        {/* Empty platform with a gentle question mark hint */}
         <motion.div
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-20 h-20 flex items-center justify-center"
+          className="w-16 h-16 flex items-center justify-center"
         >
           <span
             className="text-4xl font-bold select-none"
@@ -469,8 +489,8 @@ const StepChoosePet = ({
   selectedPet: string | null;
   onSelectPet: (id: string) => void;
 }) => (
-  <div className="text-center space-y-5">
-    <div className="space-y-2">
+  <div className="text-center space-y-4">
+    <div className="space-y-1.5">
       <h1
         className="text-3xl font-bold"
         style={{ color: 'hsl(220 25% 15%)' }}
@@ -482,7 +502,7 @@ const StepChoosePet = ({
       </p>
     </div>
 
-    <div className="flex justify-center gap-3 px-2">
+    <div className="flex justify-center gap-2.5">
       {STARTER_PETS.map((pet) => {
         const animalData = getAnimalById(pet.id);
         const isSelected = selectedPet === pet.id;
@@ -492,26 +512,26 @@ const StepChoosePet = ({
             key={pet.id}
             selected={isSelected}
             onClick={() => onSelectPet(pet.id)}
-            className="flex-1 max-w-[120px]"
+            className="flex-1 min-w-0 max-w-[110px]"
           >
-            <div className="flex flex-col items-center py-3 px-2 gap-2">
-              {/* Sprite */}
-              <div className="w-[80px] h-[80px] flex items-center justify-center">
+            <div className="flex flex-col items-center py-2.5 px-1.5 gap-1.5">
+              {/* Sprite — sized relative to card */}
+              <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] flex items-center justify-center overflow-hidden">
                 {animalData?.spriteConfig?.idleSprite ? (
                   <IdlePetSprite
                     idleSprite={animalData.spriteConfig.idleSprite}
                     size={64}
-                    scale={1.2}
+                    scale={1}
                     bounce={isSelected}
                   />
                 ) : (
-                  <div className="w-16 h-16 bg-muted rounded-lg" />
+                  <div className="w-12 h-12 bg-muted rounded-lg" />
                 )}
               </div>
 
               {/* Name */}
               <span
-                className="text-xs font-bold leading-tight"
+                className="text-[11px] font-bold leading-tight"
                 style={{
                   color: isSelected ? 'hsl(35 60% 35%)' : 'hsl(220 15% 35%)',
                 }}
@@ -558,8 +578,8 @@ const StepNameIsland = ({
   onSetIslandName: (name: string) => void;
   selectedPetData: ReturnType<typeof getAnimalById> | null;
 }) => (
-  <div className="text-center space-y-5">
-    <div className="space-y-2">
+  <div className="text-center space-y-4">
+    <div className="space-y-1.5">
       <h1
         className="text-3xl font-bold"
         style={{ color: 'hsl(220 25% 15%)' }}
@@ -572,41 +592,48 @@ const StepNameIsland = ({
     </div>
 
     {/* Pet on platform preview */}
-    <div className="py-2">
+    <div className="py-1">
       <MiniPlatform>
-        {selectedPetData?.spriteConfig?.idleSprite && (
+        {selectedPetData?.spriteConfig?.idleSprite ? (
           <IdlePetSprite
             idleSprite={selectedPetData.spriteConfig.idleSprite}
             size={64}
-            scale={1.5}
+            scale={1.3}
             bounce
           />
+        ) : (
+          <div className="w-16 h-16" />
         )}
       </MiniPlatform>
     </div>
 
     {/* Island name input */}
-    <div className="px-4 space-y-3">
-      <div
-        className="rounded-xl overflow-hidden"
+    <div className="px-2 space-y-2.5">
+      <input
+        type="text"
+        value={islandName}
+        onChange={(e) => onSetIslandName(e.target.value.slice(0, 20))}
+        placeholder="Cozy Meadow"
+        maxLength={20}
+        className="w-full px-4 py-3 text-center text-base font-medium rounded-xl bg-white/80 transition-all placeholder:text-black/25"
         style={{
+          color: 'hsl(220 25% 15%)',
           border: '2px solid hsl(30 25% 72%)',
-          boxShadow: 'inset 0 2px 4px hsl(0 0% 0% / 0.06), 0 2px 6px hsl(0 0% 0% / 0.04)',
+          boxShadow: 'inset 0 2px 4px hsl(0 0% 0% / 0.05)',
+          outline: 'none',
         }}
-      >
-        <input
-          type="text"
-          value={islandName}
-          onChange={(e) => onSetIslandName(e.target.value.slice(0, 20))}
-          placeholder="Cozy Meadow"
-          maxLength={20}
-          className="w-full px-4 py-3 text-center text-base font-medium bg-white/80 focus:bg-white outline-none transition-colors placeholder:text-black/25"
-          style={{ color: 'hsl(220 25% 15%)' }}
-        />
-      </div>
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = 'hsl(35 70% 50%)';
+          e.currentTarget.style.backgroundColor = 'white';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = 'hsl(30 25% 72%)';
+          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.8)';
+        }}
+      />
 
       {/* Quick suggestions */}
-      <div className="flex flex-wrap justify-center gap-2">
+      <div className="flex flex-wrap justify-center gap-1.5">
         {ISLAND_SUGGESTIONS.map((suggestion) => (
           <button
             key={suggestion}
@@ -644,8 +671,8 @@ const StepNameIsland = ({
 // ═════════════════════════════════════════════════════════════════════════════
 
 const StepFocusLoop = () => (
-  <div className="text-center space-y-5">
-    <div className="space-y-2">
+  <div className="text-center space-y-4">
+    <div className="space-y-1.5">
       <h1
         className="text-3xl font-bold"
         style={{ color: 'hsl(220 25% 15%)' }}
@@ -658,23 +685,23 @@ const StepFocusLoop = () => (
     </div>
 
     {/* 3-step loop visual */}
-    <div className="space-y-3 px-4">
+    <div className="space-y-2.5 px-1">
       {[
         {
           icon: '/assets/icons/clock.png',
-          fallback: '⏱',
+          fallback: '\u23F1',
           label: 'Start a focus session',
           sub: 'Set a timer and stay focused',
         },
         {
           icon: '/assets/icons/star.png',
-          fallback: '⭐',
+          fallback: '\u2B50',
           label: 'Earn XP as you focus',
           sub: 'Every minute counts toward leveling up',
         },
         {
           icon: '/assets/icons/paw.png',
-          fallback: '🐾',
+          fallback: '\uD83D\uDC3E',
           label: 'Unlock new pets & biomes',
           sub: '50+ creatures across 6 worlds',
         },
@@ -683,36 +710,22 @@ const StepFocusLoop = () => (
           key={step.label}
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: i * 0.15 }}
+          transition={{ delay: i * 0.12 }}
         >
           <RetroCard className="!rounded-lg">
-            <div className="flex items-center gap-3 px-4 py-3">
-              <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
-                <img
-                  src={step.icon}
-                  alt=""
-                  className="w-7 h-7"
-                  style={{ imageRendering: 'pixelated' }}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                    if (e.target instanceof HTMLImageElement && e.target.nextSibling === null) {
-                      const span = document.createElement('span');
-                      span.textContent = step.fallback;
-                      span.className = 'text-xl';
-                      e.target.parentElement?.appendChild(span);
-                    }
-                  }}
-                />
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                <PixelIcon src={step.icon} fallback={step.fallback} />
               </div>
-              <div className="text-left">
+              <div className="text-left min-w-0">
                 <p
-                  className="text-sm font-bold"
+                  className="text-sm font-bold leading-snug"
                   style={{ color: 'hsl(220 25% 15%)' }}
                 >
                   {step.label}
                 </p>
                 <p
-                  className="text-xs"
+                  className="text-xs leading-snug"
                   style={{ color: 'hsl(220 15% 50%)' }}
                 >
                   {step.sub}
@@ -725,25 +738,25 @@ const StepFocusLoop = () => (
     </div>
 
     {/* Locked pet teasers */}
-    <div className="pt-1">
+    <div>
       <p
-        className="text-xs font-medium mb-2"
+        className="text-xs font-medium mb-1.5"
         style={{ color: 'hsl(220 15% 50%)' }}
       >
         Waiting to be discovered...
       </p>
-      <div className="flex justify-center gap-4">
+      <div className="flex justify-center gap-5">
         {TEASER_PETS.map((pet) => {
           const animalData = getAnimalById(pet.id);
           return (
             <motion.div
               key={pet.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-col items-center gap-1"
+              transition={{ delay: 0.45 }}
+              className="flex flex-col items-center gap-0.5"
             >
-              <div className="relative w-12 h-12 flex items-center justify-center">
+              <div className="relative w-10 h-10 flex items-center justify-center">
                 {animalData?.spriteConfig?.idleSprite ? (
                   <div
                     className="w-full h-full"
@@ -757,10 +770,10 @@ const StepFocusLoop = () => (
                     }}
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-lg bg-black/10" />
+                  <div className="w-8 h-8 rounded-lg bg-black/10" />
                 )}
                 <Lock
-                  className="absolute bottom-0 right-0 w-3.5 h-3.5"
+                  className="absolute -bottom-0.5 -right-0.5 w-3 h-3"
                   style={{ color: 'hsl(35 50% 55%)' }}
                 />
               </div>
@@ -789,8 +802,8 @@ const StepLetsBegin = ({
   selectedPetData: ReturnType<typeof getAnimalById> | null;
   petName: string;
 }) => (
-  <div className="text-center space-y-6">
-    <div className="space-y-2">
+  <div className="text-center space-y-5">
+    <div className="space-y-1.5">
       <h1
         className="text-3xl font-bold"
         style={{ color: 'hsl(220 25% 15%)' }}
@@ -802,7 +815,7 @@ const StepLetsBegin = ({
       </p>
     </div>
 
-    <div className="py-4">
+    <div className="py-2">
       <MiniPlatform>
         {selectedPetData?.spriteConfig ? (
           <WalkingPetSprite
@@ -810,39 +823,39 @@ const StepLetsBegin = ({
             frameCount={selectedPetData.spriteConfig.frameCount}
             frameWidth={selectedPetData.spriteConfig.frameWidth}
             frameHeight={selectedPetData.spriteConfig.frameHeight}
-            scale={2}
+            scale={1.8}
             frameRow={selectedPetData.spriteConfig.frameRow ?? 0}
             walkRows={selectedPetData.spriteConfig.walkRows ?? 1}
           />
         ) : (
-          <div className="w-20 h-20" />
+          <div className="w-16 h-16" />
         )}
       </MiniPlatform>
     </div>
 
-    {/* Small encouragement cards */}
-    <div className="flex justify-center gap-3 px-4">
+    {/* Stats */}
+    <div className="flex justify-center gap-2.5 px-2">
       {[
         { value: '50+', label: 'Pets to collect' },
         { value: '6', label: 'Biomes to explore' },
-        { value: '∞', label: 'Focus sessions' },
+        { value: '\u221E', label: 'Focus sessions' },
       ].map((stat) => (
         <div
           key={stat.label}
-          className="flex-1 py-2.5 px-2 rounded-lg text-center"
+          className="flex-1 py-2 px-1.5 rounded-lg text-center"
           style={{
             background: 'hsl(40 30% 94%)',
             border: '1.5px solid hsl(30 20% 82%)',
           }}
         >
           <p
-            className="text-lg font-bold"
+            className="text-lg font-bold leading-tight"
             style={{ color: 'hsl(35 60% 42%)' }}
           >
             {stat.value}
           </p>
           <p
-            className="text-[10px]"
+            className="text-[10px] leading-tight mt-0.5"
             style={{ color: 'hsl(220 15% 50%)' }}
           >
             {stat.label}
