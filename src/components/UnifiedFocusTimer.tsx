@@ -64,10 +64,14 @@ export const UnifiedFocusTimer = () => {
     <div className="min-h-screen w-full relative overflow-hidden">
       <FocusBackground theme={backgroundTheme} />
 
-      {/* Fixed top bar: ViewToggle + Ambient Sound — shared across views */}
+      {/* Fixed top bar: ViewToggle + Ambient Sound — shared across views.
+          AmbientSoundPicker uses invisible (not unmounted) on stats view
+          so it still occupies space and the toggle doesn't shift horizontally. */}
       <div className="relative z-10 flex items-center justify-center w-full gap-2 px-4 pt-safe pb-2">
         <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
-        {currentView === 'timer' && <AmbientSoundPicker />}
+        <div className={currentView === 'stats' ? 'invisible' : ''}>
+          <AmbientSoundPicker />
+        </div>
       </div>
 
       {currentView === 'stats' ? (

@@ -18,7 +18,7 @@ export const FocusBackground = ({ theme }: { theme: string }) => {
 
 // Sky Background (Default - Day)
 export const SkyBackground = memo(() => (
-  <div className="absolute inset-0 overflow-hidden">
+  <div className="fixed inset-0 overflow-hidden">
     <div
       className="absolute inset-0"
       style={{
@@ -52,7 +52,7 @@ SkyBackground.displayName = 'SkyBackground';
 
 // Sunset Background
 export const SunsetBackground = memo(() => (
-  <div className="absolute inset-0 overflow-hidden">
+  <div className="fixed inset-0 overflow-hidden">
     <div
       className="absolute inset-0"
       style={{
@@ -92,7 +92,7 @@ SunsetBackground.displayName = 'SunsetBackground';
 
 // Night Background
 export const NightBackground = memo(() => (
-  <div className="absolute inset-0 overflow-hidden">
+  <div className="fixed inset-0 overflow-hidden">
     <div
       className="absolute inset-0"
       style={{
@@ -150,7 +150,7 @@ NightBackground.displayName = 'NightBackground';
 
 // Forest Background
 export const ForestBackground = memo(() => (
-  <div className="absolute inset-0 overflow-hidden">
+  <div className="fixed inset-0 overflow-hidden">
     <div
       className="absolute inset-0"
       style={{
@@ -199,7 +199,7 @@ ForestBackground.displayName = 'ForestBackground';
 
 // Snow Background
 export const SnowBackground = memo(() => (
-  <div className="absolute inset-0 overflow-hidden">
+  <div className="fixed inset-0 overflow-hidden">
     <div
       className="absolute inset-0"
       style={{
