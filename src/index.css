@@ -4071,4 +4071,39 @@ input, textarea, [contenteditable="true"] {
     background: hsl(260 20% 8% / 0.3);
     border-radius: 10px;
   }
+
+  /* ============================================
+     QUICK FOCUS FAB BUTTON
+     Floating action button on home screen
+     ============================================ */
+
+  .quick-focus-fab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(
+      135deg,
+      hsl(260 65% 58%) 0%,
+      hsl(280 55% 48%) 100%
+    );
+    border: 2.5px solid hsl(260 50% 40%);
+    box-shadow:
+      0 4px 0 hsl(260 50% 30%),
+      0 6px 20px hsl(260 60% 40% / 0.4),
+      inset 0 1px 0 hsl(260 70% 75% / 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .quick-focus-fab:active {
+    transform: scale(0.93) translateY(2px);
+    box-shadow:
+      0 2px 0 hsl(260 50% 30%),
+      0 3px 10px hsl(260 60% 40% / 0.3),
+      inset 0 1px 0 hsl(260 70% 75% / 0.3);
+  }
 }
