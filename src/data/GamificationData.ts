@@ -380,6 +380,30 @@ export const spinWheel = (): LuckyWheelPrize => {
   return LUCKY_WHEEL_PRIZES[0]; // Fallback
 };
 
+/** Possible mystery box outcomes with weighted probabilities */
+const MYSTERY_BOX_OUTCOMES: { type: LuckyWheelPrize['type']; amount: number; probability: number }[] = [
+  { type: 'coins', amount: 300, probability: 30 },
+  { type: 'coins', amount: 750, probability: 20 },
+  { type: 'xp', amount: 150, probability: 25 },
+  { type: 'streak_freeze', amount: 2, probability: 15 },
+  { type: 'coins', amount: 1500, probability: 10 },
+];
+
+/** Resolve a mystery box into a concrete reward */
+export const resolveMysteryBox = (): { type: LuckyWheelPrize['type']; amount: number } => {
+  const roll = Math.random() * 100;
+  let cumulative = 0;
+
+  for (const outcome of MYSTERY_BOX_OUTCOMES) {
+    cumulative += outcome.probability;
+    if (roll < cumulative) {
+      return { type: outcome.type, amount: outcome.amount };
+    }
+  }
+
+  return MYSTERY_BOX_OUTCOMES[0]; // Fallback
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // COMBO SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════
