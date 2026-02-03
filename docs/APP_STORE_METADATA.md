@@ -124,17 +124,49 @@ Start your journey to better focus today!
 
 ### In-App Purchases to Create
 
+**Subscriptions**
+
 | Reference Name | Product ID | Type | Price |
 |---------------|------------|------|-------|
-| Premium Monthly | co.nomoinc.nomo.premium.monthly | Auto-Renewable | $5.99 |
-| Premium Yearly | co.nomoinc.nomo.premium.yearly | Auto-Renewable | $44.99 |
-| Premium Plus Monthly | co.nomoinc.nomo.premiumplus.monthly | Auto-Renewable | $9.99 |
-| Premium Plus Yearly | co.nomoinc.nomo.premiumplus.yearly | Auto-Renewable | $79.99 |
-| Lifetime Access | co.nomoinc.nomo.lifetime | Non-Consumable | $99.99 |
-| 100 Coins | co.nomoinc.nomo.coins.100 | Consumable | $0.99 |
-| 500 Coins | co.nomoinc.nomo.coins.500 | Consumable | $3.99 |
-| 1200 Coins | co.nomoinc.nomo.coins.1200 | Consumable | $7.99 |
+| Premium Monthly | co.nomoinc.nomo.premium.monthly | Auto-Renewable | $4.99 |
+| Premium Yearly | co.nomoinc.nomo.premium.yearly | Auto-Renewable | $39.99 |
+| Premium Plus Monthly | co.nomoinc.nomo.premiumplus.monthly | Auto-Renewable | $8.99 |
+| Premium Plus Yearly | co.nomoinc.nomo.premiumplus.yearly | Auto-Renewable | $64.99 |
+| Lifetime Access | co.nomoinc.nomo.lifetime | Non-Consumable | $179.99 |
+
+**Coin Packs**
+
+| Reference Name | Product ID | Type | Price |
+|---------------|------------|------|-------|
+| Value Pack (1,800 coins) | co.nomoinc.nomo.coins.value | Consumable | $2.99 |
+| Premium Pack (6,000 coins) | co.nomoinc.nomo.coins.premium | Consumable | $7.99 |
+| Mega Pack (20,000 coins) | co.nomoinc.nomo.coins.mega | Consumable | $19.99 |
+| Ultra Pack (60,000 coins) | co.nomoinc.nomo.coins.ultra | Consumable | $49.99 |
+| Legendary Pack (150,000 coins) | co.nomoinc.nomo.coins.legendary | Consumable | $99.99 |
+
+**Bundles**
+
+| Reference Name | Product ID | Type | Price |
+|---------------|------------|------|-------|
+| Welcome Gift | co.nomoinc.nomo.bundle.welcome | Non-Consumable | $2.99 |
 | Starter Bundle | co.nomoinc.nomo.bundle.starter | Non-Consumable | $4.99 |
+| Collector Bundle | co.nomoinc.nomo.bundle.collector | Non-Consumable | $14.99 |
+| Ultimate Bundle | co.nomoinc.nomo.bundle.ultimate | Non-Consumable | $29.99 |
+
+**Battle Pass**
+
+| Reference Name | Product ID | Type | Price |
+|---------------|------------|------|-------|
+| Battle Pass Premium | co.nomoinc.nomo.battlepass.premium | Non-Consumable | $4.99 |
+| Battle Pass + 10 Tiers | co.nomoinc.nomo.battlepass.premium.plus | Non-Consumable | $9.99 |
+
+**Boosters**
+
+| Reference Name | Product ID | Type | Price |
+|---------------|------------|------|-------|
+| Focus Boost (2x, 1 day) | co.nomoinc.nomo.boost.focus | Consumable | $0.99 |
+| Super Boost (3x, 3 days) | co.nomoinc.nomo.boost.super | Consumable | $2.99 |
+| Weekly Pass (1.5x, 7 days) | co.nomoinc.nomo.boost.weekly | Consumable | $4.99 |
 
 ---
 

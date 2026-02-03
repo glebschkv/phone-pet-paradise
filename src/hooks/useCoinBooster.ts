@@ -34,7 +34,7 @@ export const BOOSTER_TYPES: BoosterType[] = [
     description: '2x coins for 1 day',
     multiplier: 2,
     durationDays: 1,
-    coinPrice: 200,
+    coinPrice: 400,
     iapPrice: '$0.99',
   },
   {
@@ -43,7 +43,7 @@ export const BOOSTER_TYPES: BoosterType[] = [
     description: '3x coins for 3 days',
     multiplier: 3,
     durationDays: 3,
-    coinPrice: 500,
+    coinPrice: 1000,
     iapPrice: '$2.99',
   },
   {
@@ -52,7 +52,7 @@ export const BOOSTER_TYPES: BoosterType[] = [
     description: '1.5x coins for 7 days',
     multiplier: 1.5,
     durationDays: 7,
-    coinPrice: 800,
+    coinPrice: 1500,
     iapPrice: '$4.99',
   },
 ];
