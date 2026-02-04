@@ -40,6 +40,36 @@ vi.mock('@/data/AmbientSoundsData', () => ({
         name: 'Focus Tone',
         generatorConfig: { type: 'binaural', binauralBase: 200, binauralBeat: 40 },
       },
+      'wind-gentle': {
+        id: 'wind-gentle',
+        name: 'Gentle Wind',
+        generatorConfig: { type: 'noise', noiseType: 'pink' },
+      },
+      'stream': {
+        id: 'stream',
+        name: 'Babbling Stream',
+        generatorConfig: { type: 'noise', noiseType: 'brown' },
+      },
+      'fan-noise': {
+        id: 'fan-noise',
+        name: 'Fan Noise',
+        generatorConfig: { type: 'noise', noiseType: 'pink' },
+      },
+      'alpha-waves': {
+        id: 'alpha-waves',
+        name: 'Alpha Waves',
+        generatorConfig: { type: 'binaural', binauralBase: 200, binauralBeat: 10 },
+      },
+      'theta-waves': {
+        id: 'theta-waves',
+        name: 'Theta Waves',
+        generatorConfig: { type: 'binaural', binauralBase: 180, binauralBeat: 6 },
+      },
+      'deep-focus': {
+        id: 'deep-focus',
+        name: 'Deep Focus',
+        generatorConfig: { type: 'binaural', binauralBase: 200, binauralBeat: 18 },
+      },
     };
     return sounds[id] || undefined;
   }),
