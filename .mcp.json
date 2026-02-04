@@ -4,7 +4,7 @@
       "type": "http",
       "url": "https://api.pixellab.ai/mcp",
       "headers": {
-        "Authorization": "Bearer db20c97f-46d5-4cdc-88a2-b31af0b41263"
+        "Authorization": "Bearer 45feaaf6-8b0f-44ed-8edc-a0b31df2d2f6"
       }
     }
   }
