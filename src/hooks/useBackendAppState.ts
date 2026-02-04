@@ -121,8 +121,10 @@ export const useBackendAppState = () => {
         },
         (payload) => {
           logger.debug('Real-time achievement unlock:', payload);
+          // Safely access payload.new with null check to prevent crashes
+          const newRecord = payload.new as { title?: string } | null;
           toast.success('🏆 Achievement Unlocked!', {
-            description: payload.new.title
+            description: newRecord?.title || 'New achievement earned!'
           });
           // Access via ref to avoid stale closures and dependency bloat
           subsystemsRef.current.achievements.loadAchievements?.();

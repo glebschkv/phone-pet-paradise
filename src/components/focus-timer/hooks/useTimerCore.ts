@@ -84,8 +84,14 @@ export function useTimerCore({
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
-        onCompleteRef.current();
-        isCompletingRef.current = false;
+        try {
+          onCompleteRef.current();
+        } catch (error) {
+          // Ensure completion flag is reset even if callback throws
+          console.error('Error in timer completion callback:', error);
+        } finally {
+          isCompletingRef.current = false;
+        }
       }
     };
 
