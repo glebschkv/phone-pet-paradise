@@ -773,6 +773,54 @@ input, textarea, [contenteditable="true"] {
     animation: car-right 18s linear infinite;
   }
 
+  /* GPU acceleration for smooth animations on mobile */
+  .animate-cloud-drift,
+  .animate-cloud-drift-slow,
+  .animate-twinkle,
+  .animate-shooting-star,
+  .animate-aurora,
+  .animate-ray-sway,
+  .animate-mist-drift,
+  .animate-firefly,
+  .animate-snowfall,
+  .animate-window-flicker,
+  .animate-neon-pulse,
+  .animate-car-left,
+  .animate-car-right,
+  .animate-bird-drift,
+  .animate-pulse-subtle {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+  }
+
+  /* Reduced motion support for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-cloud-drift,
+    .animate-cloud-drift-slow,
+    .animate-twinkle,
+    .animate-shooting-star,
+    .animate-aurora,
+    .animate-ray-sway,
+    .animate-mist-drift,
+    .animate-firefly,
+    .animate-snowfall,
+    .animate-window-flicker,
+    .animate-neon-pulse,
+    .animate-car-left,
+    .animate-car-right,
+    .animate-bird-drift,
+    .animate-pulse-subtle {
+      animation: none !important;
+    }
+
+    .focus-bg-transition,
+    .timer-header-pill,
+    .timer-ring-container,
+    .timer-header-icon {
+      transition: none !important;
+    }
+  }
+
   .retro-xp-fill .shine {
     position: absolute;
     top: 0;
