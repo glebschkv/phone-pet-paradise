@@ -15,15 +15,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BIOME_DATABASE } from "@/data/AnimalDatabase";
 import { useShopStore, useThemeStore } from "@/stores";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
-const BIOME_CONFIG: Record<string, { bg: string; emoji: string }> = {
-  'Meadow': { bg: 'day', emoji: '🌿' },
-  'Sunset': { bg: 'sunset', emoji: '🌅' },
-  'Night': { bg: 'night', emoji: '🌙' },
-  'Forest': { bg: 'forest', emoji: '🌲' },
-  'Snow': { bg: 'snow', emoji: '❄️' },
-  'City': { bg: 'city', emoji: '🏙️' },
-  'Deep Ocean': { bg: 'deepocean', emoji: '🌊' },
+const BIOME_CONFIG: Record<string, { bg: string; icon: string }> = {
+  'Meadow': { bg: 'day', icon: 'meadow' },
+  'Sunset': { bg: 'sunset', icon: 'sunset' },
+  'Night': { bg: 'night', icon: 'moon' },
+  'Forest': { bg: 'forest', icon: 'leaf' },
+  'Snow': { bg: 'snow', icon: 'snowflake' },
+  'City': { bg: 'city', icon: 'city' },
+  'Deep Ocean': { bg: 'deepocean', icon: 'wave' },
 };
 
 interface TopStatusBarProps {
@@ -69,7 +70,7 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
 
   const progress = getLevelProgress();
   const hasActiveStreak = streakData.currentStreak >= 3;
-  const currentBiomeEmoji = BIOME_CONFIG[currentBiome]?.emoji || '🌿';
+  const currentBiomeIcon = BIOME_CONFIG[currentBiome]?.icon || 'meadow';
 
   return (
     <div className="status-bar-container">
@@ -151,7 +152,7 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="biome-btn">
-                <span className="biome-emoji">{currentBiomeEmoji}</span>
+                <PixelIcon name={currentBiomeIcon} size={16} className="biome-icon" />
                 <ChevronDown className="w-3 h-3 biome-chevron" />
               </button>
             </DropdownMenuTrigger>
@@ -165,7 +166,7 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
                     onClick={() => handleSwitchBiome(biome)}
                     className={`biome-menu-item ${isActive ? 'selected' : ''}`}
                   >
-                    <span className="text-base">{config?.emoji || '🌍'}</span>
+                    <PixelIcon name={config?.icon || 'globe'} size={16} />
                     <span>{biome}</span>
                     {isActive && <span className="biome-check">✓</span>}
                   </DropdownMenuItem>
