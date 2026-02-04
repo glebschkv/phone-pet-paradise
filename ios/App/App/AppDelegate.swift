@@ -245,7 +245,7 @@ class NomoViewController: CAPBridgeViewController {
 
 /// Native animated splash screen shown AFTER the static LaunchScreen.storyboard
 /// and BEFORE WKWebView content is ready.  Displays the branded NOMO design
-/// with a continuously-animating loading bar so users know the app is alive.
+/// with layered glow effects, scanlines, and smooth entrance animations.
 ///
 /// Lifecycle:
 ///   1. SceneDelegate adds this as a child VC overlay when the scene connects
@@ -257,41 +257,41 @@ final class AnimatedSplashViewController: UIViewController {
     // MARK: - UI Elements
 
     private let gradientLayer = CAGradientLayer()
-    private let glowView = UIView()
+    private let scanlineView = UIView()
+    private let glowLayer = CAGradientLayer()
+    private let glowContainer = UIView()
+    private let iconContainer = UIView()
     private let iconImageView = UIImageView()
     private let titleLabel = UILabel()
     private let taglineLabel = UILabel()
     private let barTrackView = UIView()
     private let barFillView = UIView()
-    private let barGlowView = UIView()
-    private let statusLabel = UILabel()
+    private let shimmerLayer = CAGradientLayer()
+    private let contentStack = UIView()
 
     private var barFillWidthConstraint: NSLayoutConstraint!
-    private var trackWidth: CGFloat = 180
+    private let trackWidth: CGFloat = 220
 
-    // MARK: - Colors (matching index.html neon splash)
+    // MARK: - Colors
 
-    private let bgTop    = UIColor(red: 10/255, green: 0, blue: 20/255, alpha: 1)       // #0a0014
-    private let bgMid    = UIColor(red: 26/255, green: 5/255, blue: 48/255, alpha: 1)    // #1a0530
-    private let bgBot    = UIColor(red: 13/255, green: 0, blue: 32/255, alpha: 1)        // #0d0020
-    private let purple   = UIColor(red: 168/255, green: 85/255, blue: 247/255, alpha: 1) // #a855f7
-    private let purpleLt = UIColor(red: 192/255, green: 132/255, blue: 252/255, alpha: 1)// #c084fc
-    private let textClr  = UIColor(red: 226/255, green: 212/255, blue: 240/255, alpha: 1)// #e2d4f0
-    private let tagClr   = UIColor(red: 168/255, green: 130/255, blue: 220/255, alpha: 0.6)
+    private let bgTop     = UIColor(red: 8/255,   green: 0,       blue: 18/255,  alpha: 1) // #080012
+    private let bgMid     = UIColor(red: 22/255,  green: 4/255,   blue: 42/255,  alpha: 1) // #16042a
+    private let bgBot     = UIColor(red: 10/255,  green: 0,       blue: 24/255,  alpha: 1) // #0a0018
+    private let purple    = UIColor(red: 168/255, green: 85/255,  blue: 247/255, alpha: 1) // #a855f7
+    private let purpleLt  = UIColor(red: 192/255, green: 132/255, blue: 252/255, alpha: 1) // #c084fc
+    private let purpleDk  = UIColor(red: 126/255, green: 34/255,  blue: 206/255, alpha: 1) // #7e22ce
+    private let textClr   = UIColor(red: 240/255, green: 230/255, blue: 255/255, alpha: 1) // #f0e6ff
+    private let tagClr    = UIColor(red: 168/255, green: 140/255, blue: 210/255, alpha: 0.55)
+    private let trackClr  = UIColor(red: 168/255, green: 85/255,  blue: 247/255, alpha: 0.08)
 
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupGradient()
-        setupGlow()
-        setupIcon()
-        setupTitle()
-        setupTagline()
-        setupLoadingBar()
-        setupStatusLabel()
+        setupBackground()
+        setupScanlines()
+        setupContent()
 
-        // Listen for dismiss notification from DeviceActivityPlugin
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleDismissNotification),
@@ -307,16 +307,18 @@ final class AnimatedSplashViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         gradientLayer.frame = view.bounds
+        glowLayer.frame = glowContainer.bounds
+        shimmerLayer.frame = CGRect(x: 0, y: 0, width: trackWidth, height: 4)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        startAnimations()
+        playEntranceAnimations()
     }
 
-    // MARK: - Setup
+    // MARK: - Background
 
-    private func setupGradient() {
+    private func setupBackground() {
         gradientLayer.colors = [bgTop.cgColor, bgMid.cgColor, bgBot.cgColor]
         gradientLayer.locations = [0.0, 0.4, 1.0]
         gradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
@@ -324,22 +326,87 @@ final class AnimatedSplashViewController: UIViewController {
         view.layer.insertSublayer(gradientLayer, at: 0)
     }
 
-    private func setupGlow() {
-        glowView.translatesAutoresizingMaskIntoConstraints = false
-        glowView.backgroundColor = purple.withAlphaComponent(0.15)
-        glowView.layer.cornerRadius = 150
-        view.addSubview(glowView)
+    private func setupScanlines() {
+        scanlineView.translatesAutoresizingMaskIntoConstraints = false
+        scanlineView.isUserInteractionEnabled = false
+        scanlineView.alpha = 0.03
+        view.addSubview(scanlineView)
 
         NSLayoutConstraint.activate([
-            glowView.widthAnchor.constraint(equalToConstant: 300),
-            glowView.heightAnchor.constraint(equalToConstant: 300),
-            glowView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            glowView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -80),
+            scanlineView.topAnchor.constraint(equalTo: view.topAnchor),
+            scanlineView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            scanlineView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scanlineView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
+
+        // Repeating 2px scanlines via a tiled pattern
+        let lineH: CGFloat = 2
+        let gapH: CGFloat = 2
+        let patH = lineH + gapH
+        UIGraphicsBeginImageContextWithOptions(CGSize(width: 4, height: patH), false, 0)
+        if let ctx = UIGraphicsGetCurrentContext() {
+            ctx.setFillColor(UIColor.white.cgColor)
+            ctx.fill(CGRect(x: 0, y: 0, width: 4, height: lineH))
+        }
+        if let img = UIGraphicsGetImageFromCurrentImageContext() {
+            scanlineView.backgroundColor = UIColor(patternImage: img)
+        }
+        UIGraphicsEndImageContext()
     }
 
+    // MARK: - Content Layout
+
+    private func setupContent() {
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+        contentStack.alpha = 0 // will fade-in via entrance animation
+        view.addSubview(contentStack)
+
+        NSLayoutConstraint.activate([
+            contentStack.topAnchor.constraint(equalTo: view.topAnchor),
+            contentStack.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            contentStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            contentStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+
+        setupGlow()
+        setupIcon()
+        setupTitle()
+        setupTagline()
+        setupLoadingBar()
+    }
+
+    // MARK: - Glow (radial gradient)
+
+    private func setupGlow() {
+        glowContainer.translatesAutoresizingMaskIntoConstraints = false
+        glowContainer.isUserInteractionEnabled = false
+        contentStack.addSubview(glowContainer)
+
+        NSLayoutConstraint.activate([
+            glowContainer.widthAnchor.constraint(equalToConstant: 360),
+            glowContainer.heightAnchor.constraint(equalToConstant: 360),
+            glowContainer.centerXAnchor.constraint(equalTo: contentStack.centerXAnchor),
+            glowContainer.centerYAnchor.constraint(equalTo: contentStack.centerYAnchor, constant: -60),
+        ])
+
+        glowLayer.type = .radial
+        glowLayer.colors = [
+            purple.withAlphaComponent(0.22).cgColor,
+            purpleDk.withAlphaComponent(0.08).cgColor,
+            UIColor.clear.cgColor,
+        ]
+        glowLayer.locations = [0.0, 0.45, 1.0]
+        glowLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
+        glowLayer.endPoint = CGPoint(x: 1.0, y: 1.0)
+        glowContainer.layer.addSublayer(glowLayer)
+    }
+
+    // MARK: - Icon
+
     private func setupIcon() {
-        // Try the SplashIcon image set first, fall back to AppIcon
+        iconContainer.translatesAutoresizingMaskIntoConstraints = false
+        contentStack.addSubview(iconContainer)
+
         if let img = UIImage(named: "SplashIcon") {
             iconImageView.image = img
         } else if let icons = Bundle.main.infoDictionary?["CFBundleIcons"] as? [String: Any],
@@ -350,125 +417,143 @@ final class AnimatedSplashViewController: UIViewController {
         }
 
         iconImageView.contentMode = .scaleAspectFill
-        iconImageView.layer.cornerRadius = 16
+        iconImageView.layer.cornerRadius = 22
         iconImageView.clipsToBounds = true
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        iconContainer.addSubview(iconImageView)
 
-        // Purple shadow
-        iconImageView.layer.shadowColor = UIColor(red: 147/255, green: 51/255, blue: 234/255, alpha: 1).cgColor
-        iconImageView.layer.shadowOpacity = 0.4
-        iconImageView.layer.shadowRadius = 15
-        iconImageView.layer.shadowOffset = CGSize(width: 0, height: 4)
-        iconImageView.layer.masksToBounds = false
-
-        view.addSubview(iconImageView)
+        // Glow shadow on the container (not clipped)
+        iconContainer.layer.shadowColor = purple.cgColor
+        iconContainer.layer.shadowOpacity = 0.5
+        iconContainer.layer.shadowRadius = 24
+        iconContainer.layer.shadowOffset = CGSize(width: 0, height: 6)
 
         NSLayoutConstraint.activate([
-            iconImageView.widthAnchor.constraint(equalToConstant: 72),
-            iconImageView.heightAnchor.constraint(equalToConstant: 72),
-            iconImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            iconImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -70),
+            iconContainer.widthAnchor.constraint(equalToConstant: 96),
+            iconContainer.heightAnchor.constraint(equalToConstant: 96),
+            iconContainer.centerXAnchor.constraint(equalTo: contentStack.centerXAnchor),
+            iconContainer.centerYAnchor.constraint(equalTo: contentStack.centerYAnchor, constant: -80),
+
+            iconImageView.topAnchor.constraint(equalTo: iconContainer.topAnchor),
+            iconImageView.bottomAnchor.constraint(equalTo: iconContainer.bottomAnchor),
+            iconImageView.leadingAnchor.constraint(equalTo: iconContainer.leadingAnchor),
+            iconImageView.trailingAnchor.constraint(equalTo: iconContainer.trailingAnchor),
         ])
     }
 
+    // MARK: - Title
+
     private func setupTitle() {
-        titleLabel.text = "NOMO"
-        titleLabel.font = UIFont.systemFont(ofSize: 48, weight: .black)
-        titleLabel.textColor = textClr
+        let fontSize: CGFloat = 42
+        // Prefer SF Pro Rounded for a friendlier, premium feel
+        if let desc = UIFont.systemFont(ofSize: fontSize, weight: .heavy)
+                    .fontDescriptor.withDesign(.rounded) {
+            titleLabel.font = UIFont(descriptor: desc, size: fontSize)
+        } else {
+            titleLabel.font = UIFont.systemFont(ofSize: fontSize, weight: .heavy)
+        }
+
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        // Letter spacing
-        if let text = titleLabel.text {
-            let attributed = NSMutableAttributedString(string: text)
-            attributed.addAttribute(.kern, value: 8.0,
-                                    range: NSRange(location: 0, length: text.count))
-            attributed.addAttribute(.foregroundColor, value: textClr,
-                                    range: NSRange(location: 0, length: text.count))
-            titleLabel.attributedText = attributed
-        }
+        let text = "NOMO"
+        let attributed = NSMutableAttributedString(string: text)
+        attributed.addAttribute(.kern, value: 12.0,
+                                range: NSRange(location: 0, length: text.count))
+        attributed.addAttribute(.foregroundColor, value: textClr,
+                                range: NSRange(location: 0, length: text.count))
+        titleLabel.attributedText = attributed
 
-        // Purple text glow via shadow
+        // Subtle purple glow
         titleLabel.layer.shadowColor = purple.cgColor
-        titleLabel.layer.shadowOpacity = 0.8
-        titleLabel.layer.shadowRadius = 20
+        titleLabel.layer.shadowOpacity = 0.55
+        titleLabel.layer.shadowRadius = 16
         titleLabel.layer.shadowOffset = .zero
 
-        view.addSubview(titleLabel)
+        contentStack.addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 20),
+            titleLabel.centerXAnchor.constraint(equalTo: contentStack.centerXAnchor),
+            titleLabel.topAnchor.constraint(equalTo: iconContainer.bottomAnchor, constant: 24),
         ])
     }
 
+    // MARK: - Tagline
+
     private func setupTagline() {
-        taglineLabel.text = "FOCUS  \u{00B7}  GROW  \u{00B7}  COLLECT"
-        taglineLabel.font = UIFont.systemFont(ofSize: 11, weight: .regular)
-        taglineLabel.textColor = tagClr
         taglineLabel.textAlignment = .center
         taglineLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        // Letter spacing
-        if let text = taglineLabel.text {
-            let attributed = NSMutableAttributedString(string: text)
-            attributed.addAttribute(.kern, value: 3.0,
+        let text = "FOCUS  \u{00B7}  GROW  \u{00B7}  COLLECT"
+        let attributed = NSMutableAttributedString(string: text)
+        attributed.addAttribute(.kern, value: 4.0,
+                                range: NSRange(location: 0, length: text.count))
+        attributed.addAttribute(.foregroundColor, value: tagClr,
+                                range: NSRange(location: 0, length: text.count))
+        let tagFontSize: CGFloat = 11
+        if let desc = UIFont.systemFont(ofSize: tagFontSize, weight: .semibold)
+                .fontDescriptor.withDesign(.rounded) {
+            attributed.addAttribute(.font, value: UIFont(descriptor: desc, size: tagFontSize),
                                     range: NSRange(location: 0, length: text.count))
-            attributed.addAttribute(.foregroundColor, value: tagClr,
+        } else {
+            attributed.addAttribute(.font, value: UIFont.systemFont(ofSize: tagFontSize, weight: .semibold),
                                     range: NSRange(location: 0, length: text.count))
-            taglineLabel.attributedText = attributed
         }
+        taglineLabel.attributedText = attributed
 
-        view.addSubview(taglineLabel)
+        contentStack.addSubview(taglineLabel)
 
         NSLayoutConstraint.activate([
-            taglineLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            taglineLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            taglineLabel.centerXAnchor.constraint(equalTo: contentStack.centerXAnchor),
+            taglineLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
         ])
     }
 
-    private func setupLoadingBar() {
-        trackWidth = 180
+    // MARK: - Loading Bar
 
+    private func setupLoadingBar() {
         // Track
-        barTrackView.backgroundColor = UIColor.white.withAlphaComponent(0.08)
-        barTrackView.layer.cornerRadius = 3
-        barTrackView.layer.borderWidth = 1
-        barTrackView.layer.borderColor = purple.withAlphaComponent(0.2).cgColor
+        barTrackView.backgroundColor = trackClr
+        barTrackView.layer.cornerRadius = 2
         barTrackView.clipsToBounds = true
         barTrackView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(barTrackView)
+        contentStack.addSubview(barTrackView)
 
-        // Fill (starts at ~30%)
-        barFillView.layer.cornerRadius = 3
+        // Fill
+        barFillView.layer.cornerRadius = 2
         barFillView.clipsToBounds = true
         barFillView.translatesAutoresizingMaskIntoConstraints = false
 
-        // Gradient fill layer
+        // Gradient fill
         let fillGradient = CAGradientLayer()
         fillGradient.colors = [purple.cgColor, purpleLt.cgColor]
         fillGradient.startPoint = CGPoint(x: 0, y: 0.5)
         fillGradient.endPoint = CGPoint(x: 1, y: 0.5)
-        fillGradient.frame = CGRect(x: 0, y: 0, width: trackWidth, height: 6)
+        fillGradient.frame = CGRect(x: 0, y: 0, width: trackWidth, height: 4)
+        fillGradient.cornerRadius = 2
         barFillView.layer.addSublayer(fillGradient)
 
-        // Glow on the fill
-        barFillView.layer.shadowColor = purple.cgColor
-        barFillView.layer.shadowOpacity = 0.6
-        barFillView.layer.shadowRadius = 5
-        barFillView.layer.shadowOffset = .zero
-        barFillView.layer.masksToBounds = false
+        // Shimmer highlight that sweeps across the fill
+        shimmerLayer.colors = [
+            UIColor.clear.cgColor,
+            UIColor.white.withAlphaComponent(0.35).cgColor,
+            UIColor.clear.cgColor,
+        ]
+        shimmerLayer.locations = [0.0, 0.5, 1.0]
+        shimmerLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        shimmerLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        shimmerLayer.frame = CGRect(x: 0, y: 0, width: trackWidth, height: 4)
+        barFillView.layer.addSublayer(shimmerLayer)
 
         barTrackView.addSubview(barFillView)
 
-        let initialWidth = trackWidth * 0.3
-        barFillWidthConstraint = barFillView.widthAnchor.constraint(equalToConstant: initialWidth)
+        barFillWidthConstraint = barFillView.widthAnchor.constraint(equalToConstant: trackWidth * 0.25)
 
         NSLayoutConstraint.activate([
             barTrackView.widthAnchor.constraint(equalToConstant: trackWidth),
-            barTrackView.heightAnchor.constraint(equalToConstant: 6),
-            barTrackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            barTrackView.topAnchor.constraint(equalTo: taglineLabel.bottomAnchor, constant: 40),
+            barTrackView.heightAnchor.constraint(equalToConstant: 4),
+            barTrackView.centerXAnchor.constraint(equalTo: contentStack.centerXAnchor),
+            barTrackView.topAnchor.constraint(equalTo: taglineLabel.bottomAnchor, constant: 44),
 
             barFillView.leadingAnchor.constraint(equalTo: barTrackView.leadingAnchor),
             barFillView.topAnchor.constraint(equalTo: barTrackView.topAnchor),
@@ -477,29 +562,26 @@ final class AnimatedSplashViewController: UIViewController {
         ])
     }
 
-    private func setupStatusLabel() {
-        statusLabel.text = "Getting everything ready..."
-        statusLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        statusLabel.textColor = tagClr
-        statusLabel.textAlignment = .center
-        statusLabel.alpha = 0.8
-        statusLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(statusLabel)
-
-        NSLayoutConstraint.activate([
-            statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            statusLabel.topAnchor.constraint(equalTo: barTrackView.bottomAnchor, constant: 16),
-        ])
-    }
-
     // MARK: - Animations
 
-    private func startAnimations() {
-        // Loading bar: animate width from 30% → 85% with ease-in-out, autoreverse
-        let targetWidth = trackWidth * 0.85
+    private func playEntranceAnimations() {
+        // Entrance: content fades in and slides up
+        contentStack.transform = CGAffineTransform(translationX: 0, y: 14)
         UIView.animate(
-            withDuration: 1.8,
-            delay: 0,
+            withDuration: 0.6,
+            delay: 0.05,
+            options: .curveEaseOut,
+            animations: { [weak self] in
+                self?.contentStack.alpha = 1
+                self?.contentStack.transform = .identity
+            }
+        )
+
+        // Loading bar fill: 25% → 80% with ease, autoreverse
+        let targetWidth = trackWidth * 0.80
+        UIView.animate(
+            withDuration: 2.0,
+            delay: 0.3,
             options: [.autoreverse, .repeat, .curveEaseInOut],
             animations: { [weak self] in
                 self?.barFillWidthConstraint.constant = targetWidth
@@ -507,14 +589,23 @@ final class AnimatedSplashViewController: UIViewController {
             }
         )
 
-        // Glow pulse: scale the purple circle gently
+        // Shimmer sweep across the loading bar
+        let shimmerAnim = CABasicAnimation(keyPath: "locations")
+        shimmerAnim.fromValue = [-0.3, -0.15, 0.0]
+        shimmerAnim.toValue = [1.0, 1.15, 1.3]
+        shimmerAnim.duration = 1.6
+        shimmerAnim.repeatCount = .infinity
+        shimmerAnim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        shimmerLayer.add(shimmerAnim, forKey: "shimmer")
+
+        // Glow breathing: gentle scale + opacity
         UIView.animate(
-            withDuration: 2.5,
+            withDuration: 3.0,
             delay: 0,
             options: [.autoreverse, .repeat, .curveEaseInOut],
             animations: { [weak self] in
-                self?.glowView.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
-                self?.glowView.alpha = 0.25
+                self?.glowContainer.transform = CGAffineTransform(scaleX: 1.12, y: 1.12)
+                self?.glowContainer.alpha = 0.7
             }
         )
     }
@@ -525,16 +616,19 @@ final class AnimatedSplashViewController: UIViewController {
     func dismissSplash(completion: (() -> Void)? = nil) {
         NotificationCenter.default.removeObserver(self)
 
-        // Stop repeating animations
         barFillView.layer.removeAllAnimations()
-        glowView.layer.removeAllAnimations()
+        shimmerLayer.removeAllAnimations()
+        glowContainer.layer.removeAllAnimations()
 
         UIView.animate(
-            withDuration: 0.4,
+            withDuration: 0.5,
             delay: 0,
+            usingSpringWithDamping: 1.0,
+            initialSpringVelocity: 0,
             options: .curveEaseOut,
             animations: { [weak self] in
                 self?.view.alpha = 0
+                self?.contentStack.transform = CGAffineTransform(translationX: 0, y: -10)
             },
             completion: { [weak self] _ in
                 self?.view.removeFromSuperview()
