@@ -436,22 +436,388 @@ input, textarea, [contenteditable="true"] {
 
   @keyframes snowfall {
     0% {
-      transform: translateY(0) translateX(0);
+      transform: translateY(-10px) translateX(0) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
       opacity: 1;
     }
     25% {
-      transform: translateY(25vh) translateX(10px);
+      transform: translateY(25vh) translateX(var(--sway, 15px)) rotate(90deg);
     }
     50% {
-      transform: translateY(50vh) translateX(-5px);
-      opacity: 0.8;
+      transform: translateY(50vh) translateX(calc(var(--sway, 15px) * -0.5)) rotate(180deg);
+      opacity: 0.9;
     }
     75% {
-      transform: translateY(75vh) translateX(8px);
+      transform: translateY(75vh) translateX(var(--sway, 15px)) rotate(270deg);
+    }
+    90% {
+      opacity: 0.6;
     }
     100% {
-      transform: translateY(100vh) translateX(0);
+      transform: translateY(105vh) translateX(0) rotate(360deg);
       opacity: 0;
+    }
+  }
+
+  /* ============================================
+     PREMIUM FOCUS TIMER BACKGROUND ANIMATIONS
+     ============================================ */
+
+  /* Smooth background theme transitions */
+  .focus-bg-transition {
+    transition: opacity 0.6s ease-out;
+  }
+
+  /* Cloud drift - slow for distant clouds */
+  @keyframes cloud-drift-slow {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(20px);
+    }
+  }
+
+  .animate-cloud-drift-slow {
+    animation: cloud-drift-slow 30s ease-in-out infinite;
+  }
+
+  /* Cloud drift - faster for closer clouds */
+  @keyframes cloud-drift {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(15px);
+    }
+  }
+
+  .animate-cloud-drift {
+    animation: cloud-drift 20s ease-in-out infinite;
+  }
+
+  /* Subtle pulse for sun/moon glow */
+  @keyframes pulse-subtle {
+    0%, 100% {
+      transform: translate(-50%, 0) scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: translate(-50%, 0) scale(1.03);
+      opacity: 0.95;
+    }
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 4s ease-in-out infinite;
+  }
+
+  /* Bird silhouette drift */
+  @keyframes bird-drift {
+    0% {
+      transform: translateX(0) translateY(0);
+    }
+    25% {
+      transform: translateX(30px) translateY(-5px);
+    }
+    50% {
+      transform: translateX(60px) translateY(0);
+    }
+    75% {
+      transform: translateX(90px) translateY(-3px);
+    }
+    100% {
+      transform: translateX(120px) translateY(0);
+    }
+  }
+
+  .animate-bird-drift {
+    animation: bird-drift 25s linear infinite;
+  }
+
+  /* Enhanced star twinkle with glow variation */
+  .animate-twinkle {
+    animation: twinkle-enhanced 3s ease-in-out infinite;
+  }
+
+  @keyframes twinkle-enhanced {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: brightness(1);
+    }
+    25% {
+      opacity: 0.7;
+      transform: scale(0.9);
+    }
+    50% {
+      opacity: 0.3;
+      transform: scale(0.75);
+      filter: brightness(0.8);
+    }
+    75% {
+      opacity: 0.8;
+      transform: scale(0.95);
+    }
+  }
+
+  /* Shooting star animation */
+  @keyframes shooting-star {
+    0% {
+      transform: translateX(0) translateY(0);
+      opacity: 0;
+    }
+    5% {
+      opacity: 1;
+    }
+    15% {
+      transform: translateX(100px) translateY(50px);
+      opacity: 1;
+    }
+    20% {
+      transform: translateX(150px) translateY(75px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(150px) translateY(75px);
+      opacity: 0;
+    }
+  }
+
+  .animate-shooting-star {
+    animation: shooting-star 12s ease-out infinite;
+    animation-delay: 5s;
+  }
+
+  /* Aurora/northern lights shimmer */
+  @keyframes aurora {
+    0%, 100% {
+      transform: translateX(-5%) scaleY(1);
+      opacity: 0.2;
+    }
+    25% {
+      transform: translateX(0%) scaleY(1.1);
+      opacity: 0.25;
+    }
+    50% {
+      transform: translateX(5%) scaleY(0.95);
+      opacity: 0.15;
+    }
+    75% {
+      transform: translateX(2%) scaleY(1.05);
+      opacity: 0.22;
+    }
+  }
+
+  .animate-aurora {
+    animation: aurora 15s ease-in-out infinite;
+  }
+
+  /* God ray sway for forest */
+  @keyframes ray-sway {
+    0%, 100% {
+      transform: translateX(0) skewX(0deg);
+      opacity: 0.25;
+    }
+    25% {
+      transform: translateX(10px) skewX(2deg);
+      opacity: 0.2;
+    }
+    50% {
+      transform: translateX(-5px) skewX(-1deg);
+      opacity: 0.3;
+    }
+    75% {
+      transform: translateX(8px) skewX(1deg);
+      opacity: 0.22;
+    }
+  }
+
+  .animate-ray-sway {
+    animation: ray-sway 12s ease-in-out infinite;
+  }
+
+  /* Mist drift for forest */
+  @keyframes mist-drift {
+    0%, 100% {
+      transform: translateX(-3%) scaleX(1);
+      opacity: 0.1;
+    }
+    50% {
+      transform: translateX(3%) scaleX(1.05);
+      opacity: 0.15;
+    }
+  }
+
+  .animate-mist-drift {
+    animation: mist-drift 20s ease-in-out infinite;
+  }
+
+  /* Firefly glow pulse */
+  @keyframes firefly {
+    0%, 100% {
+      opacity: 0;
+      transform: translateX(0) translateY(0) scale(0.8);
+    }
+    10% {
+      opacity: 0.9;
+      transform: translateX(3px) translateY(-2px) scale(1);
+    }
+    30% {
+      opacity: 1;
+      transform: translateX(-2px) translateY(-5px) scale(1.1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: translateX(5px) translateY(-3px) scale(1);
+    }
+    70% {
+      opacity: 0.9;
+      transform: translateX(-3px) translateY(-6px) scale(1.05);
+    }
+    90% {
+      opacity: 0.4;
+      transform: translateX(2px) translateY(-2px) scale(0.9);
+    }
+  }
+
+  .animate-firefly {
+    animation: firefly 4s ease-in-out infinite;
+  }
+
+  /* City window flicker */
+  @keyframes window-flicker {
+    0%, 100% {
+      opacity: var(--window-base-opacity, 0.8);
+    }
+    10% {
+      opacity: calc(var(--window-base-opacity, 0.8) * 0.9);
+    }
+    20% {
+      opacity: var(--window-base-opacity, 0.8);
+    }
+    50% {
+      opacity: calc(var(--window-base-opacity, 0.8) * 0.7);
+    }
+    52% {
+      opacity: var(--window-base-opacity, 0.8);
+    }
+    80% {
+      opacity: calc(var(--window-base-opacity, 0.8) * 0.85);
+    }
+  }
+
+  .animate-window-flicker {
+    animation: window-flicker 8s ease-in-out infinite;
+  }
+
+  /* Neon sign pulse for city */
+  @keyframes neon-pulse {
+    0%, 100% {
+      opacity: 0.6;
+      filter: brightness(1);
+    }
+    50% {
+      opacity: 0.8;
+      filter: brightness(1.2);
+    }
+  }
+
+  .animate-neon-pulse {
+    animation: neon-pulse 3s ease-in-out infinite;
+  }
+
+  /* Car lights moving left */
+  @keyframes car-left {
+    0% {
+      transform: translateX(-20px);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(calc(100vw + 20px));
+      opacity: 0;
+    }
+  }
+
+  .animate-car-left {
+    animation: car-left 15s linear infinite;
+  }
+
+  /* Car lights moving right */
+  @keyframes car-right {
+    0% {
+      transform: translateX(calc(100vw + 20px));
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-20px);
+      opacity: 0;
+    }
+  }
+
+  .animate-car-right {
+    animation: car-right 18s linear infinite;
+  }
+
+  /* GPU acceleration for smooth animations on mobile */
+  .animate-cloud-drift,
+  .animate-cloud-drift-slow,
+  .animate-twinkle,
+  .animate-shooting-star,
+  .animate-aurora,
+  .animate-ray-sway,
+  .animate-mist-drift,
+  .animate-firefly,
+  .animate-snowfall,
+  .animate-window-flicker,
+  .animate-neon-pulse,
+  .animate-car-left,
+  .animate-car-right,
+  .animate-bird-drift,
+  .animate-pulse-subtle {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+  }
+
+  /* Reduced motion support for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-cloud-drift,
+    .animate-cloud-drift-slow,
+    .animate-twinkle,
+    .animate-shooting-star,
+    .animate-aurora,
+    .animate-ray-sway,
+    .animate-mist-drift,
+    .animate-firefly,
+    .animate-snowfall,
+    .animate-window-flicker,
+    .animate-neon-pulse,
+    .animate-car-left,
+    .animate-car-right,
+    .animate-bird-drift,
+    .animate-pulse-subtle {
+      animation: none !important;
+    }
+
+    .focus-bg-transition,
+    .timer-header-pill,
+    .timer-ring-container,
+    .timer-header-icon {
+      transition: none !important;
     }
   }
 
@@ -4216,6 +4582,7 @@ input, textarea, [contenteditable="true"] {
     box-shadow:
       0 4px 16px hsl(0 0% 0% / 0.12),
       inset 0 1px 0 hsl(0 0% 100% / 0.1);
+    transition: background 0.5s ease-out, border-color 0.5s ease-out;
   }
 
   .timer-header-icon {
@@ -4229,10 +4596,11 @@ input, textarea, [contenteditable="true"] {
       hsl(260 60% 68%) 0%,
       hsl(260 55% 52%) 100%
     );
-    border: 2px solid hsl(260 50% 40%);
+    border: 2px solid transparent;
     box-shadow:
       0 2px 0 hsl(260 50% 32%),
       inset 0 1px 0 hsl(0 0% 100% / 0.25);
+    transition: background 0.5s ease-out, box-shadow 0.5s ease-out;
   }
 
   .timer-sound-btn {
@@ -4274,6 +4642,7 @@ input, textarea, [contenteditable="true"] {
     box-shadow:
       0 8px 32px hsl(0 0% 0% / 0.1),
       inset 0 1px 0 hsl(0 0% 100% / 0.08);
+    transition: background 0.5s ease-out, border-color 0.5s ease-out, box-shadow 0.5s ease-out;
   }
 
   /* Status badge below time */
@@ -4292,9 +4661,10 @@ input, textarea, [contenteditable="true"] {
   }
 
   .timer-status-badge.active {
-    background: hsl(260 50% 60% / 0.15);
-    border-color: hsl(260 50% 60% / 0.25);
-    color: hsl(260 70% 82%);
+    background: color-mix(in srgb, var(--status-glow, hsl(260 50% 60%)) 15%, transparent);
+    border-color: color-mix(in srgb, var(--status-glow, hsl(260 50% 60%)) 25%, transparent);
+    color: var(--status-glow, hsl(260 70% 82%));
+    filter: brightness(1.1);
   }
 
   /* ---- Timer Control Buttons ---- */

@@ -16,6 +16,7 @@ import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useTimerLogic } from "./focus-timer/hooks/useTimerLogic";
 import { useBackgroundTheme } from "./focus-timer/hooks/useBackgroundTheme";
 import { FocusBackground } from "./focus-timer/backgrounds";
+import { FocusThemeProvider } from "./focus-timer/backgrounds/ThemeContext";
 import { ViewToggle } from "./focus-timer/ViewToggle";
 import { AmbientSoundPicker } from "./focus-timer/AmbientSoundPicker";
 import { TimerView } from "./focus-timer/TimerView";
@@ -61,76 +62,78 @@ export const UnifiedFocusTimer = () => {
   } = useTimerLogic();
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden">
-      <FocusBackground theme={backgroundTheme} />
+    <FocusThemeProvider theme={backgroundTheme}>
+      <div className="min-h-screen w-full relative overflow-hidden">
+        <FocusBackground theme={backgroundTheme} />
 
-      {/* Fixed top bar: ViewToggle + Ambient Sound — shared across views.
-          AmbientSoundPicker uses invisible (not unmounted) on stats view
-          so it still occupies space and the toggle doesn't shift horizontally. */}
-      <div className="relative z-10 flex items-center justify-center w-full gap-2 px-4 pt-safe pb-2">
-        <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
-        <div className={currentView === 'stats' ? 'invisible' : ''}>
-          <AmbientSoundPicker />
+        {/* Fixed top bar: ViewToggle + Ambient Sound — shared across views.
+            AmbientSoundPicker uses invisible (not unmounted) on stats view
+            so it still occupies space and the toggle doesn't shift horizontally. */}
+        <div className="relative z-10 flex items-center justify-center w-full gap-2 px-4 pt-safe pb-2">
+          <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
+          <div className={currentView === 'stats' ? 'invisible' : ''}>
+            <AmbientSoundPicker />
+          </div>
         </div>
+
+        {currentView === 'stats' ? (
+          <StatsView />
+        ) : (
+          <>
+            <TimerView
+              timerState={timerState}
+              displayTime={displayTime}
+              elapsedTime={elapsedTime}
+              selectedPreset={selectedPreset}
+              onStart={requestStartTimer}
+              onPause={pauseTimer}
+              onStop={stopTimer}
+              onSkip={skipTimer}
+              onToggleSound={toggleSound}
+              onSelectPreset={setPreset}
+              backgroundTheme={backgroundTheme}
+              currentLevel={currentLevel}
+              onThemeChange={changeBackgroundTheme}
+            />
+
+            <TimerModals
+              // Intention modal
+              showIntentionModal={showIntentionModal}
+              onCloseIntentionModal={() => setShowIntentionModal(false)}
+              onStartWithIntent={startTimerWithIntent}
+              selectedPreset={selectedPreset}
+              // Session notes modal
+              showSessionNotesModal={showSessionNotesModal}
+              onCloseSessionNotes={() => {
+                setShowSessionNotesModal(false);
+                setShowBreakTransitionModal(true);
+              }}
+              onSaveSessionNotes={handleSessionNotesSave}
+              sessionDuration={timerState.sessionDuration}
+              lastSessionXP={lastSessionXP}
+              taskLabel={timerState.taskLabel}
+              // Break transition modal
+              showBreakTransitionModal={showBreakTransitionModal}
+              onCloseBreakModal={handleSkipBreak}
+              onStartBreak={handleStartBreak}
+              onSkipBreak={handleSkipBreak}
+              completedSessions={timerState.completedSessions}
+              autoBreakEnabled={autoBreakEnabled}
+              onToggleAutoBreak={toggleAutoBreak}
+              // Focus lock screen
+              showLockScreen={showLockScreen}
+              timeRemaining={displayTime}
+              category={timerState.category}
+              lockScreenTaskLabel={timerState.taskLabel}
+              onReturnToApp={() => setShowLockScreen(false)}
+              onAbandonSession={() => {
+                setShowLockScreen(false);
+                stopTimer();
+              }}
+            />
+          </>
+        )}
       </div>
-
-      {currentView === 'stats' ? (
-        <StatsView />
-      ) : (
-        <>
-          <TimerView
-            timerState={timerState}
-            displayTime={displayTime}
-            elapsedTime={elapsedTime}
-            selectedPreset={selectedPreset}
-            onStart={requestStartTimer}
-            onPause={pauseTimer}
-            onStop={stopTimer}
-            onSkip={skipTimer}
-            onToggleSound={toggleSound}
-            onSelectPreset={setPreset}
-            backgroundTheme={backgroundTheme}
-            currentLevel={currentLevel}
-            onThemeChange={changeBackgroundTheme}
-          />
-
-          <TimerModals
-            // Intention modal
-            showIntentionModal={showIntentionModal}
-            onCloseIntentionModal={() => setShowIntentionModal(false)}
-            onStartWithIntent={startTimerWithIntent}
-            selectedPreset={selectedPreset}
-            // Session notes modal
-            showSessionNotesModal={showSessionNotesModal}
-            onCloseSessionNotes={() => {
-              setShowSessionNotesModal(false);
-              setShowBreakTransitionModal(true);
-            }}
-            onSaveSessionNotes={handleSessionNotesSave}
-            sessionDuration={timerState.sessionDuration}
-            lastSessionXP={lastSessionXP}
-            taskLabel={timerState.taskLabel}
-            // Break transition modal
-            showBreakTransitionModal={showBreakTransitionModal}
-            onCloseBreakModal={handleSkipBreak}
-            onStartBreak={handleStartBreak}
-            onSkipBreak={handleSkipBreak}
-            completedSessions={timerState.completedSessions}
-            autoBreakEnabled={autoBreakEnabled}
-            onToggleAutoBreak={toggleAutoBreak}
-            // Focus lock screen
-            showLockScreen={showLockScreen}
-            timeRemaining={displayTime}
-            category={timerState.category}
-            lockScreenTaskLabel={timerState.taskLabel}
-            onReturnToApp={() => setShowLockScreen(false)}
-            onAbandonSession={() => {
-              setShowLockScreen(false);
-              stopTimer();
-            }}
-          />
-        </>
-      )}
-    </div>
+    </FocusThemeProvider>
   );
 };
