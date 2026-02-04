@@ -114,39 +114,50 @@ export const useLuckyWheel = () => {
 
       setIsSpinning(true);
 
-      // Determine prize immediately but delay reveal for animation
-      const prize = spinWheel();
-      setCurrentPrize(prize);
+      try {
+        // Determine prize immediately but delay reveal for animation
+        const prize = spinWheel();
+        setCurrentPrize(prize);
 
-      // Simulate spin animation time (will be handled by component)
-      setTimeout(() => {
-        const now = new Date().toISOString();
-        const usedToday = getSpinsUsedToday();
+        // Simulate spin animation time (will be handled by component)
+        setTimeout(() => {
+          try {
+            const now = new Date().toISOString();
+            const usedToday = getSpinsUsedToday();
 
-        const newHistory: SpinResult[] = [
-          { prize, timestamp: now },
-          ...state.spinHistory.slice(0, MAX_HISTORY - 1),
-        ];
+            const newHistory: SpinResult[] = [
+              { prize, timestamp: now },
+              ...state.spinHistory.slice(0, MAX_HISTORY - 1),
+            ];
 
-        const coinPrizeTypes = ['coins', 'jackpot'];
-        const newState: LuckyWheelState = {
-          lastSpinDate: now,
-          spinsUsedToday: usedToday + 1,
-          totalSpins: state.totalSpins + 1,
-          jackpotsWon: prize.type === 'jackpot' ? state.jackpotsWon + 1 : state.jackpotsWon,
-          totalCoinsWon: coinPrizeTypes.includes(prize.type) ? state.totalCoinsWon + (prize.amount || 0) : state.totalCoinsWon,
-          totalXPWon: prize.type === 'xp' ? state.totalXPWon + (prize.amount || 0) : state.totalXPWon,
-          spinHistory: newHistory,
-        };
+            const coinPrizeTypes = ['coins', 'jackpot'];
+            const newState: LuckyWheelState = {
+              lastSpinDate: now,
+              spinsUsedToday: usedToday + 1,
+              totalSpins: state.totalSpins + 1,
+              jackpotsWon: prize.type === 'jackpot' ? state.jackpotsWon + 1 : state.jackpotsWon,
+              totalCoinsWon: coinPrizeTypes.includes(prize.type) ? state.totalCoinsWon + (prize.amount || 0) : state.totalCoinsWon,
+              totalXPWon: prize.type === 'xp' ? state.totalXPWon + (prize.amount || 0) : state.totalXPWon,
+              spinHistory: newHistory,
+            };
 
-        saveState(newState);
+            saveState(newState);
+
+            // Track wheel spin for achievements
+            dispatchAchievementEvent(ACHIEVEMENT_EVENTS.WHEEL_SPIN, {});
+
+            resolve(prize);
+          } catch (error) {
+            reject(error);
+          } finally {
+            setIsSpinning(false);
+          }
+        }, 100); // Small delay, actual animation handled in component
+      } catch (error) {
+        // If spinWheel() or setCurrentPrize throws before setTimeout is scheduled
         setIsSpinning(false);
-
-        // Track wheel spin for achievements
-        dispatchAchievementEvent(ACHIEVEMENT_EVENTS.WHEEL_SPIN, {});
-
-        resolve(prize);
-      }, 100); // Small delay, actual animation handled in component
+        reject(error);
+      }
     });
   }, [state, canSpinToday, isSpinning, saveState, getSpinsUsedToday]);
 

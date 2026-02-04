@@ -139,56 +139,64 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
   const handlePurchase = async (plan: SubscriptionPlan) => {
     setIsProcessing(true);
 
-    if (isNative) {
-      const result = await storeKit.purchaseProduct(plan.iapProductId);
-      setIsProcessing(false);
+    try {
+      if (isNative) {
+        const result = await storeKit.purchaseProduct(plan.iapProductId);
 
-      if (result.success) {
-        const bonusResult = grantBonusCoins(plan.id);
-        if (bonusResult.granted) {
-          toast.success(`Purchase successful! +${bonusResult.amount.toLocaleString()} bonus coins!`);
-        } else {
-          toast.success('Purchase successful!');
+        if (result.success) {
+          const bonusResult = grantBonusCoins(plan.id);
+          if (bonusResult.granted) {
+            toast.success(`Purchase successful! +${bonusResult.amount.toLocaleString()} bonus coins!`);
+          } else {
+            toast.success('Purchase successful!');
+          }
+          onClose();
+        } else if (!result.cancelled) {
+          toast.error(result.message || 'Purchase failed');
         }
-        onClose();
-      } else if (!result.cancelled) {
-        toast.error(result.message || 'Purchase failed');
-      }
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const result = purchaseSubscription(plan.id);
-      setIsProcessing(false);
-
-      if (result.success) {
-        const bonusResult = grantBonusCoins(plan.id);
-        if (bonusResult.granted) {
-          toast.success(`${result.message} +${bonusResult.amount.toLocaleString()} bonus coins!`);
-        } else {
-          toast.success(result.message);
-        }
-        onClose();
       } else {
-        toast.error(result.message);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const result = purchaseSubscription(plan.id);
+
+        if (result.success) {
+          const bonusResult = grantBonusCoins(plan.id);
+          if (bonusResult.granted) {
+            toast.success(`${result.message} +${bonusResult.amount.toLocaleString()} bonus coins!`);
+          } else {
+            toast.success(result.message);
+          }
+          onClose();
+        } else {
+          toast.error(result.message);
+        }
       }
+    } catch (error) {
+      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleRestore = async () => {
     setIsRestoring(true);
 
-    if (isNative) {
-      await storeKit.restorePurchases();
-      setIsRestoring(false);
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const result = restorePurchases();
-      setIsRestoring(false);
-
-      if (result.success) {
-        toast.success(result.message);
+    try {
+      if (isNative) {
+        await storeKit.restorePurchases();
       } else {
-        toast.info(result.message);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const result = restorePurchases();
+
+        if (result.success) {
+          toast.success(result.message);
+        } else {
+          toast.info(result.message);
+        }
       }
+    } catch (error) {
+      toast.error('Failed to restore purchases. Please try again.');
+    } finally {
+      setIsRestoring(false);
     }
   };
 

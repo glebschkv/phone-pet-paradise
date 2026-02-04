@@ -206,11 +206,23 @@ export const useSupabaseData = () => {
         setProgress(createDefaultProgress(user.id));
       }
       setPets(petsResult.data && petsResult.data.length > 0 ? petsResult.data : [createDefaultPet(user.id)]);
-      setIsLoading(false);
     } catch (error: unknown) {
       supabaseLogger.error('Error loading user data from Supabase:', error);
-      // Fall back to localStorage on error - loadGuestData manages its own loading state
-      loadGuestData();
+      // Fall back to localStorage on error
+      // Note: loadGuestData has its own try/finally, but we still need our finally
+      // to ensure isLoading is reset even if loadGuestData throws
+      try {
+        loadGuestData();
+        return; // loadGuestData handles its own loading state, exit early
+      } catch (guestError) {
+        supabaseLogger.error('Error falling back to guest data:', guestError);
+        // Both Supabase and guest data failed - set defaults directly
+        setProfile(createDefaultProfile(user.id));
+        setProgress(createDefaultProgress(user.id));
+        setPets([createDefaultPet(user.id)]);
+      }
+    } finally {
+      setIsLoading(false);
     }
   }, [user, loadGuestData]);
 

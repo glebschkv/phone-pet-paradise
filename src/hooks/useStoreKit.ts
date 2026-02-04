@@ -288,70 +288,79 @@ export const useStoreKit = (): UseStoreKitReturn => {
     setIsPurchasing(true);
     setError(null);
 
-    logger.debug('Starting purchase:', productId);
-    const { result, success } = await safeStoreKitCall(
-      () => StoreKit.purchase({ productId }),
-      failedResult,
-      'purchase'
-    );
+    try {
+      logger.debug('Starting purchase:', productId);
+      const { result, success } = await safeStoreKitCall(
+        () => StoreKit.purchase({ productId }),
+        failedResult,
+        'purchase'
+      );
 
-    if (!success) {
-      setIsPurchasing(false);
-      setError('Purchase failed. Please try again.');
-      toast.error('Purchase Failed', {
-        description: 'Unable to complete the purchase. Please try again.',
-      });
-      return result;
-    }
-
-    if (result.success) {
-      // SECURITY: Validate with server before granting access
-      const validationResult = await serverValidatePurchase(result);
-
-      if (validationResult.success) {
-        // Update local storage with server-validated subscription
-        if (validationResult.subscription) {
-          const premiumState = {
-            tier: validationResult.subscription.tier,
-            expiresAt: validationResult.subscription.expiresAt,
-            purchasedAt: validationResult.subscription.purchasedAt,
-            planId: validationResult.subscription.productId,
-            validated: true,
-            environment: validationResult.subscription.environment,
-          };
-          localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
-        }
-
-        toast.success('Purchase Successful!', {
-          description: 'Thank you for your purchase.',
+      if (!success) {
+        setError('Purchase failed. Please try again.');
+        toast.error('Purchase Failed', {
+          description: 'Unable to complete the purchase. Please try again.',
         });
-
-        // Refresh subscription status
-        await checkSubscriptionStatus();
-      } else if (validationResult.requiresRetry) {
-        // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
-        toast.error('Verification Pending', {
-          description: 'Unable to verify purchase. Please try restoring purchases or check your connection.',
-        });
-        // Don't grant access - user needs to restore purchases
-      } else {
-        // SECURITY: Validation failed definitively
-        toast.error('Verification Failed', {
-          description: 'Purchase could not be verified. Please contact support if this persists.',
-        });
-        // Don't grant access
+        return result;
       }
-    } else if (result.cancelled) {
-      // User cancelled - no toast needed
-      logger.debug('Purchase cancelled by user');
-    } else if (result.pending) {
-      toast.info('Purchase Pending', {
-        description: 'Your purchase is awaiting approval.',
-      });
-    }
 
-    setIsPurchasing(false);
-    return result;
+      if (result.success) {
+        // SECURITY: Validate with server before granting access
+        const validationResult = await serverValidatePurchase(result);
+
+        if (validationResult.success) {
+          // Update local storage with server-validated subscription
+          if (validationResult.subscription) {
+            const premiumState = {
+              tier: validationResult.subscription.tier,
+              expiresAt: validationResult.subscription.expiresAt,
+              purchasedAt: validationResult.subscription.purchasedAt,
+              planId: validationResult.subscription.productId,
+              validated: true,
+              environment: validationResult.subscription.environment,
+            };
+            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+          }
+
+          toast.success('Purchase Successful!', {
+            description: 'Thank you for your purchase.',
+          });
+
+          // Refresh subscription status
+          await checkSubscriptionStatus();
+        } else if (validationResult.requiresRetry) {
+          // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
+          toast.error('Verification Pending', {
+            description: 'Unable to verify purchase. Please try restoring purchases or check your connection.',
+          });
+          // Don't grant access - user needs to restore purchases
+        } else {
+          // SECURITY: Validation failed definitively
+          toast.error('Verification Failed', {
+            description: 'Purchase could not be verified. Please contact support if this persists.',
+          });
+          // Don't grant access
+        }
+      } else if (result.cancelled) {
+        // User cancelled - no toast needed
+        logger.debug('Purchase cancelled by user');
+      } else if (result.pending) {
+        toast.info('Purchase Pending', {
+          description: 'Your purchase is awaiting approval.',
+        });
+      }
+
+      return result;
+    } catch (error) {
+      logger.error('Unexpected error during purchase:', error);
+      setError('An unexpected error occurred. Please try again.');
+      toast.error('Purchase Error', {
+        description: 'An unexpected error occurred. Please try again.',
+      });
+      return failedResult;
+    } finally {
+      setIsPurchasing(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkSubscriptionStatus]);
 
@@ -367,71 +376,83 @@ export const useStoreKit = (): UseStoreKitReturn => {
     setIsLoading(true);
     setError(null);
 
-    logger.debug('Restoring purchases...');
-    const { result, success } = await safeStoreKitCall(
-      () => StoreKit.restorePurchases(),
-      { success: false, restoredCount: 0, purchases: [] },
-      'restorePurchases'
-    );
+    try {
+      logger.debug('Restoring purchases...');
+      const { result, success } = await safeStoreKitCall(
+        () => StoreKit.restorePurchases(),
+        { success: false, restoredCount: 0, purchases: [] },
+        'restorePurchases'
+      );
 
-    if (!success) {
-      setIsLoading(false);
-      setError('Failed to restore purchases. Please try again.');
-      toast.error('Restore Failed', {
-        description: 'Unable to restore purchases. Please try again.',
-      });
-      return false;
-    }
-
-    if (result.success && result.restoredCount > 0) {
-      // SECURITY: Validate each restored purchase with the server (fail-closed)
-      let validatedCount = 0;
-
-      for (const purchase of result.purchases) {
-        const validationResult = await serverValidatePurchase(purchase);
-        if (validationResult.success) {
-          // Update local storage with server-validated subscription
-          if (validationResult.subscription) {
-            const premiumState = {
-              tier: validationResult.subscription.tier,
-              expiresAt: validationResult.subscription.expiresAt,
-              purchasedAt: validationResult.subscription.purchasedAt,
-              planId: validationResult.subscription.productId,
-              validated: true,
-              environment: validationResult.subscription.environment,
-            };
-            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
-          }
-          validatedCount++;
-        } else {
-          // Log but don't track count since we show generic error anyway
-          logger.warn('Failed to validate restored purchase:', purchase.productId);
-        }
-      }
-
-      if (validatedCount > 0) {
-        toast.success('Purchases Restored!', {
-          description: `${validatedCount} purchase(s) restored successfully.`,
-        });
-
-        // Refresh subscription status
-        await checkSubscriptionStatus();
-        setIsLoading(false);
-        return true;
-      } else {
-        // SECURITY: No purchases could be validated - don't grant access
+      if (!success) {
+        setError('Failed to restore purchases. Please try again.');
         toast.error('Restore Failed', {
-          description: 'Unable to verify purchases. Please check your connection and try again.',
+          description: 'Unable to restore purchases. Please try again.',
         });
-        setIsLoading(false);
         return false;
       }
-    } else {
-      toast.info('No Purchases Found', {
-        description: 'No previous purchases were found to restore.',
+
+      if (result.success && result.restoredCount > 0) {
+        // SECURITY: Validate each restored purchase with the server (fail-closed)
+        let validatedCount = 0;
+
+        for (const purchase of result.purchases) {
+          try {
+            const validationResult = await serverValidatePurchase(purchase);
+            if (validationResult.success) {
+              // Update local storage with server-validated subscription
+              if (validationResult.subscription) {
+                const premiumState = {
+                  tier: validationResult.subscription.tier,
+                  expiresAt: validationResult.subscription.expiresAt,
+                  purchasedAt: validationResult.subscription.purchasedAt,
+                  planId: validationResult.subscription.productId,
+                  validated: true,
+                  environment: validationResult.subscription.environment,
+                };
+                localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+              }
+              validatedCount++;
+            } else {
+              // Log but don't track count since we show generic error anyway
+              logger.warn('Failed to validate restored purchase:', purchase.productId);
+            }
+          } catch (validationError) {
+            // Individual validation failure shouldn't stop the loop
+            logger.error('Error validating restored purchase:', purchase.productId, validationError);
+          }
+        }
+
+        if (validatedCount > 0) {
+          toast.success('Purchases Restored!', {
+            description: `${validatedCount} purchase(s) restored successfully.`,
+          });
+
+          // Refresh subscription status
+          await checkSubscriptionStatus();
+          return true;
+        } else {
+          // SECURITY: No purchases could be validated - don't grant access
+          toast.error('Restore Failed', {
+            description: 'Unable to verify purchases. Please check your connection and try again.',
+          });
+          return false;
+        }
+      } else {
+        toast.info('No Purchases Found', {
+          description: 'No previous purchases were found to restore.',
+        });
+        return false;
+      }
+    } catch (error) {
+      logger.error('Unexpected error during restore:', error);
+      setError('An unexpected error occurred. Please try again.');
+      toast.error('Restore Error', {
+        description: 'An unexpected error occurred. Please try again.',
       });
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkSubscriptionStatus]);
