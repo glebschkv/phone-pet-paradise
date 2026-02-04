@@ -127,6 +127,7 @@ const VALID_EARN_SOURCES = [
   'lucky_wheel',
   'referral',
   'admin_grant',
+  'iap_purchase', // In-app purchase (coin packs, bundles) - validated by StoreKit client-side
 ] as const;
 
 type EarnSource = typeof VALID_EARN_SOURCES[number];
