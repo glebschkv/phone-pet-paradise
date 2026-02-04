@@ -26,7 +26,12 @@ export const SettingsAccount = () => {
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
-    await signOut();
+    try {
+      await signOut();
+    } finally {
+      // Reset loading state in case signOut fails or component is still mounted
+      setIsSigningOut(false);
+    }
   };
 
   const handleSignIn = () => {
@@ -95,14 +100,17 @@ export const SettingsAccount = () => {
       toast.success('Account deleted successfully');
       setDeleteDialogOpen(false);
 
-      // Clear local storage and redirect
+      // Clear local storage and redirect with full page reload
+      // This ensures all state is properly reset after account deletion
       localStorage.clear();
       window.location.href = '/auth';
+      // Note: Don't reset isDeleting here - the page is reloading anyway
+      // and trying to update state during navigation can cause crashes
     } catch (error: unknown) {
       settingsLogger.error('Error deleting account:', error);
       const message = error instanceof Error ? error.message : 'Failed to delete account. Please try again.';
       toast.error(message);
-    } finally {
+      // Only reset loading state on error, not on success (page is reloading)
       setIsDeleting(false);
     }
   };

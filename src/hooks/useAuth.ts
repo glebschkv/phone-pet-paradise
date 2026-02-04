@@ -139,18 +139,21 @@ export const useAuth = () => {
       setGuestModeChosen(false);
       localStorage.removeItem(GUEST_ID_KEY);
 
-      // Reset state
+      // Reset state - this will trigger the auth state change
+      // which causes Index.tsx to navigate to /auth via React Router
       setSession(null);
       setUser(null);
       setIsGuestMode(false);
 
       toast.success('Signed out successfully');
 
-      // Redirect to auth page
-      window.location.href = '/auth';
+      // Note: Navigation is handled by Index.tsx useEffect when isAuthenticated becomes false
+      // This avoids race conditions between window.location.href and React Router navigate
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to sign out';
       toast.error(message);
+      // Re-throw so callers know sign out failed and can reset loading states
+      throw error;
     }
   };
 
