@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# MCP config (contains API keys)
+.mcp.json
+
 # Logs
 logs
 *.log
