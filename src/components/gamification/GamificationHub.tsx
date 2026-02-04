@@ -9,6 +9,9 @@ import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { useComboSystem } from '@/hooks/useComboSystem';
 import { useSpecialEvents } from '@/hooks/useSpecialEvents';
 import { useAchievementSystem } from '@/hooks/useAchievementSystem';
+import { useCoinBooster } from '@/hooks/useCoinBooster';
+import { useStreakStore } from '@/stores/streakStore';
+import { resolveMysteryBox } from '@/data/GamificationData';
 
 // Components
 import { BattlePassModal } from './BattlePassModal';
@@ -61,6 +64,8 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
     getTotalAchievementPoints,
     getCompletionPercentage
   } = useAchievementSystem();
+  const { activateBooster } = useCoinBooster();
+  const addStreakFreeze = useStreakStore((s) => s.addStreakFreeze);
 
   const battlePassProgress = getProgress();
   const activeChallenge = getActiveChallenge();
@@ -411,6 +416,25 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           }
           if (prize.type === 'coins' && prize.amount && onCoinReward) {
             onCoinReward(prize.amount);
+          }
+          if (prize.type === 'jackpot' && prize.amount && onCoinReward) {
+            onCoinReward(prize.amount);
+          }
+          if (prize.type === 'streak_freeze') {
+            addStreakFreeze(prize.amount || 1);
+          }
+          if (prize.type === 'booster') {
+            activateBooster('focus_boost');
+          }
+          if (prize.type === 'mystery_box') {
+            const resolved = resolveMysteryBox();
+            if (resolved.type === 'coins' && resolved.amount && onCoinReward) {
+              onCoinReward(resolved.amount);
+            } else if (resolved.type === 'xp' && resolved.amount && onXPReward) {
+              onXPReward(resolved.amount);
+            } else if (resolved.type === 'streak_freeze') {
+              addStreakFreeze(resolved.amount || 1);
+            }
           }
         }}
       />

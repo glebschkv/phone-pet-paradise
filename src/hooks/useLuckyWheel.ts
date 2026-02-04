@@ -128,12 +128,13 @@ export const useLuckyWheel = () => {
           ...state.spinHistory.slice(0, MAX_HISTORY - 1),
         ];
 
+        const coinPrizeTypes = ['coins', 'jackpot'];
         const newState: LuckyWheelState = {
           lastSpinDate: now,
           spinsUsedToday: usedToday + 1,
           totalSpins: state.totalSpins + 1,
           jackpotsWon: prize.type === 'jackpot' ? state.jackpotsWon + 1 : state.jackpotsWon,
-          totalCoinsWon: prize.type === 'coins' ? state.totalCoinsWon + (prize.amount || 0) : state.totalCoinsWon,
+          totalCoinsWon: coinPrizeTypes.includes(prize.type) ? state.totalCoinsWon + (prize.amount || 0) : state.totalCoinsWon,
           totalXPWon: prize.type === 'xp' ? state.totalXPWon + (prize.amount || 0) : state.totalXPWon,
           spinHistory: newHistory,
         };
