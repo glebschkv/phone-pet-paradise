@@ -2,6 +2,7 @@ import { Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TimerPreset, formatTime, MAX_COUNTUP_DURATION } from "./constants";
 import { ariaLabel, formatTimeForScreenReader } from "@/lib/accessibility";
+import { useThemeColors } from "./backgrounds/ThemeContext";
 
 interface TimerDisplayProps {
   preset: TimerPreset;
@@ -24,6 +25,9 @@ export const TimerDisplay = ({
   isCountup = false,
   elapsedTime = 0
 }: TimerDisplayProps) => {
+  // Get theme-aware colors
+  const { colors } = useThemeColors();
+
   // For countup mode, show elapsed time; for countdown, show remaining time
   const displayTime = isCountup ? elapsedTime : timeLeft;
 
@@ -41,12 +45,28 @@ export const TimerDisplay = ({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
+  // Generate unique gradient ID to avoid conflicts
+  const gradientId = `timerGradient-${colors.ringStart.replace(/[^a-zA-Z0-9]/g, '')}`;
+
   return (
     <div className="w-full max-w-sm mb-4" role="region" aria-label="Focus timer">
       {/* Glass-morphism header pill: preset info + sound toggle */}
-      <div className="timer-header-pill mb-4">
+      <div
+        className="timer-header-pill mb-4"
+        style={{
+          background: colors.glassBg,
+          borderColor: colors.glassBorder,
+        }}
+      >
         <div className="flex items-center gap-3">
-          <div className="timer-header-icon" aria-hidden="true">
+          <div
+            className="timer-header-icon"
+            aria-hidden="true"
+            style={{
+              background: `linear-gradient(180deg, ${colors.ringStart} 0%, ${colors.ringMid} 100%)`,
+              boxShadow: `0 2px 8px ${colors.glow}`,
+            }}
+          >
             <preset.icon className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -71,13 +91,22 @@ export const TimerDisplay = ({
 
       {/* Circular Timer Display with frosted glass backdrop */}
       <div className="flex flex-col items-center">
-        <div className="timer-ring-container">
+        <div
+          className="timer-ring-container"
+          style={{
+            background: colors.glassBg,
+            borderColor: colors.glassBorder,
+          }}
+        >
           <div className="relative" style={{ width: ringSize, height: ringSize }}>
             {/* SVG Progress Ring */}
             <svg
               width={ringSize}
               height={ringSize}
-              className="absolute inset-0 -rotate-90 timer-ring-glow"
+              className="absolute inset-0 -rotate-90"
+              style={{
+                filter: `drop-shadow(0 0 8px ${colors.glow})`,
+              }}
               role="progressbar"
               aria-valuenow={progressPercent}
               aria-valuemin={0}
@@ -93,13 +122,13 @@ export const TimerDisplay = ({
                 stroke="hsl(0 0% 100% / 0.08)"
                 strokeWidth={strokeWidth}
               />
-              {/* Progress fill */}
+              {/* Progress fill with theme-aware gradient */}
               <circle
                 cx={ringSize / 2}
                 cy={ringSize / 2}
                 r={radius}
                 fill="none"
-                stroke="url(#timerGradient)"
+                stroke={`url(#${gradientId})`}
                 strokeWidth={strokeWidth}
                 strokeLinecap="round"
                 strokeDasharray={circumference}
@@ -107,10 +136,10 @@ export const TimerDisplay = ({
                 style={{ transition: 'stroke-dashoffset 0.5s ease-out' }}
               />
               <defs>
-                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="hsl(260 65% 68%)" />
-                  <stop offset="50%" stopColor="hsl(280 55% 62%)" />
-                  <stop offset="100%" stopColor="hsl(200 55% 62%)" />
+                <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={colors.ringStart} />
+                  <stop offset="50%" stopColor={colors.ringMid} />
+                  <stop offset="100%" stopColor={colors.ringEnd} />
                 </linearGradient>
               </defs>
             </svg>
@@ -121,7 +150,7 @@ export const TimerDisplay = ({
                 className="text-5xl font-bold font-mono tracking-wider"
                 style={{
                   color: 'white',
-                  textShadow: '0 2px 0 hsl(260 40% 30% / 0.4), 0 4px 12px hsl(0 0% 0% / 0.25)'
+                  textShadow: `0 2px 0 ${colors.glow}, 0 4px 12px hsl(0 0% 0% / 0.25)`
                 }}
                 role="timer"
                 aria-live="polite"
@@ -130,10 +159,16 @@ export const TimerDisplay = ({
               >
                 {formatTime(displayTime)}
               </div>
-              <div className={cn(
-                "timer-status-badge",
-                isRunning && "active"
-              )} aria-live="polite">
+              <div
+                className={cn(
+                  "timer-status-badge",
+                  isRunning && "active"
+                )}
+                style={{
+                  ['--status-glow' as string]: colors.activeGlow,
+                }}
+                aria-live="polite"
+              >
                 {isRunning ? (isCountup ? 'Counting up...' : 'Focus time...') : 'Ready to focus'}
               </div>
             </div>
