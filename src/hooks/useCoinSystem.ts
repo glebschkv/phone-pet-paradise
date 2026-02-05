@@ -375,6 +375,30 @@ export const useCoinSystem = () => {
     };
   }, [storeAddCoins]);
 
+  // Listen for IAP coin grants (coin packs and bundles)
+  // Server has already added coins, so we just need to sync the local state
+  useEffect(() => {
+    const handleIAPCoins = (event: Event) => {
+      const customEvent = event as CustomEvent<{ coinsGranted: number }>;
+      const { coinsGranted } = customEvent.detail;
+      if (coinsGranted > 0) {
+        // Sync from server to get the updated balance
+        syncFromServer().then(() => {
+          coinLogger.debug('IAP coins synced from server', { coinsGranted });
+        }).catch((err) => {
+          // Fallback: optimistically add coins locally if sync fails
+          storeAddCoins(coinsGranted);
+          coinLogger.warn('IAP coins sync failed, added locally', { coinsGranted, err });
+        });
+      }
+    };
+
+    window.addEventListener('iap:coinsGranted', handleIAPCoins);
+    return () => {
+      window.removeEventListener('iap:coinsGranted', handleIAPCoins);
+    };
+  }, [syncFromServer, storeAddCoins]);
+
   // Helper to get subscription multiplier
   const getSubscriptionMultiplier = useCallback((): number => {
     const premiumData = localStorage.getItem('petIsland_premium');

@@ -59,16 +59,23 @@ export const FeaturedTab = ({
     try {
       const isStarterBundle = 'contents' in selectedBundle;
       const result = await storeKit.purchaseProduct(selectedBundle.iapProductId);
-      if (result.success) {
-        if (isStarterBundle) {
+
+      if (result.success && result.validationResult?.success) {
+        if (isStarterBundle && result.validationResult.bundle) {
+          // For bundles: grant non-coin contents (characters, boosters, streak freezes)
+          // Coins are already granted server-side and synced via event
           const grantResult = await purchaseStarterBundle(selectedBundle.id);
           toast.success(grantResult.message || `Successfully purchased ${selectedBundle.name}!`);
+        } else if (result.validationResult.coinPack) {
+          // For coin packs: coins are already granted server-side and synced via event
+          const coinsGranted = result.validationResult.coinPack.coinsGranted;
+          toast.success(`${coinsGranted.toLocaleString()} coins added to your balance!`);
         } else {
           toast.success(`Successfully purchased ${selectedBundle.name}!`);
         }
         setShowBundleConfirm(false);
       } else if (result.cancelled) {
-        // User cancelled
+        // User cancelled - no action needed
       } else {
         toast.error(result.message || "Purchase failed");
       }
