@@ -7,7 +7,6 @@ import { AnimalData } from "@/data/AnimalDatabase";
 import { toast } from "sonner";
 import type { ShopCategory } from "@/data/ShopData";
 import { useStoreKit } from "@/hooks/useStoreKit";
-import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { BundleConfirmDialog } from "../BundleConfirmDialog";
 
 interface PowerUpsTabProps {
@@ -33,7 +32,6 @@ export const PowerUpsTab = ({
   const utilities = items.filter(i => i.id.includes('streak'));
   const coins = COIN_PACKS;
   const storeKit = useStoreKit();
-  const coinSystem = useCoinSystem();
 
   // State for coin pack confirmation dialog
   const [selectedPack, setSelectedPack] = useState<CoinPack | null>(null);
@@ -49,11 +47,12 @@ export const PowerUpsTab = ({
     setIsPurchasing(true);
     try {
       const result = await storeKit.purchaseProduct(selectedPack.iapProductId);
-      if (result.success) {
-        // Credit purchased coins to user's balance
-        const totalCoins = selectedPack.coinAmount + (selectedPack.bonusCoins || 0);
-        coinSystem.addCoins(totalCoins, 'iap_purchase');
-        toast.success(`Successfully purchased ${selectedPack.name}! +${totalCoins.toLocaleString()} coins`);
+      if (result.success && result.validationResult?.success) {
+        // Coins are granted server-side and synced via iap:coinsGranted event
+        // Just show success toast with the amount from server
+        const coinsGranted = result.validationResult.coinPack?.coinsGranted ||
+          (selectedPack.coinAmount + (selectedPack.bonusCoins || 0));
+        toast.success(`Successfully purchased ${selectedPack.name}! +${coinsGranted.toLocaleString()} coins`);
         setShowPackConfirm(false);
       } else if (result.cancelled) {
         // User cancelled - no toast needed

@@ -112,13 +112,61 @@ at+qIxUCMG1mihDK1A3UT82NQz60imOlM27jbdoXt2QfyFMm+YhidDkLF1vLUagM
 -----END CERTIFICATE-----`;
 
 // Subscription tier mapping
-const PRODUCT_TIERS: Record<string, { tier: 'premium' | 'premium_plus'; period: 'monthly' | 'yearly' | 'lifetime' }> = {
+const SUBSCRIPTION_PRODUCTS: Record<string, { tier: 'premium' | 'premium_plus'; period: 'monthly' | 'yearly' | 'lifetime' }> = {
   'co.nomoinc.nomo.premium.monthly': { tier: 'premium', period: 'monthly' },
   'co.nomoinc.nomo.premium.yearly': { tier: 'premium', period: 'yearly' },
   'co.nomoinc.nomo.premiumplus.monthly': { tier: 'premium_plus', period: 'monthly' },
   'co.nomoinc.nomo.premiumplus.yearly': { tier: 'premium_plus', period: 'yearly' },
   'co.nomoinc.nomo.lifetime': { tier: 'premium_plus', period: 'lifetime' },
 };
+
+// Coin pack definitions (consumables)
+const COIN_PACK_PRODUCTS: Record<string, { coins: number; bonusCoins: number }> = {
+  'co.nomoinc.nomo.coins.value': { coins: 1500, bonusCoins: 300 },
+  'co.nomoinc.nomo.coins.premium': { coins: 5000, bonusCoins: 1000 },
+  'co.nomoinc.nomo.coins.mega': { coins: 15000, bonusCoins: 5000 },
+  'co.nomoinc.nomo.coins.ultra': { coins: 40000, bonusCoins: 20000 },
+  'co.nomoinc.nomo.coins.legendary': { coins: 100000, bonusCoins: 50000 },
+};
+
+// Starter bundle definitions (non-consumables)
+const STARTER_BUNDLE_PRODUCTS: Record<string, {
+  coins: number;
+  boosterId?: string;
+  characterId?: string;
+  streakFreezes?: number;
+}> = {
+  'co.nomoinc.nomo.bundle.welcome': {
+    coins: 600,
+    boosterId: 'focus_boost',
+    streakFreezes: 2
+  },
+  'co.nomoinc.nomo.bundle.starter': {
+    coins: 1000,
+    boosterId: 'focus_boost',
+    characterId: 'clover-cat'
+  },
+  'co.nomoinc.nomo.bundle.collector': {
+    coins: 5000,
+    boosterId: 'super_boost',
+    characterId: 'kitsune-spirit'
+  },
+  'co.nomoinc.nomo.bundle.ultimate': {
+    coins: 12000,
+    boosterId: 'super_boost',
+    characterId: 'storm-spirit',
+    streakFreezes: 5
+  },
+};
+
+type ProductType = 'subscription' | 'coin_pack' | 'starter_bundle';
+
+function getProductType(productId: string): ProductType | null {
+  if (SUBSCRIPTION_PRODUCTS[productId]) return 'subscription';
+  if (COIN_PACK_PRODUCTS[productId]) return 'coin_pack';
+  if (STARTER_BUNDLE_PRODUCTS[productId]) return 'starter_bundle';
+  return null;
+}
 
 // Expected bundle ID
 const EXPECTED_BUNDLE_ID = 'co.nomoinc.nomo';
@@ -330,9 +378,9 @@ serve(async (req) => {
 
     // SECURITY: Don't log user IDs or product details to prevent information disclosure
 
-    // Get product tier info
-    const productInfo = PRODUCT_TIERS[productId];
-    if (!productInfo) {
+    // Determine product type
+    const productType = getProductType(productId);
+    if (!productType) {
       throw new Error(`Unknown product ID: ${productId}`);
     }
 
@@ -362,100 +410,270 @@ serve(async (req) => {
       throw new Error('Transaction has been revoked');
     }
 
-    // Calculate expiration date
-    let expiresAt: Date | null = null;
-    if (transactionPayload.expiresDate) {
-      expiresAt = new Date(transactionPayload.expiresDate);
-    } else if (productInfo.period !== 'lifetime') {
-      expiresAt = calculateExpirationDate(transactionPayload.purchaseDate, productInfo.period);
-    }
+    const now = new Date();
 
-    // Check for existing subscription with same transaction ID (prevent duplicate processing)
-    const { data: existingSubscription } = await supabaseAdmin
-      .from('user_subscriptions')
-      .select('id, is_active')
-      .eq('transaction_id', transactionPayload.transactionId)
-      .single();
+    // ═══════════════════════════════════════════════════════════════════════════
+    // HANDLE SUBSCRIPTIONS (Auto-Renewable and Lifetime)
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (productType === 'subscription') {
+      const productInfo = SUBSCRIPTION_PRODUCTS[productId];
 
-    if (existingSubscription) {
-      // Transaction already processed - return cached result
+      // Calculate expiration date
+      let expiresAt: Date | null = null;
+      if (transactionPayload.expiresDate) {
+        expiresAt = new Date(transactionPayload.expiresDate);
+      } else if (productInfo.period !== 'lifetime') {
+        expiresAt = calculateExpirationDate(transactionPayload.purchaseDate, productInfo.period);
+      }
+
+      // Check for existing subscription with same transaction ID (prevent duplicate processing)
+      const { data: existingSubscription } = await supabaseAdmin
+        .from('user_subscriptions')
+        .select('id, is_active')
+        .eq('transaction_id', transactionPayload.transactionId)
+        .single();
+
+      if (existingSubscription) {
+        // Transaction already processed - return cached result
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Transaction already processed',
+          subscription: {
+            tier: productInfo.tier,
+            expiresAt: expiresAt?.toISOString() || null,
+            productId,
+            isActive: existingSubscription.is_active,
+          }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Deactivate any existing active subscriptions for this user
+      // (unless this is a renewal for the same original transaction)
+      const { error: deactivateError } = await supabaseAdmin
+        .from('user_subscriptions')
+        .update({ is_active: false, updated_at: now.toISOString() })
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .neq('original_transaction_id', transactionPayload.originalTransactionId);
+
+      if (deactivateError) {
+        console.warn('Error deactivating old subscriptions:', deactivateError);
+      }
+
+      // Insert new subscription record
+      const subscriptionRecord: Omit<SubscriptionRecord, 'id'> = {
+        user_id: user.id,
+        product_id: transactionPayload.productId,
+        transaction_id: transactionPayload.transactionId,
+        original_transaction_id: transactionPayload.originalTransactionId,
+        tier: productInfo.tier,
+        period: productInfo.period,
+        purchase_date: new Date(transactionPayload.purchaseDate).toISOString(),
+        expires_at: expiresAt?.toISOString() || null,
+        is_active: true,
+        platform,
+        environment: transactionPayload.environment.toLowerCase(),
+        receipt_data: null,
+        signed_transaction: signedTransaction,
+        validated_at: now.toISOString(),
+      };
+
+      const { error: insertError } = await supabaseAdmin
+        .from('user_subscriptions')
+        .insert(subscriptionRecord);
+
+      // SECURITY: Fail closed - if we can't persist the subscription, the validation fails
+      if (insertError) {
+        console.error('Error storing subscription record:', insertError);
+        throw new Error('Failed to record subscription. Please try again or restore purchases.');
+      }
+
       return new Response(JSON.stringify({
         success: true,
-        message: 'Transaction already processed',
+        message: 'Receipt validated successfully',
+        productType: 'subscription',
         subscription: {
           tier: productInfo.tier,
+          period: productInfo.period,
           expiresAt: expiresAt?.toISOString() || null,
-          productId,
-          isActive: existingSubscription.is_active,
+          productId: transactionPayload.productId,
+          transactionId: transactionPayload.transactionId,
+          purchasedAt: new Date(transactionPayload.purchaseDate).toISOString(),
+          environment: transactionPayload.environment.toLowerCase(),
+          isLifetime: productInfo.period === 'lifetime',
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Deactivate any existing active subscriptions for this user
-    // (unless this is a renewal for the same original transaction)
-    const { error: deactivateError } = await supabaseAdmin
-      .from('user_subscriptions')
-      .update({ is_active: false, updated_at: new Date().toISOString() })
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .neq('original_transaction_id', transactionPayload.originalTransactionId);
+    // ═══════════════════════════════════════════════════════════════════════════
+    // HANDLE COIN PACKS (Consumables)
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (productType === 'coin_pack') {
+      const packInfo = COIN_PACK_PRODUCTS[productId];
+      const totalCoins = packInfo.coins + packInfo.bonusCoins;
 
-    if (deactivateError) {
-      console.warn('Error deactivating old subscriptions:', deactivateError);
-    }
+      // Check for existing transaction (prevent duplicate processing)
+      const { data: existingPurchase } = await supabaseAdmin
+        .from('user_purchases')
+        .select('id')
+        .eq('transaction_id', transactionPayload.transactionId)
+        .single();
 
-    // Insert new subscription record
-    const now = new Date();
-    const subscriptionRecord: Omit<SubscriptionRecord, 'id'> = {
-      user_id: user.id,
-      product_id: transactionPayload.productId,
-      transaction_id: transactionPayload.transactionId,
-      original_transaction_id: transactionPayload.originalTransactionId,
-      tier: productInfo.tier,
-      period: productInfo.period,
-      purchase_date: new Date(transactionPayload.purchaseDate).toISOString(),
-      expires_at: expiresAt?.toISOString() || null,
-      is_active: true,
-      platform,
-      environment: transactionPayload.environment.toLowerCase(),
-      receipt_data: null,
-      signed_transaction: signedTransaction,
-      validated_at: now.toISOString(),
-    };
-
-    const { error: insertError } = await supabaseAdmin
-      .from('user_subscriptions')
-      .insert(subscriptionRecord);
-
-    // SECURITY: Fail closed - if we can't persist the subscription, the validation fails
-    // The client should retry or restore purchases. Never grant premium without persistence.
-    if (insertError) {
-      console.error('Error storing subscription record:', insertError);
-      // SECURITY: Critical - we must fail if we can't store the subscription
-      // Otherwise, premium status is granted without audit trail
-      throw new Error('Failed to record subscription. Please try again or restore purchases.');
-    }
-
-    // Subscription validated and persisted successfully
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Receipt validated successfully',
-      subscription: {
-        tier: productInfo.tier,
-        period: productInfo.period,
-        expiresAt: expiresAt?.toISOString() || null,
-        productId: transactionPayload.productId,
-        transactionId: transactionPayload.transactionId,
-        purchasedAt: new Date(transactionPayload.purchaseDate).toISOString(),
-        environment: transactionPayload.environment.toLowerCase(),
-        isLifetime: productInfo.period === 'lifetime',
+      if (existingPurchase) {
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Transaction already processed',
+          productType: 'coin_pack',
+          coinPack: {
+            productId,
+            coinsGranted: totalCoins,
+            alreadyProcessed: true,
+          }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+
+      // Add coins to user's balance
+      const { error: coinError } = await supabaseAdmin.rpc('add_user_coins', {
+        p_user_id: user.id,
+        p_amount: totalCoins,
+        p_source: 'iap_coin_pack',
+        p_reference_id: transactionPayload.transactionId,
+      });
+
+      if (coinError) {
+        console.error('Error adding coins:', coinError);
+        throw new Error('Failed to grant coins. Please contact support.');
+      }
+
+      // Record the purchase for audit trail
+      const { error: purchaseError } = await supabaseAdmin
+        .from('user_purchases')
+        .insert({
+          user_id: user.id,
+          product_id: productId,
+          transaction_id: transactionPayload.transactionId,
+          original_transaction_id: transactionPayload.originalTransactionId,
+          product_type: 'coin_pack',
+          coins_granted: totalCoins,
+          purchase_date: new Date(transactionPayload.purchaseDate).toISOString(),
+          platform,
+          environment: transactionPayload.environment.toLowerCase(),
+          signed_transaction: signedTransaction,
+          validated_at: now.toISOString(),
+        });
+
+      if (purchaseError) {
+        console.warn('Error recording purchase (coins already granted):', purchaseError);
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Coin pack validated and granted',
+        productType: 'coin_pack',
+        coinPack: {
+          productId,
+          coinsGranted: totalCoins,
+          transactionId: transactionPayload.transactionId,
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // HANDLE STARTER BUNDLES (Non-Consumables)
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (productType === 'starter_bundle') {
+      const bundleInfo = STARTER_BUNDLE_PRODUCTS[productId];
+
+      // Check if bundle already purchased (non-consumable - one time only)
+      const { data: existingPurchase } = await supabaseAdmin
+        .from('user_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('product_id', productId)
+        .eq('product_type', 'starter_bundle')
+        .single();
+
+      if (existingPurchase) {
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Bundle already owned',
+          productType: 'starter_bundle',
+          bundle: {
+            productId,
+            alreadyOwned: true,
+          }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Grant coins
+      if (bundleInfo.coins > 0) {
+        const { error: coinError } = await supabaseAdmin.rpc('add_user_coins', {
+          p_user_id: user.id,
+          p_amount: bundleInfo.coins,
+          p_source: 'iap_starter_bundle',
+          p_reference_id: transactionPayload.transactionId,
+        });
+
+        if (coinError) {
+          console.error('Error adding bundle coins:', coinError);
+          throw new Error('Failed to grant bundle coins. Please contact support.');
+        }
+      }
+
+      // Record the purchase
+      const { error: purchaseError } = await supabaseAdmin
+        .from('user_purchases')
+        .insert({
+          user_id: user.id,
+          product_id: productId,
+          transaction_id: transactionPayload.transactionId,
+          original_transaction_id: transactionPayload.originalTransactionId,
+          product_type: 'starter_bundle',
+          coins_granted: bundleInfo.coins,
+          character_id: bundleInfo.characterId || null,
+          booster_id: bundleInfo.boosterId || null,
+          streak_freezes_granted: bundleInfo.streakFreezes || 0,
+          purchase_date: new Date(transactionPayload.purchaseDate).toISOString(),
+          platform,
+          environment: transactionPayload.environment.toLowerCase(),
+          signed_transaction: signedTransaction,
+          validated_at: now.toISOString(),
+        });
+
+      if (purchaseError) {
+        console.error('Error recording bundle purchase:', purchaseError);
+        // Don't fail - coins already granted, client will handle other grants
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Bundle validated and coins granted',
+        productType: 'starter_bundle',
+        bundle: {
+          productId,
+          coinsGranted: bundleInfo.coins,
+          characterId: bundleInfo.characterId,
+          boosterId: bundleInfo.boosterId,
+          streakFreezes: bundleInfo.streakFreezes || 0,
+          transactionId: transactionPayload.transactionId,
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Should never reach here
+    throw new Error(`Unhandled product type: ${productType}`);
 
   } catch (error) {
     console.error('Receipt validation error:', error);

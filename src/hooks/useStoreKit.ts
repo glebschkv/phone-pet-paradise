@@ -41,6 +41,34 @@ interface SubscriptionValidationResult {
   environment?: string;
 }
 
+interface CoinPackValidationResult {
+  productId: string;
+  coinsGranted: number;
+  transactionId?: string;
+  alreadyProcessed?: boolean;
+}
+
+interface BundleValidationResult {
+  productId: string;
+  coinsGranted: number;
+  characterId?: string;
+  boosterId?: string;
+  streakFreezes: number;
+  transactionId?: string;
+  alreadyOwned?: boolean;
+}
+
+type ProductType = 'subscription' | 'coin_pack' | 'starter_bundle';
+
+interface ServerValidationResponse {
+  success: boolean;
+  productType?: ProductType;
+  subscription?: SubscriptionValidationResult;
+  coinPack?: CoinPackValidationResult;
+  bundle?: BundleValidationResult;
+  requiresRetry?: boolean;
+}
+
 /**
  * SECURITY: Server-side purchase validation
  *
@@ -50,7 +78,7 @@ interface SubscriptionValidationResult {
  */
 async function serverValidatePurchase(
   purchase: PurchaseResult | RestoredPurchase
-): Promise<{ success: boolean; subscription?: SubscriptionValidationResult; requiresRetry?: boolean }> {
+): Promise<ServerValidationResponse> {
   try {
     // SECURITY: Require authentication for validation
     const { data: { session } } = await supabase.auth.getSession();
@@ -89,8 +117,14 @@ async function serverValidatePurchase(
     }
 
     if (data?.success) {
-      logger.debug('Server validation successful:', data.subscription);
-      return { success: true, subscription: data.subscription };
+      logger.debug('Server validation successful:', data);
+      return {
+        success: true,
+        productType: data.productType,
+        subscription: data.subscription,
+        coinPack: data.coinPack,
+        bundle: data.bundle,
+      };
     } else {
       logger.error('Server validation failed:', data?.error);
       return { success: false };
@@ -111,18 +145,41 @@ const ALL_PRODUCT_IDS = [
   'co.nomoinc.nomo.premiumplus.monthly',
   'co.nomoinc.nomo.premiumplus.yearly',
   'co.nomoinc.nomo.lifetime',
-  // Consumables
-  'co.nomoinc.nomo.coins.starter',
+  // Coin Packs (Consumables)
   'co.nomoinc.nomo.coins.value',
   'co.nomoinc.nomo.coins.premium',
   'co.nomoinc.nomo.coins.mega',
   'co.nomoinc.nomo.coins.ultra',
-  // Bundles
+  'co.nomoinc.nomo.coins.legendary',
+  // Starter Bundles (Non-Consumables)
   'co.nomoinc.nomo.bundle.welcome',
   'co.nomoinc.nomo.bundle.starter',
   'co.nomoinc.nomo.bundle.collector',
   'co.nomoinc.nomo.bundle.ultimate',
 ];
+
+// Custom events for IAP fulfillment
+export const IAP_EVENTS = {
+  COINS_GRANTED: 'iap:coinsGranted',
+  BUNDLE_GRANTED: 'iap:bundleGranted',
+} as const;
+
+export function dispatchCoinsGranted(coinsGranted: number) {
+  window.dispatchEvent(new CustomEvent(IAP_EVENTS.COINS_GRANTED, {
+    detail: { coinsGranted }
+  }));
+}
+
+export function dispatchBundleGranted(bundle: BundleValidationResult) {
+  window.dispatchEvent(new CustomEvent(IAP_EVENTS.BUNDLE_GRANTED, {
+    detail: bundle
+  }));
+}
+
+// Extended purchase result that includes server validation data
+export interface ExtendedPurchaseResult extends PurchaseResult {
+  validationResult?: ServerValidationResponse;
+}
 
 interface UseStoreKitReturn {
   products: StoreKitProduct[];
@@ -133,7 +190,7 @@ interface UseStoreKitReturn {
   pluginAvailable: boolean;
   pluginError: Error | null;
   loadProducts: () => Promise<void>;
-  purchaseProduct: (productId: string) => Promise<PurchaseResult>;
+  purchaseProduct: (productId: string) => Promise<ExtendedPurchaseResult>;
   restorePurchases: () => Promise<boolean>;
   checkSubscriptionStatus: () => Promise<void>;
   manageSubscriptions: () => Promise<void>;
@@ -272,8 +329,8 @@ export const useStoreKit = (): UseStoreKitReturn => {
   }, []);
 
   // Purchase a product
-  const purchaseProduct = useCallback(async (productId: string): Promise<PurchaseResult> => {
-    const failedResult: PurchaseResult = {
+  const purchaseProduct = useCallback(async (productId: string): Promise<ExtendedPurchaseResult> => {
+    const failedResult: ExtendedPurchaseResult = {
       success: false,
       message: 'Purchase failed',
     };
@@ -309,8 +366,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
       const validationResult = await serverValidatePurchase(result);
 
       if (validationResult.success) {
-        // Update local storage with server-validated subscription
-        if (validationResult.subscription) {
+        // Handle different product types
+        if (validationResult.productType === 'subscription' && validationResult.subscription) {
+          // Update local storage with server-validated subscription
           const premiumState = {
             tier: validationResult.subscription.tier,
             expiresAt: validationResult.subscription.expiresAt,
@@ -320,14 +378,22 @@ export const useStoreKit = (): UseStoreKitReturn => {
             environment: validationResult.subscription.environment,
           };
           localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+          // Refresh subscription status
+          await checkSubscriptionStatus();
+        } else if (validationResult.productType === 'coin_pack' && validationResult.coinPack) {
+          // Dispatch event for coin balance refresh
+          dispatchCoinsGranted(validationResult.coinPack.coinsGranted);
+          logger.debug('Coins granted:', validationResult.coinPack.coinsGranted);
+        } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
+          // Dispatch event for bundle fulfillment (coins already granted server-side)
+          dispatchCoinsGranted(validationResult.bundle.coinsGranted);
+          dispatchBundleGranted(validationResult.bundle);
+          logger.debug('Bundle granted:', validationResult.bundle);
         }
 
-        toast.success('Purchase Successful!', {
-          description: 'Thank you for your purchase.',
-        });
-
-        // Refresh subscription status
-        await checkSubscriptionStatus();
+        // Return success with validation data for caller to use
+        setIsPurchasing(false);
+        return { ...result, validationResult };
       } else if (validationResult.requiresRetry) {
         // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
         toast.error('Verification Pending', {
@@ -390,8 +456,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
       for (const purchase of result.purchases) {
         const validationResult = await serverValidatePurchase(purchase);
         if (validationResult.success) {
-          // Update local storage with server-validated subscription
-          if (validationResult.subscription) {
+          // Handle different product types
+          if (validationResult.productType === 'subscription' && validationResult.subscription) {
+            // Update local storage with server-validated subscription
             const premiumState = {
               tier: validationResult.subscription.tier,
               expiresAt: validationResult.subscription.expiresAt,
@@ -401,7 +468,17 @@ export const useStoreKit = (): UseStoreKitReturn => {
               environment: validationResult.subscription.environment,
             };
             localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+          } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
+            // For bundles: coins were already granted when originally purchased
+            // Just restore the non-coin contents (characters, boosters, streak freezes)
+            // Only if not already owned (server returns alreadyOwned flag)
+            if (!validationResult.bundle.alreadyOwned) {
+              dispatchBundleGranted(validationResult.bundle);
+              // Also sync coins in case server-side balance changed
+              dispatchCoinsGranted(validationResult.bundle.coinsGranted);
+            }
           }
+          // Note: coin packs are consumable and NOT restored (they were already used)
           validatedCount++;
         } else {
           // Log but don't track count since we show generic error anyway

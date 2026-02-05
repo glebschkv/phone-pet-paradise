@@ -15,6 +15,7 @@ import {
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { useShopStore } from '@/stores';
+import { IAP_EVENTS } from './useStoreKit';
 
 export interface PurchaseResult {
   success: boolean;
@@ -110,6 +111,43 @@ export const useShop = () => {
       });
     }
   }, [ownedCharacters.length, ownedBackgrounds.length]);
+
+  // Listen for IAP bundle grants to fulfill non-coin contents
+  useEffect(() => {
+    const handleBundleGranted = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        characterId?: string;
+        boosterId?: string;
+        streakFreezes: number;
+      }>;
+      const { characterId, boosterId, streakFreezes } = customEvent.detail;
+
+      // Grant character if included
+      if (characterId) {
+        const animal = getAnimalById(characterId);
+        if (animal && !ownedCharacters.includes(characterId)) {
+          addOwnedCharacter(characterId);
+        }
+      }
+
+      // Activate booster if included (and no active booster)
+      if (boosterId && !boosterSystem.isBoosterActive()) {
+        boosterSystem.activateBooster(boosterId);
+      }
+
+      // Grant streak freezes if included
+      if (streakFreezes && streakFreezes > 0) {
+        for (let i = 0; i < streakFreezes; i++) {
+          streakSystem.earnStreakFreeze();
+        }
+      }
+    };
+
+    window.addEventListener(IAP_EVENTS.BUNDLE_GRANTED, handleBundleGranted);
+    return () => {
+      window.removeEventListener(IAP_EVENTS.BUNDLE_GRANTED, handleBundleGranted);
+    };
+  }, [ownedCharacters, addOwnedCharacter, boosterSystem, streakSystem]);
 
   // Check if item is owned
   const isOwned = useCallback((itemId: string, category: ShopCategory): boolean => {
