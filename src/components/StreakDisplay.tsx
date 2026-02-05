@@ -5,9 +5,10 @@ import {
   Trophy
 } from 'lucide-react';
 import { useAppStateTracking } from '@/hooks/useAppStateTracking';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 export const StreakDisplay = () => {
-  const { streakData, getNextMilestone, getStreakEmoji } = useAppStateTracking();
+  const { streakData, getNextMilestone, getStreakIcon } = useAppStateTracking();
 
   const nextMilestone = getNextMilestone();
   const progressToNext = nextMilestone
@@ -35,7 +36,7 @@ export const StreakDisplay = () => {
             <span style={{ fontSize: 14, fontWeight: 700, color: 'hsl(30 50% 25%)' }}>Focus Streak</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-2xl">{getStreakEmoji(streakData.currentStreak)}</span>
+            <PixelIcon name={getStreakIcon(streakData.currentStreak)} size={28} />
             <div
               className="retro-level-badge px-3 py-1 text-lg"
               style={hasActiveStreak ? { boxShadow: '0 2px 0 hsl(30 70% 30%), 0 0 10px hsl(25 100% 50% / 0.3)' } : undefined}

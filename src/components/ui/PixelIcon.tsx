@@ -62,6 +62,10 @@ const ICON_NAMES = new Set([
   'clover-cat', 'kitsune-spirit', 'storm-spirit',
   // Premium/Founder
   'founder-badge',
+  // Mood rating icons
+  'mood-exhausted', 'mood-neutral', 'mood-content', 'mood-happy', 'mood-fire',
+  // Avatar animals
+  'koala',
 ]);
 
 interface PixelIconProps {
