@@ -56,7 +56,7 @@ export interface StreakSystemReturn {
   earnStreakFreeze: (amount?: number) => void | Promise<void>;
   addStreakFreezes?: (amount: number) => void;
   getNextMilestone: () => StreakReward | null;
-  getStreakEmoji: (streak: number) => string;
+  getStreakIcon: (streak: number) => string;
   resetStreak: () => void | Promise<void>;
   streakRewards: StreakReward[];
   isLoading?: boolean;

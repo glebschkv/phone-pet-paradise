@@ -179,14 +179,14 @@ export const useBackendStreaks = () => {
     return STREAK_REWARDS.find(r => r.milestone > streakData.currentStreak) || null;
   }, [streakData.currentStreak]);
 
-  const getStreakEmoji = useCallback((streak: number): string => {
-    if (streak >= 100) return '🏆';
-    if (streak >= 50) return '⭐';
-    if (streak >= 30) return '🔥';
-    if (streak >= 14) return '💪';
-    if (streak >= 7) return '🎯';
-    if (streak >= 3) return '✨';
-    return '🌱';
+  const getStreakIcon = useCallback((streak: number): string => {
+    if (streak >= 100) return 'trophy';
+    if (streak >= 50) return 'star';
+    if (streak >= 30) return 'fire';
+    if (streak >= 14) return 'muscle';
+    if (streak >= 7) return 'target';
+    if (streak >= 3) return 'sparkles';
+    return 'sprout';
   }, []);
 
   const resetStreak = useCallback(async () => {
@@ -222,7 +222,7 @@ export const useBackendStreaks = () => {
     useStreakFreeze,
     earnStreakFreeze,
     getNextMilestone,
-    getStreakEmoji,
+    getStreakIcon,
     resetStreak,
     streakRewards: STREAK_REWARDS,
     isLoading: !progress && isAuthenticated,

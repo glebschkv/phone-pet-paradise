@@ -429,16 +429,16 @@ describe('useStreakSystem', () => {
       expect(nextMilestone).toBeNull();
     });
 
-    it('should return correct emoji for streak levels', () => {
+    it('should return correct icon for streak levels', () => {
       const { result } = renderHook(() => useStreakSystem());
 
-      expect(result.current.getStreakEmoji(0)).toBe('🌱');
-      expect(result.current.getStreakEmoji(3)).toBe('✨');
-      expect(result.current.getStreakEmoji(7)).toBe('🎯');
-      expect(result.current.getStreakEmoji(14)).toBe('💪');
-      expect(result.current.getStreakEmoji(30)).toBe('🔥');
-      expect(result.current.getStreakEmoji(50)).toBe('⭐');
-      expect(result.current.getStreakEmoji(100)).toBe('🏆');
+      expect(result.current.getStreakIcon(0)).toBe('sprout');
+      expect(result.current.getStreakIcon(3)).toBe('sparkles');
+      expect(result.current.getStreakIcon(7)).toBe('target');
+      expect(result.current.getStreakIcon(14)).toBe('muscle');
+      expect(result.current.getStreakIcon(30)).toBe('fire');
+      expect(result.current.getStreakIcon(50)).toBe('star');
+      expect(result.current.getStreakIcon(100)).toBe('trophy');
     });
   });
 

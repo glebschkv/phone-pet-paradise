@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Heart, Clock, Trophy, Sparkles } from "lucide-react";
 import { formatMinutes } from "@/lib/utils";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
 interface RewardModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ export const RewardModal = ({ isOpen, onClose, newPetsEarned, timeAwayMinutes }:
                 {formatMinutes(timeAwayMinutes)}
               </div>
               <div className="text-sm text-muted-foreground">
-                Great job staying off your phone! 📱
+                Great job staying off your phone!
               </div>
             </div>
           </Card>
@@ -62,11 +63,11 @@ export const RewardModal = ({ isOpen, onClose, newPetsEarned, timeAwayMinutes }:
                 }
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-4xl justify-items-center">
+              <div className="grid grid-cols-3 gap-2 justify-items-center">
                 {Array.from({ length: Math.min(newPetsEarned, 6) }, (_, i) => (
-                  <span key={i} className="animate-float" style={{ animationDelay: `${i * 0.2}s` }}>
-                    {['🐱', '🐶', '🐰', '🦊', '🐻', '🐼'][i % 6]}
-                  </span>
+                  <div key={i} className="animate-float" style={{ animationDelay: `${i * 0.2}s` }}>
+                    <PixelIcon name={['cat', 'dog', 'rabbit', 'fox', 'bear', 'panda'][i % 6]} size={40} />
+                  </div>
                 ))}
                 {newPetsEarned > 6 && (
                   <span className="text-lg text-muted-foreground col-span-3">
@@ -78,11 +79,11 @@ export const RewardModal = ({ isOpen, onClose, newPetsEarned, timeAwayMinutes }:
           </Card>
 
           {/* Continue Button */}
-          <Button 
+          <Button
             onClick={onClose}
-            className="w-full bg-gradient-ocean shadow-glow text-lg py-3"
+            className="w-full bg-gradient-ocean shadow-glow text-lg py-3 flex items-center justify-center gap-2"
           >
-            Explore Your Island! 🏝️
+            Explore Your Island! <PixelIcon name="island" size={20} />
           </Button>
         </div>
       </DialogContent>

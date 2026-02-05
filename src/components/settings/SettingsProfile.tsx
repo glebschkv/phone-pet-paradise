@@ -6,16 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { User, Pencil, Check, X, Camera } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
 const AVATAR_OPTIONS = [
-  { id: 'default', emoji: '🐼', label: 'Panda' },
-  { id: 'cat', emoji: '🐱', label: 'Cat' },
-  { id: 'dog', emoji: '🐶', label: 'Dog' },
-  { id: 'fox', emoji: '🦊', label: 'Fox' },
-  { id: 'bear', emoji: '🐻', label: 'Bear' },
-  { id: 'rabbit', emoji: '🐰', label: 'Rabbit' },
-  { id: 'koala', emoji: '🐨', label: 'Koala' },
-  { id: 'lion', emoji: '🦁', label: 'Lion' },
+  { id: 'default', icon: 'panda', label: 'Panda' },
+  { id: 'cat', icon: 'cat', label: 'Cat' },
+  { id: 'dog', icon: 'dog', label: 'Dog' },
+  { id: 'fox', icon: 'fox', label: 'Fox' },
+  { id: 'bear', icon: 'bear', label: 'Bear' },
+  { id: 'rabbit', icon: 'rabbit', label: 'Rabbit' },
+  { id: 'koala', icon: 'koala', label: 'Koala' },
+  { id: 'lion', icon: 'lion', label: 'Lion' },
 ];
 
 export const SettingsProfile = () => {
@@ -77,8 +78,8 @@ export const SettingsProfile = () => {
         {/* Avatar Selection */}
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-b from-primary/20 to-primary/10 flex items-center justify-center text-4xl border-2 border-primary/20">
-              {currentAvatar.emoji}
+            <div className="w-20 h-20 rounded-full bg-gradient-to-b from-primary/20 to-primary/10 flex items-center justify-center border-2 border-primary/20">
+              <PixelIcon name={currentAvatar.icon} size={48} />
             </div>
             {isEditing && (
               <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary flex items-center justify-center">
@@ -93,14 +94,14 @@ export const SettingsProfile = () => {
                 <button
                   key={avatar.id}
                   onClick={() => setSelectedAvatar(avatar.id)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                     selectedAvatar === avatar.id
                       ? 'bg-primary/20 ring-2 ring-primary scale-110'
                       : 'bg-muted hover:bg-muted/80'
                   }`}
                   title={avatar.label}
                 >
-                  {avatar.emoji}
+                  <PixelIcon name={avatar.icon} size={24} />
                 </button>
               ))}
             </div>

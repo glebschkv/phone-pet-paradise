@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PenLine, Sparkles, X, Trophy, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 import {
   Dialog,
   DialogContent,
@@ -18,11 +19,11 @@ interface SessionNotesModalProps {
 }
 
 const MOOD_OPTIONS = [
-  { value: 1, emoji: '😫', label: 'Struggled' },
-  { value: 2, emoji: '😐', label: 'Okay' },
-  { value: 3, emoji: '🙂', label: 'Good' },
-  { value: 4, emoji: '😊', label: 'Great' },
-  { value: 5, emoji: '🔥', label: 'Crushing it!' },
+  { value: 1, icon: 'mood-exhausted', label: 'Struggled' },
+  { value: 2, icon: 'mood-neutral', label: 'Okay' },
+  { value: 3, icon: 'mood-content', label: 'Good' },
+  { value: 4, icon: 'mood-happy', label: 'Great' },
+  { value: 5, icon: 'mood-fire', label: 'Crushing it!' },
 ];
 
 const QUICK_NOTES = [
@@ -123,7 +124,7 @@ export const SessionNotesModal = ({
                       : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                   )}
                 >
-                  <span className="text-2xl">{option.emoji}</span>
+                  <PixelIcon name={option.icon} size={28} />
                   <span className="text-[9px] font-semibold text-gray-600 dark:text-gray-300">
                     {option.label}
                   </span>

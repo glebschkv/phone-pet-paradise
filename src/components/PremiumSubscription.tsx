@@ -38,7 +38,7 @@ interface PremiumSubscriptionProps {
 }
 
 // Compact feature display
-const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string }> = {
+const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string; comingSoon?: boolean }> = {
   '1.5x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '1.5x Coins & XP' },
   '2x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '2x Coins & XP' },
   '2.5x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '2.5x Coins & XP' },
@@ -61,12 +61,12 @@ const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string }> = {
   '10 Focus presets': { icon: <Settings className="w-3.5 h-3.5" />, label: '10 Presets' },
   'Everything in Premium': { icon: <Check className="w-3.5 h-3.5" />, label: 'All Premium' },
   'Everything in Premium+': { icon: <Check className="w-3.5 h-3.5" />, label: 'All Premium+' },
-  'Battle Pass Premium included': { icon: <Award className="w-3.5 h-3.5" />, label: 'Battle Pass' },
+  'Battle Pass Premium included': { icon: <Award className="w-3.5 h-3.5" />, label: 'Battle Pass', comingSoon: true },
   'Early access to features': { icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Early Access' },
-  'Exclusive profile frames': { icon: <Star className="w-3.5 h-3.5" />, label: 'Profile Frames' },
+  'Exclusive profile frames': { icon: <Star className="w-3.5 h-3.5" />, label: 'Profile Frames', comingSoon: true },
   'No recurring fees ever': { icon: <InfinityIcon className="w-3.5 h-3.5" />, label: 'Pay Once' },
   'All future updates included': { icon: <RefreshCw className="w-3.5 h-3.5" />, label: 'All Updates' },
-  'Exclusive Founder badge': { icon: <Shield className="w-3.5 h-3.5" />, label: 'Founder Badge' },
+  'Exclusive Founder badge': { icon: <PixelIcon name="founder-badge" size={14} />, label: 'Founder Badge' },
   'Founder-only legendary pet': { icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Legendary Pet' },
 };
 
@@ -302,8 +302,9 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                 <div
                   key={feature}
                   className={cn(
-                    "flex items-center gap-1.5 px-2 py-1.5 rounded border",
+                    "flex items-center gap-1.5 px-2 py-1.5 rounded border relative",
                     config.featureBorder,
+                    mapped?.comingSoon && "opacity-75",
                   )}
                   style={{
                     background: 'linear-gradient(180deg, hsl(260 25% 22%) 0%, hsl(260 30% 17%) 100%)',
@@ -318,6 +319,19 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                   >
                     {mapped?.label || feature}
                   </span>
+                  {mapped?.comingSoon && (
+                    <span
+                      className="absolute -top-1.5 -right-1 px-1 py-0.5 rounded text-[6px] font-black uppercase"
+                      style={{
+                        background: 'linear-gradient(180deg, hsl(200 70% 50%), hsl(200 75% 40%))',
+                        color: 'white',
+                        border: '1px solid hsl(200 60% 60%)',
+                        boxShadow: '0 0 4px hsl(200 100% 50% / 0.4)',
+                      }}
+                    >
+                      Soon
+                    </span>
+                  )}
                 </div>
               );
             })}
