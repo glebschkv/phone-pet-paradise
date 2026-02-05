@@ -536,9 +536,23 @@ export const IOS_CONFIG = {
 
   /** StoreKit product IDs */
   PRODUCT_IDS: {
-    PREMIUM_MONTHLY: 'nomo_premium_monthly',
-    PREMIUM_YEARLY: 'nomo_premium_yearly',
-    PREMIUM_LIFETIME: 'nomo_premium_lifetime',
+    // Subscriptions
+    PREMIUM_MONTHLY: 'co.nomoinc.nomo.premium.monthly',
+    PREMIUM_YEARLY: 'co.nomoinc.nomo.premium.yearly',
+    PREMIUM_PLUS_MONTHLY: 'co.nomoinc.nomo.premiumplus.monthly',
+    PREMIUM_PLUS_YEARLY: 'co.nomoinc.nomo.premiumplus.yearly',
+    LIFETIME: 'co.nomoinc.nomo.lifetime',
+    // Coin Packs
+    COINS_VALUE: 'co.nomoinc.nomo.coins.value',
+    COINS_PREMIUM: 'co.nomoinc.nomo.coins.premium',
+    COINS_MEGA: 'co.nomoinc.nomo.coins.mega',
+    COINS_ULTRA: 'co.nomoinc.nomo.coins.ultra',
+    COINS_LEGENDARY: 'co.nomoinc.nomo.coins.legendary',
+    // Starter Bundles
+    BUNDLE_WELCOME: 'co.nomoinc.nomo.bundle.welcome',
+    BUNDLE_STARTER: 'co.nomoinc.nomo.bundle.starter',
+    BUNDLE_COLLECTOR: 'co.nomoinc.nomo.bundle.collector',
+    BUNDLE_ULTIMATE: 'co.nomoinc.nomo.bundle.ultimate',
   } as const,
 } as const;
 
