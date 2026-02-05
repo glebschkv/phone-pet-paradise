@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Heart, ExternalLink, MessageCircle, Shield, FileText, ScrollText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
 export const SettingsAbout = () => {
   const navigate = useNavigate();
@@ -13,31 +14,53 @@ export const SettingsAbout = () => {
 
   return (
     <div className="space-y-3">
-      {/* App Info */}
-      <div className="retro-card p-4 overflow-hidden">
-        <div className="text-center py-4" style={{
-          background: 'linear-gradient(180deg, hsl(45 80% 90%) 0%, transparent 100%)',
-          margin: '-1rem -1rem 1rem -1rem',
-          padding: '1.5rem 1rem'
-        }}>
-          <div className="text-5xl mb-3">📵</div>
-          <h2 className="text-lg font-bold">NoMo Phone</h2>
-          <p className="text-xs text-muted-foreground mt-1">
+      {/* App Info - Professional Header */}
+      <div className="retro-card overflow-hidden">
+        <div
+          className="p-6 text-center"
+          style={{
+            background: 'linear-gradient(180deg, hsl(260 50% 95%) 0%, hsl(260 40% 92%) 50%, hsl(45 60% 94%) 100%)',
+            borderBottom: '2px solid hsl(260 30% 85%)',
+          }}
+        >
+          {/* App Icon */}
+          <div
+            className="w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(145deg, hsl(260 60% 55%) 0%, hsl(280 55% 50%) 100%)',
+              border: '3px solid hsl(260 50% 40%)',
+              boxShadow: '0 4px 0 hsl(260 50% 35%), 0 8px 16px hsl(260 50% 30% / 0.3), inset 0 2px 0 hsl(260 70% 70% / 0.3)',
+            }}
+          >
+            <PixelIcon name="app-logo" size={48} />
+          </div>
+
+          {/* App Name */}
+          <h2 className="text-xl font-bold mb-1">NoMo Phone</h2>
+          <p className="text-sm text-muted-foreground mb-4">
             Put down your phone, grow your island
           </p>
-          <div className="flex items-center justify-center gap-2 mt-3">
-            <Badge className="retro-stat-pill text-[10px] font-bold px-2 py-1">
-              v{appVersion}
-            </Badge>
-            <Badge variant="outline" className="text-[10px] font-medium px-2 py-1">
-              {buildDate}
-            </Badge>
+
+          {/* Version Badge */}
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full" style={{
+            background: 'hsl(0 0% 100% / 0.7)',
+            border: '1px solid hsl(260 20% 85%)',
+          }}>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-bold text-green-700">v{appVersion}</span>
+            </div>
+            <div className="w-px h-4 bg-gray-300" />
+            <span className="text-xs text-muted-foreground">{buildDate}</span>
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground text-center">
-          Stay focused, earn rewards, and grow your island.
-        </p>
+        {/* Tagline */}
+        <div className="p-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            🎮 Focus. Collect. Grow. 🌴
+          </p>
+        </div>
       </div>
 
       {/* Legal */}
