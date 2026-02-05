@@ -7,7 +7,6 @@ import { getAnimalById } from "@/data/AnimalDatabase";
 import { BOOSTER_TYPES } from "@/hooks/useCoinBooster";
 import { SpritePreview } from "./ShopPreviewComponents";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { PixelIcon } from "@/components/ui/PixelIcon";
 
 interface BundleConfirmDialogProps {
   open: boolean;
@@ -59,7 +58,11 @@ export const BundleConfirmDialog = ({
       const animal = getAnimalById(starterBundle.contents.characterId);
       if (animal) {
         contentItems.push({
-          icon: <span className="text-base leading-none">{animal.emoji}</span>,
+          icon: animal.spriteConfig ? (
+            <SpritePreview animal={animal} scale={0.4} />
+          ) : (
+            <PixelIcon name={animal.icon} size={16} />
+          ),
           label: animal.name,
           sublabel: `${animal.rarity.charAt(0).toUpperCase() + animal.rarity.slice(1)} Pet`,
           variant: 'epic',
