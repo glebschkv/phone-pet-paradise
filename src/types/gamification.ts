@@ -65,7 +65,7 @@ export interface BossChallenge {
   id: string;
   name: string;
   description: string;
-  emoji: string;
+  icon: string;
   difficulty: BossDifficulty;
   requirement: BossChallengeRequirement;
   rewards: BossChallengeRewards;
@@ -88,7 +88,7 @@ export interface SpecialEvent {
   id: string;
   name: string;
   description: string;
-  emoji: string;
+  icon: string;
   type: SpecialEventType;
   multiplier?: number;
   startDate: string;
@@ -106,7 +106,7 @@ export type LuckyWheelPrizeType = 'xp' | 'coins' | 'streak_freeze' | 'booster' |
 export interface LuckyWheelPrize {
   id: string;
   name: string;
-  emoji: string;
+  icon: string;
   type: LuckyWheelPrizeType;
   amount?: number;
   probability: number;
@@ -123,7 +123,7 @@ export interface ComboTier {
   name: string;
   multiplier: number;
   color: string;
-  emoji: string;
+  icon: string;
   /** Hours until combo expires if no new session - higher combos have shorter expiry */
   expiryHours?: number;
 }
@@ -155,7 +155,7 @@ export interface Milestone {
   threshold: number;
   title: string;
   description: string;
-  emoji: string;
+  icon: string;
   celebrationType: CelebrationType;
   rewards?: MilestoneRewards;
 }
@@ -170,7 +170,7 @@ export interface Guild {
   id: string;
   name: string;
   description: string;
-  emoji: string;
+  icon: string;
   memberCount: number;
   maxMembers: number;
   totalFocusMinutes: number;
@@ -200,7 +200,7 @@ export interface GuildChallenge {
   id: string;
   name: string;
   description: string;
-  emoji: string;
+  icon: string;
   targetMinutes: number;
   currentMinutes: number;
   deadline: string;

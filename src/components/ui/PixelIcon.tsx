@@ -30,6 +30,18 @@ const ICON_NAMES = new Set([
   'party', 'slot-machine', 'question-mark', 'palette',
   'badge-bronze', 'badge-silver', 'badge-gold', 'hundred',
   'ferris-wheel', 'fireworks', 'shopping-bag', 'dollar',
+  // Pet animals
+  'frog', 'bee', 'squirrel', 'panda', 'bear', 'cat', 'rabbit', 'dog',
+  'penguin', 'turtle', 'dragon', 'ghost', 'bat', 'shark', 'horse',
+  // Nature/Items
+  'sprout', 'four-leaf-clover', 'water-drop', 'teddy-bear', 'mushroom',
+  // Characters
+  'wizard', 'fairy', 'pirate', 'robot', 'space-invader', 'goblin', 'cat-smile',
+  // Ambient sounds
+  'radio', 'brain', 'fan', 'rain', 'coffee', 'cricket', 'thunderstorm',
+  'car', 'train', 'airplane', 'open-book', 'sleeping', 'brown-noise', 'waterfall',
+  // Biomes
+  'meadow', 'snowflake', 'city',
 ]);
 
 interface PixelIconProps {

@@ -1,7 +1,7 @@
 export interface AnimalData {
   id: string;
   name: string;
-  emoji: string;
+  icon: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   unlockLevel: number;
   description: string;
@@ -44,7 +44,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'dewdrop-frog',
     name: 'Dewdrop Frog',
-    emoji: '🐸',
+    icon: 'frog',
     rarity: 'common',
     unlockLevel: 0,
     description: 'Your first companion! A cheerful frog with a dewdrop on its head that brings refreshing energy to your focus sessions.',
@@ -64,7 +64,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'sprout-bunny',
     name: 'Sprout Bunny',
-    emoji: '🌱',
+    icon: 'sprout',
     rarity: 'common',
     unlockLevel: 1,
     description: 'A gentle bunny with a sprouting plant on its head, nurturing your growth with every session.',
@@ -85,7 +85,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'petal-puff',
     name: 'Petal Puff',
-    emoji: '🌸',
+    icon: 'sakura',
     rarity: 'common',
     unlockLevel: 2,
     description: 'A fluffy flower spirit that spreads petals of calm wherever it goes.',
@@ -106,7 +106,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'honey-bee',
     name: 'Honey Bee',
-    emoji: '🐝',
+    icon: 'bee',
     rarity: 'common',
     unlockLevel: 3,
     description: 'A busy little bee that buzzes with productive energy and sweet motivation.',
@@ -127,7 +127,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'acorn-squirrel',
     name: 'Acorn Squirrel',
-    emoji: '🐿️',
+    icon: 'squirrel',
     rarity: 'rare',
     unlockLevel: 4,
     description: 'A playful squirrel that saves up energy like acorns for when you need it most.',
@@ -147,7 +147,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'panda',
     name: 'Bamboo Panda',
-    emoji: '🐼',
+    icon: 'panda',
     rarity: 'rare',
     unlockLevel: 6,
     description: 'A zen panda that brings peace and balanced energy to your focus time.',
@@ -168,7 +168,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'honey-bear',
     name: 'Honey Bear',
-    emoji: '🧸',
+    icon: 'teddy-bear',
     rarity: 'rare',
     unlockLevel: 7,
     description: 'A cuddly bear that rewards your hard work with sweet honey motivation.',
@@ -190,7 +190,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'clover-cat',
     name: 'Clover Cat',
-    emoji: '🍀',
+    icon: 'four-leaf-clover',
     rarity: 'rare',
     unlockLevel: 99,
     coinPrice: 2500,
@@ -213,7 +213,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'slime-king',
     name: 'Slime King',
-    emoji: '👑',
+    icon: 'crown',
     rarity: 'epic',
     unlockLevel: 99,
     coinPrice: 6000,
@@ -236,7 +236,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'frog-hood',
     name: 'Frog Hood',
-    emoji: '🐸',
+    icon: 'frog',
     rarity: 'common',
     unlockLevel: 5,
     description: 'A cheerful kid in an adorable green frog hoodie, hopping with joy and spreading happy vibes.',
@@ -257,7 +257,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'bear-hood',
     name: 'Bear Hood',
-    emoji: '🐻',
+    icon: 'bear',
     rarity: 'common',
     unlockLevel: 6,
     description: 'A cozy kid in a warm brown bear hoodie, spreading comfort and fuzzy hugs.',
@@ -277,7 +277,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'shark-hood',
     name: 'Shark Hood',
-    emoji: '🦈',
+    icon: 'shark',
     rarity: 'rare',
     unlockLevel: 8,
     description: 'A cool kid in a sleek blue shark hoodie, making waves wherever they go.',
@@ -298,7 +298,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'dino-kid',
     name: 'Dino Kid',
-    emoji: '🦖',
+    icon: 'dragon',
     rarity: 'rare',
     unlockLevel: 10,
     description: 'A fierce kid in a spiky green dinosaur costume, roaring with prehistoric power.',
@@ -322,7 +322,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'ember-fox',
     name: 'Ember Fox',
-    emoji: '🦊',
+    icon: 'fox',
     rarity: 'common',
     unlockLevel: 5,
     description: 'A warm fox with ember-colored fur that glows during sunset focus sessions.',
@@ -342,7 +342,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'dusk-owl',
     name: 'Dusk Owl',
-    emoji: '🦉',
+    icon: 'owl',
     rarity: 'rare',
     unlockLevel: 8,
     description: 'A wise owl that awakens at dusk, bringing wisdom to your evening sessions.',
@@ -363,7 +363,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'golden-moth',
     name: 'Golden Moth',
-    emoji: '🦋',
+    icon: 'butterfly',
     rarity: 'epic',
     unlockLevel: 99,
     coinPrice: 8500,
@@ -389,7 +389,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'luna-moth',
     name: 'Luna Moth',
-    emoji: '🌙',
+    icon: 'moon',
     rarity: 'common',
     unlockLevel: 9,
     description: 'A mystical moth that dances under moonlight, bringing calm night focus.',
@@ -410,7 +410,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'star-jelly',
     name: 'Star Jelly',
-    emoji: '⭐',
+    icon: 'star',
     rarity: 'rare',
     unlockLevel: 10,
     description: 'A translucent jellyfish that glows with starlight energy.',
@@ -430,7 +430,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'shadow-cat',
     name: 'Shadow Cat',
-    emoji: '🐱',
+    icon: 'cat',
     rarity: 'rare',
     unlockLevel: 11,
     description: 'A mysterious cat that blends with shadows, watching over your night sessions.',
@@ -451,7 +451,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'cute-ghost',
     name: 'Cute Ghost',
-    emoji: '👻',
+    icon: 'ghost',
     rarity: 'epic',
     unlockLevel: 99,
     coinPrice: 7500,
@@ -473,7 +473,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'kitsune-spirit',
     name: 'Kitsune Spirit',
-    emoji: '🦊',
+    icon: 'fox',
     rarity: 'legendary',
     unlockLevel: 99,
     coinPrice: 16000,
@@ -499,7 +499,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'flame-spirit',
     name: 'Flame Spirit',
-    emoji: '🔥',
+    icon: 'fire',
     rarity: 'epic',
     unlockLevel: 15,
     description: 'A fiery spirit that burns with passionate focus and determination.',
@@ -520,7 +520,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'aqua-spirit',
     name: 'Aqua Spirit',
-    emoji: '💧',
+    icon: 'water-drop',
     rarity: 'epic',
     unlockLevel: 18,
     description: 'A water spirit that flows with calm, refreshing energy.',
@@ -541,7 +541,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'storm-spirit',
     name: 'Storm Spirit',
-    emoji: '⚡',
+    icon: 'lightning',
     rarity: 'legendary',
     unlockLevel: 99,
     coinPrice: 15000,
@@ -566,7 +566,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'star-wizard',
     name: 'Star Wizard',
-    emoji: '🧙',
+    icon: 'wizard',
     rarity: 'rare',
     unlockLevel: 12,
     description: 'A young wizard in training who casts spells of concentration.',
@@ -586,7 +586,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'mushroom-kid',
     name: 'Mushroom Kid',
-    emoji: '🍄',
+    icon: 'mushroom',
     rarity: 'common',
     unlockLevel: 13,
     description: 'A cheerful kid in a mushroom costume, spreading fun and focus.',
@@ -606,7 +606,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'bunny-hood',
     name: 'Bunny Hood',
-    emoji: '🐰',
+    icon: 'rabbit',
     rarity: 'common',
     unlockLevel: 14,
     description: 'A cute kid wearing a bunny hood, hopping with enthusiasm.',
@@ -626,7 +626,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'flower-fairy',
     name: 'Flower Fairy',
-    emoji: '🧚',
+    icon: 'fairy',
     rarity: 'rare',
     unlockLevel: 16,
     description: 'A magical fairy surrounded by flower petals and sparkles.',
@@ -646,7 +646,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'penguin-kid',
     name: 'Penguin Kid',
-    emoji: '🐧',
+    icon: 'penguin',
     rarity: 'common',
     unlockLevel: 17,
     description: 'A kid in an adorable penguin costume, waddling with determination.',
@@ -667,7 +667,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'pirate-kid',
     name: 'Pirate Kid',
-    emoji: '🏴‍☠️',
+    icon: 'pirate',
     rarity: 'rare',
     unlockLevel: 19,
     description: 'A young adventurer dressed as a pirate, seeking treasure and knowledge.',
@@ -687,7 +687,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'dragon-knight',
     name: 'Dragon Knight',
-    emoji: '🐉',
+    icon: 'dragon',
     rarity: 'epic',
     unlockLevel: 20,
     description: 'A brave knight in dragon armor, ready to conquer any challenge.',
@@ -708,7 +708,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'cat-hood',
     name: 'Cat Hood',
-    emoji: '😺',
+    icon: 'cat-smile',
     rarity: 'rare',
     unlockLevel: 99,
     coinPrice: 3500,
@@ -731,7 +731,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'robot-buddy',
     name: 'Robot Buddy',
-    emoji: '🤖',
+    icon: 'robot',
     rarity: 'epic',
     unlockLevel: 99,
     coinPrice: 9500,
@@ -757,7 +757,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'playful-cat',
     name: 'Playful Cat',
-    emoji: '🐱',
+    icon: 'cat',
     rarity: 'rare',
     unlockLevel: 99,
     requiredStudyHours: 10,
@@ -777,7 +777,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'mystic-kitsune',
     name: 'Mystic Kitsune',
-    emoji: '🦊',
+    icon: 'fox',
     rarity: 'epic',
     unlockLevel: 23,
     description: 'A mystical fox spirit with flowing tails that dances gracefully through your sessions.',
@@ -796,7 +796,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'happy-doggo',
     name: 'Happy Doggo',
-    emoji: '🐕',
+    icon: 'dog',
     rarity: 'common',
     unlockLevel: 99,
     requiredStudyHours: 5,
@@ -816,7 +816,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'spotted-doggo',
     name: 'Spotted Doggo',
-    emoji: '🐶',
+    icon: 'dog',
     rarity: 'rare',
     unlockLevel: 24,
     description: 'A spotted companion full of tricks and boundless energy.',
@@ -835,7 +835,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'dude-monster',
     name: 'Dude Monster',
-    emoji: '👾',
+    icon: 'space-invader',
     rarity: 'common',
     unlockLevel: 25,
     description: 'A cheerful blob monster that rolls and bounces with infectious happiness.',
@@ -854,7 +854,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'wild-horse',
     name: 'Wild Horse',
-    emoji: '🐴',
+    icon: 'horse',
     rarity: 'rare',
     unlockLevel: 26,
     description: 'A majestic horse that gallops freely, bringing untamed energy to your focus.',
@@ -873,7 +873,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'sea-turtle',
     name: 'Sea Turtle',
-    emoji: '🐢',
+    icon: 'turtle',
     rarity: 'common',
     unlockLevel: 99,
     requiredStudyHours: 50,
@@ -893,7 +893,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'vampire-bat',
     name: 'Vampire Bat',
-    emoji: '🦇',
+    icon: 'bat',
     rarity: 'rare',
     unlockLevel: 28,
     description: 'A mischievous bat that sneers playfully and brings spooky fun to night sessions.',
@@ -913,7 +913,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'goblin-king',
     name: 'Goblin King',
-    emoji: '👺',
+    icon: 'goblin',
     rarity: 'epic',
     unlockLevel: 99,
     coinPrice: 11000,
@@ -935,7 +935,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'golden-fox',
     name: 'Golden Fox',
-    emoji: '🦊',
+    icon: 'fox',
     rarity: 'epic',
     unlockLevel: 30,
     description: 'A magnificent fox with golden fur that shimmers with ancient wisdom.',
@@ -954,7 +954,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'baby-dragon',
     name: 'Baby Dragon',
-    emoji: '🐲',
+    icon: 'dragon',
     rarity: 'legendary',
     unlockLevel: 99,
     coinPrice: 20000,

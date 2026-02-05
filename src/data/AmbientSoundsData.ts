@@ -35,7 +35,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'White Noise',
     description: 'Classic white noise for deep focus',
     category: 'white-noise',
-    icon: '📻',
+    icon: 'radio',
     audioType: 'generated',
     isPremium: false,
     generatorConfig: {
@@ -48,7 +48,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Pink Noise',
     description: 'Softer, more balanced noise',
     category: 'white-noise',
-    icon: '🌸',
+    icon: 'sakura',
     audioType: 'generated',
     isPremium: false,
     generatorConfig: {
@@ -61,7 +61,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Brown Noise',
     description: 'Deep, rumbling ambient sound',
     category: 'white-noise',
-    icon: '🟤',
+    icon: 'brown-noise',
     audioType: 'generated',
     isPremium: false,
     generatorConfig: {
@@ -74,7 +74,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Light Rain',
     description: 'Gentle rainfall on a window',
     category: 'rain',
-    icon: '🌧️',
+    icon: 'rain',
     audioType: 'generated',
     isPremium: false,
     generatorConfig: {
@@ -87,7 +87,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Focus Tone',
     description: '40Hz gamma waves for concentration',
     category: 'lofi',
-    icon: '🧠',
+    icon: 'brain',
     audioType: 'generated',
     isPremium: false,
     generatorConfig: {
@@ -101,7 +101,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Gentle Wind',
     description: 'Soft breeze rustling through leaves',
     category: 'nature',
-    icon: '🍃',
+    icon: 'leaf',
     audioType: 'generated',
     isPremium: false,
     generatorConfig: {
@@ -114,7 +114,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Babbling Stream',
     description: 'Peaceful water flowing over rocks',
     category: 'nature',
-    icon: '💧',
+    icon: 'water-drop',
     audioType: 'generated',
     isPremium: false,
     generatorConfig: {
@@ -127,7 +127,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Fan Noise',
     description: 'Steady electric fan hum',
     category: 'white-noise',
-    icon: '🌀',
+    icon: 'fan',
     audioType: 'generated',
     isPremium: false,
     generatorConfig: {
@@ -146,7 +146,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Forest Birds',
     description: 'Birds chirping in a peaceful forest',
     category: 'nature',
-    icon: '🌲',
+    icon: 'leaf',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -159,7 +159,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Ocean Waves',
     description: 'Calming waves on a beach',
     category: 'nature',
-    icon: '🌊',
+    icon: 'wave',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -172,7 +172,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Fireplace',
     description: 'Crackling fireplace sounds',
     category: 'nature',
-    icon: '🔥',
+    icon: 'fire',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -185,7 +185,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Night Crickets',
     description: 'Summer night with chirping crickets',
     category: 'nature',
-    icon: '🦗',
+    icon: 'cricket',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -198,7 +198,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Waterfall',
     description: 'Powerful cascading waterfall',
     category: 'nature',
-    icon: '🏞️',
+    icon: 'waterfall',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -213,7 +213,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Thunderstorm',
     description: 'Powerful rain with distant thunder',
     category: 'rain',
-    icon: '⛈️',
+    icon: 'thunderstorm',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -226,7 +226,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Heavy Rain',
     description: 'Intense downpour on a roof',
     category: 'rain',
-    icon: '🌧️',
+    icon: 'rain',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -239,7 +239,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Rain in Car',
     description: 'Rain hitting car windows while parked',
     category: 'rain',
-    icon: '🚗',
+    icon: 'car',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -254,7 +254,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Coffee Shop',
     description: 'Ambient coffee shop atmosphere',
     category: 'cafe',
-    icon: '☕',
+    icon: 'coffee',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -267,7 +267,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Quiet Library',
     description: 'Soft pages turning and distant whispers',
     category: 'cafe',
-    icon: '📚',
+    icon: 'books',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -280,7 +280,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Train Journey',
     description: 'Rhythmic train on tracks',
     category: 'cafe',
-    icon: '🚂',
+    icon: 'train',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -293,7 +293,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Airplane Cabin',
     description: 'Airplane white noise at cruising altitude',
     category: 'cafe',
-    icon: '✈️',
+    icon: 'airplane',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -308,7 +308,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Alpha Waves',
     description: '10Hz for relaxed alertness',
     category: 'lofi',
-    icon: '🌊',
+    icon: 'wave',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -322,7 +322,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Theta Waves',
     description: '6Hz for creativity and meditation',
     category: 'lofi',
-    icon: '🔮',
+    icon: 'crystal-ball',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -336,7 +336,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Deep Focus',
     description: '18Hz beta waves for intense work',
     category: 'lofi',
-    icon: '💎',
+    icon: 'diamond',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -350,7 +350,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Study Tone',
     description: '14Hz for learning and memory',
     category: 'lofi',
-    icon: '📖',
+    icon: 'open-book',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -364,7 +364,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     name: 'Sleep Delta',
     description: '2Hz delta waves for deep rest',
     category: 'lofi',
-    icon: '😴',
+    icon: 'sleeping',
     audioType: 'generated',
     isPremium: true,
     generatorConfig: {
@@ -376,11 +376,11 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
 ];
 
 export const AMBIENT_CATEGORIES: { id: AmbientSoundCategory; name: string; icon: string }[] = [
-  { id: 'white-noise', name: 'Noise', icon: '📻' },
-  { id: 'nature', name: 'Nature', icon: '🌲' },
-  { id: 'rain', name: 'Rain', icon: '🌧️' },
-  { id: 'lofi', name: 'Focus', icon: '🧠' },
-  { id: 'cafe', name: 'Cafe', icon: '☕' },
+  { id: 'white-noise', name: 'Noise', icon: 'radio' },
+  { id: 'nature', name: 'Nature', icon: 'leaf' },
+  { id: 'rain', name: 'Rain', icon: 'rain' },
+  { id: 'lofi', name: 'Focus', icon: 'brain' },
+  { id: 'cafe', name: 'Cafe', icon: 'coffee' },
 ];
 
 export const getAmbientSoundById = (id: string): AmbientSound | undefined => {
