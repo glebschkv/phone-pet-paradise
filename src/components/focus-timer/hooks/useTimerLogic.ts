@@ -22,6 +22,7 @@ import { useDeviceActivity } from "@/hooks/useDeviceActivity";
 import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { useNotifications } from "@/hooks/useNotifications";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
+import { timerLogger } from "@/lib/logger";
 import { useTimerPersistence } from "./useTimerPersistence";
 import { useTimerAudio } from "./useTimerAudio";
 import { useSoundMixer } from "@/hooks/useSoundMixer";
@@ -184,7 +185,7 @@ export const useTimerLogic = () => {
           const blockingResult = await stopAppBlocking();
           shieldAttempts = blockingResult.shieldAttempts;
         } catch (e) {
-          console.error('Failed to stop app blocking:', e);
+          timerLogger.error('Failed to stop app blocking:', e);
         }
       }
 

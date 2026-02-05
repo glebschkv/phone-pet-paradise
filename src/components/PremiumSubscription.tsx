@@ -133,11 +133,13 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
 
   const isNative = Capacitor.isNativePlatform();
 
   const handlePurchase = async (plan: SubscriptionPlan) => {
     setIsProcessing(true);
+    setPurchaseError(null);
 
     if (isNative) {
       const result = await storeKit.purchaseProduct(plan.iapProductId);
@@ -152,7 +154,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
         }
         onClose();
       } else if (!result.cancelled) {
-        toast.error(result.message || 'Purchase failed');
+        setPurchaseError(result.message || 'Purchase failed. Please try again.');
       }
     } else {
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -168,7 +170,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
         }
         onClose();
       } else {
-        toast.error(result.message);
+        setPurchaseError(result.message || 'Purchase failed. Please try again.');
       }
     }
   };
@@ -473,6 +475,33 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
 
           {/* Plan Cards — dark retro body */}
           <div className="p-3 space-y-3" style={{ background: 'linear-gradient(180deg, hsl(260 28% 13%) 0%, hsl(275 22% 10%) 100%)' }}>
+            {/* Purchase error banner */}
+            {purchaseError && (
+              <div
+                className="flex items-start gap-2 px-3 py-2.5 rounded-lg"
+                style={{
+                  background: 'linear-gradient(180deg, hsl(0 30% 20%) 0%, hsl(0 35% 15%) 100%)',
+                  border: '2px solid hsl(0 50% 40%)',
+                  boxShadow: '0 0 10px hsl(0 100% 40% / 0.2)',
+                }}
+              >
+                <Shield className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: 'hsl(0 70% 60%)' }} />
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold block" style={{ color: 'hsl(0 70% 70%)' }}>Purchase failed</span>
+                  <span className="text-[10px] block mt-0.5" style={{ color: 'hsl(0 20% 55%)' }}>
+                    {purchaseError}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setPurchaseError(null)}
+                  className="text-[10px] font-bold flex-shrink-0 px-2 py-1 rounded"
+                  style={{ color: 'hsl(0 20% 55%)', background: 'hsl(0 20% 25%)' }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
             {/* Already Premium banner */}
             {isPremium && currentPlan && (
               <div

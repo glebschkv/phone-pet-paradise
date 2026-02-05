@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const TermsOfService = () => {
   const navigate = useNavigate();
-  const lastUpdated = 'November 29, 2024';
+  const lastUpdated = 'February 5, 2026';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-indigo-950 text-white">

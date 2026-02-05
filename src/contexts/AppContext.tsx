@@ -8,6 +8,7 @@
 import { createContext, useContext, useReducer, useCallback, useEffect, useMemo, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { useAutoBackup } from '@/hooks/useAutoBackup';
 import { useOfflineSyncStore } from '@/stores/offlineSyncStore';
 import { APP_CONFIG } from '@/lib/constants';
 import type {
@@ -168,6 +169,9 @@ export function AppProvider({ children }: AppProviderProps) {
   const { isAuthenticated, user } = useAuth();
   const { isPremium, tier, expiresAt } = usePremiumStatus();
   const pendingOperationsCount = useOfflineSyncStore((s) => s.pendingOperations.length);
+
+  // Periodically back up critical user data to localStorage
+  useAutoBackup();
 
   // Sync auth state
   useEffect(() => {

@@ -11,6 +11,8 @@
  * - After: 50 pets = 1 RAF callback = ~3ms frame time
  */
 
+import { performanceLogger } from '@/lib/logger';
+
 type AnimationCallback = (deltaTime: number, currentTime: number) => void;
 
 interface AnimationEntry {
@@ -169,7 +171,7 @@ class SpriteAnimationManager {
       try {
         animation.callback(deltaTime, currentTime);
       } catch (error) {
-        console.error(`[SpriteAnimationManager] Animation ${animation.id} error:`, error);
+        performanceLogger.error(`Animation ${animation.id} error:`, error);
         // Don't remove the animation - let the component handle the error
       }
     }

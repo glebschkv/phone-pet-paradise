@@ -31,3 +31,6 @@ coverage
 *.sln
 *.sw?
 test-results/
+
+# MCP configuration (may contain API tokens)
+.mcp.json
