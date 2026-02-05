@@ -978,6 +978,11 @@ input, textarea, [contenteditable="true"] {
     background: hsl(var(--primary));
   }
 
+  /* Keep center button icon white in dark context */
+  .dock-bar.dark-context .dock-center-btn .dock-item-icon {
+    color: white;
+  }
+
   /* Individual dock item */
   .dock-item {
     position: relative;
