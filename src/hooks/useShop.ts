@@ -164,12 +164,16 @@ export const useShop = () => {
     const spendSuccess = await coinSystem.spendCoins(price, config.spendPurpose, itemId);
     if (!spendSuccess) {
       // Trigger a balance refresh so UI updates to show correct balance
+      let syncSucceeded = false;
       try {
-        await coinSystem.syncFromServer();
+        syncSucceeded = await coinSystem.syncFromServer();
       } catch {
-        // Silent fail
+        // Silent fail - syncSucceeded stays false
       }
-      return { success: false, message: 'Your balance has been updated. Please try again.' };
+      const message = syncSucceeded
+        ? 'Your balance has been updated. Please try again.'
+        : 'Purchase failed. Please check your connection and try again.';
+      return { success: false, message };
     }
 
     config.addOwned(itemId);
@@ -297,12 +301,16 @@ export const useShop = () => {
     const spendSuccess = await coinSystem.spendCoins(bundle.coinPrice, 'cosmetic', bundleId);
     if (!spendSuccess) {
       // Trigger a balance refresh so UI updates to show correct balance
+      let syncSucceeded = false;
       try {
-        await coinSystem.syncFromServer();
+        syncSucceeded = await coinSystem.syncFromServer();
       } catch {
-        // Silent fail
+        // Silent fail - syncSucceeded stays false
       }
-      return { success: false, message: 'Your balance has been updated. Please try again.' };
+      const message = syncSucceeded
+        ? 'Your balance has been updated. Please try again.'
+        : 'Purchase failed. Please check your connection and try again.';
+      return { success: false, message };
     }
 
     // Add all backgrounds from the bundle that aren't already owned
@@ -335,12 +343,16 @@ export const useShop = () => {
     const spendSuccess = await coinSystem.spendCoins(bundle.coinPrice, 'pet_unlock', bundleId);
     if (!spendSuccess) {
       // Trigger a balance refresh so UI updates to show correct balance
+      let syncSucceeded = false;
       try {
-        await coinSystem.syncFromServer();
+        syncSucceeded = await coinSystem.syncFromServer();
       } catch {
-        // Silent fail
+        // Silent fail - syncSucceeded stays false
       }
-      return { success: false, message: 'Your balance has been updated. Please try again.' };
+      const message = syncSucceeded
+        ? 'Your balance has been updated. Please try again.'
+        : 'Purchase failed. Please check your connection and try again.';
+      return { success: false, message };
     }
 
     // Add all pets from the bundle that aren't already owned
@@ -385,12 +397,16 @@ export const useShop = () => {
     const spendSuccess = await coinSystem.spendCoins(booster.coinPrice, 'booster', boosterId);
     if (!spendSuccess) {
       // Trigger a balance refresh so UI updates to show correct balance
+      let syncSucceeded = false;
       try {
-        await coinSystem.syncFromServer();
+        syncSucceeded = await coinSystem.syncFromServer();
       } catch {
-        // Silent fail
+        // Silent fail - syncSucceeded stays false
       }
-      return { success: false, message: 'Your balance has been updated. Please try again.' };
+      const message = syncSucceeded
+        ? 'Your balance has been updated. Please try again.'
+        : 'Purchase failed. Please check your connection and try again.';
+      return { success: false, message };
     }
 
     boosterSystem.activateBooster(boosterId);
@@ -410,12 +426,16 @@ export const useShop = () => {
     const spendSuccess = await coinSystem.spendCoins(price, 'streak_freeze', `streak_freeze_x${quantity}`);
     if (!spendSuccess) {
       // Trigger a balance refresh so UI updates to show correct balance
+      let syncSucceeded = false;
       try {
-        await coinSystem.syncFromServer();
+        syncSucceeded = await coinSystem.syncFromServer();
       } catch {
-        // Silent fail
+        // Silent fail - syncSucceeded stays false
       }
-      return { success: false, message: 'Your balance has been updated. Please try again.' };
+      const message = syncSucceeded
+        ? 'Your balance has been updated. Please try again.'
+        : 'Purchase failed. Please check your connection and try again.';
+      return { success: false, message };
     }
 
     // Add streak freezes
