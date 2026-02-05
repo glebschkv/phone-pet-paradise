@@ -23,20 +23,20 @@ vi.mock('@/hooks/useAchievementTracking', () => ({
 
 // Mock gamification data
 const mockPrizes = [
-  { id: 'coins-100', name: '100 Coins', emoji: '🪙', type: 'coins', amount: 100, probability: 30, rarity: 'common', color: '#64748b' },
-  { id: 'coins-200', name: '200 Coins', emoji: '💰', type: 'coins', amount: 200, probability: 25, rarity: 'common', color: '#71717a' },
-  { id: 'xp-50', name: '50 XP', emoji: '⭐', type: 'xp', amount: 50, probability: 20, rarity: 'common', color: '#6366f1' },
-  { id: 'xp-100', name: '100 XP', emoji: '✨', type: 'xp', amount: 100, probability: 15, rarity: 'rare', color: '#8b5cf6' },
-  { id: 'jackpot', name: 'JACKPOT!', emoji: '🎰', type: 'jackpot', amount: 2500, probability: 10, rarity: 'legendary', color: '#ef4444' },
+  { id: 'coins-100', name: '100 Coins', icon: 'coin', type: 'coins', amount: 100, probability: 30, rarity: 'common', color: '#64748b' },
+  { id: 'coins-200', name: '200 Coins', icon: 'money-bag', type: 'coins', amount: 200, probability: 25, rarity: 'common', color: '#71717a' },
+  { id: 'xp-50', name: '50 XP', icon: 'star', type: 'xp', amount: 50, probability: 20, rarity: 'common', color: '#6366f1' },
+  { id: 'xp-100', name: '100 XP', icon: 'sparkles', type: 'xp', amount: 100, probability: 15, rarity: 'rare', color: '#8b5cf6' },
+  { id: 'jackpot', name: 'JACKPOT!', icon: 'slot-machine', type: 'jackpot', amount: 2500, probability: 10, rarity: 'legendary', color: '#ef4444' },
 ];
 
 vi.mock('@/data/GamificationData', () => ({
   LUCKY_WHEEL_PRIZES: [
-    { id: 'coins-100', name: '100 Coins', emoji: '🪙', type: 'coins', amount: 100, probability: 30, rarity: 'common', color: '#64748b' },
-    { id: 'coins-200', name: '200 Coins', emoji: '💰', type: 'coins', amount: 200, probability: 25, rarity: 'common', color: '#71717a' },
-    { id: 'xp-50', name: '50 XP', emoji: '⭐', type: 'xp', amount: 50, probability: 20, rarity: 'common', color: '#6366f1' },
-    { id: 'xp-100', name: '100 XP', emoji: '✨', type: 'xp', amount: 100, probability: 15, rarity: 'rare', color: '#8b5cf6' },
-    { id: 'jackpot', name: 'JACKPOT!', emoji: '🎰', type: 'jackpot', amount: 2500, probability: 10, rarity: 'legendary', color: '#ef4444' },
+    { id: 'coins-100', name: '100 Coins', icon: 'coin', type: 'coins', amount: 100, probability: 30, rarity: 'common', color: '#64748b' },
+    { id: 'coins-200', name: '200 Coins', icon: 'money-bag', type: 'coins', amount: 200, probability: 25, rarity: 'common', color: '#71717a' },
+    { id: 'xp-50', name: '50 XP', icon: 'star', type: 'xp', amount: 50, probability: 20, rarity: 'common', color: '#6366f1' },
+    { id: 'xp-100', name: '100 XP', icon: 'sparkles', type: 'xp', amount: 100, probability: 15, rarity: 'rare', color: '#8b5cf6' },
+    { id: 'jackpot', name: 'JACKPOT!', icon: 'slot-machine', type: 'jackpot', amount: 2500, probability: 10, rarity: 'legendary', color: '#ef4444' },
   ],
   spinWheel: vi.fn(() => mockPrizes[0]), // Default to first prize
 }));
@@ -192,7 +192,7 @@ describe('useLuckyWheel', () => {
       mockSpinWheel.mockReturnValue(mockPrizes[0]);
       const { result } = renderHook(() => useLuckyWheel());
 
-      let prize: { id: string; name: string; emoji: string; type: string; amount?: number; probability: number; rarity: string; color: string } | undefined;
+      let prize: { id: string; name: string; icon: string; type: string; amount?: number; probability: number; rarity: string; color: string } | undefined;
 
       await act(async () => {
         const spinPromise = result.current.spin();
@@ -358,7 +358,7 @@ describe('useLuckyWheel', () => {
 
       expect(segment.id).toBeTruthy();
       expect(segment.label).toBeTruthy();
-      expect(segment.emoji).toBeTruthy();
+      expect(segment.icon).toBeTruthy();
       expect(segment.color).toBeTruthy();
       expect(segment.rarity).toBeTruthy();
     });
