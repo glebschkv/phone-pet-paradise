@@ -1,6 +1,6 @@
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
-import { Heart, ChevronDown, Settings, Star, Flame, Trophy } from "lucide-react";
+import { ChevronDown, Settings } from "lucide-react";
 import { useState, useCallback } from "react";
 import {
   Popover,
@@ -104,7 +104,7 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
                 <div className="stats-grid">
                   <div className="stat-row">
                     <span className="stat-label">
-                      <Star className="w-3 h-3 inline mr-1 text-amber-500" style={{ filter: 'drop-shadow(0 0 2px hsl(45 100% 50% / 0.5))' }} />
+                      <PixelIcon name="star-level" size={14} className="inline mr-1 align-middle" />
                       Level
                     </span>
                     <span className="stat-val">
@@ -113,21 +113,21 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
                   </div>
                   <div className="stat-row">
                     <span className="stat-label">
-                      <Trophy className="w-3 h-3 inline mr-1 text-purple-500" style={{ filter: 'drop-shadow(0 0 2px hsl(280 100% 50% / 0.4))' }} />
+                      <PixelIcon name="trophy-xp" size={14} className="inline mr-1 align-middle" />
                       XP
                     </span>
                     <span className="stat-val">{currentXP} / {currentXP + xpToNextLevel}</span>
                   </div>
                   <div className="stat-row">
                     <span className="stat-label">
-                      <Heart className="w-3 h-3 inline mr-1 text-pink-500 fill-current" style={{ filter: 'drop-shadow(0 0 2px hsl(340 100% 50% / 0.4))' }} />
+                      <PixelIcon name="heart-pets" size={14} className="inline mr-1 align-middle" />
                       Pets Collected
                     </span>
                     <span className="stat-val">{unlockedAnimals.length}</span>
                   </div>
                   <div className="stat-row">
                     <span className="stat-label">
-                      <Flame className="w-3 h-3 inline mr-1 text-orange-500" style={{ filter: 'drop-shadow(0 0 2px hsl(25 100% 50% / 0.4))' }} />
+                      <PixelIcon name="flame-stats" size={14} className="inline mr-1 align-middle" />
                       Best Streak
                     </span>
                     <span className="stat-val">{streakData.longestStreak} days</span>
