@@ -17,7 +17,6 @@ import { IOSTabBar } from "@/components/IOSTabBar";
 import { AchievementTracker } from "@/components/AchievementTracker";
 import { TabContent, preloadTabComponents } from "@/components/TabContent";
 import { RewardModals } from "@/components/RewardModals";
-import { QuickFocusButton } from "@/components/QuickFocusButton";
 
 export const GameUI = () => {
   const [currentTab, setCurrentTab] = useState("home");
@@ -83,11 +82,6 @@ export const GameUI = () => {
           currentTab={currentTab}
           onSettingsClick={() => setCurrentTab("settings")}
         />
-
-        {/* Quick Focus Button — only on home screen */}
-        {currentTab === "home" && (
-          <QuickFocusButton onStartFocus={() => setCurrentTab("timer")} />
-        )}
 
         {/* Full Screen Content */}
         {currentTab !== "home" && (
