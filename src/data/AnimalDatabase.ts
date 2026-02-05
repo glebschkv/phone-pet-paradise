@@ -190,7 +190,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'clover-cat',
     name: 'Clover Cat',
-    icon: 'four-leaf-clover',
+    icon: 'clover-cat',
     rarity: 'rare',
     unlockLevel: 99,
     coinPrice: 2500,
@@ -473,7 +473,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'kitsune-spirit',
     name: 'Kitsune Spirit',
-    icon: 'fox',
+    icon: 'kitsune-spirit',
     rarity: 'legendary',
     unlockLevel: 99,
     coinPrice: 16000,
@@ -541,7 +541,7 @@ export const ANIMAL_DATABASE: AnimalData[] = [
   {
     id: 'storm-spirit',
     name: 'Storm Spirit',
-    icon: 'lightning',
+    icon: 'storm-spirit',
     rarity: 'legendary',
     unlockLevel: 99,
     coinPrice: 15000,

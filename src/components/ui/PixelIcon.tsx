@@ -58,6 +58,10 @@ const ICON_NAMES = new Set([
   'tea-cup',
   // App branding
   'app-logo',
+  // Bundle pet icons
+  'clover-cat', 'kitsune-spirit', 'storm-spirit',
+  // Premium/Founder
+  'founder-badge',
 ]);
 
 interface PixelIconProps {
