@@ -54,6 +54,10 @@ const ICON_NAMES = new Set([
   'star-level', 'trophy-xp', 'heart-pets', 'flame-stats',
   // Coin pack crown icons
   'crown-ultra', 'crown-legendary',
+  // Break modal icons
+  'tea-cup',
+  // App branding
+  'app-logo',
 ]);
 
 interface PixelIconProps {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Coffee, Play, X, Timer, Sparkles, Crown } from 'lucide-react';
+import { Play, X, Timer, Sparkles, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import {
   Dialog,
@@ -21,10 +22,10 @@ interface BreakTransitionModalProps {
 }
 
 const BREAK_OPTIONS = [
-  { duration: 5, label: '5 min', description: 'Quick refresh', icon: '⚡' },
-  { duration: 10, label: '10 min', description: 'Short rest', icon: '☕' },
-  { duration: 15, label: '15 min', description: 'Full break', icon: '🌿' },
-  { duration: 20, label: '20 min', description: 'Extended rest', icon: '🧘' },
+  { duration: 5, label: '5 min', description: 'Quick refresh', icon: 'lightning' },
+  { duration: 10, label: '10 min', description: 'Short rest', icon: 'tea-cup' },
+  { duration: 15, label: '15 min', description: 'Full break', icon: 'sprout' },
+  { duration: 20, label: '20 min', description: 'Extended rest', icon: 'meditation' },
 ];
 
 export const BreakTransitionModal = ({
@@ -78,7 +79,7 @@ export const BreakTransitionModal = ({
           <div className="flex items-center justify-between mb-2">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-xl font-bold text-white">
-                <Coffee className="w-6 h-6" />
+                <PixelIcon name="tea-cup" size={28} />
                 Time for a Break!
               </DialogTitle>
             </DialogHeader>
@@ -132,7 +133,7 @@ export const BreakTransitionModal = ({
                   )}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{option.icon}</span>
+                    <PixelIcon name={option.icon} size={20} />
                     <span className="font-bold text-sm">{option.label}</span>
                   </div>
                   <p className="text-xs text-muted-foreground">{option.description}</p>
