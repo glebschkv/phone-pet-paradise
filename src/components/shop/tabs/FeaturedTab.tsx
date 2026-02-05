@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Crown, ChevronRight, Check, Coins, Sparkles, Zap } from "lucide-react";
+import { Crown, ChevronRight, Check, Sparkles, Zap } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { BackgroundBundle, ShopItem, COIN_PACKS, StarterBundle, CoinPack } from "@/data/ShopData";
@@ -203,7 +203,7 @@ export const FeaturedTab = ({
                         "flex items-center gap-1 text-xs font-bold",
                         affordable ? "text-amber-600" : "text-red-500"
                       )}>
-                        <Coins className="w-3 h-3" />
+                        <PixelIcon name="coin" size={12} />
                         {bundle.coinPrice?.toLocaleString()}
                       </div>
                     </div>
@@ -292,7 +292,7 @@ export const FeaturedTab = ({
                 <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[8px] font-bold rounded">BEST</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
-                <Coins className="w-3 h-3 text-amber-500" />
+                <PixelIcon name="coin" size={12} />
                 <span className="text-amber-600 font-bold text-xs">{bestValuePack.coinAmount.toLocaleString()}</span>
                 {bestValuePack.bonusCoins && bestValuePack.bonusCoins > 0 && (
                   <span className="text-green-600 text-xs font-semibold">+{bestValuePack.bonusCoins.toLocaleString()}</span>
@@ -349,7 +349,7 @@ export const FeaturedTab = ({
                   <span className="text-[10px] text-green-600 font-semibold">Owned</span>
                 ) : (
                   <div className="flex items-center justify-center gap-1 mt-0.5">
-                    <Coins className="w-3 h-3 text-amber-500" />
+                    <PixelIcon name="coin" size={12} />
                     <span className="text-xs font-bold text-amber-600">{pet.coinPrice?.toLocaleString()}</span>
                   </div>
                 )}

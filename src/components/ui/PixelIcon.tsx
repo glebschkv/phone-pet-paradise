@@ -49,7 +49,7 @@ const ICON_NAMES = new Set([
   // Starter bundle icons
   'bundle-welcome', 'bundle-starter', 'bundle-collector',
   // UI status icons
-  'coin-gold', 'flame-streak',
+  'flame-streak',
 ]);
 
 interface PixelIconProps {

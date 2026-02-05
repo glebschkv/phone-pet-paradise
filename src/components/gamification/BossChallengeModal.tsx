@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useBossChallenges } from '@/hooks/useBossChallenges';
 import { cn } from '@/lib/utils';
-import { Clock, XCircle, CheckCircle, Lock, Flame, Skull, Zap, ChevronLeft, ChevronRight, Coins, X } from 'lucide-react';
+import { Clock, XCircle, CheckCircle, Lock, Flame, Skull, Zap, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { BOSS_CHALLENGES, BossChallenge } from '@/data/GamificationData';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 
@@ -237,7 +237,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                   <span className="text-amber-300 font-bold text-xs">{currentChallenge.rewards.xp}</span>
                 </div>
                 <div className="retro-reward-item compact">
-                  <Coins className="w-3.5 h-3.5 text-amber-400" />
+                  <PixelIcon name="coin" size={14} />
                   <span className="text-amber-300 font-bold text-xs">{currentChallenge.rewards.coins}</span>
                 </div>
                 {currentChallenge.rewards.badge && (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Coins, Zap, Clock, Backpack, Star, PawPrint, Gift, Zap as ZapIcon } from "lucide-react";
+import { Zap, Clock, Backpack, Star, PawPrint, Gift, Zap as ZapIcon } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
 import { useCoinBooster } from "@/hooks/useCoinBooster";
@@ -211,7 +212,7 @@ export const Shop = () => {
             className="shop-coin-badge"
             aria-label="Buy Coins"
           >
-            <Coins className="w-4 h-4 text-amber-600" />
+            <PixelIcon name="coin" size={16} />
             <span className="font-black text-sm text-amber-800">
               {coinBalance.toLocaleString()}
             </span>

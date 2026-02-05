@@ -186,7 +186,7 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
           }}
           className="stat-chip coin-chip"
         >
-          <PixelIcon name="coin-gold" size={18} className="chip-icon coin-icon" />
+          <PixelIcon name="coin" size={18} className="chip-icon coin-icon" />
           <span className="chip-value">{coinSystem.balance.toLocaleString()}</span>
           <span className="coin-plus-badge">+</span>
         </button>

@@ -1,4 +1,4 @@
-import { Check, Coins, Palette, Clock, Star } from "lucide-react";
+import { Check, Palette, Clock, Star } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { ShopItem, PREMIUM_BACKGROUNDS, ShopCategory } from "@/data/ShopData";
@@ -131,7 +131,7 @@ export const PetsTab = ({
                       "retro-price-tag",
                       affordable ? "retro-price-tag-afford" : "retro-price-tag-expensive"
                     )}>
-                      <Coins className="w-3.5 h-3.5" />
+                      <PixelIcon name="coin" size={14} />
                       <span className="text-xs font-black">{character.coinPrice?.toLocaleString()}</span>
                     </div>
                   )}
@@ -232,7 +232,7 @@ export const PetsTab = ({
                         "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
                         affordable ? "text-amber-600" : "text-red-500"
                       )}>
-                        <Coins className="w-2.5 h-2.5" />
+                        <PixelIcon name="coin" size={10} />
                         {bg.coinPrice?.toLocaleString()}
                       </div>
                     )}
@@ -305,7 +305,7 @@ export const PetsTab = ({
                       "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
                       affordable ? "text-amber-600" : "text-red-500"
                     )}>
-                      <Coins className="w-2.5 h-2.5" />
+                      <PixelIcon name="coin" size={10} />
                       {bg.coinPrice?.toLocaleString()}
                     </div>
                   )}
