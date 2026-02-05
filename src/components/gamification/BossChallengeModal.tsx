@@ -139,7 +139,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                 border: '2px solid hsl(0 60% 55%)',
               }}
             >
-              <PixelIcon name={activeChallenge.challenge.emoji} size={24} />
+              <PixelIcon name={activeChallenge.challenge.icon} size={24} />
             </div>
             <div className="flex-1 text-left">
               <div className="text-[10px] font-bold flex items-center gap-1" style={{ color: 'hsl(25 90% 60%)' }}>
@@ -184,7 +184,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
                     boxShadow: `0 3px 0 ${config.borderColor}88, 0 0 10px ${config.color}44`,
                   }}
                 >
-                  <PixelIcon name={currentChallenge.emoji} size={32} />
+                  <PixelIcon name={currentChallenge.icon} size={32} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <span

@@ -310,7 +310,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     category: 'coins',
     iapPrice: '$2.99',
     iapProductId: 'co.nomoinc.nomo.bundle.welcome',
-    icon: 'gift',
+    icon: 'bundle-welcome',
     rarity: 'rare',
     contents: {
       coins: 600,
@@ -326,7 +326,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     category: 'coins',
     iapPrice: '$4.99',
     iapProductId: 'co.nomoinc.nomo.bundle.starter',
-    icon: 'gift',
+    icon: 'bundle-starter',
     rarity: 'epic',
     contents: {
       coins: 1000,
@@ -342,7 +342,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     category: 'coins',
     iapPrice: '$14.99',
     iapProductId: 'co.nomoinc.nomo.bundle.collector',
-    icon: 'gift',
+    icon: 'bundle-collector',
     rarity: 'legendary',
     contents: {
       coins: 5000,

@@ -42,6 +42,14 @@ const ICON_NAMES = new Set([
   'car', 'train', 'airplane', 'open-book', 'sleeping', 'brown-noise', 'waterfall',
   // Biomes
   'meadow', 'snowflake', 'city',
+  // Boss battle icons
+  'boss-focus-warrior', 'boss-triple-threat', 'boss-deep-focus', 'boss-quintuple-strike',
+  'boss-weekly-warrior', 'boss-marathon-runner', 'boss-perfect-day', 'boss-ultra-endurance',
+  'boss-weekly-legend',
+  // Starter bundle icons
+  'bundle-welcome', 'bundle-starter', 'bundle-collector',
+  // UI status icons
+  'coin-gold', 'flame-streak',
 ]);
 
 interface PixelIconProps {
