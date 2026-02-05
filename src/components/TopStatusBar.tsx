@@ -186,7 +186,7 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
           }}
           className="stat-chip coin-chip"
         >
-          <span className="chip-icon coin-icon">◉</span>
+          <PixelIcon name="coin-gold" size={18} className="chip-icon coin-icon" />
           <span className="chip-value">{coinSystem.balance.toLocaleString()}</span>
           <span className="coin-plus-badge">+</span>
         </button>
@@ -194,7 +194,7 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
         {/* Right section: Streak + Settings */}
         <div className="top-bar-right">
           <div className={`stat-chip streak-chip ${hasActiveStreak ? 'active' : ''}`}>
-            <span className="chip-icon streak-icon">🔥</span>
+            <PixelIcon name="flame-streak" size={18} className="chip-icon streak-icon" />
             <span className="chip-value">{streakData.currentStreak}</span>
           </div>
 

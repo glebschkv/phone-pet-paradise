@@ -48,6 +48,8 @@ const ICON_NAMES = new Set([
   'boss-weekly-legend',
   // Starter bundle icons
   'bundle-welcome', 'bundle-starter', 'bundle-collector',
+  // UI status icons
+  'coin-gold', 'flame-streak',
 ]);
 
 interface PixelIconProps {
