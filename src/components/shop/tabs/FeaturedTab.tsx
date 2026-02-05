@@ -32,7 +32,7 @@ export const FeaturedTab = ({
   inventory,
   isBundleOwned,
   purchaseBackgroundBundle: _purchaseBackgroundBundle,
-  purchaseStarterBundle,
+  purchaseStarterBundle: _purchaseStarterBundle,
   setActiveCategory,
   setSelectedItem,
   setShowPurchaseConfirm,
@@ -62,10 +62,18 @@ export const FeaturedTab = ({
 
       if (result.success && result.validationResult?.success) {
         if (isStarterBundle && result.validationResult.bundle) {
-          // For bundles: grant non-coin contents (characters, boosters, streak freezes)
-          // Coins are already granted server-side and synced via event
-          const grantResult = await purchaseStarterBundle(selectedBundle.id);
-          toast.success(grantResult.message || `Successfully purchased ${selectedBundle.name}!`);
+          // Bundle contents (coins, character, booster, freezes) are granted via:
+          // - Server grants coins via add_user_coins RPC
+          // - Client syncs coins via iap:coinsGranted event
+          // - Client grants character/booster/freezes via iap:bundleGranted event
+          // DO NOT call purchaseStarterBundle() - it would double-grant everything!
+          const bundle = result.validationResult.bundle;
+          const items: string[] = [];
+          if (bundle.coinsGranted > 0) items.push(`${bundle.coinsGranted.toLocaleString()} coins`);
+          if (bundle.characterId) items.push('Exclusive pet');
+          if (bundle.boosterId) items.push('Booster');
+          if (bundle.streakFreezes > 0) items.push(`${bundle.streakFreezes} Streak Freeze${bundle.streakFreezes > 1 ? 's' : ''}`);
+          toast.success(`${selectedBundle.name} purchased! Received: ${items.join(', ')}`);
         } else if (result.validationResult.coinPack) {
           // For coin packs: coins are already granted server-side and synced via event
           const coinsGranted = result.validationResult.coinPack.coinsGranted;

@@ -469,12 +469,11 @@ export const useStoreKit = (): UseStoreKitReturn => {
             };
             localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
           } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
-            // For bundles: coins were already granted when originally purchased
-            // Just restore the non-coin contents (characters, boosters, streak freezes)
-            // Only if not already owned (server returns alreadyOwned flag)
-            if (!validationResult.bundle.alreadyOwned) {
-              dispatchBundleGranted(validationResult.bundle);
-              // Also sync coins in case server-side balance changed
+            // For bundles: always dispatch to restore characters/boosters/freezes on new devices
+            // Server returns coinsGranted=0 when alreadyOwned, so no double coin grant
+            dispatchBundleGranted(validationResult.bundle);
+            // Only sync coins if this is a new purchase (not alreadyOwned)
+            if (!validationResult.bundle.alreadyOwned && validationResult.bundle.coinsGranted > 0) {
               dispatchCoinsGranted(validationResult.bundle.coinsGranted);
             }
           }

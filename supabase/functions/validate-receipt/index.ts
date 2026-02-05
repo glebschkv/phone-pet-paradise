@@ -602,6 +602,8 @@ serve(async (req) => {
         .single();
 
       if (existingPurchase) {
+        // Return full bundle contents even when already owned
+        // This allows restore purchases to work on new devices
         return new Response(JSON.stringify({
           success: true,
           message: 'Bundle already owned',
@@ -609,6 +611,11 @@ serve(async (req) => {
           bundle: {
             productId,
             alreadyOwned: true,
+            // Include contents for restore - coins were already granted originally
+            coinsGranted: 0, // Don't re-grant coins
+            characterId: bundleInfo.characterId,
+            boosterId: bundleInfo.boosterId,
+            streakFreezes: bundleInfo.streakFreezes || 0,
           }
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
