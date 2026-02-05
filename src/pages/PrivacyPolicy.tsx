@@ -170,7 +170,7 @@ const PrivacyPolicy = () => {
             </p>
             <div className="bg-white/5 rounded-lg p-4 space-y-1">
               <p className="text-white font-medium">NoMo Inc.</p>
-              <p className="text-white/80">Email: suchkov.gleb@icloud.com</p>
+              <p className="text-white/80">Email: privacy@nomoinc.co</p>
               <p className="text-white/80">Website: https://nomoinc.co</p>
             </div>
           </section>

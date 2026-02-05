@@ -74,19 +74,49 @@ enum AppConfig {
     // MARK: - StoreKit Product IDs
 
     enum ProductIDs {
-        static let premiumMonthly = "nomo_premium_monthly"
-        static let premiumYearly = "nomo_premium_yearly"
-        static let premiumLifetime = "nomo_premium_lifetime"
+        // Subscriptions
+        static let premiumMonthly = "co.nomoinc.nomo.premium.monthly"
+        static let premiumYearly = "co.nomoinc.nomo.premium.yearly"
+        static let premiumPlusMonthly = "co.nomoinc.nomo.premiumplus.monthly"
+        static let premiumPlusYearly = "co.nomoinc.nomo.premiumplus.yearly"
+        static let lifetime = "co.nomoinc.nomo.lifetime"
+
+        // Coin Packs (Consumables)
+        static let coinsValue = "co.nomoinc.nomo.coins.value"
+        static let coinsPremium = "co.nomoinc.nomo.coins.premium"
+        static let coinsMega = "co.nomoinc.nomo.coins.mega"
+        static let coinsUltra = "co.nomoinc.nomo.coins.ultra"
+        static let coinsLegendary = "co.nomoinc.nomo.coins.legendary"
+
+        // Starter Bundles (Non-Consumables)
+        static let bundleWelcome = "co.nomoinc.nomo.bundle.welcome"
+        static let bundleStarter = "co.nomoinc.nomo.bundle.starter"
+        static let bundleCollector = "co.nomoinc.nomo.bundle.collector"
+        static let bundleUltimate = "co.nomoinc.nomo.bundle.ultimate"
 
         static let allProducts: [String] = [
             premiumMonthly,
             premiumYearly,
-            premiumLifetime
+            premiumPlusMonthly,
+            premiumPlusYearly,
+            lifetime,
+            coinsValue,
+            coinsPremium,
+            coinsMega,
+            coinsUltra,
+            coinsLegendary,
+            bundleWelcome,
+            bundleStarter,
+            bundleCollector,
+            bundleUltimate,
         ]
 
         static let subscriptionProducts: [String] = [
             premiumMonthly,
-            premiumYearly
+            premiumYearly,
+            premiumPlusMonthly,
+            premiumPlusYearly,
+            lifetime,
         ]
     }
 

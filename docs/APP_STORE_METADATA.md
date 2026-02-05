@@ -31,9 +31,9 @@ Journey through Meadow, Sunset, Night, Forest, Snow, City, and Deep Ocean biomes
 - Daily quests and weekly challenges
 - 40+ levels of progression
 - Streak system to build consistency
-- Battle Pass with seasonal rewards
 - Achievement badges and milestones
 - Lucky wheel and jackpot surprises
+- Boss challenges with epic rewards
 
 **FOCUS SHIELD (PREMIUM)**
 
@@ -53,9 +53,9 @@ Block distracting apps during focus sessions using Apple's Screen Time technolog
 Upgrade to Premium for:
 - 2x-4x coin multipliers
 - Exclusive pets and worlds
-- Sound mixing for ambient layers
+- Sound mixing (layer up to 3 sounds)
 - More streak freezes
-- Advanced customization
+- Focus Shield app blocking
 
 **WHY NOMO?**
 
@@ -67,7 +67,7 @@ Download NoMo Phone today and start your journey to better focus - one pet at a 
 
 ## Promotional Text (170 characters, updatable anytime)
 
-New: Sound mixing is here! Layer ambient sounds for the perfect focus vibe. Plus 5 new Sky Realm backgrounds, pet bond bonuses, and special events with double XP.
+🎮 40+ pixel pets! 🏝️ 7 stunning worlds! ⏱️ Focus timer rewards coins! 🎧 Mix ambient sounds for perfect focus. Put down your phone and grow your collection!
 
 ---
 
@@ -86,11 +86,11 @@ Welcome to NoMo Phone!
 - Smart focus timer with rewards
 - Focus Shield to block distracting apps
 - Daily quests and weekly challenges
-- Sound mixing with ambient layers (Premium)
+- Sound mixing with multiple ambient layers (Premium)
 - Pet bond system with reward bonuses
 - 5 purchasable Sky Realm backgrounds
-- Ambient sounds for better focus
 - Streak tracking with freeze tokens
+- Boss challenges and achievements
 
 Start your journey to better focus today!
 
