@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Coins } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { ShopItem, getShopItemsByCategory, COIN_PACKS, CoinPack } from "@/data/ShopData";
@@ -115,7 +114,7 @@ export const PowerUpsTab = ({
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-1 text-amber-600 font-bold text-sm">
-                      <Coins className="w-3.5 h-3.5" />
+                      <PixelIcon name="coin" size={14} />
                       {booster.coinPrice?.toLocaleString()}
                     </div>
                   </div>
@@ -149,7 +148,7 @@ export const PowerUpsTab = ({
                   "flex items-center justify-center gap-0.5 mt-1 text-xs font-bold",
                   affordable ? "text-amber-600" : "text-red-500"
                 )}>
-                  <Coins className="w-3 h-3" />
+                  <PixelIcon name="coin" size={12} />
                   {item.coinPrice?.toLocaleString()}
                 </div>
               </button>
@@ -186,7 +185,7 @@ export const PowerUpsTab = ({
                     )}
                   </div>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <Coins className="w-3 h-3 text-amber-500" />
+                    <PixelIcon name="coin" size={12} />
                     <span className="text-amber-600 font-bold text-xs">{pack.coinAmount.toLocaleString()}</span>
                     {pack.bonusCoins && (
                       <span className="text-green-600 text-xs font-semibold">+{pack.bonusCoins.toLocaleString()}</span>

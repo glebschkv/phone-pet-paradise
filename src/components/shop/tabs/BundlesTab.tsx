@@ -5,7 +5,7 @@
  * Extracted from Shop.tsx for better maintainability.
  */
 
-import { Check, Coins } from "lucide-react";
+import { Check } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -201,7 +201,7 @@ const PetBundleCard = ({
                 "flex items-center gap-1 text-xs font-bold",
                 affordable ? "text-amber-600" : "text-red-500"
               )}>
-                <Coins className="w-3 h-3" />
+                <PixelIcon name="coin" size={12} />
                 {bundle.coinPrice?.toLocaleString()}
               </div>
             )}
@@ -322,7 +322,7 @@ const BackgroundBundleCard = ({
                 "flex items-center gap-1 text-xs font-bold",
                 affordable ? "text-amber-600" : "text-red-500"
               )}>
-                <Coins className="w-3 h-3" />
+                <PixelIcon name="coin" size={12} />
                 {bundle.coinPrice?.toLocaleString()}
               </div>
             )}

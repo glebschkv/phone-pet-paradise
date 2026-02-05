@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Heart, Lock, Home, ShoppingBag, Coins, Clock } from "lucide-react";
+import { Heart, Lock, Home, ShoppingBag, Clock } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { AnimalData } from "@/data/AnimalDatabase";
 import { SpritePreview } from "./SpritePreview";
@@ -165,7 +166,7 @@ export const PetDetailModal = ({
                   This pet is available in the Shop
                 </p>
                 <div className="flex items-center justify-center gap-1 mb-3 text-[hsl(35,70%,55%)]">
-                  <Coins className="w-4 h-4" />
+                  <PixelIcon name="coin" size={16} />
                   <span className="font-bold">{pet.coinPrice?.toLocaleString()}</span>
                 </div>
                 <button

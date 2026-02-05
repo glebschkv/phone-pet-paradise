@@ -9,7 +9,6 @@ import {
   Zap,
   Star,
   RefreshCw,
-  Coins,
   Music,
   Settings,
   Snowflake,
@@ -21,6 +20,7 @@ import {
   PenLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 import { usePremiumStatus, SUBSCRIPTION_PLANS, SubscriptionPlan } from '@/hooks/usePremiumStatus';
 import { useStoreKit } from '@/hooks/useStoreKit';
 import { toast } from 'sonner';
@@ -48,8 +48,8 @@ const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string }> = {
   'Focus analytics dashboard': { icon: <BarChart3 className="w-3.5 h-3.5" />, label: 'Analytics' },
   '2 Lucky Wheel spins/day': { icon: <Dices className="w-3.5 h-3.5" />, label: '2 Spins/day' },
   '3 Lucky Wheel spins/day': { icon: <Dices className="w-3.5 h-3.5" />, label: '3 Spins/day' },
-  '1.5x Daily login coins': { icon: <Coins className="w-3.5 h-3.5" />, label: '1.5x Login Coins' },
-  '2x Daily login coins': { icon: <Coins className="w-3.5 h-3.5" />, label: '2x Login Coins' },
+  '1.5x Daily login coins': { icon: <PixelIcon name="coin" size={14} />, label: '1.5x Login Coins' },
+  '2x Daily login coins': { icon: <PixelIcon name="coin" size={14} />, label: '2x Login Coins' },
   'Full analytics dashboard': { icon: <BarChart3 className="w-3.5 h-3.5" />, label: 'Full Analytics' },
   '2 Streak Freezes/month': { icon: <Snowflake className="w-3.5 h-3.5" />, label: '2 Freezes/mo' },
   '5 Streak Freezes/month': { icon: <Snowflake className="w-3.5 h-3.5" />, label: '5 Freezes/mo' },
@@ -277,7 +277,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
               </p>
               {plan.bonusCoins > 0 && (
                 <div className="flex items-center gap-1 mt-1">
-                  <Coins className={cn("w-3.5 h-3.5", config.bonusColor)} />
+                  <PixelIcon name="coin" size={14} />
                   <span className={cn("text-[11px] font-bold", config.bonusColor)}>
                     +{plan.bonusCoins.toLocaleString()} bonus coins
                   </span>

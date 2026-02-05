@@ -7,7 +7,8 @@
 
 import { memo, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ShoppingBag, Coins, Palette } from "lucide-react";
+import { ShoppingBag, Palette } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { PremiumBackground } from "@/data/ShopData";
 
@@ -159,7 +160,7 @@ const ShopPrompt = memo(({ coinPrice, onBuyFromShop }: ShopPromptProps) => {
         Purchase this background from the Shop
       </p>
       <div className="flex items-center justify-center gap-1 mb-3 text-[hsl(35,70%,55%)]">
-        <Coins className="w-4 h-4" />
+        <PixelIcon name="coin" size={16} />
         <span className="font-bold">{coinPrice?.toLocaleString()}</span>
       </div>
       <button

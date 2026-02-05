@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Coins, Lock, Sparkles, Star, Loader2 } from "lucide-react";
+import { Lock, Sparkles, Star, Loader2 } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { ShopItem, BackgroundBundle, PetBundle } from "@/data/ShopData";
@@ -123,7 +123,7 @@ export const PurchaseConfirmDialog = ({
             <div className="retro-price-display py-2">
               <span className="text-muted-foreground text-xs">Price:</span>
               <div className="flex items-center gap-1.5">
-                <Coins className="w-4 h-4 text-amber-500" />
+                <PixelIcon name="coin" size={16} />
                 <span className="text-lg font-black text-amber-600 dark:text-amber-400">
                   {('coinPrice' in selectedItem ? selectedItem.coinPrice : 0)?.toLocaleString()}
                 </span>

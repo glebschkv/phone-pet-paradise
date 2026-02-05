@@ -49,7 +49,11 @@ const ICON_NAMES = new Set([
   // Starter bundle icons
   'bundle-welcome', 'bundle-starter', 'bundle-collector',
   // UI status icons
-  'coin-gold', 'flame-streak',
+  'flame-streak',
+  // Stats popover icons
+  'star-level', 'trophy-xp', 'heart-pets', 'flame-stats',
+  // Coin pack crown icons
+  'crown-ultra', 'crown-legendary',
 ]);
 
 interface PixelIconProps {

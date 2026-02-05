@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Coins, Sparkles, Zap, Shield, Star, Loader2 } from "lucide-react";
+import { Sparkles, Zap, Shield, Star, Loader2 } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { StarterBundle, CoinPack } from "@/data/ShopData";
 import { getAnimalById } from "@/data/AnimalDatabase";
@@ -36,7 +37,7 @@ export const BundleConfirmDialog = ({
 
     if (starterBundle.contents.coins > 0) {
       contentItems.push({
-        icon: <Coins className="w-4 h-4 text-amber-400" />,
+        icon: <PixelIcon name="coin" size={16} />,
         label: `${starterBundle.contents.coins.toLocaleString()} Coins`,
         highlight: true,
         variant: 'legendary',
@@ -76,7 +77,7 @@ export const BundleConfirmDialog = ({
   } else if (isCoinPack) {
     const coinPack = bundle as CoinPack;
     contentItems.push({
-      icon: <Coins className="w-4 h-4 text-amber-400" />,
+      icon: <PixelIcon name="coin" size={16} />,
       label: `${coinPack.coinAmount.toLocaleString()} Coins`,
       highlight: true,
       variant: 'legendary',

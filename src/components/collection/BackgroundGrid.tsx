@@ -8,12 +8,12 @@
 import { memo, useCallback } from "react";
 import {
   ShoppingBag,
-  Coins,
   Image,
   Check,
   Palette,
   Clock,
 } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { PREMIUM_BACKGROUNDS, PremiumBackground } from "@/data/ShopData";
 
@@ -181,7 +181,7 @@ const BackgroundCard = memo(({
           </span>
         ) : (
           <div className="flex items-center gap-0.5 text-[9px] text-[hsl(35,70%,55%)]">
-            <Coins className="w-2.5 h-2.5" />
+            <PixelIcon name="coin" size={10} />
             <span className="font-bold">{bg.coinPrice?.toLocaleString()}</span>
           </div>
         )}
