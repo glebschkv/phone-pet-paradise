@@ -3676,6 +3676,101 @@ input, textarea, [contenteditable="true"] {
   }
 
   /* ═══════════════════════════════════════════════════════════════════════════
+     IAP PRICE BUTTON - Premium gold button for real-money purchases
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  .iap-price-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 2.5px solid hsl(38 70% 38%);
+    background: linear-gradient(180deg,
+      hsl(45 85% 58%) 0%,
+      hsl(40 80% 48%) 50%,
+      hsl(38 75% 42%) 100%
+    );
+    box-shadow:
+      0 3px 0 hsl(35 70% 28%),
+      inset 0 1px 0 hsl(50 90% 72% / 0.6),
+      inset 0 -1px 0 hsl(35 60% 35% / 0.4);
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    text-shadow: 0 1px 2px hsl(30 80% 20% / 0.5);
+    transition: all 0.15s ease;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  /* Shimmer sweep effect */
+  .iap-price-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(50 100% 90% / 0.3) 40%,
+      hsl(50 100% 95% / 0.5) 50%,
+      hsl(50 100% 90% / 0.3) 60%,
+      transparent 100%
+    );
+    animation: iap-shimmer 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes iap-shimmer {
+    0%, 100% { left: -100%; }
+    50% { left: 150%; }
+  }
+
+  .iap-price-button:hover {
+    background: linear-gradient(180deg,
+      hsl(45 88% 62%) 0%,
+      hsl(40 82% 52%) 50%,
+      hsl(38 78% 46%) 100%
+    );
+    transform: translateY(-1px);
+    box-shadow:
+      0 4px 0 hsl(35 70% 28%),
+      0 6px 12px hsl(35 60% 25% / 0.3),
+      inset 0 1px 0 hsl(50 90% 72% / 0.6),
+      inset 0 -1px 0 hsl(35 60% 35% / 0.4);
+  }
+
+  .iap-price-button:active {
+    transform: translateY(3px);
+    box-shadow:
+      0 0px 0 hsl(35 70% 28%),
+      inset 0 1px 0 hsl(50 90% 72% / 0.4),
+      inset 0 -1px 0 hsl(35 60% 35% / 0.4);
+  }
+
+  /* Variant: Best Value gets extra glow */
+  .iap-price-button.best-value {
+    border-color: hsl(35 75% 45%);
+    box-shadow:
+      0 3px 0 hsl(35 70% 28%),
+      0 0 12px hsl(45 100% 50% / 0.4),
+      inset 0 1px 0 hsl(50 90% 72% / 0.6),
+      inset 0 -1px 0 hsl(35 60% 35% / 0.4);
+  }
+
+  .iap-price-button.best-value:hover {
+    box-shadow:
+      0 4px 0 hsl(35 70% 28%),
+      0 0 16px hsl(45 100% 50% / 0.5),
+      0 6px 12px hsl(35 60% 25% / 0.3),
+      inset 0 1px 0 hsl(50 90% 72% / 0.6),
+      inset 0 -1px 0 hsl(35 60% 35% / 0.4);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
      LEGACY RETRO SHOP STYLES (still used by InventoryTab, PurchaseConfirm, etc.)
      ═══════════════════════════════════════════════════════════════════════════ */
 

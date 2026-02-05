@@ -192,8 +192,11 @@ export const PowerUpsTab = ({
                     )}
                   </div>
                 </div>
-                <div className="px-3 py-1.5 bg-green-500 rounded-lg">
-                  <span className="font-bold text-white text-sm">{pack.iapPrice}</span>
+                <div className={cn(
+                  "iap-price-button",
+                  pack.isBestValue && "best-value"
+                )}>
+                  {pack.iapPrice}
                 </div>
               </div>
             </button>

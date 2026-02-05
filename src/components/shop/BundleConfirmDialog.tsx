@@ -232,9 +232,9 @@ export const BundleConfirmDialog = ({
                 boxShadow: '0 4px 0 hsl(260 30% 12%)',
                 cursor: 'not-allowed',
               } : {
-                background: 'linear-gradient(180deg, hsl(140 65% 45%) 0%, hsl(140 70% 35%) 100%)',
-                borderColor: 'hsl(140 55% 55%)',
-                boxShadow: '0 5px 0 hsl(140 75% 20%), inset 0 2px 0 hsl(140 50% 60%)',
+                background: 'linear-gradient(180deg, hsl(45 85% 58%) 0%, hsl(40 80% 48%) 50%, hsl(38 75% 42%) 100%)',
+                borderColor: 'hsl(38 70% 50%)',
+                boxShadow: '0 5px 0 hsl(35 70% 28%), inset 0 2px 0 hsl(50 90% 72% / 0.5)',
                 textShadow: '0 2px 0 rgba(0,0,0,0.3)',
               }}
             >
