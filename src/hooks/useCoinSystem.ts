@@ -281,17 +281,20 @@ export const useCoinSystem = () => {
   const storeResetCoins = useCoinStore((s) => s.resetCoins);
   const storeSyncFromServer = useCoinStore((s) => s.syncFromServer);
 
-  // Sync balance from server
-  const syncFromServer = useCallback(async (): Promise<void> => {
+  // Sync balance from server - returns true if balance was actually updated
+  const syncFromServer = useCallback(async (): Promise<boolean> => {
     const response = await serverGetBalance();
     if (response.success && response.newBalance !== undefined) {
       storeSyncFromServer(
         response.newBalance,
-        response.totalEarned || totalEarned,
-        response.totalSpent || totalSpent
+        response.totalEarned ?? totalEarned,
+        response.totalSpent ?? totalSpent
       );
       coinLogger.debug('Synced balance from server:', response.newBalance);
+      return true;
     }
+    coinLogger.warn('Failed to sync balance from server:', response.error || 'No balance returned');
+    return false;
   }, [storeSyncFromServer, totalEarned, totalSpent]);
 
   // PHASE 1: Initial coin sync on authentication
@@ -596,8 +599,8 @@ export const useCoinSystem = () => {
       if (response.newBalance !== undefined) {
         storeSyncFromServer(
           response.newBalance,
-          response.totalEarned || totalEarned,
-          response.totalSpent || totalSpent + validAmount
+          response.totalEarned ?? totalEarned,
+          response.totalSpent ?? totalSpent + validAmount
         );
       } else {
         // For unauthenticated users, update local store
@@ -614,8 +617,8 @@ export const useCoinSystem = () => {
           if (balanceResponse.success && balanceResponse.newBalance !== undefined) {
             storeSyncFromServer(
               balanceResponse.newBalance,
-              balanceResponse.totalEarned || totalEarned,
-              balanceResponse.totalSpent || totalSpent
+              balanceResponse.totalEarned ?? totalEarned,
+              balanceResponse.totalSpent ?? totalSpent
             );
           }
         });
