@@ -53,8 +53,8 @@ Block distracting apps during focus sessions using Apple's Screen Time technolog
 Upgrade to Premium for:
 - 2x-4x coin multipliers
 - Exclusive pets and worlds
+- Sound mixing (layer up to 3 sounds)
 - More streak freezes
-- Advanced customization
 - Focus Shield app blocking
 
 **WHY NOMO?**
@@ -67,7 +67,7 @@ Download NoMo Phone today and start your journey to better focus - one pet at a 
 
 ## Promotional Text (170 characters, updatable anytime)
 
-🎮 Collect 40+ adorable pixel pets! 🏝️ Explore 7 stunning worlds! ⏱️ Focus timer rewards you with coins. Put down your phone and watch your collection grow!
+🎮 40+ pixel pets! 🏝️ 7 stunning worlds! ⏱️ Focus timer rewards coins! 🎧 Mix ambient sounds for perfect focus. Put down your phone and grow your collection!
 
 ---
 
@@ -86,9 +86,9 @@ Welcome to NoMo Phone!
 - Smart focus timer with rewards
 - Focus Shield to block distracting apps
 - Daily quests and weekly challenges
+- Sound mixing with multiple ambient layers (Premium)
 - Pet bond system with reward bonuses
 - 5 purchasable Sky Realm backgrounds
-- Relaxing ambient sounds for focus
 - Streak tracking with freeze tokens
 - Boss challenges and achievements
 
