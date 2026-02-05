@@ -391,7 +391,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                     )}
                     {/* Icon */}
                     <image
-                      href={`/assets/icons/${segment.emoji}.png`}
+                      href={`/assets/icons/${segment.icon}.png`}
                       x={textX - 5}
                       y={textY - 5}
                       width="10"
@@ -446,7 +446,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                   "mb-3 flex items-center justify-center",
                   currentPrize.rarity === 'legendary' && "animate-bounce"
                 )}>
-                  <PixelIcon name={currentPrize.emoji} size={64} />
+                  <PixelIcon name={currentPrize.icon} size={64} />
                 </div>
                 <h3 className="text-xl font-bold text-white retro-pixel-text">
                   {currentPrize.name}
@@ -540,7 +540,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                     getRarityBorder(result.prize.rarity)
                   )}
                 >
-                  <PixelIcon name={result.prize.emoji} size={28} />
+                  <PixelIcon name={result.prize.icon} size={28} />
                 </button>
               ))
             ) : (
@@ -568,7 +568,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                     getRarityBorder(selectedWin.prize.rarity),
                     getRarityGlow(selectedWin.prize.rarity)
                   )}>
-                    <PixelIcon name={selectedWin.prize.emoji} size={36} />
+                    <PixelIcon name={selectedWin.prize.icon} size={36} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-white font-bold retro-pixel-text text-sm">

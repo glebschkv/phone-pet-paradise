@@ -160,7 +160,7 @@ export const useLuckyWheel = () => {
       segments: LUCKY_WHEEL_PRIZES.map(prize => ({
         id: prize.id,
         label: prize.name,
-        emoji: prize.emoji,
+        icon: prize.icon,
         color: prize.color,
         rarity: prize.rarity,
       })),
