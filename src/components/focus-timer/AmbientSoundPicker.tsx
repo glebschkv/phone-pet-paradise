@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Volume2, VolumeX, Lock, Crown, ChevronDown, Play, Pause, Music, X, Plus, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 import { Slider } from '@/components/ui/slider';
 import {
   AMBIENT_SOUNDS,
@@ -238,7 +239,7 @@ export const AmbientSoundPicker = () => {
                         border: '1px solid hsl(var(--border) / 0.5)',
                       }}
                     >
-                      <span className="text-lg flex-shrink-0">{layer.sound?.icon}</span>
+                      {layer.sound?.icon && <PixelIcon name={layer.sound.icon} size={20} className="flex-shrink-0" />}
                       <span className="text-[10px] font-bold flex-shrink-0 w-14 truncate">
                         {layer.sound?.name}
                       </span>
@@ -350,7 +351,7 @@ export const AmbientSoundPicker = () => {
                   color: selectedCategory === cat.id ? 'white' : 'inherit',
                 }}
               >
-                <span>{cat.icon}</span>
+                <PixelIcon name={cat.icon} size={14} />
                 {cat.name}
               </button>
             ))}
@@ -385,7 +386,7 @@ export const AmbientSoundPicker = () => {
                       }}
                     >
                       <div className="flex items-start justify-between mb-1">
-                        <span className="text-2xl">{sound.icon}</span>
+                        <PixelIcon name={sound.icon} size={28} />
                         {isCurrentlyPlaying && (
                           <div className="text-green-600 dark:text-green-400">
                             <SoundWaveBars isPlaying={true} small />
@@ -461,7 +462,7 @@ export const AmbientSoundPicker = () => {
                       </div>
 
                       <div className="flex items-start justify-between mb-1">
-                        <span className="text-2xl">{sound.icon}</span>
+                        <PixelIcon name={sound.icon} size={28} />
                         {isCurrentlyPlaying && (
                           <div className="text-green-600 dark:text-green-400">
                             <SoundWaveBars isPlaying={true} small />
