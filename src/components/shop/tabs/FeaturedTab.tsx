@@ -261,8 +261,8 @@ export const FeaturedTab = ({
                     </p>
                   </div>
                   {!alreadyPurchased && (
-                    <div className="px-3 py-1.5 bg-green-500 rounded-lg flex-shrink-0">
-                      <span className="font-bold text-white text-sm">{bundle.iapPrice}</span>
+                    <div className="iap-price-button">
+                      {bundle.iapPrice}
                     </div>
                   )}
                 </div>
@@ -299,8 +299,8 @@ export const FeaturedTab = ({
                 )}
               </div>
             </div>
-            <div className="px-3 py-1.5 bg-green-500 rounded-lg flex-shrink-0">
-              <span className="font-bold text-white text-sm">{bestValuePack.iapPrice}</span>
+            <div className="iap-price-button best-value">
+              {bestValuePack.iapPrice}
             </div>
           </div>
         </button>
