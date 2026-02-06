@@ -85,11 +85,10 @@ final class WidgetDataManager: WidgetDataManaging {
         existingData[key] = sectionData
         existingData["lastUpdated"] = Date().timeIntervalSince1970 * 1000
 
-        // Save back
+        // Save back (caller is responsible for refreshing the specific widget)
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: existingData, options: [])
             userDefaults.set(jsonData, forKey: dataKey)
-            refreshWidgets()
             Log.widget.info("Widget data updated: \(key)")
         } catch {
             Log.widget.failure("Failed to update widget data", error: error)
@@ -101,21 +100,32 @@ final class WidgetDataManager: WidgetDataManaging {
 
     func updateTimer(_ data: WidgetTimerData) throws {
         try updatePartialData(key: "timer", value: data.asDictionary)
+        refreshWidget(kind: "NoMoTimerWidget")
     }
 
     func updateStreak(_ data: WidgetStreakData) throws {
         try updatePartialData(key: "streak", value: data.asDictionary)
+        refreshWidget(kind: "NoMoStreakWidget")
     }
 
     func updateDailyProgress(_ data: WidgetDailyProgress) throws {
         try updatePartialData(key: "dailyProgress", value: data.asDictionary)
+        refreshWidget(kind: "NoMoProgressWidget")
     }
 
     func updateStats(_ data: WidgetStats) throws {
         try updatePartialData(key: "stats", value: data.asDictionary)
+        refreshWidget(kind: "NoMoStatsWidget")
     }
 
     // MARK: - Widget Refresh
+
+    /// Reload a specific widget timeline by kind
+    private func refreshWidget(kind: String) {
+        if #available(iOS 14.0, *) {
+            WidgetCenter.shared.reloadTimelines(ofKind: kind)
+        }
+    }
 
     func refreshWidgets() {
         if #available(iOS 14.0, *) {

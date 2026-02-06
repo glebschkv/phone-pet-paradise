@@ -63,6 +63,9 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     /// Track whether the plugin loaded successfully
     private var pluginLoadedSuccessfully = false
 
+    /// Cached result of provisioning profile entitlement check (computed once in load())
+    private var cachedEntitlementInProfile: Bool = false
+
     // MARK: - Lifecycle
 
     public override func load() {
@@ -101,6 +104,7 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
            let profileData = try? Data(contentsOf: URL(fileURLWithPath: profilePath)) {
             let profileString = String(data: profileData, encoding: .ascii) ?? ""
             let hasFamilyControls = profileString.contains("com.apple.developer.family-controls")
+            cachedEntitlementInProfile = hasFamilyControls
             Log.app.info("[DIAG] Provisioning profile found: YES")
             Log.app.info("[DIAG] Family Controls entitlement in profile: \(hasFamilyControls ? "YES ✅" : "NO ❌ — This is the problem!")")
 
@@ -130,14 +134,7 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     /// Simple echo method to verify the native plugin bridge is working.
     /// Returns immediately without accessing any managers or entitlements.
     @objc func echo(_ call: CAPPluginCall) {
-        // Include entitlement diagnostic in echo response
-        var hasEntitlementInProfile = false
-        if let profilePath = Bundle.main.path(forResource: "embedded", ofType: "mobileprovision"),
-           let profileData = try? Data(contentsOf: URL(fileURLWithPath: profilePath)) {
-            let profileString = String(data: profileData, encoding: .ascii) ?? ""
-            hasEntitlementInProfile = profileString.contains("com.apple.developer.family-controls")
-        }
-
+        // Use cached entitlement check (computed once in load() off main thread)
         var initialAuthStatus = "unknown"
         if #available(iOS 16.0, *) {
             let status = FamilyControls.AuthorizationCenter.shared.authorizationStatus
@@ -153,7 +150,7 @@ public class DeviceActivityPlugin: CAPPlugin, CAPBridgedPlugin {
             "pluginLoaded": pluginLoadedSuccessfully,
             "platform": "ios",
             "timestamp": Date().timeIntervalSince1970,
-            "familyControlsEntitlementInProfile": hasEntitlementInProfile,
+            "familyControlsEntitlementInProfile": cachedEntitlementInProfile,
             "initialAuthStatus": initialAuthStatus,
             "bundleId": Bundle.main.bundleIdentifier ?? "unknown"
         ])
