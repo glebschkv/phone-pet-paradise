@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 /// Helper for the ShieldConfiguration extension.
-/// Provides the retro neon-themed shield design with funny messages.
+/// Pixel-art retro arcade themed shield with funny messages.
 class ShieldConfigurationHelper {
 
     // MARK: - Properties
@@ -36,7 +36,7 @@ class ShieldConfigurationHelper {
         userDefaults.set(0, forKey: SharedConstants.StorageKeys.lastShieldAttempt)
     }
 
-    // MARK: - Funny Messages
+    // MARK: - Messages
 
     static let shieldMessages = [
         "You don't need this app. You need a nap.",
@@ -66,67 +66,58 @@ class ShieldConfigurationHelper {
 
     // MARK: - Title
 
-    /// Returns one of several fun titles randomly
     func getTitle() -> String {
         let titles = [
-            "NOMO ZONE",
-            "NoMo Distractions",
-            "App Blocked",
-            "Nice Try",
-            "Nope.",
+            "\u{25A0} NOMO \u{25A0}",
+            "\u{25B6} BLOCKED",
+            "\u{2588}\u{2588} NOPE",
+            ">> NO ACCESS",
+            "\u{2593} DENIED \u{2593}",
         ]
         return titles.randomElement() ?? titles[0]
     }
 
-    // MARK: - Neon Icon
+    // MARK: - Pixel Art Icon
 
-    /// Creates a custom "NOMO" text icon with neon glow effect
+    /// Creates a pixel art "X" icon by rendering an SF Symbol at tiny resolution
+    /// then scaling up with nearest-neighbor interpolation for that retro look
     func createNoMoIcon() -> UIImage? {
-        let size = CGSize(width: 80, height: 40)
-        let renderer = UIGraphicsImageRenderer(size: size)
+        // Render SF Symbol at tiny resolution
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .black)
+        guard let symbol = UIImage(systemName: "xmark.octagon.fill", withConfiguration: config)?
+            .withTintColor(ShieldColors.neonCyan, renderingMode: .alwaysOriginal) else { return nil }
 
-        return renderer.image { ctx in
-            let text = "NOMO"
-            let font = UIFont.systemFont(ofSize: 24, weight: .black)
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: font,
-                .foregroundColor: ShieldUIConstants.neonCyan,
-            ]
-
-            let textSize = (text as NSString).size(withAttributes: attributes)
-            let x = (size.width - textSize.width) / 2
-            let y = (size.height - textSize.height) / 2
-
-            // Draw glow layer (slightly larger, blurred)
-            let glowAttrs: [NSAttributedString.Key: Any] = [
-                .font: font,
-                .foregroundColor: ShieldUIConstants.neonCyan.withAlphaComponent(0.4),
-            ]
-            (text as NSString).draw(at: CGPoint(x: x - 1, y: y - 1), withAttributes: glowAttrs)
-            (text as NSString).draw(at: CGPoint(x: x + 1, y: y + 1), withAttributes: glowAttrs)
-
-            // Draw main text
-            (text as NSString).draw(at: CGPoint(x: x, y: y), withAttributes: attributes)
+        // Draw symbol into a tiny 16x16 bitmap
+        let tinySize = CGSize(width: 16, height: 16)
+        let tinyRenderer = UIGraphicsImageRenderer(size: tinySize)
+        let tinyImage = tinyRenderer.image { _ in
+            let drawRect = CGRect(
+                x: (tinySize.width - symbol.size.width) / 2,
+                y: (tinySize.height - symbol.size.height) / 2,
+                width: symbol.size.width,
+                height: symbol.size.height
+            )
+            symbol.draw(in: drawRect)
         }
+
+        // Scale up with nearest-neighbor interpolation for pixel art effect
+        let targetSize = CGSize(width: 80, height: 80)
+        UIGraphicsBeginImageContextWithOptions(targetSize, false, 1.0)
+        guard let ctx = UIGraphicsGetCurrentContext() else { return nil }
+        ctx.interpolationQuality = .none
+        tinyImage.draw(in: CGRect(origin: .zero, size: targetSize))
+        let pixelImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return pixelImage
     }
 
-    // MARK: - Shield Colors
+    // MARK: - Colors
 
-    static var shieldBackgroundColor: UIColor {
-        ShieldUIConstants.backgroundColor
-    }
-
-    static var shieldSubtitleColor: UIColor {
-        ShieldUIConstants.subtitleColor
-    }
-
-    static var shieldTitleColor: UIColor {
-        ShieldUIConstants.titleColor
-    }
-
-    static var shieldButtonColor: UIColor {
-        ShieldUIConstants.buttonColor
-    }
+    static var shieldBackgroundColor: UIColor { ShieldColors.background }
+    static var shieldTitleColor: UIColor { ShieldColors.neonCyan }
+    static var shieldSubtitleColor: UIColor { ShieldColors.neonPink }
+    static var shieldButtonColor: UIColor { ShieldColors.electricPurple }
 
     // MARK: - Accessibility
 
@@ -143,22 +134,18 @@ class ShieldConfigurationHelper {
     }
 }
 
-// MARK: - Neon Shield UI Constants
+// MARK: - Retro Arcade Color Palette
 
-/// Retro neon-themed color scheme for the shield
-private enum ShieldUIConstants {
-    /// Neon cyan for title text and icon - electric blue-green glow
-    static let neonCyan = UIColor(red: 0.0, green: 1.0, blue: 0.95, alpha: 1.0) // #00FFF2
+private enum ShieldColors {
+    /// Neon cyan - bright electric blue-green (#00FFE5)
+    static let neonCyan = UIColor(red: 0.0, green: 1.0, blue: 0.9, alpha: 1.0)
 
-    /// Background - very dark with slight blue tint (like a dark arcade)
-    static let backgroundColor = UIColor(red: 0.04, green: 0.02, blue: 0.12, alpha: 0.97) // #0A0520
+    /// Neon pink/magenta for subtitles (#FF5CAD)
+    static let neonPink = UIColor(red: 1.0, green: 0.36, blue: 0.68, alpha: 1.0)
 
-    /// Title color - bright neon cyan
-    static let titleColor = neonCyan
+    /// Electric purple for button (#7B2FFF)
+    static let electricPurple = UIColor(red: 0.48, green: 0.18, blue: 1.0, alpha: 1.0)
 
-    /// Subtitle color - neon pink/magenta for contrast
-    static let subtitleColor = UIColor(red: 1.0, green: 0.4, blue: 0.7, alpha: 1.0) // #FF66B3
-
-    /// Button color - electric purple with high visibility
-    static let buttonColor = UIColor(red: 0.55, green: 0.15, blue: 1.0, alpha: 1.0) // #8C26FF
+    /// Near-black with deep blue undertone (#06010F)
+    static let background = UIColor(red: 0.024, green: 0.004, blue: 0.06, alpha: 0.97)
 }

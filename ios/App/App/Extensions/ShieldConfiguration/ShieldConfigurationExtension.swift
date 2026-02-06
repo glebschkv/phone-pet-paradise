@@ -41,7 +41,7 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
         let message = helper.getMotivationalMessage()
 
         return ShieldConfiguration(
-            backgroundBlurStyle: .systemUltraThinMaterialDark,
+            backgroundBlurStyle: .systemThickMaterialDark,
             backgroundColor: ShieldConfigurationHelper.shieldBackgroundColor,
             icon: helper.createNoMoIcon(),
             title: ShieldConfiguration.Label(

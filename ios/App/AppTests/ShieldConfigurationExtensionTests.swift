@@ -228,10 +228,10 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 
-        // Then - verify dark arcade-like tint
-        XCTAssertEqual(red, 0.04, accuracy: 0.01)
-        XCTAssertEqual(green, 0.02, accuracy: 0.01)
-        XCTAssertEqual(blue, 0.12, accuracy: 0.01)
+        // Then - verify near-black with blue undertone
+        XCTAssertEqual(red, 0.024, accuracy: 0.01)
+        XCTAssertEqual(green, 0.004, accuracy: 0.01)
+        XCTAssertEqual(blue, 0.06, accuracy: 0.01)
         XCTAssertEqual(alpha, 0.97, accuracy: 0.01)
     }
 

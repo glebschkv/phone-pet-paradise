@@ -8,26 +8,28 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme="dark"
       position="top-center"
       className="toaster group"
-      style={{ '--offset': 'max(14px, env(safe-area-inset-top, 14px))' } as React.CSSProperties}
+      style={{
+        '--offset': 'calc(env(safe-area-inset-top, 14px) + 6px)',
+      } as React.CSSProperties}
       toastOptions={{
         duration: 3000,
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-[#1c1412] group-[.toaster]:text-amber-100 group-[.toaster]:border group-[.toaster]:border-amber-500/30 group-[.toaster]:shadow-lg group-[.toaster]:shadow-black/40 group-[.toaster]:rounded-lg group-[.toaster]:text-sm",
-          title: "group-[.toast]:text-amber-200 group-[.toast]:font-semibold group-[.toast]:text-sm",
-          description: "group-[.toast]:text-amber-100/70 group-[.toast]:text-xs",
+            "group toast group-[.toaster]:bg-[#120a18]/95 group-[.toaster]:text-purple-100 group-[.toaster]:border group-[.toaster]:border-purple-500/25 group-[.toaster]:shadow-lg group-[.toaster]:shadow-purple-900/30 group-[.toaster]:rounded-xl group-[.toaster]:text-sm group-[.toaster]:backdrop-blur-md",
+          title: "group-[.toast]:text-purple-100 group-[.toast]:font-medium group-[.toast]:text-sm",
+          description: "group-[.toast]:text-purple-200/60 group-[.toast]:text-xs",
           actionButton:
-            "group-[.toast]:bg-amber-500/20 group-[.toast]:text-amber-300 group-[.toast]:border group-[.toast]:border-amber-500/40 group-[.toast]:text-xs",
+            "group-[.toast]:bg-purple-500/20 group-[.toast]:text-purple-200 group-[.toast]:border group-[.toast]:border-purple-500/30 group-[.toast]:text-xs group-[.toast]:rounded-lg",
           cancelButton:
-            "group-[.toast]:bg-white/5 group-[.toast]:text-amber-100/60 group-[.toast]:text-xs",
+            "group-[.toast]:bg-white/5 group-[.toast]:text-purple-200/50 group-[.toast]:text-xs group-[.toast]:rounded-lg",
           success:
-            "group-[.toaster]:border-emerald-500/30 group-[.toaster]:bg-[#0f1a14]",
+            "group-[.toaster]:border-emerald-500/25 group-[.toaster]:bg-[#0a1210]/95",
           error:
-            "group-[.toaster]:border-red-500/30 group-[.toaster]:bg-[#1a0f0f]",
+            "group-[.toaster]:border-red-500/25 group-[.toaster]:bg-[#150a0a]/95",
           warning:
-            "group-[.toaster]:border-yellow-500/30 group-[.toaster]:bg-[#1a1710]",
+            "group-[.toaster]:border-amber-500/25 group-[.toaster]:bg-[#151008]/95",
           info:
-            "group-[.toaster]:border-blue-500/30 group-[.toaster]:bg-[#0f141a]",
+            "group-[.toaster]:border-blue-400/25 group-[.toaster]:bg-[#0a0e15]/95",
         },
       }}
       {...props}
