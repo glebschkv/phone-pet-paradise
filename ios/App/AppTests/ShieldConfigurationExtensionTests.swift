@@ -142,9 +142,9 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
         let messages = sut.getAllMotivationalMessages()
 
         // Then - verify key messages exist
-        XCTAssertTrue(messages.contains("This app has been NoMo'd"))
-        XCTAssertTrue(messages.contains("404: Distraction not found"))
-        XCTAssertTrue(messages.contains("Blocked by NoMo. No cap."))
+        XCTAssertTrue(messages.contains("Congratulations, you played yourself."))
+        XCTAssertTrue(messages.contains("Your screen time report is already crying."))
+        XCTAssertTrue(messages.contains("Your attention span called. It wants custody."))
     }
 
     func testMotivationalMessageHasCorrectCount() {

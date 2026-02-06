@@ -39,21 +39,21 @@ class ShieldConfigurationHelper {
     // MARK: - Funny Messages
 
     static let shieldMessages = [
-        "This app has been NoMo'd",
-        "Nice try. Your pet saw that.",
-        "404: Distraction not found",
-        "Touch grass, not this app",
-        "Your future self says thanks",
-        "Nope. Not today, pal.",
-        "This app is in timeout",
-        "Your focus streak > your snap streak",
-        "Resist the scroll!",
-        "Plot twist: you don't need this app",
-        "Your pet is judging you rn",
-        "Go drink some water instead",
-        "The app can wait. You can't.",
-        "Focus mode: activated",
-        "Blocked by NoMo. No cap.",
+        "You don't need this app. You need a nap.",
+        "This app isn't going anywhere. Neither is your focus session.",
+        "Somewhere, your pet just leveled up because you didn't open this.",
+        "You opened this 3 minutes ago. And 6 minutes before that.",
+        "Remember when you said 'just 5 minutes'? We remember.",
+        "Your screen time report is already crying.",
+        "This is a sign. Go do that thing you've been putting off.",
+        "Every time you try to open this, a pixel pet gets stronger.",
+        "You're not bored. You're just uncomfortable with your own thoughts.",
+        "Congratulations, you played yourself.",
+        "The urge will pass in about 9 seconds. We timed it.",
+        "This app was talking behind your back anyway.",
+        "Your attention span called. It wants custody.",
+        "Be the main character. Main characters don't doomscroll.",
+        "You will not remember this scroll. You will remember finishing your work.",
     ]
 
     func getMotivationalMessage() -> String {
