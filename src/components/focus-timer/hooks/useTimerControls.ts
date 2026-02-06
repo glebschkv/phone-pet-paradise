@@ -7,6 +7,7 @@
 
 import { useCallback } from "react";
 import { toast } from 'sonner';
+import { timerLogger } from '@/lib/logger';
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -110,7 +111,7 @@ export const useTimerControls = ({
           triggerHaptic('light');
         }
       }).catch((e) => {
-        console.error('Failed to start app blocking:', e);
+        timerLogger.error('Failed to start app blocking:', e);
       });
     }
   }, [saveTimerState, timerState.timeLeft, timerState.isCountup, selectedPreset.type, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
@@ -211,7 +212,7 @@ export const useTimerControls = ({
         const result = await stopAppBlocking();
         shieldAttempts = result.shieldAttempts;
       } catch (e) {
-        console.error('Failed to stop app blocking:', e);
+        timerLogger.error('Failed to stop app blocking:', e);
       }
     }
 
@@ -300,7 +301,7 @@ export const useTimerControls = ({
         const result = await stopAppBlocking();
         shieldAttempts = result.shieldAttempts;
       } catch (e) {
-        console.error('Failed to stop app blocking:', e);
+        timerLogger.error('Failed to stop app blocking:', e);
       }
     }
 
