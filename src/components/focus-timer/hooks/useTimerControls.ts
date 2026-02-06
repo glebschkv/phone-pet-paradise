@@ -113,6 +113,9 @@ export const useTimerControls = ({
         }
       }).catch((e) => {
         timerLogger.error('Failed to start app blocking:', e);
+        toast.warning('App blocking unavailable', {
+          description: 'Focus session started, but apps could not be blocked.',
+        });
       });
     }
   }, [saveTimerState, timerState.timeLeft, timerState.isCountup, selectedPreset.type, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);

@@ -103,6 +103,12 @@ async function _fetchSharedData(userId: string): Promise<CachedData | null> {
     return _fetchPromise;
   }
 
+  // If a different user is now fetching, invalidate the old fetch so its
+  // results won't be used — prevents leaking user A's data to user B.
+  if (_cachedUserId && _cachedUserId !== userId) {
+    _fetchPromise = null;
+  }
+
   _cachedUserId = userId;
 
   _fetchPromise = (async () => {
@@ -279,7 +285,13 @@ export const useSupabaseData = () => {
     if (!user) return;
 
     setIsLoading(true);
-    const result = await _fetchSharedData(user.id);
+    const fetchUserId = user.id;
+    const result = await _fetchSharedData(fetchUserId);
+
+    // Guard: if user changed while we were fetching, discard stale results
+    if (_cachedUserId !== fetchUserId) {
+      return;
+    }
 
     if (result) {
       setProfile(result.profile);

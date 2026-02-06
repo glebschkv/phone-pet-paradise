@@ -506,9 +506,19 @@ export const useCoinSystem = () => {
           coinLogger.error('Failed to sync balance after duplicate detection:', err);
         });
       } else if (!response.success) {
-        coinLogger.warn('Server validation failed, local state may be inconsistent');
-        // For non-authenticated users, keep local state
-        // For authenticated users with server error, sync on next opportunity
+        coinLogger.warn('Server validation failed, syncing balance from server');
+        // Sync from server to correct local state
+        serverGetBalance().then((balanceResponse) => {
+          if (balanceResponse.success && balanceResponse.newBalance !== undefined) {
+            storeSyncFromServer(
+              balanceResponse.newBalance,
+              balanceResponse.totalEarned || totalEarned,
+              balanceResponse.totalSpent || totalSpent
+            );
+          }
+        }).catch((syncErr) => {
+          coinLogger.error('Failed to sync balance after validation failure:', syncErr);
+        });
       }
     }).catch((err) => {
       coinLogger.error('Failed to validate coin earn with server:', err);

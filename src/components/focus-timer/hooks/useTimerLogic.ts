@@ -30,6 +30,7 @@ import { useSessionNotes } from "./useSessionNotes";
 import { useBreakTransition } from "./useBreakTransition";
 import { useTimerControls } from "./useTimerControls";
 import { useTimerCountdown } from "./useTimerCountdown";
+import { timerLogger } from "@/lib/logger";
 
 export const useTimerLogic = () => {
   const { awardXP, coinSystem, xpSystem } = useBackendAppState();
@@ -184,7 +185,7 @@ export const useTimerLogic = () => {
           const blockingResult = await stopAppBlocking();
           shieldAttempts = blockingResult.shieldAttempts;
         } catch (e) {
-          console.error('Failed to stop app blocking:', e);
+          timerLogger.error('Failed to stop app blocking:', e);
         }
       }
 
