@@ -1,100 +1,188 @@
 # NoMo Phone - iOS Extensions Setup Guide
 
-This guide explains how to set up the Family Controls extensions in Xcode for app blocking functionality.
-
 ## Overview
 
-NoMo Phone uses Apple's Screen Time API (Family Controls) to block distracting apps during focus sessions. This requires two extensions:
+NoMo Phone uses three iOS app extensions:
 
-1. **ShieldConfiguration Extension** - Provides custom UI when users try to open blocked apps
-2. **DeviceActivityMonitor Extension** - Monitors device activity and tracks blocked app attempts
+1. **ShieldConfiguration** — Custom UI when users try to open blocked apps
+2. **DeviceActivityMonitor** — Monitors device activity lifecycle (session start/end)
+3. **NoMoWidget** — Home screen widgets (timer, streak, progress, stats)
+
+## Why Extensions Must Be Added Manually
+
+Capacitor manages `project.pbxproj` for the main `App` target only. Extension targets
+cannot be added programmatically — you must create them in Xcode. They persist across
+`npx cap copy ios` / `npx cap sync ios` because Capacitor only updates the main target.
 
 ## Prerequisites
 
-- Xcode 15.0 or later
-- iOS 16.0+ deployment target (iOS 15 for basic functionality)
-- Apple Developer Account with Family Controls capability enabled
-- App Group configured: `group.co.nomoinc.nomo`
+- Xcode 16.0+ (for iOS 18 SDK; iOS 26 runtime requires Xcode 18 beta)
+- Physical iOS device (Family Controls does NOT work in Simulator)
+- Apple Developer account with **Family Controls** capability enabled for:
+  - `co.nomoinc.nomo` (main app)
+  - `co.nomoinc.nomo.ShieldConfiguration`
+  - `co.nomoinc.nomo.DeviceActivityMonitor`
+- App Group `group.co.nomoinc.nomo` registered for all bundle IDs above + widget
 
-## Extension Setup Instructions
+## Extension Setup
 
-### 1. Create ShieldConfiguration Extension
+### 1. ShieldConfiguration Extension
 
-1. In Xcode, select **File > New > Target**
-2. Choose **Shield Configuration Extension** template
-3. Name it: `NoMoShield`
-4. Bundle Identifier: `co.nomoinc.nomo.shield`
-5. Embed in Application: `App`
+**Create the target:**
+1. In Xcode: **File → New → Target**
+2. Search for and select **Shield Configuration Extension**
+3. Product Name: `ShieldConfiguration` (MUST match exactly — the Info.plist uses `$(PRODUCT_MODULE_NAME).ShieldConfigurationExtension` to find the class)
+4. Bundle Identifier: `co.nomoinc.nomo.ShieldConfiguration`
+5. Embed in Application: **App**
+6. Language: Swift
+7. Click **Finish**
 
-After creation:
-- Delete the auto-generated Swift file
-- Add `ShieldConfigurationExtension.swift` from this folder
-- Add `Info.plist` and `ShieldConfiguration.entitlements` from this folder
+**Replace auto-generated files:**
+1. Delete the auto-generated `.swift` file Xcode created in the new target's folder
+2. In the ShieldConfiguration target's **Build Settings**:
+   - Set **Info.plist File** to: `App/Extensions/ShieldConfiguration/Info.plist`
+   - Set **Code Sign Entitlements** to: `App/Extensions/ShieldConfiguration/ShieldConfiguration.entitlements`
+3. Delete any auto-generated `Info.plist` from the target folder (we use the one in `Extensions/`)
 
-### 2. Create DeviceActivityMonitor Extension
+**Add source files to the target (CRITICAL):**
+In Xcode's Project Navigator, for EACH of these files, select the file → open File Inspector
+(right panel) → under **Target Membership**, check the `ShieldConfiguration` box:
 
-1. In Xcode, select **File > New > Target**
-2. Choose **Device Activity Monitor Extension** template
-3. Name it: `NoMoActivityMonitor`
-4. Bundle Identifier: `co.nomoinc.nomo.activity-monitor`
-5. Embed in Application: `App`
+- `App/Extensions/ShieldConfiguration/ShieldConfigurationExtension.swift`
+- `App/Shared/ShieldConfigurationHelper.swift`
+- `App/Shared/SharedConstants.swift`
 
-After creation:
-- Delete the auto-generated Swift file
-- Add `DeviceActivityMonitorExtension.swift` from this folder
-- Add `Info.plist` and `DeviceActivityMonitor.entitlements` from this folder
+All three files MUST be compiled by the ShieldConfiguration target. If the helpers are
+missing, the extension will fail to compile with "undeclared identifier" errors.
 
-### 3. Configure App Groups
-
-For each target (App, ShieldConfiguration, DeviceActivityMonitor):
-
-1. Select the target in Xcode
-2. Go to **Signing & Capabilities**
-3. Click **+ Capability**
-4. Add **App Groups**
-5. Add: `group.co.nomoinc.nomo`
-
-### 4. Configure Family Controls Capability
-
-For each target:
-
-1. Go to **Signing & Capabilities**
-2. Click **+ Capability**
-3. Add **Family Controls**
-
-### 5. Add Required Frameworks
-
-For the main App target, ensure these frameworks are linked:
-- `FamilyControls.framework`
-- `ManagedSettings.framework`
-- `DeviceActivity.framework`
-
-For ShieldConfiguration extension:
+**Link frameworks** (Build Phases → Link Binary With Libraries):
 - `ManagedSettings.framework`
 - `ManagedSettingsUI.framework`
+- `FamilyControls.framework`
 
-For DeviceActivityMonitor extension:
+**Add capabilities** (Signing & Capabilities):
+- **Family Controls**
+- **App Groups** → add `group.co.nomoinc.nomo`
+
+**Set deployment target:**
+- Minimum Deployments: iOS 16.0
+
+---
+
+### 2. DeviceActivityMonitor Extension
+
+**Create the target:**
+1. **File → New → Target**
+2. Search for and select **Device Activity Monitor Extension**
+3. Product Name: `DeviceActivityMonitor` (MUST match exactly)
+4. Bundle Identifier: `co.nomoinc.nomo.DeviceActivityMonitor`
+5. Embed in Application: **App**
+6. Click **Finish**
+
+**Replace auto-generated files:**
+1. Delete the auto-generated `.swift` file
+2. In Build Settings:
+   - **Info.plist File**: `App/Extensions/DeviceActivityMonitor/Info.plist`
+   - **Code Sign Entitlements**: `App/Extensions/DeviceActivityMonitor/DeviceActivityMonitor.entitlements`
+
+**Add source files to target (Target Membership):**
+- `App/Extensions/DeviceActivityMonitor/DeviceActivityMonitorExtension.swift`
+- `App/Shared/DeviceActivityMonitorHelper.swift`
+- `App/Shared/SharedConstants.swift`
+
+**Link frameworks:**
 - `DeviceActivity.framework`
 - `ManagedSettings.framework`
 - `FamilyControls.framework`
 
-## Entitlements Summary
+**Add capabilities:**
+- **Family Controls**
+- **App Groups** → add `group.co.nomoinc.nomo`
 
-### Main App (App.entitlements)
+**Set deployment target:**
+- Minimum Deployments: iOS 15.0
+
+---
+
+### 3. NoMoWidget Extension
+
+**Create the target:**
+1. **File → New → Target**
+2. Search for and select **Widget Extension**
+3. Product Name: `NoMoWidget`
+4. Bundle Identifier: `co.nomoinc.nomo.NoMoWidget`
+5. Embed in Application: **App**
+6. Uncheck "Include Live Activity" and "Include Configuration App Intent"
+7. Click **Finish**
+
+**Replace auto-generated files:**
+1. Delete ALL auto-generated files in the new target folder
+2. In Build Settings:
+   - **Info.plist File**: `App/Extensions/NoMoWidget/Info.plist`
+   - **Code Sign Entitlements**: `App/Extensions/NoMoWidget/NoMoWidget.entitlements`
+
+**Add source files to target:**
+- All `.swift` files in `App/Extensions/NoMoWidget/` and `App/Extensions/NoMoWidget/Widgets/`
+- `App/Shared/SharedConstants.swift`
+
+**Add capabilities:**
+- **App Groups** → add `group.co.nomoinc.nomo`
+
+**Set deployment target:**
+- Minimum Deployments: iOS 16.0
+
+---
+
+## Verify the Build
+
+After adding all three targets:
+
+1. In `project.pbxproj`, the `targets` array should list 4 targets (App + 3 extensions)
+2. The main App target should have an **Embed App Extensions** build phase containing all 3 `.appex` products
+3. Build the project (Cmd+B) — all 4 targets should compile successfully
+4. Check the built `.app` bundle contains `PlugIns/ShieldConfiguration.appex`, `PlugIns/DeviceActivityMonitor.appex`, and `PlugIns/NoMoWidget.appex`
+
+## Common Issues
+
+### "Extension not loading" / Shield shows generic UI instead of custom
+- Verify the extension `.appex` is in the app's `PlugIns/` folder (check Embed App Extensions build phase)
+- Verify `NSExtensionPrincipalClass` in Info.plist resolves correctly:
+  - For ShieldConfiguration target named `ShieldConfiguration`: resolves to `ShieldConfiguration.ShieldConfigurationExtension`
+  - If you named the target differently, `$(PRODUCT_MODULE_NAME)` will resolve to YOUR target name
+- Verify all three source files are in the target's Compile Sources
+
+### "Undeclared identifier" build errors in extension
+- `SharedConstants` not found → add `SharedConstants.swift` to the extension target
+- `ShieldConfigurationHelper` not found → add `ShieldConfigurationHelper.swift` to the extension target
+- `DeviceActivityMonitorHelper` not found → add `DeviceActivityMonitorHelper.swift` to the extension target
+
+### Family Controls not working at all
+- Family Controls does NOT work in the iOS Simulator — use a physical device
+- The main app's provisioning profile must include the `com.apple.developer.family-controls` entitlement
+- Go to Apple Developer Portal → Certificates, Identifiers & Profiles → check that Family Controls is enabled for all bundle IDs
+- In Xcode: toggle "Automatically manage signing" off and on to regenerate profiles
+
+### Shield appears but with default/generic UI
+- This means app blocking works but the ShieldConfiguration extension isn't loading
+- Check Console.app for extension crash logs
+- Verify the extension target name matches `$(PRODUCT_MODULE_NAME)` in the Info.plist
+- Verify all frameworks are linked
+
+## Entitlements Reference
+
+### Main App (`App.entitlements`)
 ```xml
 <key>com.apple.developer.family-controls</key>
 <true/>
 <key>com.apple.developer.device-activity</key>
 <true/>
-<key>com.apple.developer.managed-settings</key>
-<true/>
 <key>com.apple.security.application-groups</key>
 <array>
     <string>group.co.nomoinc.nomo</string>
 </array>
 ```
 
-### ShieldConfiguration Extension
+### ShieldConfiguration (`ShieldConfiguration.entitlements`)
 ```xml
 <key>com.apple.developer.family-controls</key>
 <true/>
@@ -104,7 +192,7 @@ For DeviceActivityMonitor extension:
 </array>
 ```
 
-### DeviceActivityMonitor Extension
+### DeviceActivityMonitor (`DeviceActivityMonitor.entitlements`)
 ```xml
 <key>com.apple.developer.family-controls</key>
 <true/>
@@ -115,59 +203,36 @@ For DeviceActivityMonitor extension:
     <string>group.co.nomoinc.nomo</string>
 </array>
 ```
-
-## Testing
-
-### Simulator Limitations
-- Family Controls does **NOT** work in the iOS Simulator
-- You must test on a physical device
-
-### Testing on Device
-1. Build and run on a physical iOS device
-2. Grant Screen Time permissions when prompted
-3. Select apps to block in the app
-4. Start a focus session
-5. Try to open a blocked app - you should see the custom shield screen
-
-### Debug Tips
-- Check Console.app for extension logs
-- Verify App Group data is being shared correctly
-- Ensure all entitlements are properly configured in Apple Developer Portal
-
-## Troubleshooting
-
-### "Family Controls not available"
-- Ensure the device is not in a managed configuration
-- Verify Screen Time is enabled in Settings
-- Check that entitlements are properly configured
-
-### Extension not loading
-- Verify the extension is embedded in the main app
-- Check that bundle identifiers match the expected pattern
-- Ensure minimum deployment target is iOS 15+
-
-### App Group data not shared
-- Verify all targets use the same App Group identifier
-- Check that App Groups capability is added to all targets
-- Use `UserDefaults(suiteName:)` with the correct group ID
 
 ## File Structure
 
 ```
-ios/App/App/Extensions/
-├── EXTENSIONS_SETUP.md (this file)
-├── ShieldConfiguration/
-│   ├── ShieldConfigurationExtension.swift
-│   ├── Info.plist
-│   └── ShieldConfiguration.entitlements
-└── DeviceActivityMonitor/
-    ├── DeviceActivityMonitorExtension.swift
-    ├── Info.plist
-    └── DeviceActivityMonitor.entitlements
+ios/App/App/
+├── App.entitlements
+├── Shared/
+│   ├── SharedConstants.swift          ← Add to ALL extension targets
+│   ├── ShieldConfigurationHelper.swift ← Add to ShieldConfiguration target
+│   └── DeviceActivityMonitorHelper.swift ← Add to DeviceActivityMonitor target
+└── Extensions/
+    ├── ShieldConfiguration/
+    │   ├── ShieldConfigurationExtension.swift
+    │   ├── Info.plist
+    │   └── ShieldConfiguration.entitlements
+    ├── DeviceActivityMonitor/
+    │   ├── DeviceActivityMonitorExtension.swift
+    │   ├── Info.plist
+    │   └── DeviceActivityMonitor.entitlements
+    └── NoMoWidget/
+        ├── NoMoWidgetBundle.swift
+        ├── Info.plist
+        ├── NoMoWidget.entitlements
+        ├── WidgetColors.swift
+        ├── WidgetStrings.swift
+        ├── AccessibilityUtilities.swift
+        ├── WidgetAccessibilityStrings.swift
+        └── Widgets/
+            ├── NoMoTimerWidget.swift
+            ├── NoMoStreakWidget.swift
+            ├── NoMoProgressWidget.swift
+            └── NoMoStatsWidget.swift
 ```
-
-## Resources
-
-- [Apple Family Controls Documentation](https://developer.apple.com/documentation/familycontrols)
-- [Screen Time API WWDC Session](https://developer.apple.com/videos/play/wwdc2021/10123/)
-- [ManagedSettings Documentation](https://developer.apple.com/documentation/managedsettings)
