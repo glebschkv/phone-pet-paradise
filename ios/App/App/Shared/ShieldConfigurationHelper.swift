@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 /// Helper for the ShieldConfiguration extension.
-/// Pixel-art retro arcade themed shield with funny messages.
+/// Neon-branded shield matching the app's splash screen aesthetic.
 class ShieldConfigurationHelper {
 
     // MARK: - Properties
@@ -68,56 +68,90 @@ class ShieldConfigurationHelper {
 
     func getTitle() -> String {
         let titles = [
-            "\u{25A0} NOMO \u{25A0}",
-            "\u{25B6} BLOCKED",
-            "\u{2588}\u{2588} NOPE",
-            ">> NO ACCESS",
-            "\u{2593} DENIED \u{2593}",
+            "NOMO",
+            "App Blocked",
+            "Stay Focused",
+            "Not Now",
+            "Nope.",
         ]
         return titles.randomElement() ?? titles[0]
     }
 
-    // MARK: - Pixel Art Icon
+    // MARK: - Neon NOMO Icon
 
-    /// Creates a pixel art "X" icon by rendering an SF Symbol at tiny resolution
-    /// then scaling up with nearest-neighbor interpolation for that retro look
+    /// Creates a glowing "NOMO" text icon matching the app's splash screen neon aesthetic.
+    /// Uses Core Graphics shadow passes to build up a realistic neon glow effect.
     func createNoMoIcon() -> UIImage? {
-        // Render SF Symbol at tiny resolution
-        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .black)
-        guard let symbol = UIImage(systemName: "xmark.octagon.fill", withConfiguration: config)?
-            .withTintColor(ShieldColors.neonCyan, renderingMode: .alwaysOriginal) else { return nil }
+        let size = CGSize(width: 140, height: 70)
+        let renderer = UIGraphicsImageRenderer(size: size, format: {
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 3.0
+            return format
+        }())
 
-        // Draw symbol into a tiny 16x16 bitmap
-        let tinySize = CGSize(width: 16, height: 16)
-        let tinyRenderer = UIGraphicsImageRenderer(size: tinySize)
-        let tinyImage = tinyRenderer.image { _ in
-            let drawRect = CGRect(
-                x: (tinySize.width - symbol.size.width) / 2,
-                y: (tinySize.height - symbol.size.height) / 2,
-                width: symbol.size.width,
-                height: symbol.size.height
+        return renderer.image { ctx in
+            let context = ctx.cgContext
+
+            // Text setup — match splash screen: SF Pro Rounded, Heavy
+            let text = "NOMO"
+            let fontSize: CGFloat = 32
+            let font: UIFont
+            if let desc = UIFont.systemFont(ofSize: fontSize, weight: .heavy)
+                        .fontDescriptor.withDesign(.rounded) {
+                font = UIFont(descriptor: desc, size: fontSize)
+            } else {
+                font = UIFont.systemFont(ofSize: fontSize, weight: .heavy)
+            }
+
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.alignment = .center
+
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: font,
+                .foregroundColor: NeonColors.textColor,
+                .kern: 8.0,
+                .paragraphStyle: paragraphStyle,
+            ]
+
+            let attrString = NSAttributedString(string: text, attributes: attributes)
+            let textSize = attrString.size()
+            let textRect = CGRect(
+                x: (size.width - textSize.width) / 2,
+                y: (size.height - textSize.height) / 2,
+                width: textSize.width,
+                height: textSize.height
             )
-            symbol.draw(in: drawRect)
+
+            // Build neon glow with multiple shadow passes (outer → inner)
+            // Pass 1: Wide outer glow
+            context.saveGState()
+            context.setShadow(offset: .zero, blur: 24, color: NeonColors.purple.withAlphaComponent(0.35).cgColor)
+            attrString.draw(in: textRect)
+            context.restoreGState()
+
+            // Pass 2: Medium glow
+            context.saveGState()
+            context.setShadow(offset: .zero, blur: 14, color: NeonColors.purple.withAlphaComponent(0.55).cgColor)
+            attrString.draw(in: textRect)
+            context.restoreGState()
+
+            // Pass 3: Tight inner glow
+            context.saveGState()
+            context.setShadow(offset: .zero, blur: 6, color: NeonColors.purpleLight.withAlphaComponent(0.7).cgColor)
+            attrString.draw(in: textRect)
+            context.restoreGState()
+
+            // Final crisp text pass (no shadow)
+            attrString.draw(in: textRect)
         }
-
-        // Scale up with nearest-neighbor interpolation for pixel art effect
-        let targetSize = CGSize(width: 80, height: 80)
-        UIGraphicsBeginImageContextWithOptions(targetSize, false, 1.0)
-        guard let ctx = UIGraphicsGetCurrentContext() else { return nil }
-        ctx.interpolationQuality = .none
-        tinyImage.draw(in: CGRect(origin: .zero, size: targetSize))
-        let pixelImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        return pixelImage
     }
 
     // MARK: - Colors
 
-    static var shieldBackgroundColor: UIColor { ShieldColors.background }
-    static var shieldTitleColor: UIColor { ShieldColors.neonCyan }
-    static var shieldSubtitleColor: UIColor { ShieldColors.neonPink }
-    static var shieldButtonColor: UIColor { ShieldColors.electricPurple }
+    static var shieldBackgroundColor: UIColor { NeonColors.background }
+    static var shieldTitleColor: UIColor { NeonColors.textColor }
+    static var shieldSubtitleColor: UIColor { NeonColors.subtitleColor }
+    static var shieldButtonColor: UIColor { NeonColors.purple }
 
     // MARK: - Accessibility
 
@@ -134,18 +168,21 @@ class ShieldConfigurationHelper {
     }
 }
 
-// MARK: - Retro Arcade Color Palette
+// MARK: - Neon Color Palette (matches splash screen)
 
-private enum ShieldColors {
-    /// Neon cyan - bright electric blue-green (#00FFE5)
-    static let neonCyan = UIColor(red: 0.0, green: 1.0, blue: 0.9, alpha: 1.0)
+private enum NeonColors {
+    /// Purple accent — matches splash #a855f7
+    static let purple = UIColor(red: 168/255, green: 85/255, blue: 247/255, alpha: 1.0)
 
-    /// Neon pink/magenta for subtitles (#FF5CAD)
-    static let neonPink = UIColor(red: 1.0, green: 0.36, blue: 0.68, alpha: 1.0)
+    /// Light purple — matches splash #c084fc
+    static let purpleLight = UIColor(red: 192/255, green: 132/255, blue: 252/255, alpha: 1.0)
 
-    /// Electric purple for button (#7B2FFF)
-    static let electricPurple = UIColor(red: 0.48, green: 0.18, blue: 1.0, alpha: 1.0)
+    /// Near-white text — matches splash #f0e6ff
+    static let textColor = UIColor(red: 240/255, green: 230/255, blue: 255/255, alpha: 1.0)
 
-    /// Near-black with deep blue undertone (#06010F)
-    static let background = UIColor(red: 0.024, green: 0.004, blue: 0.06, alpha: 0.97)
+    /// Soft purple subtitle — visible but not competing with title
+    static let subtitleColor = UIColor(red: 180/255, green: 150/255, blue: 220/255, alpha: 1.0)
+
+    /// Deep dark purple background — matches splash #080012
+    static let background = UIColor(red: 8/255, green: 0, blue: 18/255, alpha: 0.97)
 }

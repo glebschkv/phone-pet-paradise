@@ -6,7 +6,7 @@ import os.log
 private let log = OSLog(subsystem: "co.nomoinc.nomo.ShieldConfiguration", category: "Shield")
 
 /// Custom shield shown when a user tries to open a blocked app.
-/// Retro neon-themed design with funny rotating messages.
+/// Neon-branded design matching the app's splash screen aesthetic.
 /// NOTE: Do NOT import FamilyControls here — it crashes the extension on launch.
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
