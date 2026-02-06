@@ -2,6 +2,16 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useDailyLoginRewards } from '@/hooks/useDailyLoginRewards';
 
+const TEST_USER_ID = 'test-user-123';
+
+// Mock useAuth
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: vi.fn(() => ({
+    user: { id: TEST_USER_ID },
+    isGuestMode: false,
+  })),
+}));
+
 // Mock logger
 vi.mock('@/lib/logger', () => ({
   logger: {
@@ -13,7 +23,8 @@ vi.mock('@/lib/logger', () => ({
 }));
 
 describe('useDailyLoginRewards', () => {
-  const STORAGE_KEY = 'pet_paradise_daily_login';
+  const STORAGE_KEY = `pet_paradise_daily_login_${TEST_USER_ID}`;
+  const LEGACY_STORAGE_KEY = 'pet_paradise_daily_login';
   const LOGIN_REWARD_EVENT = 'petIsland_dailyLoginReward';
 
   beforeEach(() => {
@@ -465,6 +476,60 @@ describe('useDailyLoginRewards', () => {
 
       // Behavior depends on date parsing
       expect(result.current.loginState).toBeTruthy();
+    });
+  });
+
+  describe('Per-User Storage', () => {
+    it('should use per-user storage key', () => {
+      const { result } = renderHook(() => useDailyLoginRewards());
+
+      act(() => {
+        result.current.claimReward();
+      });
+
+      // Data should be stored under the user-specific key
+      expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull();
+      // Legacy key should NOT have data
+      expect(localStorage.getItem(LEGACY_STORAGE_KEY)).toBeNull();
+    });
+
+    it('should migrate legacy data to user-specific key', () => {
+      // Simulate pre-migration data under the legacy key
+      const legacyData = JSON.stringify({
+        currentStreak: 5,
+        lastClaimDate: new Date().toDateString(),
+        totalDaysClaimed: 10,
+        hasClaimedToday: true,
+      });
+      localStorage.setItem(LEGACY_STORAGE_KEY, legacyData);
+
+      const { result } = renderHook(() => useDailyLoginRewards());
+
+      // Should have loaded the migrated data
+      expect(result.current.loginState.currentStreak).toBe(5);
+      expect(result.current.loginState.hasClaimedToday).toBe(true);
+
+      // Legacy key should be removed after migration
+      expect(localStorage.getItem(LEGACY_STORAGE_KEY)).toBeNull();
+      // Data should now be under the user-specific key
+      expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull();
+    });
+
+    it('should not cross-contaminate between users', () => {
+      // User A's data under their key
+      const otherUserKey = 'pet_paradise_daily_login_other-user-456';
+      localStorage.setItem(otherUserKey, JSON.stringify({
+        currentStreak: 99,
+        lastClaimDate: new Date().toDateString(),
+        totalDaysClaimed: 99,
+        hasClaimedToday: true,
+      }));
+
+      // Current user should see fresh state (no data under their key)
+      const { result } = renderHook(() => useDailyLoginRewards());
+
+      expect(result.current.loginState.currentStreak).toBe(0);
+      expect(result.current.loginState.hasClaimedToday).toBe(false);
     });
   });
 });

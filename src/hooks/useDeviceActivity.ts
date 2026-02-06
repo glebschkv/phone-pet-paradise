@@ -383,9 +383,13 @@ export const useDeviceActivity = () => {
       }));
 
       if (isGranted) {
-        // Permission state changed — invalidate the cached init result
-        // so any component that remounts gets the updated state
-        _invalidateInitCache();
+        // Mark init as in-progress so other hook instances wait for us
+        // instead of starting a concurrent init (which caused the "needs
+        // refresh" bug).  Do NOT call _invalidateInitCache() here — that
+        // clears _nativeInitStarted and _nativeInitPromise, allowing a
+        // race where another instance starts _doNativeInit() while we're
+        // still awaiting the calls below.
+        _nativeInitResult = null;
 
         // Start monitoring after permissions granted
         const { result: monitoring } = await safePluginCall(
