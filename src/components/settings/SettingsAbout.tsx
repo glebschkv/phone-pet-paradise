@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Heart, ExternalLink, MessageCircle, Shield, FileText, ScrollText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PixelIcon } from "@/components/ui/PixelIcon";

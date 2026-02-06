@@ -1,4 +1,4 @@
-import { TrendingUp, Lock, Crown, ChevronRight } from "lucide-react";
+import { TrendingUp, Crown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FocusScoreTrendProps {

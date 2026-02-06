@@ -340,6 +340,10 @@ export function validatePassword(password: string): { valid: boolean; message: s
  * These occur during normal component lifecycle (unmount, navigation, etc.)
  */
 export function isRequestInterruptedError(error: unknown): boolean {
+  // Handle DOMException separately for environments where it doesn't extend Error
+  if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
+    return error.name === 'AbortError';
+  }
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
     return (

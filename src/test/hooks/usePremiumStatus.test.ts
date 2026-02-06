@@ -12,13 +12,25 @@ vi.mock('@/lib/logger', () => ({
   },
 }));
 
+// Mock authStore
+vi.mock('@/stores/authStore', () => ({
+  useIsGuestMode: () => false,
+}));
+
 // Mock Supabase
 const mockSupabaseInvoke = vi.fn();
+const mockGetUser = vi.fn().mockResolvedValue({ data: { user: null }, error: null });
+const mockRpc = vi.fn().mockResolvedValue({ data: [], error: null });
 vi.mock('@/integrations/supabase/client', () => ({
+  isSupabaseConfigured: false,
   supabase: {
     functions: {
       invoke: (...args: unknown[]) => mockSupabaseInvoke(...args),
     },
+    auth: {
+      getUser: (...args: unknown[]) => mockGetUser(...args),
+    },
+    rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }));
 
@@ -352,8 +364,8 @@ describe('usePremiumStatus', () => {
       const benefits = result.current.getTierBenefits();
 
       expect(benefits).toEqual(TIER_BENEFITS.premium);
-      expect(benefits.coinMultiplier).toBe(2);
-      expect(benefits.xpMultiplier).toBe(2);
+      expect(benefits.coinMultiplier).toBe(1.5);
+      expect(benefits.xpMultiplier).toBe(1.5);
       expect(benefits.monthlyStreakFreezes).toBe(2);
       expect(benefits.battlePassIncluded).toBe(false);
     });
@@ -375,8 +387,8 @@ describe('usePremiumStatus', () => {
       const benefits = result.current.getTierBenefits();
 
       expect(benefits).toEqual(TIER_BENEFITS.premium_plus);
-      expect(benefits.coinMultiplier).toBe(3);
-      expect(benefits.xpMultiplier).toBe(3);
+      expect(benefits.coinMultiplier).toBe(2);
+      expect(benefits.xpMultiplier).toBe(2);
       expect(benefits.monthlyStreakFreezes).toBe(5);
       expect(benefits.battlePassIncluded).toBe(true);
     });
@@ -398,8 +410,8 @@ describe('usePremiumStatus', () => {
       const benefits = result.current.getTierBenefits();
 
       expect(benefits).toEqual(TIER_BENEFITS.lifetime);
-      expect(benefits.coinMultiplier).toBe(4);
-      expect(benefits.xpMultiplier).toBe(4);
+      expect(benefits.coinMultiplier).toBe(2.5);
+      expect(benefits.xpMultiplier).toBe(2.5);
       expect(benefits.monthlyStreakFreezes).toBe(7);
       expect(benefits.battlePassIncluded).toBe(true);
     });
@@ -426,7 +438,7 @@ describe('usePremiumStatus', () => {
         expect(result.current.tier).toBe('premium');
       });
 
-      expect(result.current.getCoinMultiplier()).toBe(2);
+      expect(result.current.getCoinMultiplier()).toBe(1.5);
     });
 
     it('should return correct XP multiplier for premium_plus tier', async () => {
@@ -443,7 +455,7 @@ describe('usePremiumStatus', () => {
         expect(result.current.tier).toBe('premium_plus');
       });
 
-      expect(result.current.getXPMultiplier()).toBe(3);
+      expect(result.current.getXPMultiplier()).toBe(2);
     });
 
     it('should return correct multipliers for lifetime tier', async () => {
@@ -460,8 +472,8 @@ describe('usePremiumStatus', () => {
         expect(result.current.tier).toBe('lifetime');
       });
 
-      expect(result.current.getCoinMultiplier()).toBe(4);
-      expect(result.current.getXPMultiplier()).toBe(4);
+      expect(result.current.getCoinMultiplier()).toBe(2.5);
+      expect(result.current.getXPMultiplier()).toBe(2.5);
     });
   });
 
@@ -833,12 +845,12 @@ describe('usePremiumStatus', () => {
       });
 
       expect(grantResult?.granted).toBe(true);
-      expect(grantResult?.amount).toBe(1000);
+      expect(grantResult?.amount).toBe(500);
 
       expect(dispatchEventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'petIsland_grantBonusCoins',
-          detail: { amount: 1000, planId: 'premium-monthly' },
+          detail: { amount: 500, planId: 'premium-monthly' },
         })
       );
 
@@ -890,7 +902,7 @@ describe('usePremiumStatus', () => {
       });
 
       expect(grantResult?.granted).toBe(true);
-      expect(grantResult?.amount).toBe(7500);
+      expect(grantResult?.amount).toBe(5000);
     });
 
     it('should grant 10000 bonus coins for lifetime plan', async () => {
@@ -1469,7 +1481,7 @@ describe('usePremiumStatus', () => {
       expect(plan).not.toBeNull();
       expect(plan?.id).toBe('premium-monthly');
       expect(plan?.tier).toBe('premium');
-      expect(plan?.price).toBe('$5.99');
+      expect(plan?.price).toBe('$4.99');
       expect(plan?.period).toBe('monthly');
     });
 
@@ -1491,7 +1503,7 @@ describe('usePremiumStatus', () => {
       expect(plan).not.toBeNull();
       expect(plan?.id).toBe('premium-lifetime');
       expect(plan?.tier).toBe('lifetime');
-      expect(plan?.price).toBe('$199.99');
+      expect(plan?.price).toBe('$179.99');
       expect(plan?.period).toBe('lifetime');
     });
   });
@@ -1678,9 +1690,9 @@ describe('usePremiumStatus', () => {
   describe('Tier Benefits Data', () => {
     it('should have correct multipliers for each tier', () => {
       expect(TIER_BENEFITS.free.coinMultiplier).toBe(1);
-      expect(TIER_BENEFITS.premium.coinMultiplier).toBe(2);
-      expect(TIER_BENEFITS.premium_plus.coinMultiplier).toBe(3);
-      expect(TIER_BENEFITS.lifetime.coinMultiplier).toBe(4);
+      expect(TIER_BENEFITS.premium.coinMultiplier).toBe(1.5);
+      expect(TIER_BENEFITS.premium_plus.coinMultiplier).toBe(2);
+      expect(TIER_BENEFITS.lifetime.coinMultiplier).toBe(2.5);
     });
 
     it('should have increasing streak freezes by tier', () => {

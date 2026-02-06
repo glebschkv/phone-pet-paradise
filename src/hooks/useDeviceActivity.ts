@@ -90,7 +90,7 @@ let _nativeInitStarted = false;
 let _nativeInitResult: DeviceActivityState | null = null;
 let _nativeInitPromise: Promise<DeviceActivityState> | null = null;
 
-function _invalidateInitCache() {
+export function _invalidateInitCache() {
   _nativeInitResult = null;
   _nativeInitStarted = false;
   _nativeInitPromise = null;
@@ -309,6 +309,7 @@ export const useDeviceActivity = () => {
         return finalState;
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Dedup wrapper: ensures native init runs only once across all hook instances

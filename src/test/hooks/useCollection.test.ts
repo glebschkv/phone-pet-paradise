@@ -11,6 +11,7 @@ vi.mock('@/hooks/useXPSystem', () => ({
     currentBiome: 'forest',
     availableBiomes: ['forest'],
     isLoading: false,
+    totalStudyMinutes: 0,
   }),
 }));
 
@@ -94,6 +95,10 @@ vi.mock('@/data/AnimalDatabase', () => ({
     { id: 'moss-turtle', name: 'Moss Turtle', rarity: 'common' },
     { id: 'crystal-dragon', name: 'Crystal Dragon', rarity: 'epic' },
   ]),
+  isStudyHoursAnimal: vi.fn((animal: { requiredStudyHours?: number }) => {
+    return animal.requiredStudyHours !== undefined && animal.requiredStudyHours > 0;
+  }),
+  getStudyHoursAnimals: vi.fn(() => []),
 }));
 
 describe('useCollection', () => {

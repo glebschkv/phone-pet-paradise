@@ -1,4 +1,4 @@
-import { Gauge, Lock, Crown, ChevronRight, Users } from "lucide-react";
+import { Gauge, Crown, ChevronRight, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FocusScoreProps {

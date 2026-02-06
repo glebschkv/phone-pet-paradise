@@ -151,7 +151,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
     } catch {
       setLocalSpinning(false);
     }
-  }, [canSpin, spin, rotation, prizes]);
+  }, [canSpin, spin, rotation, prizes, dailySpinLimit]);
 
   const getRarityGlow = (rarity: string) => {
     switch (rarity) {

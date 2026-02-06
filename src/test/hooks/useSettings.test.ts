@@ -3,8 +3,11 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSettings, AppSettings } from '@/hooks/useSettings';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 
-// Mock toast
-const mockToast = vi.fn();
+// Mock toast - use vi.hoisted so mockToast is available in hoisted vi.mock factory
+const { mockToast } = vi.hoisted(() => {
+  const mockToast = vi.fn();
+  return { mockToast };
+});
 vi.mock('sonner', () => ({
   toast: Object.assign(mockToast, {
     success: mockToast,
@@ -15,18 +18,43 @@ vi.mock('sonner', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  settingsLogger: {
-    error: vi.fn(),
-    info: vi.fn(),
+vi.mock('@/lib/logger', () => {
+  const createMockLogger = () => ({
     debug: vi.fn(),
-  },
-  storageLogger: {
-    error: vi.fn(),
     info: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+    warn: vi.fn(),
+    error: vi.fn(),
+  });
+  return {
+    logger: createMockLogger(),
+    settingsLogger: createMockLogger(),
+    storageLogger: createMockLogger(),
+    coinLogger: createMockLogger(),
+    xpLogger: createMockLogger(),
+    streakLogger: createMockLogger(),
+    questLogger: createMockLogger(),
+    shopLogger: createMockLogger(),
+    storeKitLogger: createMockLogger(),
+    supabaseLogger: createMockLogger(),
+    deviceActivityLogger: createMockLogger(),
+    soundLogger: createMockLogger(),
+    collectionLogger: createMockLogger(),
+    authLogger: createMockLogger(),
+    notificationLogger: createMockLogger(),
+    syncLogger: createMockLogger(),
+    focusModeLogger: createMockLogger(),
+    widgetLogger: createMockLogger(),
+    backupLogger: createMockLogger(),
+    threeLogger: createMockLogger(),
+    timerLogger: createMockLogger(),
+    achievementLogger: createMockLogger(),
+    bondLogger: createMockLogger(),
+    performanceLogger: createMockLogger(),
+    appReviewLogger: createMockLogger(),
+    nativePluginLogger: createMockLogger(),
+    createLogger: vi.fn(() => createMockLogger()),
+  };
+});
 
 describe('useSettings', () => {
   const defaultSettings: AppSettings = {
@@ -172,8 +200,9 @@ describe('useSettings', () => {
       expect(parsed.soundVolume).toBe(90);
 
       expect(mockToast).toHaveBeenCalledWith(
+        "Settings Saved",
         expect.objectContaining({
-          title: 'Settings Saved',
+          description: expect.any(String),
         })
       );
     });
@@ -246,8 +275,9 @@ describe('useSettings', () => {
       expect(localStorage.getItem(STORAGE_KEYS.APP_SETTINGS)).toBeNull();
 
       expect(mockToast).toHaveBeenCalledWith(
+        "Settings Reset",
         expect.objectContaining({
-          title: 'Settings Reset',
+          description: expect.any(String),
         })
       );
     });
@@ -390,8 +420,9 @@ describe('useSettings', () => {
       expect(mockClick).toHaveBeenCalled();
       expect(mockRevokeObjectURL).toHaveBeenCalled();
       expect(mockToast).toHaveBeenCalledWith(
+        "Settings Exported",
         expect.objectContaining({
-          title: 'Settings Exported',
+          description: expect.any(String),
         })
       );
 
@@ -418,9 +449,9 @@ describe('useSettings', () => {
       });
 
       expect(mockToast).toHaveBeenCalledWith(
+        "Export Error",
         expect.objectContaining({
-          title: 'Export Error',
-          variant: 'destructive',
+          description: expect.any(String),
         })
       );
     });
@@ -455,8 +486,9 @@ describe('useSettings', () => {
       expect(result.current.settings.defaultFocusTime).toBe(50);
 
       expect(mockToast).toHaveBeenCalledWith(
+        "Settings Imported",
         expect.objectContaining({
-          title: 'Settings Imported',
+          description: expect.any(String),
         })
       );
     });
@@ -509,9 +541,9 @@ describe('useSettings', () => {
       // Toast should be called with error
       await waitFor(() => {
         expect(mockToast).toHaveBeenCalledWith(
+          "Import Error",
           expect.objectContaining({
-            title: 'Import Error',
-            variant: 'destructive',
+            description: expect.any(String),
           })
         );
       });

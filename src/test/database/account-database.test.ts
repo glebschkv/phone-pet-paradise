@@ -450,7 +450,7 @@ describe('Account Database – Sign Out', () => {
     expect(localStorage.getItem(GUEST_ID_KEY)).toBeNull();
   });
 
-  it('should redirect to /auth after sign out', async () => {
+  it('should complete sign out successfully so React Router can redirect', async () => {
     mockSupabase.auth.getSession.mockResolvedValue({
       data: { session: mockSession },
       error: null,
@@ -467,7 +467,11 @@ describe('Account Database – Sign Out', () => {
       await result.current.signOut();
     });
 
-    expect(window.location.href).toBe('/auth');
+    // Navigation to /auth is handled by React Router in Index.tsx when
+    // isAuthenticated becomes false, not by setting window.location.href
+    expect(mockSupabase.auth.signOut).toHaveBeenCalledWith({ scope: 'global' });
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.user).toBeNull();
   });
 
   it('should handle sign out error without crashing', async () => {
@@ -485,9 +489,12 @@ describe('Account Database – Sign Out', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    await act(async () => {
-      await result.current.signOut();
-    });
+    // signOut re-throws errors after showing a toast, so we must catch it
+    await expect(async () => {
+      await act(async () => {
+        await result.current.signOut();
+      });
+    }).rejects.toThrow();
 
     // User state should remain since sign out failed
     expect(result.current.user).toBeTruthy();

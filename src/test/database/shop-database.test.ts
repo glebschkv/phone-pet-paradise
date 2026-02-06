@@ -50,14 +50,69 @@ vi.mock('@/hooks/useAchievementTracking', () => ({
 }));
 
 vi.mock('@/lib/logger', () => {
-  const l = () => ({ error: vi.fn(), info: vi.fn(), debug: vi.fn(), warn: vi.fn() });
+  const createMockLogger = () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  });
   return {
-    shopLogger: l(),
-    coinLogger: l(),
-    storageLogger: l(),
-    createLogger: () => l(),
+    logger: createMockLogger(),
+    shopLogger: createMockLogger(),
+    coinLogger: createMockLogger(),
+    storageLogger: createMockLogger(),
+    storeKitLogger: createMockLogger(),
+    supabaseLogger: createMockLogger(),
+    xpLogger: createMockLogger(),
+    streakLogger: createMockLogger(),
+    questLogger: createMockLogger(),
+    settingsLogger: createMockLogger(),
+    deviceActivityLogger: createMockLogger(),
+    premiumLogger: createMockLogger(),
+    navigationLogger: createMockLogger(),
+    soundLogger: createMockLogger(),
+    themeLogger: createMockLogger(),
+    collectionLogger: createMockLogger(),
+    onboardingLogger: createMockLogger(),
+    offlineSyncLogger: createMockLogger(),
+    authLogger: createMockLogger(),
+    analyticsLogger: createMockLogger(),
+    notificationLogger: createMockLogger(),
+    syncLogger: createMockLogger(),
+    focusModeLogger: createMockLogger(),
+    widgetLogger: createMockLogger(),
+    backupLogger: createMockLogger(),
+    threeLogger: createMockLogger(),
+    timerLogger: createMockLogger(),
+    achievementLogger: createMockLogger(),
+    bondLogger: createMockLogger(),
+    performanceLogger: createMockLogger(),
+    appReviewLogger: createMockLogger(),
+    nativePluginLogger: createMockLogger(),
+    createLogger: (name: string) => createMockLogger(),
   };
 });
+
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    auth: { getSession: vi.fn().mockResolvedValue({ data: { session: null } }) },
+    from: vi.fn(() => ({ select: vi.fn(), insert: vi.fn(), update: vi.fn() })),
+  },
+  isSupabaseConfigured: false,
+}));
+
+vi.mock('@/hooks/useStoreKit', () => ({
+  IAP_EVENTS: {
+    COINS_GRANTED: 'iap:coinsGranted',
+    BUNDLE_GRANTED: 'iap:bundleGranted',
+  },
+  dispatchCoinsGranted: vi.fn(),
+}));
+
+vi.mock('@/lib/errorReporting', () => ({
+  reportError: vi.fn(),
+  initErrorReporting: vi.fn(),
+}));
 
 vi.mock('@/data/AnimalDatabase', () => ({
   getAnimalById: vi.fn((id: string) => {

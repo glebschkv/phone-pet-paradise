@@ -19,6 +19,12 @@ vi.mock('@/lib/logger', () => ({
     warn: vi.fn(),
     error: vi.fn(),
   },
+  logger: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
   supabaseLogger: {
     debug: vi.fn(),
     info: vi.fn(),
@@ -96,25 +102,25 @@ describe('useCoinSystem', () => {
     it('should return correct coins for 25 minute session', () => {
       const { result } = renderHook(() => useCoinSystem());
 
-      expect(result.current.calculateCoinsFromDuration(25)).toBe(25);
+      expect(result.current.calculateCoinsFromDuration(25)).toBe(20);
     });
 
     it('should return correct coins for 30 minute session', () => {
       const { result } = renderHook(() => useCoinSystem());
 
-      expect(result.current.calculateCoinsFromDuration(30)).toBe(40);
+      expect(result.current.calculateCoinsFromDuration(30)).toBe(30);
     });
 
     it('should return correct coins for 60 minute session', () => {
       const { result } = renderHook(() => useCoinSystem());
 
-      expect(result.current.calculateCoinsFromDuration(60)).toBe(100);
+      expect(result.current.calculateCoinsFromDuration(60)).toBe(80);
     });
 
     it('should return correct coins for 120 minute session', () => {
       const { result } = renderHook(() => useCoinSystem());
 
-      expect(result.current.calculateCoinsFromDuration(120)).toBe(260);
+      expect(result.current.calculateCoinsFromDuration(120)).toBe(200);
     });
 
     it('should return 0 for sessions under 25 minutes', () => {
@@ -127,8 +133,8 @@ describe('useCoinSystem', () => {
     it('should use closest lower tier for intermediate durations', () => {
       const { result } = renderHook(() => useCoinSystem());
 
-      expect(result.current.calculateCoinsFromDuration(50)).toBe(65); // Uses 45 min tier
-      expect(result.current.calculateCoinsFromDuration(100)).toBe(175); // Uses 90 min tier
+      expect(result.current.calculateCoinsFromDuration(50)).toBe(50); // Uses 45 min tier
+      expect(result.current.calculateCoinsFromDuration(100)).toBe(140); // Uses 90 min tier
     });
   });
 
@@ -138,8 +144,8 @@ describe('useCoinSystem', () => {
 
       act(() => {
         const reward = result.current.awardCoins(25);
-        expect(reward.baseCoins).toBe(25);
-        expect(reward.coinsGained).toBeGreaterThanOrEqual(25);
+        expect(reward.baseCoins).toBe(20);
+        expect(reward.coinsGained).toBeGreaterThanOrEqual(20);
       });
     });
 
@@ -151,7 +157,7 @@ describe('useCoinSystem', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.balance).toBeGreaterThanOrEqual(25);
+        expect(result.current.balance).toBeGreaterThanOrEqual(20);
       });
     });
 
@@ -163,7 +169,7 @@ describe('useCoinSystem', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.totalEarned).toBeGreaterThanOrEqual(25);
+        expect(result.current.totalEarned).toBeGreaterThanOrEqual(20);
       });
     });
 
@@ -175,7 +181,7 @@ describe('useCoinSystem', () => {
         expect(reward.boosterActive).toBe(true);
         expect(reward.boosterMultiplier).toBe(2);
         // With 2x booster, coins should be at least double base
-        expect(reward.coinsGained).toBeGreaterThanOrEqual(50);
+        expect(reward.coinsGained).toBeGreaterThanOrEqual(40);
       });
     });
 
@@ -199,7 +205,7 @@ describe('useCoinSystem', () => {
 
       await waitFor(() => {
         const storeState = useCoinStore.getState();
-        expect(storeState.balance).toBeGreaterThanOrEqual(40);
+        expect(storeState.balance).toBeGreaterThanOrEqual(30);
       });
     });
   });

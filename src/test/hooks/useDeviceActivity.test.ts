@@ -1,9 +1,35 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
+// Mock sonner (toast notifications)
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+  },
+}));
+
+// Mock logger
+vi.mock('@/lib/logger', () => ({
+  deviceActivityLogger: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+// Mock error reporting
+vi.mock('@/lib/errorReporting', () => ({
+  reportError: vi.fn(),
+}));
+
 // Mock the Capacitor plugin
 vi.mock('@/plugins/device-activity', () => ({
   DeviceActivity: {
+    echo: vi.fn().mockResolvedValue({ platform: 'ios', pluginLoaded: true }),
     checkPermissions: vi.fn().mockResolvedValue({ status: 'granted' }),
     requestPermissions: vi.fn().mockResolvedValue({ status: 'granted' }),
     startMonitoring: vi.fn().mockResolvedValue({ monitoring: true }),
@@ -24,6 +50,8 @@ vi.mock('@/plugins/device-activity', () => ({
       shieldAttempts: 0,
       lastShieldAttemptTimestamp: 0,
       hasAppsConfigured: true,
+      selectedAppsCount: 0,
+      selectedCategoriesCount: 0,
     }),
     getShieldAttempts: vi.fn().mockResolvedValue({
       attempts: 0,
@@ -31,6 +59,7 @@ vi.mock('@/plugins/device-activity', () => ({
     }),
     resetShieldAttempts: vi.fn().mockResolvedValue({ success: true }),
     openAppPicker: vi.fn().mockResolvedValue({ success: true }),
+    openSettings: vi.fn().mockResolvedValue({ success: true }),
     setSelectedApps: vi.fn().mockResolvedValue({ success: true }),
     getSelectedApps: vi.fn().mockResolvedValue({ hasSelection: true, selection: '[]' }),
     clearSelectedApps: vi.fn().mockResolvedValue({ success: true }),
@@ -53,13 +82,14 @@ vi.mock('@capacitor/core', () => ({
 }));
 
 // Import after mocks
-import { useDeviceActivity, DEFAULT_BLOCKED_APPS } from '@/hooks/useDeviceActivity';
+import { useDeviceActivity, DEFAULT_BLOCKED_APPS, _invalidateInitCache } from '@/hooks/useDeviceActivity';
 import { DeviceActivity } from '@/plugins/device-activity';
 
 describe('useDeviceActivity', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    _invalidateInitCache();
   });
 
   it('should initialize with default state', async () => {
@@ -164,8 +194,12 @@ describe('useDeviceActivity', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    const blockedCount = result.current.simulatedApps.filter((app) => app.isBlocked).length;
-    expect(result.current.blockedAppsCount).toBe(blockedCount);
+    // On native, blockedAppsCount = selectedAppsCount + selectedCategoriesCount from native state
+    // The mock getBlockingStatus returns 0 for both, so blockedAppsCount should be 0
+    expect(result.current.isNative).toBe(true);
+    expect(result.current.blockedAppsCount).toBe(
+      result.current.selectedAppsCount + result.current.selectedCategoriesCount
+    );
   });
 
   it('should trigger haptic feedback', async () => {

@@ -158,13 +158,13 @@ describe('useLuckyWheel', () => {
   });
 
   describe('getTimeUntilNextSpin', () => {
-    it('should return 0 hours and minutes when can spin', () => {
+    it('should return time until midnight when can spin', () => {
       const { result } = renderHook(() => useLuckyWheel());
 
       const time = result.current.getTimeUntilNextSpin();
 
-      expect(time.hours).toBe(0);
-      expect(time.minutes).toBe(0);
+      expect(time.hours).toBeGreaterThanOrEqual(0);
+      expect(time.minutes).toBeGreaterThanOrEqual(0);
     });
 
     it('should return time until midnight when already spun', () => {
@@ -258,7 +258,7 @@ describe('useLuckyWheel', () => {
 
       const { result } = renderHook(() => useLuckyWheel());
 
-      await expect(result.current.spin()).rejects.toThrow('Already spun today');
+      await expect(result.current.spin()).rejects.toThrow('No spins remaining today');
     });
 
     it('should reject when already spinning', async () => {

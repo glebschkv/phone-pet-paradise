@@ -361,9 +361,12 @@ describe('useAuth', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      await act(async () => {
-        await result.current.signOut();
-      });
+      // signOut re-throws errors after showing a toast, so we must catch it
+      await expect(async () => {
+        await act(async () => {
+          await result.current.signOut();
+        });
+      }).rejects.toThrow();
 
       // Should still have user since sign out failed
       expect(result.current.user).toBeTruthy();

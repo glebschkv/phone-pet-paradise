@@ -54,7 +54,7 @@ export const AnalyticsFocusQuality = ({ stats }: FocusQualityProps) => {
                 {segments.map((seg, i) => {
                   if (seg.value === 0) return null;
                   const segLength = (seg.value / total) * circumference;
-                  const segOffset = circumference - segLength;
+                  const _segOffset = circumference - segLength;
                   const rotation = (cumulativeOffset / total) * 360;
                   cumulativeOffset += seg.value;
 

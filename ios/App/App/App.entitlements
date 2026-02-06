@@ -20,5 +20,8 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<!-- Required for Push Notifications -->
+	<key>aps-environment</key>
+	<string>production</string>
 </dict>
 </plist>

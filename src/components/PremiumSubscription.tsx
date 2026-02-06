@@ -15,7 +15,6 @@ import {
   Award,
   Infinity as InfinityIcon,
   Loader2,
-  Shield,
   Dices,
   PenLine,
 } from 'lucide-react';

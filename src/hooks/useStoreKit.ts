@@ -325,7 +325,6 @@ export const useStoreKit = (): UseStoreKitReturn => {
     }
 
     logger.debug('Subscription status:', status);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Purchase a product
@@ -418,7 +417,6 @@ export const useStoreKit = (): UseStoreKitReturn => {
 
     setIsPurchasing(false);
     return result;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkSubscriptionStatus]);
 
   // Restore purchases
@@ -509,7 +507,6 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setIsLoading(false);
       return false;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkSubscriptionStatus]);
 
   // Open subscription management
