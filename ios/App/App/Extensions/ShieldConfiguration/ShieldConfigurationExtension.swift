@@ -4,15 +4,17 @@ import ManagedSettingsUI
 import UIKit
 import os.log
 
-private let log = OSLog(subsystem: "co.nomoinc.nomo.shield", category: "Shield")
+private let log = OSLog(subsystem: "co.nomoinc.nomo.ShieldConfiguration", category: "Shield")
 
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     private let helper = ShieldConfigurationHelper()
 
     override init() {
-        os_log("SHIELD EXTENSION INIT", log: log, type: .fault)
         super.init()
+        let bundleID = Bundle.main.bundleIdentifier ?? "unknown"
+        let moduleName = String(reflecting: type(of: self)).components(separatedBy: ".").first ?? "unknown"
+        os_log("SHIELD EXTENSION INIT - bundle: %{public}@, module: %{public}@", log: log, type: .fault, bundleID, moduleName)
     }
 
     override func configuration(shielding application: Application) -> ShieldConfiguration {
