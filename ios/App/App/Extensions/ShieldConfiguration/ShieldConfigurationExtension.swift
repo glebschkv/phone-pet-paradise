@@ -38,7 +38,6 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     private func makeConfig() -> ShieldConfiguration {
         let message = helper.getMotivationalMessage()
-        let secondaryText = helper.getSecondaryButtonText()
 
         return ShieldConfiguration(
             backgroundBlurStyle: .systemThickMaterialDark,
@@ -49,7 +48,7 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
                 color: ShieldConfigurationHelper.shieldTitleColor
             ),
             subtitle: ShieldConfiguration.Label(
-                text: "— NOMO",
+                text: "Focus session in progress",
                 color: ShieldConfigurationHelper.shieldSubtitleColor
             ),
             primaryButtonLabel: ShieldConfiguration.Label(
@@ -57,10 +56,7 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
                 color: .white
             ),
             primaryButtonBackgroundColor: ShieldConfigurationHelper.shieldButtonColor,
-            secondaryButtonLabel: ShieldConfiguration.Label(
-                text: secondaryText,
-                color: ShieldConfigurationHelper.shieldSubtitleColor
-            )
+            secondaryButtonLabel: nil
         )
     }
 }
