@@ -72,20 +72,13 @@ class ShieldConfigurationHelper {
     // MARK: - Title
 
     func getTitle() -> String {
-        let titles = [
-            "NOMO",
-            "App Blocked",
-            "Stay Focused",
-            "Not Now",
-            "Nope.",
-        ]
-        return titles.randomElement() ?? titles[0]
+        return "NOMO"
     }
 
     // MARK: - Neon NOMO Icon
 
-    /// Creates a large glowing "NOMO" text icon matching the app's splash screen neon aesthetic.
-    /// Uses Core Graphics shadow passes to build up a realistic neon glow effect.
+    /// Creates a large glowing "NOMO" neon sign icon with radial glow backdrop.
+    /// Matches the app's splash screen aesthetic with layered Core Graphics glow.
     /// Rendered at 240x120pt @3x (720x360px) for maximum visual impact.
     func createNoMoIcon() -> UIImage? {
         let size = CGSize(width: 240, height: 120)
@@ -97,6 +90,25 @@ class ShieldConfigurationHelper {
 
         return renderer.image { ctx in
             let context = ctx.cgContext
+
+            // Radial glow backdrop — soft purple light cone behind the text
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            let radius = size.width * 0.45
+            let colorSpace = CGColorSpaceCreateDeviceRGB()
+            let glowColors = [
+                NeonColors.purple.withAlphaComponent(0.18).cgColor,
+                NeonColors.purple.withAlphaComponent(0.06).cgColor,
+                UIColor.clear.cgColor,
+            ] as CFArray
+            let locations: [CGFloat] = [0.0, 0.5, 1.0]
+            if let gradient = CGGradient(colorsSpace: colorSpace, colors: glowColors, locations: locations) {
+                context.drawRadialGradient(
+                    gradient,
+                    startCenter: center, startRadius: 0,
+                    endCenter: center, endRadius: radius,
+                    options: .drawsAfterEndLocation
+                )
+            }
 
             // Text setup — match splash screen: SF Pro Rounded, Heavy, wide kerning
             let text = "NOMO"
@@ -164,6 +176,19 @@ class ShieldConfigurationHelper {
         }
     }
 
+    // MARK: - Secondary Button
+
+    static let secondaryButtonTexts = [
+        "I can wait",
+        "Fine.",
+        "You're right",
+        "Fair enough",
+    ]
+
+    func getSecondaryButtonText() -> String {
+        Self.secondaryButtonTexts.randomElement() ?? Self.secondaryButtonTexts[0]
+    }
+
     // MARK: - Colors
 
     static var shieldBackgroundColor: UIColor { NeonColors.background }
@@ -198,8 +223,8 @@ private enum NeonColors {
     /// Near-white text — matches splash #f0e6ff
     static let textColor = UIColor(red: 240/255, green: 230/255, blue: 255/255, alpha: 1.0)
 
-    /// Soft purple subtitle — visible but not competing with title
-    static let subtitleColor = UIColor(red: 180/255, green: 150/255, blue: 220/255, alpha: 1.0)
+    /// Bright lavender subtitle — readable enough to screenshot
+    static let subtitleColor = UIColor(red: 215/255, green: 195/255, blue: 245/255, alpha: 1.0)
 
     /// Deep dark purple background — matches splash #080012
     static let background = UIColor(red: 8/255, green: 0, blue: 18/255, alpha: 0.97)

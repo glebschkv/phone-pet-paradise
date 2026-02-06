@@ -301,6 +301,28 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
         XCTAssertFalse(message.isEmpty)
     }
 
+    // MARK: - Title Tests
+
+    func testGetTitleAlwaysReturnsNOMO() {
+        // Title is always the brand name — messages go in subtitle
+        for _ in 0..<10 {
+            XCTAssertEqual(sut.getTitle(), "NOMO")
+        }
+    }
+
+    // MARK: - Secondary Button Tests
+
+    func testGetSecondaryButtonTextReturnsValidString() {
+        let text = sut.getSecondaryButtonText()
+        XCTAssertFalse(text.isEmpty)
+    }
+
+    func testGetSecondaryButtonTextReturnsFromValidList() {
+        let validTexts = ShieldConfigurationHelper.secondaryButtonTexts
+        let text = sut.getSecondaryButtonText()
+        XCTAssertTrue(validTexts.contains(text))
+    }
+
     // MARK: - Static Messages Tests
 
     func testStaticMotivationalMessagesMatchInstance() {

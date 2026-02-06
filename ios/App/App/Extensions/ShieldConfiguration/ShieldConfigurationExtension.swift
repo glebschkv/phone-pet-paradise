@@ -37,19 +37,19 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     }
 
     private func makeConfig() -> ShieldConfiguration {
-        let title = helper.getTitle()
         let message = helper.getMotivationalMessage()
+        let secondaryText = helper.getSecondaryButtonText()
 
         return ShieldConfiguration(
             backgroundBlurStyle: .systemThickMaterialDark,
             backgroundColor: ShieldConfigurationHelper.shieldBackgroundColor,
             icon: helper.createNoMoIcon(),
             title: ShieldConfiguration.Label(
-                text: title,
+                text: message,
                 color: ShieldConfigurationHelper.shieldTitleColor
             ),
             subtitle: ShieldConfiguration.Label(
-                text: message,
+                text: "— NOMO",
                 color: ShieldConfigurationHelper.shieldSubtitleColor
             ),
             primaryButtonLabel: ShieldConfiguration.Label(
@@ -57,7 +57,10 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
                 color: .white
             ),
             primaryButtonBackgroundColor: ShieldConfigurationHelper.shieldButtonColor,
-            secondaryButtonLabel: nil
+            secondaryButtonLabel: ShieldConfiguration.Label(
+                text: secondaryText,
+                color: ShieldConfigurationHelper.shieldSubtitleColor
+            )
         )
     }
 }
