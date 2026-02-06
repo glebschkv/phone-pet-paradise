@@ -229,18 +229,22 @@ export const useTimerControls = ({
     }
 
     if (timerState.isRunning && elapsedSeconds > 10) {
-      recordSession(
-        timerState.sessionType,
-        timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
-        elapsedSeconds,
-        'abandoned',
-        0,
-        timerState.category,
-        timerState.taskLabel,
-        isWorkSession ? shieldAttempts : undefined,
-        focusQuality,
-        hasAppsConfigured,
-      );
+      try {
+        recordSession(
+          timerState.sessionType,
+          timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
+          elapsedSeconds,
+          'abandoned',
+          0,
+          timerState.category,
+          timerState.taskLabel,
+          isWorkSession ? shieldAttempts : undefined,
+          focusQuality,
+          hasAppsConfigured,
+        );
+      } catch (e) {
+        timerLogger.error('Failed to record abandoned session:', e);
+      }
     }
   }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
@@ -341,24 +345,32 @@ export const useTimerControls = ({
     }
 
     if (elapsedSeconds > 10) {
-      recordSession(
-        timerState.sessionType,
-        timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
-        elapsedSeconds,
-        'skipped',
-        xpEarned,
-        timerState.category,
-        timerState.taskLabel,
-        isWorkSession ? shieldAttempts : undefined,
-        focusQuality,
-        hasAppsConfigured,
-      );
+      try {
+        recordSession(
+          timerState.sessionType,
+          timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
+          elapsedSeconds,
+          'skipped',
+          xpEarned,
+          timerState.category,
+          timerState.taskLabel,
+          isWorkSession ? shieldAttempts : undefined,
+          focusQuality,
+          hasAppsConfigured,
+        );
+      } catch (e) {
+        timerLogger.error('Failed to record skipped session:', e);
+      }
 
       // Update streak and trigger notifications for qualifying work sessions
       if (isWorkSession && completedMinutes >= 25) {
-        const streakReward = recordStreakSession();
-        if (streakReward) {
-          scheduleStreakNotification(streakReward.milestone);
+        try {
+          const streakReward = recordStreakSession();
+          if (streakReward) {
+            scheduleStreakNotification(streakReward.milestone);
+          }
+        } catch (e) {
+          timerLogger.error('Failed to record streak session:', e);
         }
         if (xpEarned > 0) {
           scheduleRewardNotification(xpEarned);

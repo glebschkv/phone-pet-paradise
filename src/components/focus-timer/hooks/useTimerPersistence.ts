@@ -35,8 +35,12 @@ export const useTimerPersistence = (): UseTimerPersistenceReturn => {
     setTimerState(prev => {
       const newState = { ...prev, ...state };
 
-      // Save complete state to localStorage
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+      // Save complete state to localStorage (guarded for storage quota)
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+      } catch {
+        // Storage full — state still updated in-memory
+      }
 
       return newState;
     });
@@ -50,7 +54,11 @@ export const useTimerPersistence = (): UseTimerPersistenceReturn => {
         isRunning: false,
         startTime: null
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(clearedState));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(clearedState));
+      } catch {
+        // Storage full — state still updated in-memory
+      }
       return clearedState;
     });
   }, []);

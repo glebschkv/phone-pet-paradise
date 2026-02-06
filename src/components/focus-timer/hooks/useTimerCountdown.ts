@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef } from "react";
+import { timerLogger } from '@/lib/logger';
 import { TimerState } from "./useTimerPersistence";
 import { MAX_COUNTUP_DURATION } from "../constants";
 
@@ -74,7 +75,7 @@ export const useTimerCountdown = ({
 
           // Complete when max duration is reached
           if (newElapsedTime >= MAX_COUNTUP_DURATION) {
-            handleComplete();
+            handleComplete().catch((err) => timerLogger.error('Timer completion failed:', err));
           }
         } else {
           // Countdown mode: track remaining time
@@ -86,7 +87,7 @@ export const useTimerCountdown = ({
           }
 
           if (newTimeLeft === 0) {
-            handleComplete();
+            handleComplete().catch((err) => timerLogger.error('Timer completion failed:', err));
           }
         }
       };
@@ -123,7 +124,7 @@ export const useTimerCountdown = ({
           setShowLockScreen(false);
 
           if (newElapsedTime >= MAX_COUNTUP_DURATION) {
-            handleComplete();
+            handleComplete().catch((err) => timerLogger.error('Timer completion failed:', err));
           }
         } else {
           // Countdown mode: update remaining time
@@ -133,7 +134,7 @@ export const useTimerCountdown = ({
           setShowLockScreen(false);
 
           if (newTimeLeft === 0) {
-            handleComplete();
+            handleComplete().catch((err) => timerLogger.error('Timer completion failed:', err));
           }
         }
       }

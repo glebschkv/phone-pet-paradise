@@ -2,8 +2,9 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { PageErrorBoundary } from '@/components/PageErrorBoundary';
 
-const PrivacyPolicy = () => {
+const PrivacyPolicyContent = () => {
   const navigate = useNavigate();
   const lastUpdated = 'February 6, 2026';
 
@@ -183,5 +184,11 @@ const PrivacyPolicy = () => {
     </div>
   );
 };
+
+const PrivacyPolicy = () => (
+  <PageErrorBoundary pageName="Privacy Policy">
+    <PrivacyPolicyContent />
+  </PageErrorBoundary>
+);
 
 export default PrivacyPolicy;

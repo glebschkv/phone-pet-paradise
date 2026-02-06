@@ -28,8 +28,9 @@ export const SettingsAccount = () => {
     setIsSigningOut(true);
     try {
       await signOut();
+    } catch {
+      // signOut() already shows a toast — just swallow the re-thrown error
     } finally {
-      // Reset loading state in case signOut fails or component is still mounted
       setIsSigningOut(false);
     }
   };

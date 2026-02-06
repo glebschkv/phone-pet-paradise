@@ -113,9 +113,11 @@ export const useShopStore = create<ShopState>()(
     }),
     {
       name: 'petIsland_shopInventory',
-      // Migrate from old localStorage format if it exists
       onRehydrateStorage: () => (state) => {
         if (state) {
+          // Guard against corrupt localStorage where arrays became null/undefined
+          if (!Array.isArray(state.ownedCharacters)) state.ownedCharacters = [];
+          if (!Array.isArray(state.ownedBackgrounds)) state.ownedBackgrounds = [];
           shopLogger.debug('Shop store rehydrated');
         }
       },

@@ -115,31 +115,35 @@ export const useShop = () => {
   // Listen for IAP bundle grants to fulfill non-coin contents
   useEffect(() => {
     const handleBundleGranted = (event: Event) => {
-      const customEvent = event as CustomEvent<{
-        characterId?: string;
-        boosterId?: string;
-        streakFreezes: number;
-      }>;
-      const { characterId, boosterId, streakFreezes } = customEvent.detail;
+      try {
+        const customEvent = event as CustomEvent<{
+          characterId?: string;
+          boosterId?: string;
+          streakFreezes: number;
+        }>;
+        const { characterId, boosterId, streakFreezes } = customEvent.detail;
 
-      // Grant character if included
-      if (characterId) {
-        const animal = getAnimalById(characterId);
-        if (animal && !ownedCharacters.includes(characterId)) {
-          addOwnedCharacter(characterId);
+        // Grant character if included
+        if (characterId) {
+          const animal = getAnimalById(characterId);
+          if (animal && !ownedCharacters.includes(characterId)) {
+            addOwnedCharacter(characterId);
+          }
         }
-      }
 
-      // Activate booster if included (and no active booster)
-      if (boosterId && !boosterSystem.isBoosterActive()) {
-        boosterSystem.activateBooster(boosterId);
-      }
-
-      // Grant streak freezes if included
-      if (streakFreezes && streakFreezes > 0) {
-        for (let i = 0; i < streakFreezes; i++) {
-          streakSystem.earnStreakFreeze();
+        // Activate booster if included (and no active booster)
+        if (boosterId && !boosterSystem.isBoosterActive()) {
+          boosterSystem.activateBooster(boosterId);
         }
+
+        // Grant streak freezes if included
+        if (streakFreezes && streakFreezes > 0) {
+          for (let i = 0; i < streakFreezes; i++) {
+            streakSystem.earnStreakFreeze();
+          }
+        }
+      } catch (e) {
+        shopLogger.error('Failed to fulfill IAP bundle grant:', e);
       }
     };
 
@@ -274,46 +278,51 @@ export const useShop = () => {
       return { success: false, message: 'Bundle not found' };
     }
 
-    const results: string[] = [];
+    try {
+      const results: string[] = [];
 
-    // Grant coins
-    if (bundle.contents.coins > 0) {
-      coinSystem.addCoins(bundle.contents.coins);
-      results.push(`${bundle.contents.coins} coins`);
-    }
-
-    // Activate booster (if no booster is currently active)
-    if (bundle.contents.boosterId) {
-      if (!boosterSystem.isBoosterActive()) {
-        boosterSystem.activateBooster(bundle.contents.boosterId);
-        const booster = boosterSystem.getBoosterType(bundle.contents.boosterId);
-        results.push(booster?.name || 'Booster');
-      } else {
-        results.push('Booster (saved for later - one already active)');
+      // Grant coins
+      if (bundle.contents.coins > 0) {
+        coinSystem.addCoins(bundle.contents.coins);
+        results.push(`${bundle.contents.coins} coins`);
       }
-    }
 
-    // Unlock character
-    if (bundle.contents.characterId) {
-      const animal = getAnimalById(bundle.contents.characterId);
-      if (animal) {
-        unlockCharacter(bundle.contents.characterId);
-        results.push(animal.name);
+      // Activate booster (if no booster is currently active)
+      if (bundle.contents.boosterId) {
+        if (!boosterSystem.isBoosterActive()) {
+          boosterSystem.activateBooster(bundle.contents.boosterId);
+          const booster = boosterSystem.getBoosterType(bundle.contents.boosterId);
+          results.push(booster?.name || 'Booster');
+        } else {
+          results.push('Booster (saved for later - one already active)');
+        }
       }
-    }
 
-    // Grant streak freezes
-    if (bundle.contents.streakFreezes && bundle.contents.streakFreezes > 0) {
-      for (let i = 0; i < bundle.contents.streakFreezes; i++) {
-        streakSystem.earnStreakFreeze();
+      // Unlock character
+      if (bundle.contents.characterId) {
+        const animal = getAnimalById(bundle.contents.characterId);
+        if (animal) {
+          unlockCharacter(bundle.contents.characterId);
+          results.push(animal.name);
+        }
       }
-      results.push(`${bundle.contents.streakFreezes} Streak Freeze${bundle.contents.streakFreezes > 1 ? 's' : ''}`);
-    }
 
-    return {
-      success: true,
-      message: `${bundle.name} purchased! Received: ${results.join(', ')}`
-    };
+      // Grant streak freezes
+      if (bundle.contents.streakFreezes && bundle.contents.streakFreezes > 0) {
+        for (let i = 0; i < bundle.contents.streakFreezes; i++) {
+          streakSystem.earnStreakFreeze();
+        }
+        results.push(`${bundle.contents.streakFreezes} Streak Freeze${bundle.contents.streakFreezes > 1 ? 's' : ''}`);
+      }
+
+      return {
+        success: true,
+        message: `${bundle.name} purchased! Received: ${results.join(', ')}`
+      };
+    } catch (e) {
+      shopLogger.error('Failed to fulfill starter bundle:', e);
+      return { success: false, message: 'Failed to apply bundle contents. Please try again.' };
+    }
   }, [coinSystem, boosterSystem, streakSystem, unlockCharacter]);
 
   /**

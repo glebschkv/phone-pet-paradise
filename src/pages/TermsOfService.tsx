@@ -2,8 +2,9 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { PageErrorBoundary } from '@/components/PageErrorBoundary';
 
-const TermsOfService = () => {
+const TermsOfServiceContent = () => {
   const navigate = useNavigate();
   const lastUpdated = 'February 6, 2026';
 
@@ -219,5 +220,11 @@ const TermsOfService = () => {
     </div>
   );
 };
+
+const TermsOfService = () => (
+  <PageErrorBoundary pageName="Terms of Service">
+    <TermsOfServiceContent />
+  </PageErrorBoundary>
+);
 
 export default TermsOfService;

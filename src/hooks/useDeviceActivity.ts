@@ -699,7 +699,11 @@ export const useDeviceActivity = () => {
   // Update simulated app selection (for web)
   const updateSimulatedApps = useCallback((apps: SimulatedBlockedApp[]) => {
     setSimulatedApps(apps);
-    localStorage.setItem(SELECTED_APPS_KEY, JSON.stringify(apps));
+    try {
+      localStorage.setItem(SELECTED_APPS_KEY, JSON.stringify(apps));
+    } catch {
+      // Storage full — state still updated in-memory
+    }
 
     // Also update native if on iOS (fire and forget with safe call)
     if (state.pluginAvailable) {
@@ -729,7 +733,11 @@ export const useDeviceActivity = () => {
     // Update local state regardless of plugin availability
     const resetApps = simulatedApps.map(app => ({ ...app, isBlocked: false }));
     setSimulatedApps(resetApps);
-    localStorage.setItem(SELECTED_APPS_KEY, JSON.stringify(resetApps));
+    try {
+      localStorage.setItem(SELECTED_APPS_KEY, JSON.stringify(resetApps));
+    } catch {
+      // Storage full — state still updated in-memory
+    }
 
     setState(prev => ({
       ...prev,
