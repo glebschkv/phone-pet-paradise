@@ -89,21 +89,17 @@ function _enableGuestMode(): void {
   });
 }
 
-// Timeout wrapper for getSession — prevents indefinite hangs on slow networks
+// Timeout for getSession — prevents indefinite hangs on slow networks.
+// Supabase's getSession doesn't accept an AbortSignal, so we use Promise.race.
 const AUTH_TIMEOUT_MS = 8000;
 
-async function _getSessionWithTimeout() {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), AUTH_TIMEOUT_MS);
-
-  try {
-    const result = await supabase.auth.getSession();
-    clearTimeout(timeout);
-    return result;
-  } catch (error) {
-    clearTimeout(timeout);
-    throw error;
-  }
+function _getSessionWithTimeout() {
+  return Promise.race([
+    supabase.auth.getSession(),
+    new Promise<never>((_resolve, reject) =>
+      setTimeout(() => reject(new Error('Auth session check timed out')), AUTH_TIMEOUT_MS)
+    ),
+  ]);
 }
 
 function _initAuth(): void {

@@ -139,13 +139,19 @@ async function _fetchSharedData(userId: string): Promise<CachedData | null> {
           : [createDefaultPet(userId)];
 
       const data: CachedData = { profile, progress, pets };
-      _cachedData = data;
+      // Only cache if the user hasn't changed while we were fetching
+      // (prevents stale data from a previous user overwriting the cache)
+      if (_cachedUserId === userId) {
+        _cachedData = data;
+      }
       return data;
     } catch (error) {
       supabaseLogger.error('Error loading user data from Supabase:', error);
       return null;
     } finally {
-      _fetchPromise = null;
+      if (_cachedUserId === userId) {
+        _fetchPromise = null;
+      }
     }
   })();
 

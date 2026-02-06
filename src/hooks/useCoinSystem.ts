@@ -502,6 +502,8 @@ export const useCoinSystem = () => {
               balanceResponse.totalSpent || totalSpent
             );
           }
+        }).catch((err) => {
+          coinLogger.error('Failed to sync balance after duplicate detection:', err);
         });
       } else if (!response.success) {
         coinLogger.warn('Server validation failed, local state may be inconsistent');

@@ -14,6 +14,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { FocusCategory, FocusQuality } from "@/types/analytics";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { TimerState } from "./useTimerPersistence";
+import type { StartBlockingResult, StopBlockingResult } from "@/plugins/device-activity/definitions";
 
 interface UseTimerControlsProps {
   timerState: TimerState;
@@ -26,8 +27,8 @@ interface UseTimerControlsProps {
   appBlockingEnabled: boolean;
   hasAppsConfigured: boolean;
   blockedAppsCount: number;
-  startAppBlocking: () => Promise<{ appsBlocked: number }>;
-  stopAppBlocking: () => Promise<{ shieldAttempts: number }>;
+  startAppBlocking: () => Promise<StartBlockingResult>;
+  stopAppBlocking: () => Promise<StopBlockingResult>;
   triggerHaptic: (style?: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error') => void | Promise<void>;
   awardXP: (minutes: number) => Promise<{ xpGained?: number } | null | undefined>;
 }
