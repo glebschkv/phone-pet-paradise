@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, _resetAuthForTesting } from '@/hooks/useAuth';
 
 // Mock the Supabase module
 vi.mock('@/integrations/supabase/client', () => {
@@ -57,6 +57,8 @@ describe('useAuth', () => {
   };
 
   beforeEach(() => {
+    // Reset singleton auth state between tests
+    _resetAuthForTesting();
     localStorage.clear();
     vi.clearAllMocks();
 

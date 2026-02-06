@@ -10,7 +10,7 @@
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, _resetAuthForTesting } from '@/hooks/useAuth';
 
 // ─── Mock Dependencies ───────────────────────────────────────────────
 
@@ -68,6 +68,7 @@ describe('Account Database – Guest Mode', () => {
   const mockSubscription = { unsubscribe: vi.fn() };
 
   beforeEach(() => {
+    _resetAuthForTesting();
     localStorage.clear();
     vi.clearAllMocks();
     mockSupabase.auth.getSession.mockResolvedValue({
@@ -175,6 +176,7 @@ describe('Account Database – Supabase Authentication', () => {
   const mockSubscription = { unsubscribe: vi.fn() };
 
   beforeEach(() => {
+    _resetAuthForTesting();
     localStorage.clear();
     vi.clearAllMocks();
     mockSupabase.auth.onAuthStateChange.mockReturnValue({
@@ -281,17 +283,20 @@ describe('Account Database – Supabase Authentication', () => {
     expect(typeof mockSupabase.auth.onAuthStateChange.mock.calls[0][0]).toBe('function');
   });
 
-  it('should clean up subscription on unmount', async () => {
+  it('should manage auth subscription at module level (singleton)', async () => {
+    // With the singleton auth pattern, the subscription is registered once
+    // at module level and shared by all hook instances. Individual hook
+    // unmounts do NOT unsubscribe — the subscription persists for the
+    // lifetime of the app. _resetAuthForTesting() handles test cleanup.
     mockSupabase.auth.getSession.mockResolvedValue({
       data: { session: null },
       error: null,
     });
 
-    const { unmount } = renderHook(() => useAuth());
+    renderHook(() => useAuth());
 
-    unmount();
-
-    expect(mockSubscription.unsubscribe).toHaveBeenCalled();
+    // Subscription is registered once at module level
+    expect(mockSupabase.auth.onAuthStateChange).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -299,6 +304,7 @@ describe('Account Database – Error Handling', () => {
   const mockSubscription = { unsubscribe: vi.fn() };
 
   beforeEach(() => {
+    _resetAuthForTesting();
     localStorage.clear();
     vi.clearAllMocks();
     mockSupabase.auth.onAuthStateChange.mockReturnValue({
@@ -365,6 +371,7 @@ describe('Account Database – Sign Out', () => {
   const mockSubscription = { unsubscribe: vi.fn() };
 
   beforeEach(() => {
+    _resetAuthForTesting();
     localStorage.clear();
     vi.clearAllMocks();
     mockSupabase.auth.onAuthStateChange.mockReturnValue({
@@ -505,6 +512,7 @@ describe('Account Database – Session Transition Flows', () => {
   const mockSubscription = { unsubscribe: vi.fn() };
 
   beforeEach(() => {
+    _resetAuthForTesting();
     localStorage.clear();
     vi.clearAllMocks();
     mockSupabase.auth.onAuthStateChange.mockReturnValue({

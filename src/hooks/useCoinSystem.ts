@@ -297,33 +297,31 @@ export const useCoinSystem = () => {
     return false;
   }, [storeSyncFromServer, totalEarned, totalSpent]);
 
-  // PHASE 1: Initial coin sync on authentication
+  // PHASE 1: Deferred coin sync on authentication
+  // Delay by 3s so it doesn't compete with the critical startup path
+  // (auth check + Supabase data load). The edge function can cold-start slowly.
   useEffect(() => {
-    // Skip if Supabase is not configured (guest mode)
     if (!isSupabaseConfigured) {
       coinLogger.debug('Supabase not configured, skipping auth sync');
       return;
     }
 
-    const initSync = async () => {
+    const timer = setTimeout(async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           await syncFromServer();
-          coinLogger.debug('Initial coin sync completed on mount');
+          coinLogger.debug('Initial coin sync completed (deferred)');
         }
       } catch (err) {
         coinLogger.debug('Initial coin sync skipped:', err);
       }
-    };
-
-    initSync();
+    }, 3000);
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          // Use setTimeout to avoid potential deadlock
           setTimeout(() => {
             syncFromServer().catch((err) => {
               coinLogger.debug('Auth sync failed:', err);
@@ -333,7 +331,10 @@ export const useCoinSystem = () => {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, [syncFromServer]);
 
   // PHASE 4: Periodic background sync every 5 minutes

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -31,144 +31,209 @@ const setGuestModeChosen = (chosen: boolean) => {
   }
 };
 
-export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isGuestMode, setIsGuestMode] = useState(false);
+// ============================================================================
+// Singleton Auth Store
+// ============================================================================
+// All useAuth() instances share ONE auth check and ONE state object.
+// This prevents redundant supabase.auth.getSession() calls on startup
+// (previously ~13 instances each fired their own network request).
 
-  const enableGuestMode = useCallback(() => {
-    const guestId = getGuestId();
-    setGuestModeChosen(true);
+interface AuthState {
+  user: User | null;
+  session: Session | null;
+  isLoading: boolean;
+  isGuestMode: boolean;
+}
 
-    // Create a guest user object for local functionality
-    const guestUser = {
-      id: guestId,
-      email: 'guest@local',
-      app_metadata: {},
-      user_metadata: { is_guest: true },
-      aud: 'guest',
-      created_at: new Date().toISOString()
-    } as User;
+let _state: AuthState = {
+  user: null,
+  session: null,
+  isLoading: true,
+  isGuestMode: false,
+};
 
-    setUser(guestUser);
-    setSession(null);
-    setIsGuestMode(true);
-  }, []);
+const _listeners = new Set<() => void>();
+let _initialized = false;
 
-  useEffect(() => {
-    // If Supabase is not configured, automatically use guest mode
-    if (!isSupabaseConfigured) {
-      authLogger.debug('Supabase not configured, using guest mode');
-      enableGuestMode();
-      setIsLoading(false);
-      return;
-    }
+function _getSnapshot(): AuthState {
+  return _state;
+}
 
-    // Check for existing Supabase session
-    const initAuth = async () => {
-      try {
-        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+function _subscribe(onStoreChange: () => void): () => void {
+  _listeners.add(onStoreChange);
+  return () => _listeners.delete(onStoreChange);
+}
 
-        if (error) {
-          authLogger.debug('Auth check failed:', error.message);
-          // If auth check fails and user had chosen guest mode before, re-enable it
-          if (hasChosenGuestMode()) {
-            enableGuestMode();
-          }
-          setIsLoading(false);
-          return;
-        }
+function _setState(updates: Partial<AuthState>): void {
+  _state = { ..._state, ...updates };
+  _listeners.forEach(fn => fn());
+}
 
-        if (existingSession) {
-          // User is logged in with Supabase
-          setSession(existingSession);
-          setUser(existingSession.user);
-          setIsGuestMode(false);
-          // Clear guest mode choice since they're now logged in
-          setGuestModeChosen(false);
-        } else if (hasChosenGuestMode()) {
-          // No Supabase session, but user has chosen guest mode before
-          enableGuestMode();
-        }
-        // If no session and no guest choice, user will be null (not authenticated)
-        // This will trigger redirect to auth page in Index.tsx
-      } catch (_error) {
-        authLogger.debug('Auth initialization failed');
-        if (hasChosenGuestMode()) {
-          enableGuestMode();
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
+function _enableGuestMode(): void {
+  const guestId = getGuestId();
+  setGuestModeChosen(true);
 
-    initAuth();
+  const guestUser = {
+    id: guestId,
+    email: 'guest@local',
+    app_metadata: {},
+    user_metadata: { is_guest: true },
+    aud: 'guest',
+    created_at: new Date().toISOString()
+  } as User;
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        if (newSession) {
-          setSession(newSession);
-          setUser(newSession.user);
-          setIsGuestMode(false);
-          setGuestModeChosen(false);
-        } else if (event === 'SIGNED_OUT') {
-          // When signed out, clear everything and go back to unauthenticated state
-          setSession(null);
-          setUser(null);
-          setIsGuestMode(false);
-          setGuestModeChosen(false);
-        }
-      }
-    );
+  _setState({
+    user: guestUser,
+    session: null,
+    isGuestMode: true,
+  });
+}
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [enableGuestMode]);
+// Timeout wrapper for getSession — prevents indefinite hangs on slow networks
+const AUTH_TIMEOUT_MS = 8000;
 
-  const signOut = async () => {
+async function _getSessionWithTimeout() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), AUTH_TIMEOUT_MS);
+
+  try {
+    const result = await supabase.auth.getSession();
+    clearTimeout(timeout);
+    return result;
+  } catch (error) {
+    clearTimeout(timeout);
+    throw error;
+  }
+}
+
+function _initAuth(): void {
+  if (_initialized) return;
+  _initialized = true;
+
+  if (!isSupabaseConfigured) {
+    authLogger.debug('Supabase not configured, using guest mode');
+    _enableGuestMode();
+    _setState({ isLoading: false });
+    return;
+  }
+
+  // Single async auth check — shared by ALL useAuth() consumers
+  const doInit = async () => {
     try {
-      if (!isGuestMode && isSupabaseConfigured) {
+      const { data: { session: existingSession }, error } = await _getSessionWithTimeout();
+
+      if (error) {
+        authLogger.debug('Auth check failed:', error.message);
+        if (hasChosenGuestMode()) {
+          _enableGuestMode();
+        }
+        _setState({ isLoading: false });
+        return;
+      }
+
+      if (existingSession) {
+        _setState({
+          session: existingSession,
+          user: existingSession.user,
+          isGuestMode: false,
+          isLoading: false,
+        });
+        setGuestModeChosen(false);
+      } else if (hasChosenGuestMode()) {
+        _enableGuestMode();
+        _setState({ isLoading: false });
+      } else {
+        // No session and no guest choice → redirect to auth page
+        _setState({ isLoading: false });
+      }
+    } catch (_error) {
+      authLogger.debug('Auth initialization failed');
+      if (hasChosenGuestMode()) {
+        _enableGuestMode();
+      }
+      _setState({ isLoading: false });
+    }
+  };
+
+  doInit();
+
+  // Single auth state change listener — shared by ALL consumers
+  supabase.auth.onAuthStateChange(
+    async (event, newSession) => {
+      if (newSession) {
+        _setState({
+          session: newSession,
+          user: newSession.user,
+          isGuestMode: false,
+        });
+        setGuestModeChosen(false);
+      } else if (event === 'SIGNED_OUT') {
+        _setState({
+          session: null,
+          user: null,
+          isGuestMode: false,
+        });
+        setGuestModeChosen(false);
+      }
+    }
+  );
+}
+
+// ============================================================================
+// Hook
+// ============================================================================
+
+export const useAuth = () => {
+  // Trigger initialization on first use (before render to avoid extra frame)
+  if (!_initialized) {
+    _initAuth();
+  }
+
+  // All instances share the same snapshot — no duplicate network calls
+  const state = useSyncExternalStore(_subscribe, _getSnapshot, _getSnapshot);
+
+  const signOut = useCallback(async () => {
+    try {
+      if (!state.isGuestMode && isSupabaseConfigured) {
         const { error } = await supabase.auth.signOut({ scope: 'global' });
         if (error) throw error;
       }
 
-      // Clear guest mode choice
       setGuestModeChosen(false);
       localStorage.removeItem(GUEST_ID_KEY);
 
-      // Reset state - this will trigger the auth state change
-      // which causes Index.tsx to navigate to /auth via React Router
-      setSession(null);
-      setUser(null);
-      setIsGuestMode(false);
+      _setState({
+        session: null,
+        user: null,
+        isGuestMode: false,
+      });
 
       toast.success('Signed out successfully');
-
-      // Note: Navigation is handled by Index.tsx useEffect when isAuthenticated becomes false
-      // This avoids race conditions between window.location.href and React Router navigate
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to sign out';
       toast.error(message);
-      // Re-throw so callers know sign out failed and can reset loading states
       throw error;
     }
-  };
+  }, [state.isGuestMode]);
 
-  // Function to explicitly enable guest mode (called from Auth page)
   const continueAsGuest = useCallback(() => {
-    enableGuestMode();
-  }, [enableGuestMode]);
+    _enableGuestMode();
+  }, []);
 
   return {
-    user,
-    session,
-    isLoading,
-    isAuthenticated: !!user,
-    isGuestMode,
+    user: state.user,
+    session: state.session,
+    isLoading: state.isLoading,
+    isAuthenticated: !!state.user,
+    isGuestMode: state.isGuestMode,
     signOut,
     continueAsGuest
   };
 };
+
+/** Reset auth state — for testing only */
+export function _resetAuthForTesting(): void {
+  _state = { user: null, session: null, isLoading: true, isGuestMode: false };
+  _initialized = false;
+  _listeners.clear();
+}

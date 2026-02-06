@@ -10,7 +10,6 @@ import { useCollectionStore } from "@/stores/collectionStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
@@ -46,7 +45,7 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
 const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
-  useSupabaseData(); // Initialize Supabase data loading
+  // Data loading is handled inside useBackendAppState (which calls useSupabaseData internally)
   const { unlockedAnimals, currentLevel, currentBiome } = useBackendAppState();
   const hasCompletedOnboarding = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
