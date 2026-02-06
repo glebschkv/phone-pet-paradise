@@ -26,14 +26,22 @@ export const useMilestoneCelebrations = () => {
 
   const [showCelebration, setShowCelebration] = useState(false);
 
-  // Load saved state
+  // Load saved state — but never auto-show stale celebrations from a previous session.
+  // If the user closed the app without dismissing, clear the pending state so the
+  // black overlay doesn't appear on every subsequent app load.
   useEffect(() => {
     const saved = storage.get<MilestoneState>(STORAGE_KEYS.MILESTONES);
     if (saved) {
-      setState(saved);
-      // Show pending celebration if exists
       if (saved.pendingCelebration) {
-        setShowCelebration(true);
+        const cleared: MilestoneState = {
+          ...saved,
+          claimedMilestones: [...saved.claimedMilestones, saved.pendingCelebration.id],
+          pendingCelebration: null,
+        };
+        setState(cleared);
+        storage.set(STORAGE_KEYS.MILESTONES, cleared);
+      } else {
+        setState(saved);
       }
     }
   }, []);

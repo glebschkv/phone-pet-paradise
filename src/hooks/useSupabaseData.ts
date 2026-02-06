@@ -167,7 +167,9 @@ export const useSupabaseData = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // Start as loading when authenticated — prevents rendering empty state
+  // on the first frame before the useEffect kicks off the data fetch.
+  const [isLoading, setIsLoading] = useState(isAuthenticated && !isGuestMode);
 
   // Listen for cross-instance data updates
   useEffect(() => {
