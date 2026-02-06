@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /**
  * AccessibilityUtilities
@@ -511,18 +512,12 @@ enum AccessibilityDebug {
         UIAccessibility.isBoldTextEnabled
     }
 
-    /// Get current preferred content size category
-    static var preferredContentSizeCategory: UIContentSizeCategory {
-        UIApplication.shared.preferredContentSizeCategory
-    }
-
     /// Log current accessibility settings
     static func logAccessibilitySettings() {
         print("=== Accessibility Settings ===")
         print("VoiceOver: \(isVoiceOverRunning)")
         print("Reduce Motion: \(isReduceMotionEnabled)")
         print("Bold Text: \(isBoldTextEnabled)")
-        print("Content Size: \(preferredContentSizeCategory.rawValue)")
         print("==============================")
     }
 }
