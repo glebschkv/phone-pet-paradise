@@ -142,9 +142,9 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
         let messages = sut.getAllMotivationalMessages()
 
         // Then - verify key messages exist
-        XCTAssertTrue(messages.contains("Caught in 4K. Go do something with your life."))
-        XCTAssertTrue(messages.contains("No thoughts, just blocked."))
-        XCTAssertTrue(messages.contains("You literally set this up yourself and you're still trying."))
+        XCTAssertTrue(messages.contains("You set this up yourself. Think about that."))
+        XCTAssertTrue(messages.contains("Plot twist: the app you actually need is already open."))
+        XCTAssertTrue(messages.contains("The best version of you doesn't need to open this right now."))
     }
 
     func testMotivationalMessageHasCorrectCount() {
