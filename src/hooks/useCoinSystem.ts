@@ -34,7 +34,7 @@
  * ```
  */
 
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useRef } from 'react';
 import { useCoinStore } from '@/stores/coinStore';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from './usePremiumStatus';
@@ -297,9 +297,15 @@ export const useCoinSystem = () => {
     return false;
   }, [storeSyncFromServer, totalEarned, totalSpent]);
 
+  // Keep a stable ref to syncFromServer so effects don't need to
+  // be recreated every time totalEarned/totalSpent changes.
+  const syncFromServerRef = useRef(syncFromServer);
+  syncFromServerRef.current = syncFromServer;
+
   // PHASE 1: Deferred coin sync on authentication
   // Delay by 3s so it doesn't compete with the critical startup path
   // (auth check + Supabase data load). The edge function can cold-start slowly.
+  // Uses syncFromServerRef so the effect doesn't recreate on every coin change.
   useEffect(() => {
     if (!isSupabaseConfigured) {
       coinLogger.debug('Supabase not configured, skipping auth sync');
@@ -310,7 +316,7 @@ export const useCoinSystem = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          await syncFromServer();
+          await syncFromServerRef.current();
           coinLogger.debug('Initial coin sync completed (deferred)');
         }
       } catch (err) {
@@ -323,7 +329,7 @@ export const useCoinSystem = () => {
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           setTimeout(() => {
-            syncFromServer().catch((err) => {
+            syncFromServerRef.current().catch((err: unknown) => {
               coinLogger.debug('Auth sync failed:', err);
             });
           }, 0);
@@ -335,7 +341,7 @@ export const useCoinSystem = () => {
       clearTimeout(timer);
       subscription.unsubscribe();
     };
-  }, [syncFromServer]);
+  }, []);
 
   // PHASE 4: Periodic background sync every 5 minutes
   useEffect(() => {
@@ -350,7 +356,7 @@ export const useCoinSystem = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          await syncFromServer();
+          await syncFromServerRef.current();
           coinLogger.debug('Periodic coin sync completed');
         }
       } catch {
@@ -360,7 +366,7 @@ export const useCoinSystem = () => {
     }, SYNC_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [syncFromServer]);
+  }, []);
 
   // Listen for bonus coin grants from subscription purchase
   useEffect(() => {

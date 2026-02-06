@@ -155,7 +155,7 @@ export const useComboSystem = () => {
     const currentTierMin = currentTier.minCombo;
     const progress = state.currentCombo - currentTierMin;
     const totalNeeded = nextTier.minCombo - currentTierMin;
-    const progressPercent = (progress / totalNeeded) * 100;
+    const progressPercent = totalNeeded > 0 ? (progress / totalNeeded) * 100 : 0;
 
     return { nextTier, sessionsNeeded, progressPercent };
   }, [state.currentCombo, currentTier]);
