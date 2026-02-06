@@ -7,7 +7,6 @@
 
 import { useCallback } from 'react';
 import { timerLogger } from '@/lib/logger';
-import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { STORAGE_CONFIG } from '@/lib/constants';
 
 const SESSION_NOTES_KEY = 'petIsland_sessionNotes';
@@ -56,13 +55,6 @@ export function useSessionNotes() {
       // Keep only the last N notes to prevent storage bloat
       const trimmedNotes = notesArray.slice(-STORAGE_CONFIG.MAX_SESSION_NOTES);
       localStorage.setItem(SESSION_NOTES_KEY, JSON.stringify(trimmedNotes));
-
-      // Dispatch event for analytics tracking
-      dispatchAchievementEvent(ACHIEVEMENT_EVENTS.FOCUS_SESSION_COMPLETE, {
-        minutes: data.sessionDuration / 60,
-        hasNotes: data.notes.length > 0,
-        rating: data.rating,
-      });
 
       return true;
     } catch (error) {
