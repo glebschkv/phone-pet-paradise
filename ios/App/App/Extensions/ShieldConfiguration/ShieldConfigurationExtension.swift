@@ -6,8 +6,8 @@ import os.log
 private let log = OSLog(subsystem: "co.nomoinc.nomo.ShieldConfiguration", category: "Shield")
 
 /// Custom shield shown when a user tries to open a blocked app.
+/// Retro neon-themed design with funny rotating messages.
 /// NOTE: Do NOT import FamilyControls here — it crashes the extension on launch.
-/// ManagedSettings already provides Application, WebDomain, ActivityCategory.
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     private let helper = ShieldConfigurationHelper()
@@ -37,6 +37,7 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     }
 
     private func makeConfig() -> ShieldConfiguration {
+        let title = helper.getTitle()
         let message = helper.getMotivationalMessage()
 
         return ShieldConfiguration(
@@ -44,15 +45,15 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
             backgroundColor: ShieldConfigurationHelper.shieldBackgroundColor,
             icon: helper.createNoMoIcon(),
             title: ShieldConfiguration.Label(
-                text: "Stay Focused!",
-                color: .white
+                text: title,
+                color: ShieldConfigurationHelper.shieldTitleColor
             ),
             subtitle: ShieldConfiguration.Label(
                 text: message,
                 color: ShieldConfigurationHelper.shieldSubtitleColor
             ),
             primaryButtonLabel: ShieldConfiguration.Label(
-                text: "Return to NoMo",
+                text: "Back to NoMo",
                 color: .white
             ),
             primaryButtonBackgroundColor: ShieldConfigurationHelper.shieldButtonColor,

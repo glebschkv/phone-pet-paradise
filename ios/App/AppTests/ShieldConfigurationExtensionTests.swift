@@ -141,18 +141,18 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
         // When
         let messages = sut.getAllMotivationalMessages()
 
-        // Then - verify key motivational messages exist
-        XCTAssertTrue(messages.contains("Your focus pet is counting on you!"))
-        XCTAssertTrue(messages.contains("Focus = XP = Level Up!"))
-        XCTAssertTrue(messages.contains("Your pet believes in you!"))
+        // Then - verify key messages exist
+        XCTAssertTrue(messages.contains("This app has been NoMo'd"))
+        XCTAssertTrue(messages.contains("404: Distraction not found"))
+        XCTAssertTrue(messages.contains("Blocked by NoMo. No cap."))
     }
 
     func testMotivationalMessageHasCorrectCount() {
         // When
         let messages = sut.getAllMotivationalMessages()
 
-        // Then - should have exactly 10 messages
-        XCTAssertEqual(messages.count, 10)
+        // Then - should have exactly 15 messages
+        XCTAssertEqual(messages.count, 15)
     }
 
     func testAllMotivationalMessagesAreNonEmpty() {
@@ -228,11 +228,11 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 
-        // Then - verify dark purple/black tint
-        XCTAssertEqual(red, 0.1, accuracy: 0.01)
-        XCTAssertEqual(green, 0.05, accuracy: 0.01)
-        XCTAssertEqual(blue, 0.15, accuracy: 0.01)
-        XCTAssertEqual(alpha, 0.95, accuracy: 0.01)
+        // Then - verify dark arcade-like tint
+        XCTAssertEqual(red, 0.04, accuracy: 0.01)
+        XCTAssertEqual(green, 0.02, accuracy: 0.01)
+        XCTAssertEqual(blue, 0.12, accuracy: 0.01)
+        XCTAssertEqual(alpha, 0.97, accuracy: 0.01)
     }
 
     // MARK: - Default State Tests
@@ -305,7 +305,7 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
 
     func testStaticMotivationalMessagesMatchInstance() {
         // When
-        let staticMessages = ShieldConfigurationHelper.motivationalMessages
+        let staticMessages = ShieldConfigurationHelper.shieldMessages
         let instanceMessages = sut.getAllMotivationalMessages()
 
         // Then
