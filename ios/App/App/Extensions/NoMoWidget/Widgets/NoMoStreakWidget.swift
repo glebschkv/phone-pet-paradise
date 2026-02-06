@@ -109,31 +109,29 @@ struct StreakWidgetView: View {
     @Environment(\.colorSchemeContrast) var contrast
 
     var body: some View {
-        ZStack {
-            ContainerRelativeShape()
-                .fill(WidgetColors.background)
+        VStack(spacing: 8) {
+            // Flame icon with accessibility
+            flameIcon
 
-            VStack(spacing: 8) {
-                // Flame icon with accessibility
-                flameIcon
+            // Streak count
+            streakCountView
 
-                // Streak count
-                streakCountView
+            // Days label
+            daysLabel
 
-                // Days label
-                daysLabel
-
-                // Record badge (if applicable)
-                if entry.isNewRecord {
-                    recordBadge
-                }
-
-                // Freezes indicator
-                if entry.streakFreezes > 0 {
-                    freezesIndicator
-                }
+            // Record badge (if applicable)
+            if entry.isNewRecord {
+                recordBadge
             }
-            .padding()
+
+            // Freezes indicator
+            if entry.streakFreezes > 0 {
+                freezesIndicator
+            }
+        }
+        .padding()
+        .containerBackground(for: .widget) {
+            WidgetColors.background
         }
         // Apply comprehensive accessibility to entire widget
         .accessibilityElement(children: .ignore)

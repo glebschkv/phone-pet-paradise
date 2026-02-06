@@ -143,18 +143,16 @@ struct TimerWidgetView: View {
     @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
-        ZStack {
-            ContainerRelativeShape()
-                .fill(WidgetColors.background)
-
-            VStack(spacing: 8) {
-                if entry.isRunning {
-                    activeSessionView
-                } else {
-                    inactiveSessionView
-                }
+        VStack(spacing: 8) {
+            if entry.isRunning {
+                activeSessionView
+            } else {
+                inactiveSessionView
             }
-            .padding()
+        }
+        .padding()
+        .containerBackground(for: .widget) {
+            WidgetColors.background
         }
         // Apply comprehensive accessibility to entire widget
         .accessibilityElement(children: .ignore)

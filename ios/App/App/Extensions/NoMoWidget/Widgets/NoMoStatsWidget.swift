@@ -126,21 +126,19 @@ struct StatsWidgetView: View {
     @Environment(\.colorSchemeContrast) var contrast
 
     var body: some View {
-        ZStack {
-            ContainerRelativeShape()
-                .fill(WidgetColors.background)
+        VStack(spacing: 12) {
+            // Level badge
+            levelBadge
 
-            VStack(spacing: 12) {
-                // Level badge
-                levelBadge
+            // XP display
+            xpDisplay
 
-                // XP display
-                xpDisplay
-
-                // Stats grid
-                statsGrid
-            }
-            .padding()
+            // Stats grid
+            statsGrid
+        }
+        .padding()
+        .containerBackground(for: .widget) {
+            WidgetColors.background
         }
         // Apply comprehensive accessibility to entire widget
         .accessibilityElement(children: .ignore)
