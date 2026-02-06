@@ -88,7 +88,7 @@ describe('useMilestoneCelebrations', () => {
       expect(result.current.state.claimedMilestones).toContain('level-5');
     });
 
-    it('should show celebration modal if pending celebration exists', () => {
+    it('should clear stale pending celebration on mount to prevent black overlay', () => {
       const pendingMilestone = mockMilestones[0];
       mockStorage.get.mockReturnValue({
         achievedMilestones: ['level-5'],
@@ -98,8 +98,11 @@ describe('useMilestoneCelebrations', () => {
 
       const { result } = renderHook(() => useMilestoneCelebrations());
 
-      expect(result.current.showCelebration).toBe(true);
-      expect(result.current.pendingCelebration).toEqual(pendingMilestone);
+      // Stale celebrations should NOT be shown on app load
+      expect(result.current.showCelebration).toBe(false);
+      expect(result.current.pendingCelebration).toBeNull();
+      // The milestone should be auto-claimed
+      expect(result.current.state.claimedMilestones).toContain(pendingMilestone.id);
     });
 
     it('should have all required functions available', () => {
@@ -259,15 +262,13 @@ describe('useMilestoneCelebrations', () => {
   });
 
   describe('dismissCelebration', () => {
-    it('should close celebration modal', () => {
-      const pendingMilestone = mockMilestones[0];
-      mockStorage.get.mockReturnValue({
-        achievedMilestones: ['level-5'],
-        claimedMilestones: [],
-        pendingCelebration: pendingMilestone,
-      });
-
+    it('should close celebration modal after inline trigger', () => {
       const { result } = renderHook(() => useMilestoneCelebrations());
+
+      // Trigger a new milestone (not loaded from storage) to show the celebration
+      act(() => {
+        result.current.checkMilestone('level', 5);
+      });
 
       expect(result.current.showCelebration).toBe(true);
 
@@ -445,14 +446,11 @@ describe('useMilestoneCelebrations', () => {
 
   describe('getCelebrationType', () => {
     it('should return celebration type when pending', () => {
-      const pendingMilestone = mockMilestones[0];
-      mockStorage.get.mockReturnValue({
-        achievedMilestones: ['level-5'],
-        claimedMilestones: [],
-        pendingCelebration: pendingMilestone,
-      });
-
       const { result } = renderHook(() => useMilestoneCelebrations());
+
+      act(() => {
+        result.current.checkMilestone('level', 5);
+      });
 
       expect(result.current.getCelebrationType()).toBe('confetti');
     });

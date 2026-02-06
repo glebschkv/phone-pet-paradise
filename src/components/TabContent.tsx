@@ -15,6 +15,13 @@ import {
   SettingsSectionSkeleton,
   AchievementGridSkeleton,
 } from "@/components/ui/skeleton-loaders";
+import {
+  TimerErrorBoundary,
+  CollectionErrorBoundary,
+  ShopErrorBoundary,
+  GamificationErrorBoundary,
+  SettingsErrorBoundary,
+} from "@/components/FeatureErrorBoundary";
 
 // Component import functions for preloading
 const importUnifiedFocusTimer = () => import("@/components/UnifiedFocusTimer").then(m => ({ default: m.UnifiedFocusTimer }));
@@ -86,15 +93,15 @@ export const TabContent = ({ currentTab, onXPReward, onCoinReward }: TabContentP
   const renderTabContent = () => {
     switch (currentTab) {
       case "timer":
-        return <UnifiedFocusTimer />;
+        return <TimerErrorBoundary><UnifiedFocusTimer /></TimerErrorBoundary>;
       case "collection":
-        return <PetCollectionGrid />;
+        return <CollectionErrorBoundary><PetCollectionGrid /></CollectionErrorBoundary>;
       case "challenges":
-        return <GamificationHub onXPReward={onXPReward} onCoinReward={onCoinReward} />;
+        return <GamificationErrorBoundary><GamificationHub onXPReward={onXPReward} onCoinReward={onCoinReward} /></GamificationErrorBoundary>;
       case "shop":
-        return <Shop />;
+        return <ShopErrorBoundary><Shop /></ShopErrorBoundary>;
       case "settings":
-        return <Settings />;
+        return <SettingsErrorBoundary><Settings /></SettingsErrorBoundary>;
       default:
         return null;
     }

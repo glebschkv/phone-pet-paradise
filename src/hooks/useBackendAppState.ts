@@ -109,7 +109,9 @@ export const useBackendAppState = () => {
         (payload) => {
           logger.debug('Real-time progress update:', payload);
           // Access via ref to avoid stale closures and dependency bloat
-          subsystemsRef.current.supabaseData.loadUserData();
+          subsystemsRef.current.supabaseData.loadUserData()?.catch((err: unknown) => {
+            logger.error('Real-time data reload failed:', err);
+          });
         }
       )
       .on(
@@ -121,8 +123,9 @@ export const useBackendAppState = () => {
         },
         (payload) => {
           logger.debug('Real-time achievement unlock:', payload);
+          const title = payload?.new?.title;
           toast.success('🏆 Achievement Unlocked!', {
-            description: payload.new.title
+            description: typeof title === 'string' ? title : 'New achievement earned!'
           });
           // Access via ref to avoid stale closures and dependency bloat
           subsystemsRef.current.achievements.loadAchievements?.();

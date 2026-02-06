@@ -9,8 +9,11 @@ const {
   mockGetSubscriptionStatus,
   mockManageSubscriptions,
   mockAddListener,
-  mockToastFn,
+  mockToastError,
+  mockToastSuccess,
+  mockToastInfo,
   mockIsNativePlatform,
+  mockReportError,
 } = vi.hoisted(() => ({
   mockGetProducts: vi.fn(),
   mockPurchase: vi.fn(),
@@ -18,8 +21,11 @@ const {
   mockGetSubscriptionStatus: vi.fn(),
   mockManageSubscriptions: vi.fn(),
   mockAddListener: vi.fn(),
-  mockToastFn: vi.fn(),
+  mockToastError: vi.fn(),
+  mockToastSuccess: vi.fn(),
+  mockToastInfo: vi.fn(),
   mockIsNativePlatform: vi.fn(),
+  mockReportError: vi.fn(),
 }));
 
 // Mock StoreKit plugin
@@ -42,13 +48,13 @@ vi.mock('@capacitor/core', () => ({
   },
 }));
 
-// Mock sonner toast
+// Mock sonner toast - each method gets its own mock for precise assertions
 vi.mock('sonner', () => ({
-  toast: Object.assign(mockToastFn, {
-    success: mockToastFn,
-    error: mockToastFn,
-    info: mockToastFn,
-    warning: mockToastFn,
+  toast: Object.assign(vi.fn(), {
+    success: mockToastSuccess,
+    error: mockToastError,
+    info: mockToastInfo,
+    warning: vi.fn(),
   }),
 }));
 
@@ -56,9 +62,15 @@ vi.mock('sonner', () => ({
 vi.mock('@/lib/logger', () => ({
   storeKitLogger: {
     debug: vi.fn(),
+    info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
   },
+}));
+
+// Mock error reporting
+vi.mock('@/lib/errorReporting', () => ({
+  reportError: mockReportError,
 }));
 
 // Mock supabase
@@ -78,6 +90,7 @@ vi.mock('@/integrations/supabase/client', () => ({
       invoke: vi.fn().mockResolvedValue({
         data: {
           success: true,
+          productType: 'subscription',
           subscription: {
             tier: 'premium',
             expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -231,6 +244,7 @@ describe('useStoreKit', () => {
 
   afterEach(() => {
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('Initial State', () => {
@@ -369,29 +383,35 @@ describe('useStoreKit', () => {
     });
 
     it('should handle error when fetching products fails', async () => {
+      vi.useFakeTimers();
       mockGetProducts.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useStoreKit());
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      // Source has a retry mechanism (3 retries at 2s, 4s, 8s = 14s total).
+      // Advance through all retries so the final error message is set.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15000);
       });
 
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Failed to load products. Please try again.');
       expect(result.current.products).toEqual([]);
     });
 
     it('should clear error on successful reload', async () => {
+      vi.useFakeTimers();
       // First set up to always reject
       mockGetProducts.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useStoreKit());
 
-      // Wait for the error to be set after failed load
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.error).toBe('Failed to load products. Please try again.');
+      // Advance through all retries so the final error is set
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15000);
       });
+
+      expect(result.current.error).toBe('Failed to load products. Please try again.');
 
       // Reset mock to succeed for retry
       mockGetProducts.mockResolvedValue({ products: mockProducts });
@@ -457,7 +477,7 @@ describe('useStoreKit', () => {
       expect(result.current.isPurchasing).toBe(false);
     });
 
-    it('should show success toast on successful purchase', async () => {
+    it('should return validation result on successful purchase', async () => {
       mockPurchase.mockResolvedValue({
         success: true,
         transactionId: 'txn_123',
@@ -471,15 +491,16 @@ describe('useStoreKit', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
+      let purchaseResult: any;
       await act(async () => {
-        await result.current.purchaseProduct('co.nomoinc.nomo.premium.monthly');
+        purchaseResult = await result.current.purchaseProduct('co.nomoinc.nomo.premium.monthly');
       });
 
-      expect(mockToastFn).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: expect.stringMatching(/Purchase|Processing|Successful/),
-        })
-      );
+      // Source does NOT show a success toast on purchase - it returns the result with validation data
+      expect(purchaseResult).toEqual(expect.objectContaining({
+        success: true,
+        validationResult: expect.objectContaining({ success: true }),
+      }));
     });
 
     it('should refresh subscription status after successful purchase', async () => {
@@ -540,14 +561,18 @@ describe('useStoreKit', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      mockToastFn.mockClear();
+      mockToastError.mockClear();
+      mockToastSuccess.mockClear();
+      mockToastInfo.mockClear();
 
       await act(async () => {
         await result.current.purchaseProduct('co.nomoinc.nomo.premium.monthly');
       });
 
       // Toast should not be called for cancellation
-      expect(mockToastFn).not.toHaveBeenCalled();
+      expect(mockToastError).not.toHaveBeenCalled();
+      expect(mockToastSuccess).not.toHaveBeenCalled();
+      expect(mockToastInfo).not.toHaveBeenCalled();
     });
 
     it('should set isPurchasing back to false after cancellation', async () => {
@@ -587,9 +612,9 @@ describe('useStoreKit', () => {
         await result.current.purchaseProduct('co.nomoinc.nomo.premium.monthly');
       });
 
-      expect(mockToastFn).toHaveBeenCalledWith(
+      expect(mockToastInfo).toHaveBeenCalledWith(
+        'Purchase Pending',
         expect.objectContaining({
-          title: 'Purchase Pending',
           description: 'Your purchase is awaiting approval.',
         })
       );
@@ -632,12 +657,11 @@ describe('useStoreKit', () => {
         await result.current.purchaseProduct('co.nomoinc.nomo.premium.monthly');
       });
 
-      // Toast shows generic error message from implementation
-      expect(mockToastFn).toHaveBeenCalledWith(
+      // Toast shows generic error message from implementation (sonner API: toast.error(title, opts))
+      expect(mockToastError).toHaveBeenCalledWith(
+        'Purchase Failed',
         expect.objectContaining({
-          title: 'Purchase Failed',
           description: 'Unable to complete the purchase. Please try again.',
-          variant: 'destructive',
         })
       );
     });
@@ -736,9 +760,9 @@ describe('useStoreKit', () => {
         await result.current.restorePurchases();
       });
 
-      expect(mockToastFn).toHaveBeenCalledWith(
+      expect(mockToastSuccess).toHaveBeenCalledWith(
+        'Purchases Restored!',
         expect.objectContaining({
-          title: 'Purchases Restored!',
           description: '1 purchase(s) restored successfully.',
         })
       );
@@ -810,9 +834,9 @@ describe('useStoreKit', () => {
         await result.current.restorePurchases();
       });
 
-      expect(mockToastFn).toHaveBeenCalledWith(
+      expect(mockToastInfo).toHaveBeenCalledWith(
+        'No Purchases Found',
         expect.objectContaining({
-          title: 'No Purchases Found',
           description: 'No previous purchases were found to restore.',
         })
       );
@@ -851,11 +875,10 @@ describe('useStoreKit', () => {
         await result.current.restorePurchases();
       });
 
-      expect(mockToastFn).toHaveBeenCalledWith(
+      expect(mockToastError).toHaveBeenCalledWith(
+        'Restore Failed',
         expect.objectContaining({
-          title: 'Restore Failed',
           description: 'Unable to restore purchases. Please try again.',
-          variant: 'destructive',
         })
       );
     });
@@ -1115,11 +1138,10 @@ describe('useStoreKit', () => {
         await result.current.manageSubscriptions();
       });
 
-      expect(mockToastFn).toHaveBeenCalledWith(
+      expect(mockToastError).toHaveBeenCalledWith(
+        'Error',
         expect.objectContaining({
-          title: 'Error',
           description: 'Failed to open subscription management.',
-          variant: 'destructive',
         })
       );
     });
@@ -1127,14 +1149,17 @@ describe('useStoreKit', () => {
 
   describe('Error Handling for Network Failures', () => {
     it('should handle network timeout on getProducts', async () => {
+      vi.useFakeTimers();
       mockGetProducts.mockRejectedValue(new Error('Network timeout'));
 
       const { result } = renderHook(() => useStoreKit());
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      // Advance through all retries (3 retries at 2s, 4s, 8s)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15000);
       });
 
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Failed to load products. Please try again.');
       expect(result.current.products).toEqual([]);
     });
@@ -1154,10 +1179,10 @@ describe('useStoreKit', () => {
 
       // safeStoreKitCall wraps errors into generic messages
       expect(result.current.error).toBe('Purchase failed. Please try again.');
-      expect(mockToastFn).toHaveBeenCalledWith(
+      expect(mockToastError).toHaveBeenCalledWith(
+        'Purchase Failed',
         expect.objectContaining({
-          title: 'Purchase Failed',
-          variant: 'destructive',
+          description: 'Unable to complete the purchase. Please try again.',
         })
       );
     });
@@ -1180,16 +1205,18 @@ describe('useStoreKit', () => {
     });
 
     it('should allow retry after network failure', async () => {
+      vi.useFakeTimers();
       // First set up to always reject
       mockGetProducts.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useStoreKit());
 
-      // Wait for error to be set after failed load
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.error).toBe('Failed to load products. Please try again.');
+      // Advance through all retries so final error is set
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15000);
       });
+
+      expect(result.current.error).toBe('Failed to load products. Please try again.');
 
       // Reset mock to succeed for retry
       mockGetProducts.mockResolvedValue({ products: mockProducts });

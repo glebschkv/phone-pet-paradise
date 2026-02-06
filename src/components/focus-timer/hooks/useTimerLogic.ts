@@ -30,9 +30,10 @@ import { useSessionNotes } from "./useSessionNotes";
 import { useBreakTransition } from "./useBreakTransition";
 import { useTimerControls } from "./useTimerControls";
 import { useTimerCountdown } from "./useTimerCountdown";
+import { timerLogger } from "@/lib/logger";
 
 export const useTimerLogic = () => {
-  const { awardXP } = useBackendAppState();
+  const { awardXP, coinSystem, xpSystem } = useBackendAppState();
   const { playCompletionSound } = useTimerAudio();
   const { recordSession } = useAnalytics();
   const { stopAll: stopAmbientSound, isPlaying: isAmbientPlaying } = useSoundMixer();
@@ -184,7 +185,7 @@ export const useTimerLogic = () => {
           const blockingResult = await stopAppBlocking();
           shieldAttempts = blockingResult.shieldAttempts;
         } catch (e) {
-          console.error('Failed to stop app blocking:', e);
+          timerLogger.error('Failed to stop app blocking:', e);
         }
       }
 
@@ -256,6 +257,14 @@ export const useTimerLogic = () => {
         const streakReward = recordStreakSession();
         if (streakReward) {
           scheduleStreakNotification(streakReward.milestone);
+
+          // Apply streak milestone bonuses (XP and coins)
+          if (streakReward.xpBonus && xpSystem && 'addDirectXP' in xpSystem) {
+            (xpSystem as { addDirectXP: (xp: number) => void }).addDirectXP(streakReward.xpBonus);
+          }
+          if (streakReward.coinBonus && coinSystem) {
+            coinSystem.addCoins(streakReward.coinBonus);
+          }
         }
         if (xpEarned > 0) {
           scheduleRewardNotification(xpEarned);
@@ -315,6 +324,8 @@ export const useTimerLogic = () => {
     scheduleRewardNotification,
     saveTimerState,
     triggerHaptic,
+    coinSystem,
+    xpSystem,
   ]);
 
   // ============================================================================

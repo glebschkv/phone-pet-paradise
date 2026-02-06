@@ -2,8 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useQuestSystem, Quest } from '@/hooks/useQuestSystem';
 
-// Mock toast
-const mockToast = vi.fn();
+// Mock toast - use vi.hoisted so mockToast is available in hoisted vi.mock factory
+const { mockToast } = vi.hoisted(() => {
+  const mockToast = vi.fn();
+  return { mockToast };
+});
 vi.mock('sonner', () => ({
   toast: Object.assign(mockToast, {
     success: mockToast,
@@ -14,26 +17,43 @@ vi.mock('sonner', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  questLogger: {
+vi.mock('@/lib/logger', () => {
+  const createMockLogger = () => ({
     debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
-  },
-  storageLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-  createLogger: vi.fn(() => ({
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  })),
-}));
+  });
+  return {
+    logger: createMockLogger(),
+    questLogger: createMockLogger(),
+    storageLogger: createMockLogger(),
+    coinLogger: createMockLogger(),
+    xpLogger: createMockLogger(),
+    streakLogger: createMockLogger(),
+    settingsLogger: createMockLogger(),
+    shopLogger: createMockLogger(),
+    storeKitLogger: createMockLogger(),
+    supabaseLogger: createMockLogger(),
+    deviceActivityLogger: createMockLogger(),
+    soundLogger: createMockLogger(),
+    collectionLogger: createMockLogger(),
+    authLogger: createMockLogger(),
+    notificationLogger: createMockLogger(),
+    syncLogger: createMockLogger(),
+    focusModeLogger: createMockLogger(),
+    widgetLogger: createMockLogger(),
+    backupLogger: createMockLogger(),
+    threeLogger: createMockLogger(),
+    timerLogger: createMockLogger(),
+    achievementLogger: createMockLogger(),
+    bondLogger: createMockLogger(),
+    performanceLogger: createMockLogger(),
+    appReviewLogger: createMockLogger(),
+    nativePluginLogger: createMockLogger(),
+    createLogger: vi.fn(() => createMockLogger()),
+  };
+});
 
 describe('useQuestSystem', () => {
   const STORAGE_KEY = 'quest-system-data';
@@ -196,8 +216,9 @@ describe('useQuestSystem', () => {
       });
 
       expect(mockToast).toHaveBeenCalledWith(
+        "Quest Complete!",
         expect.objectContaining({
-          title: 'Quest Complete!',
+          description: expect.any(String),
         })
       );
     });

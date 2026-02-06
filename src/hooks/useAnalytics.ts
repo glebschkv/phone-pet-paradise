@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
+import { analyticsLogger } from '@/lib/logger';
 import {
   FocusSession,
   DailyStats,
@@ -92,7 +93,7 @@ export const useAnalytics = () => {
       const streak = calculateGoalStreak(loadedDailyStats, loadedSettings.dailyGoalMinutes);
       setCurrentGoalStreak(streak);
     } catch (e) {
-      console.error('Failed to load analytics data:', e);
+      analyticsLogger.error('Failed to load analytics data:', e);
     }
     setIsLoaded(true);
   }, []);
@@ -106,7 +107,7 @@ export const useAnalytics = () => {
 
     const prunedSessions = newSessions.filter(s => s.startTime >= cutoffTimestamp);
     setSessions(prunedSessions);
-    try { storage.set(STORAGE_KEYS.ANALYTICS_SESSIONS, prunedSessions); } catch (e) { console.error('Failed to save sessions:', e); }
+    try { storage.set(STORAGE_KEYS.ANALYTICS_SESSIONS, prunedSessions); } catch (e) { analyticsLogger.error('Failed to save sessions:', e); }
   }, []);
 
   // Save daily stats (prunes entries older than 90 days)
@@ -123,19 +124,19 @@ export const useAnalytics = () => {
     }
 
     setDailyStats(prunedStats);
-    try { storage.set(STORAGE_KEYS.ANALYTICS_DAILY_STATS, prunedStats); } catch (e) { console.error('Failed to save daily stats:', e); }
+    try { storage.set(STORAGE_KEYS.ANALYTICS_DAILY_STATS, prunedStats); } catch (e) { analyticsLogger.error('Failed to save daily stats:', e); }
   }, []);
 
   // Save settings
   const saveSettings = useCallback((newSettings: AnalyticsSettings) => {
     setSettings(newSettings);
-    try { storage.set(STORAGE_KEYS.ANALYTICS_SETTINGS, newSettings); } catch (e) { console.error('Failed to save settings:', e); }
+    try { storage.set(STORAGE_KEYS.ANALYTICS_SETTINGS, newSettings); } catch (e) { analyticsLogger.error('Failed to save settings:', e); }
   }, []);
 
   // Save records
   const saveRecords = useCallback((newRecords: PersonalRecords) => {
     setRecords(newRecords);
-    try { storage.set(STORAGE_KEYS.ANALYTICS_RECORDS, newRecords); } catch (e) { console.error('Failed to save records:', e); }
+    try { storage.set(STORAGE_KEYS.ANALYTICS_RECORDS, newRecords); } catch (e) { analyticsLogger.error('Failed to save records:', e); }
   }, []);
 
   // Calculate goal streak from daily stats

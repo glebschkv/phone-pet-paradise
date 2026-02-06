@@ -32,11 +32,6 @@ export const AnalyticsWeeklyReport = ({
     .sort(([, a], [, b]) => b - a)[0];
   const topCatInfo = topCat ? FOCUS_CATEGORIES.find(c => c.id === topCat[0]) : null;
 
-  // Best day this week (derive from weekStart)
-  const completionRate = thisWeek.sessionsCompleted > 0
-    ? Math.round((thisWeek.sessionsCompleted / Math.max(thisWeek.sessionsCompleted, 1)) * 100)
-    : 0;
-
   return (
     <div className="retro-card p-4">
       <div className="flex items-center gap-2 mb-3">

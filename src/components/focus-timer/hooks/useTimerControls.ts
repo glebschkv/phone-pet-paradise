@@ -7,12 +7,14 @@
 
 import { useCallback } from "react";
 import { toast } from 'sonner';
+import { timerLogger } from '@/lib/logger';
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { useNotifications } from "@/hooks/useNotifications";
 import { FocusCategory, FocusQuality } from "@/types/analytics";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { TimerState } from "./useTimerPersistence";
+import type { StartBlockingResult, StopBlockingResult } from "@/plugins/device-activity/definitions";
 
 interface UseTimerControlsProps {
   timerState: TimerState;
@@ -25,8 +27,8 @@ interface UseTimerControlsProps {
   appBlockingEnabled: boolean;
   hasAppsConfigured: boolean;
   blockedAppsCount: number;
-  startAppBlocking: () => Promise<{ appsBlocked: number }>;
-  stopAppBlocking: () => Promise<{ shieldAttempts: number }>;
+  startAppBlocking: () => Promise<StartBlockingResult>;
+  stopAppBlocking: () => Promise<StopBlockingResult>;
   triggerHaptic: (style?: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error') => void | Promise<void>;
   awardXP: (minutes: number) => Promise<{ xpGained?: number } | null | undefined>;
 }
@@ -39,9 +41,9 @@ export const useTimerControls = ({
   setDisplayTime,
   setShowIntentionModal,
   intervalRef,
-  appBlockingEnabled,
+  appBlockingEnabled: _appBlockingEnabled,
   hasAppsConfigured,
-  blockedAppsCount,
+  blockedAppsCount: _blockedAppsCount,
   startAppBlocking,
   stopAppBlocking,
   triggerHaptic,
@@ -110,7 +112,10 @@ export const useTimerControls = ({
           triggerHaptic('light');
         }
       }).catch((e) => {
-        console.error('Failed to start app blocking:', e);
+        timerLogger.error('Failed to start app blocking:', e);
+        toast.warning('App blocking unavailable', {
+          description: 'Focus session started, but apps could not be blocked.',
+        });
       });
     }
   }, [saveTimerState, timerState.timeLeft, timerState.isCountup, selectedPreset.type, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
@@ -211,7 +216,7 @@ export const useTimerControls = ({
         const result = await stopAppBlocking();
         shieldAttempts = result.shieldAttempts;
       } catch (e) {
-        console.error('Failed to stop app blocking:', e);
+        timerLogger.error('Failed to stop app blocking:', e);
       }
     }
 
@@ -227,18 +232,22 @@ export const useTimerControls = ({
     }
 
     if (timerState.isRunning && elapsedSeconds > 10) {
-      recordSession(
-        timerState.sessionType,
-        timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
-        elapsedSeconds,
-        'abandoned',
-        0,
-        timerState.category,
-        timerState.taskLabel,
-        isWorkSession ? shieldAttempts : undefined,
-        focusQuality,
-        hasAppsConfigured,
-      );
+      try {
+        recordSession(
+          timerState.sessionType,
+          timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
+          elapsedSeconds,
+          'abandoned',
+          0,
+          timerState.category,
+          timerState.taskLabel,
+          isWorkSession ? shieldAttempts : undefined,
+          focusQuality,
+          hasAppsConfigured,
+        );
+      } catch (e) {
+        timerLogger.error('Failed to record abandoned session:', e);
+      }
     }
   }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
 
@@ -300,7 +309,7 @@ export const useTimerControls = ({
         const result = await stopAppBlocking();
         shieldAttempts = result.shieldAttempts;
       } catch (e) {
-        console.error('Failed to stop app blocking:', e);
+        timerLogger.error('Failed to stop app blocking:', e);
       }
     }
 
@@ -339,24 +348,32 @@ export const useTimerControls = ({
     }
 
     if (elapsedSeconds > 10) {
-      recordSession(
-        timerState.sessionType,
-        timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
-        elapsedSeconds,
-        'skipped',
-        xpEarned,
-        timerState.category,
-        timerState.taskLabel,
-        isWorkSession ? shieldAttempts : undefined,
-        focusQuality,
-        hasAppsConfigured,
-      );
+      try {
+        recordSession(
+          timerState.sessionType,
+          timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
+          elapsedSeconds,
+          'skipped',
+          xpEarned,
+          timerState.category,
+          timerState.taskLabel,
+          isWorkSession ? shieldAttempts : undefined,
+          focusQuality,
+          hasAppsConfigured,
+        );
+      } catch (e) {
+        timerLogger.error('Failed to record skipped session:', e);
+      }
 
       // Update streak and trigger notifications for qualifying work sessions
       if (isWorkSession && completedMinutes >= 25) {
-        const streakReward = recordStreakSession();
-        if (streakReward) {
-          scheduleStreakNotification(streakReward.milestone);
+        try {
+          const streakReward = recordStreakSession();
+          if (streakReward) {
+            scheduleStreakNotification(streakReward.milestone);
+          }
+        } catch (e) {
+          timerLogger.error('Failed to record streak session:', e);
         }
         if (xpEarned > 0) {
           scheduleRewardNotification(xpEarned);

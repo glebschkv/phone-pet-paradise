@@ -90,7 +90,7 @@ let _nativeInitStarted = false;
 let _nativeInitResult: DeviceActivityState | null = null;
 let _nativeInitPromise: Promise<DeviceActivityState> | null = null;
 
-function _invalidateInitCache() {
+export function _invalidateInitCache() {
   _nativeInitResult = null;
   _nativeInitStarted = false;
   _nativeInitPromise = null;
@@ -309,6 +309,7 @@ export const useDeviceActivity = () => {
         return finalState;
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Dedup wrapper: ensures native init runs only once across all hook instances
@@ -382,9 +383,13 @@ export const useDeviceActivity = () => {
       }));
 
       if (isGranted) {
-        // Permission state changed — invalidate the cached init result
-        // so any component that remounts gets the updated state
-        _invalidateInitCache();
+        // Mark init as in-progress so other hook instances wait for us
+        // instead of starting a concurrent init (which caused the "needs
+        // refresh" bug).  Do NOT call _invalidateInitCache() here — that
+        // clears _nativeInitStarted and _nativeInitPromise, allowing a
+        // race where another instance starts _doNativeInit() while we're
+        // still awaiting the calls below.
+        _nativeInitResult = null;
 
         // Start monitoring after permissions granted
         const { result: monitoring } = await safePluginCall(
@@ -698,7 +703,11 @@ export const useDeviceActivity = () => {
   // Update simulated app selection (for web)
   const updateSimulatedApps = useCallback((apps: SimulatedBlockedApp[]) => {
     setSimulatedApps(apps);
-    localStorage.setItem(SELECTED_APPS_KEY, JSON.stringify(apps));
+    try {
+      localStorage.setItem(SELECTED_APPS_KEY, JSON.stringify(apps));
+    } catch {
+      // Storage full — state still updated in-memory
+    }
 
     // Also update native if on iOS (fire and forget with safe call)
     if (state.pluginAvailable) {
@@ -728,7 +737,11 @@ export const useDeviceActivity = () => {
     // Update local state regardless of plugin availability
     const resetApps = simulatedApps.map(app => ({ ...app, isBlocked: false }));
     setSimulatedApps(resetApps);
-    localStorage.setItem(SELECTED_APPS_KEY, JSON.stringify(resetApps));
+    try {
+      localStorage.setItem(SELECTED_APPS_KEY, JSON.stringify(resetApps));
+    } catch {
+      // Storage full — state still updated in-memory
+    }
 
     setState(prev => ({
       ...prev,

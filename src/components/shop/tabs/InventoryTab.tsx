@@ -1,4 +1,4 @@
-import { Snowflake, Zap, Clock, Image, Check, PawPrint, Palette } from "lucide-react";
+import { Snowflake, Zap, Clock, Image, PawPrint, Palette } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { useStreakFreezeCount } from "@/stores/streakStore";

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Volume2, VolumeX, Lock, Crown, ChevronDown, Play, Pause, Music, X, Plus, Layers } from 'lucide-react';
+import { Volume2, VolumeX, Lock, Crown, ChevronDown, Play, Pause, Music, X, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 import { Slider } from '@/components/ui/slider';

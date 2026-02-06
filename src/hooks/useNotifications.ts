@@ -326,3 +326,9 @@ export const useNotifications = () => {
     initializeNotifications,
   };
 };
+
+/** Reset module-level singleton state. Test-only — do NOT call in production. */
+export function _resetNotificationsForTesting() {
+  globalNotificationsInitialized = false;
+  _notificationInitPromise = null;
+}

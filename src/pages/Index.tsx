@@ -10,7 +10,6 @@ import { useCollectionStore } from "@/stores/collectionStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
@@ -21,10 +20,11 @@ const RetroPixelPlatform = lazy(() => import("@/components/retro/RetroPixelPlatf
 const GameUI = lazy(() => import("@/components/GameUI").then(m => ({ default: m.GameUI })));
 const OnboardingFlow = lazy(() => import("@/components/onboarding/OnboardingFlow").then(m => ({ default: m.OnboardingFlow })));
 
-// Loading fallback for lazy-loaded components
+// Loading fallback for lazy-loaded components — larger and more visible on mobile
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-full w-full">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  <div className="flex flex-col items-center justify-center h-full w-full gap-3">
+    <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary/20 border-t-primary"></div>
+    <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
   </div>
 );
 
@@ -46,8 +46,8 @@ const BIOME_TO_BACKGROUND: Record<string, string> = {
 const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
-  useSupabaseData(); // Initialize Supabase data loading
-  const { unlockedAnimals, currentLevel, currentBiome } = useBackendAppState();
+  // Data loading is handled inside useBackendAppState (which calls useSupabaseData internally)
+  const { unlockedAnimals, currentLevel, currentBiome, isLoading: isDataLoading } = useBackendAppState();
   const hasCompletedOnboarding = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   const setActiveHomePets = useCollectionStore((s) => s.setActiveHomePets);
@@ -121,6 +121,19 @@ const Index = () => {
             <p className="text-muted-foreground">Create an account to save your progress!</p>
             <Button onClick={() => navigate('/auth')}>Get Started</Button>
           </div>
+        </div>
+      </PageErrorBoundary>
+    );
+  }
+
+  // Show loading state while backend data initializes after auth.
+  // Without this gate the app renders with empty arrays/nulls, causing a
+  // visible flash of blank content before data arrives from Supabase.
+  if (isDataLoading) {
+    return (
+      <PageErrorBoundary pageName="home page">
+        <div className="h-screen w-full flex items-center justify-center bg-gradient-sky">
+          <LoadingFallback />
         </div>
       </PageErrorBoundary>
     );

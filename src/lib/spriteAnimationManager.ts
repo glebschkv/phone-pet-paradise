@@ -13,6 +13,8 @@
 
 type AnimationCallback = (deltaTime: number, currentTime: number) => void;
 
+import { logger } from '@/lib/logger';
+
 interface AnimationEntry {
   id: string;
   callback: AnimationCallback;
@@ -169,7 +171,7 @@ class SpriteAnimationManager {
       try {
         animation.callback(deltaTime, currentTime);
       } catch (error) {
-        console.error(`[SpriteAnimationManager] Animation ${animation.id} error:`, error);
+        logger.error(`[SpriteAnimationManager] Animation ${animation.id} error:`, error);
         // Don't remove the animation - let the component handle the error
       }
     }

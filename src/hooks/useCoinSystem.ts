@@ -34,7 +34,7 @@
  * ```
  */
 
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useRef } from 'react';
 import { useCoinStore } from '@/stores/coinStore';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from './usePremiumStatus';
@@ -297,35 +297,39 @@ export const useCoinSystem = () => {
     return false;
   }, [storeSyncFromServer, totalEarned, totalSpent]);
 
-  // PHASE 1: Initial coin sync on authentication
+  // Keep a stable ref to syncFromServer so effects don't need to
+  // be recreated every time totalEarned/totalSpent changes.
+  const syncFromServerRef = useRef(syncFromServer);
+  syncFromServerRef.current = syncFromServer;
+
+  // PHASE 1: Deferred coin sync on authentication
+  // Delay by 3s so it doesn't compete with the critical startup path
+  // (auth check + Supabase data load). The edge function can cold-start slowly.
+  // Uses syncFromServerRef so the effect doesn't recreate on every coin change.
   useEffect(() => {
-    // Skip if Supabase is not configured (guest mode)
     if (!isSupabaseConfigured) {
       coinLogger.debug('Supabase not configured, skipping auth sync');
       return;
     }
 
-    const initSync = async () => {
+    const timer = setTimeout(async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          await syncFromServer();
-          coinLogger.debug('Initial coin sync completed on mount');
+          await syncFromServerRef.current();
+          coinLogger.debug('Initial coin sync completed (deferred)');
         }
       } catch (err) {
         coinLogger.debug('Initial coin sync skipped:', err);
       }
-    };
-
-    initSync();
+    }, 3000);
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          // Use setTimeout to avoid potential deadlock
           setTimeout(() => {
-            syncFromServer().catch((err) => {
+            syncFromServerRef.current().catch((err: unknown) => {
               coinLogger.debug('Auth sync failed:', err);
             });
           }, 0);
@@ -333,8 +337,11 @@ export const useCoinSystem = () => {
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, [syncFromServer]);
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // PHASE 4: Periodic background sync every 5 minutes
   useEffect(() => {
@@ -349,7 +356,7 @@ export const useCoinSystem = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          await syncFromServer();
+          await syncFromServerRef.current();
           coinLogger.debug('Periodic coin sync completed');
         }
       } catch {
@@ -359,7 +366,7 @@ export const useCoinSystem = () => {
     }, SYNC_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [syncFromServer]);
+  }, []);
 
   // Listen for bonus coin grants from subscription purchase
   useEffect(() => {
@@ -501,11 +508,23 @@ export const useCoinSystem = () => {
               balanceResponse.totalSpent || totalSpent
             );
           }
+        }).catch((err) => {
+          coinLogger.error('Failed to sync balance after duplicate detection:', err);
         });
       } else if (!response.success) {
-        coinLogger.warn('Server validation failed, local state may be inconsistent');
-        // For non-authenticated users, keep local state
-        // For authenticated users with server error, sync on next opportunity
+        coinLogger.warn('Server validation failed, syncing balance from server');
+        // Sync from server to correct local state
+        serverGetBalance().then((balanceResponse) => {
+          if (balanceResponse.success && balanceResponse.newBalance !== undefined) {
+            storeSyncFromServer(
+              balanceResponse.newBalance,
+              balanceResponse.totalEarned || totalEarned,
+              balanceResponse.totalSpent || totalSpent
+            );
+          }
+        }).catch((syncErr) => {
+          coinLogger.error('Failed to sync balance after validation failure:', syncErr);
+        });
       }
     }).catch((err) => {
       coinLogger.error('Failed to validate coin earn with server:', err);

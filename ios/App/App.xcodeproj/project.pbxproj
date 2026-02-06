@@ -11,6 +11,8 @@
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
 		SHARED0001000000000001 /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHARED0001000000000000 /* SharedConstants.swift */; };
+		SHARED0002000000000001 /* ShieldConfigurationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHARED0002000000000000 /* ShieldConfigurationHelper.swift */; };
+		SHARED0003000000000001 /* DeviceActivityMonitorHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHARED0003000000000000 /* DeviceActivityMonitorHelper.swift */; };
 		SRC00010000000000000001 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00010000000000000000 /* AppConfig.swift */; };
 		SRC00020000000000000001 /* AppReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00020000000000000000 /* AppReviewPlugin.swift */; };
 		SRC00030000000000000001 /* DeviceActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRC00030000000000000000 /* DeviceActivityPlugin.swift */; };
@@ -44,6 +46,8 @@
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		SHARED0001000000000000 /* SharedConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedConstants.swift; sourceTree = "<group>"; };
+		SHARED0002000000000000 /* ShieldConfigurationHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationHelper.swift; sourceTree = "<group>"; };
+		SHARED0003000000000000 /* DeviceActivityMonitorHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityMonitorHelper.swift; sourceTree = "<group>"; };
 		SRC00010000000000000000 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		SRC00020000000000000000 /* AppReviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppReviewPlugin.swift; sourceTree = "<group>"; };
 		SRC00030000000000000000 /* DeviceActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityPlugin.swift; sourceTree = "<group>"; };
@@ -137,6 +141,8 @@
 			isa = PBXGroup;
 			children = (
 				SHARED0001000000000000 /* SharedConstants.swift */,
+				SHARED0002000000000000 /* ShieldConfigurationHelper.swift */,
+				SHARED0003000000000000 /* DeviceActivityMonitorHelper.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -312,6 +318,8 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				SHARED0001000000000001 /* SharedConstants.swift in Sources */,
+				SHARED0002000000000001 /* ShieldConfigurationHelper.swift in Sources */,
+				SHARED0003000000000001 /* DeviceActivityMonitorHelper.swift in Sources */,
 				SRC00010000000000000001 /* AppConfig.swift in Sources */,
 				SRC00020000000000000001 /* AppReviewPlugin.swift in Sources */,
 				SRC00030000000000000001 /* DeviceActivityPlugin.swift in Sources */,

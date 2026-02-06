@@ -62,12 +62,20 @@ export const RewardModals = ({
   // Milestone Celebration
   onMilestoneClaim,
 }: RewardModalsProps) => {
+  // Only show ONE modal at a time to prevent stacking black overlays.
+  // Priority: XP reward (most important) > Daily login > Milestone celebration.
+  const showXP = showRewardModal;
+  const showDaily = !showXP && dailyLoginRewards.showRewardModal;
+  // MilestoneCelebration manages its own open state internally, so we
+  // suppress it by not rendering when a higher-priority modal is open.
+  const suppressMilestone = showXP || dailyLoginRewards.showRewardModal;
+
   return (
     <>
       {/* XP Reward Modal */}
       <RewardModalErrorBoundary>
         <XPRewardModal
-          isOpen={showRewardModal}
+          isOpen={showXP}
           onClose={dismissRewardModal}
           reward={currentReward}
           newLevel={newLevel}
@@ -78,7 +86,7 @@ export const RewardModals = ({
       {/* Daily Login Reward Modal */}
       <RewardModalErrorBoundary>
         <DailyLoginRewardModal
-          isOpen={dailyLoginRewards.showRewardModal}
+          isOpen={showDaily}
           onClaim={onDailyRewardClaim}
           onDismiss={dailyLoginRewards.dismissModal}
           reward={dailyLoginRewards.pendingReward}
@@ -87,10 +95,12 @@ export const RewardModals = ({
         />
       </RewardModalErrorBoundary>
 
-      {/* Milestone Celebration */}
-      <RewardModalErrorBoundary>
-        <MilestoneCelebration onClaimReward={onMilestoneClaim} />
-      </RewardModalErrorBoundary>
+      {/* Milestone Celebration — only mount when no other modal is showing */}
+      {!suppressMilestone && (
+        <RewardModalErrorBoundary>
+          <MilestoneCelebration onClaimReward={onMilestoneClaim} />
+        </RewardModalErrorBoundary>
+      )}
     </>
   );
 };

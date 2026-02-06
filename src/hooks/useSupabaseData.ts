@@ -60,12 +60,137 @@ const validators = {
   }
 };
 
+// ============================================================================
+// Module-level data cache — deduplicates Supabase queries across instances
+// ============================================================================
+// Multiple hooks call useSupabaseData() (~5 instances on startup). Without
+// deduplication each fires 3 parallel Supabase queries (profiles, user_progress,
+// pets) → 15 redundant queries. This cache ensures only ONE set of queries runs.
+
+interface CachedData {
+  profile: UserProfile | null;
+  progress: UserProgress | null;
+  pets: Pet[];
+}
+
+let _cachedUserId: string | null = null;
+let _cachedData: CachedData | null = null;
+let _fetchPromise: Promise<CachedData | null> | null = null;
+
+// Event bus for cross-instance data sync
+const DATA_UPDATE_EVENT = 'supabase-data-update';
+
+function _broadcastDataUpdate(data: CachedData): void {
+  _cachedData = data;
+  window.dispatchEvent(new CustomEvent(DATA_UPDATE_EVENT, { detail: data }));
+}
+
+function _invalidateCache(): void {
+  _cachedData = null;
+  _cachedUserId = null;
+  _fetchPromise = null;
+}
+
+// Shared fetch — returns cached data or runs a single set of queries
+async function _fetchSharedData(userId: string): Promise<CachedData | null> {
+  // Already have fresh data for this user → skip
+  if (_cachedData && _cachedUserId === userId) {
+    return _cachedData;
+  }
+
+  // Another instance is already fetching for this user → wait for it
+  if (_fetchPromise && _cachedUserId === userId) {
+    return _fetchPromise;
+  }
+
+  // If a different user is now fetching, invalidate the old fetch so its
+  // results won't be used — prevents leaking user A's data to user B.
+  if (_cachedUserId && _cachedUserId !== userId) {
+    _fetchPromise = null;
+  }
+
+  _cachedUserId = userId;
+
+  _fetchPromise = (async () => {
+    try {
+      const [profileResult, progressResult, petsResult] = await Promise.all([
+        supabase.from('profiles').select('*').eq('user_id', userId).single(),
+        supabase.from('user_progress').select('*').eq('user_id', userId).single(),
+        supabase.from('pets').select('*').eq('user_id', userId),
+      ]);
+
+      if (profileResult.error && profileResult.error.code !== 'PGRST116') {
+        throw profileResult.error;
+      }
+      if (progressResult.error && progressResult.error.code !== 'PGRST116') {
+        throw progressResult.error;
+      }
+      if (petsResult.error) {
+        throw petsResult.error;
+      }
+
+      const profile = profileResult.data || createDefaultProfile(userId);
+      const progressData = progressResult.data;
+      const progress = progressData
+        ? {
+            ...progressData,
+            coins: progressData.coins ?? 0,
+            total_coins_earned: progressData.total_coins_earned ?? 0,
+            total_coins_spent: progressData.total_coins_spent ?? 0,
+          }
+        : createDefaultProgress(userId);
+      const pets =
+        petsResult.data && petsResult.data.length > 0
+          ? petsResult.data
+          : [createDefaultPet(userId)];
+
+      const data: CachedData = { profile, progress, pets };
+      // Only cache if the user hasn't changed while we were fetching
+      // (prevents stale data from a previous user overwriting the cache)
+      if (_cachedUserId === userId) {
+        _cachedData = data;
+      }
+      return data;
+    } catch (error) {
+      supabaseLogger.error('Error loading user data from Supabase:', error);
+      return null;
+    } finally {
+      if (_cachedUserId === userId) {
+        _fetchPromise = null;
+      }
+    }
+  })();
+
+  return _fetchPromise;
+}
+
+// ============================================================================
+// Hook
+// ============================================================================
+
 export const useSupabaseData = () => {
   const { user, isAuthenticated, isGuestMode } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // Start as loading when authenticated — prevents rendering empty state
+  // on the first frame before the useEffect kicks off the data fetch.
+  const [isLoading, setIsLoading] = useState(isAuthenticated && !isGuestMode);
+
+  // Listen for cross-instance data updates
+  useEffect(() => {
+    const handleDataUpdate = (event: Event) => {
+      const data = (event as CustomEvent<CachedData>).detail;
+      if (data) {
+        setProfile(data.profile);
+        setProgress(data.progress);
+        setPets(data.pets);
+      }
+    };
+
+    window.addEventListener(DATA_UPDATE_EVENT, handleDataUpdate);
+    return () => window.removeEventListener(DATA_UPDATE_EVENT, handleDataUpdate);
+  }, []);
 
   // Save data to localStorage (for guest mode)
   const saveToLocalStorage = useCallback((key: string, data: unknown) => {
@@ -155,61 +280,26 @@ export const useSupabaseData = () => {
     }
   }, [user, loadFromLocalStorage, saveToLocalStorage]);
 
-  // Load user data from Supabase (for authenticated users)
-  // Uses parallel queries to avoid N+1 performance issues
+  // Load user data from Supabase using the shared/deduplicated fetch
   const loadSupabaseData = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
-    try {
-      // Execute all queries in parallel for better performance
-      const [profileResult, progressResult, petsResult] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single(),
-        supabase
-          .from('user_progress')
-          .select('*')
-          .eq('user_id', user.id)
-          .single(),
-        supabase
-          .from('pets')
-          .select('*')
-          .eq('user_id', user.id)
-      ]);
+    const fetchUserId = user.id;
+    const result = await _fetchSharedData(fetchUserId);
 
-      // Check for errors (PGRST116 means no rows found, which is acceptable)
-      if (profileResult.error && profileResult.error.code !== 'PGRST116') {
-        throw profileResult.error;
-      }
-      if (progressResult.error && progressResult.error.code !== 'PGRST116') {
-        throw progressResult.error;
-      }
-      if (petsResult.error) {
-        throw petsResult.error;
-      }
+    // Guard: if user changed while we were fetching, discard stale results
+    if (_cachedUserId !== fetchUserId) {
+      return;
+    }
 
-      // Use data from Supabase, or create defaults if not found
-      setProfile(profileResult.data || createDefaultProfile(user.id));
-      // Handle coins being null from database
-      const progressData = progressResult.data;
-      if (progressData) {
-        setProgress({
-          ...progressData,
-          coins: progressData.coins ?? 0,
-          total_coins_earned: progressData.total_coins_earned ?? 0,
-          total_coins_spent: progressData.total_coins_spent ?? 0,
-        });
-      } else {
-        setProgress(createDefaultProgress(user.id));
-      }
-      setPets(petsResult.data && petsResult.data.length > 0 ? petsResult.data : [createDefaultPet(user.id)]);
+    if (result) {
+      setProfile(result.profile);
+      setProgress(result.progress);
+      setPets(result.pets);
       setIsLoading(false);
-    } catch (error: unknown) {
-      supabaseLogger.error('Error loading user data from Supabase:', error);
-      // Fall back to localStorage on error - loadGuestData manages its own loading state
+    } else {
+      // Shared fetch failed — fall back to localStorage
       loadGuestData();
     }
   }, [user, loadGuestData]);
@@ -233,6 +323,7 @@ export const useSupabaseData = () => {
       setProfile(null);
       setProgress(null);
       setPets([]);
+      _invalidateCache();
     }
   }, [isAuthenticated, user, loadUserData]);
 
@@ -242,7 +333,6 @@ export const useSupabaseData = () => {
     const updatedProfile = { ...profile, ...updates, updated_at: new Date().toISOString() };
 
     if (isGuestMode) {
-      // Save to localStorage for guest users
       setProfile(updatedProfile);
       saveToLocalStorage(STORAGE_KEYS.profile, updatedProfile);
       toast.success('Profile updated');
@@ -260,12 +350,18 @@ export const useSupabaseData = () => {
       if (error) throw error;
 
       setProfile(data);
+      // Update shared cache so other instances pick it up
+      if (_cachedData) {
+        _broadcastDataUpdate({ ..._cachedData, profile: data });
+      }
       toast.success('Profile updated');
     } catch (error: unknown) {
       supabaseLogger.error('Error updating profile:', error);
-      // Fall back to local update on error
       setProfile(updatedProfile);
       saveToLocalStorage(STORAGE_KEYS.profile, updatedProfile);
+      if (_cachedData) {
+        _broadcastDataUpdate({ ..._cachedData, profile: updatedProfile });
+      }
       toast.success('Profile updated locally');
     }
   };
@@ -276,7 +372,6 @@ export const useSupabaseData = () => {
     const updatedProgress = { ...progress, ...updates, updated_at: new Date().toISOString() };
 
     if (isGuestMode) {
-      // Save to localStorage for guest users
       setProgress(updatedProgress);
       saveToLocalStorage(STORAGE_KEYS.progress, updatedProgress);
       return;
@@ -292,18 +387,23 @@ export const useSupabaseData = () => {
 
       if (error) throw error;
 
-      // Handle coins being null from database
-      setProgress({
+      const normalizedData = {
         ...data,
         coins: data.coins ?? 0,
         total_coins_earned: data.total_coins_earned ?? 0,
         total_coins_spent: data.total_coins_spent ?? 0,
-      });
+      };
+      setProgress(normalizedData);
+      if (_cachedData) {
+        _broadcastDataUpdate({ ..._cachedData, progress: normalizedData });
+      }
     } catch (error: unknown) {
       supabaseLogger.error('Error updating progress:', error);
-      // Fall back to local update on error
       setProgress(updatedProgress);
       saveToLocalStorage(STORAGE_KEYS.progress, updatedProgress);
+      if (_cachedData) {
+        _broadcastDataUpdate({ ..._cachedData, progress: updatedProgress });
+      }
     }
   };
 
@@ -320,12 +420,10 @@ export const useSupabaseData = () => {
     };
 
     if (isGuestMode) {
-      // Save to localStorage for guest users
       const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions, 'focusSessions') || [];
       savedSessions.push(newSession);
       saveToLocalStorage(STORAGE_KEYS.focusSessions, savedSessions);
 
-      // Update progress
       if (progress) {
         await updateProgress({
           total_xp: progress.total_xp + xpEarned,
@@ -348,7 +446,6 @@ export const useSupabaseData = () => {
 
       if (error) throw error;
 
-      // Update progress
       if (progress) {
         await updateProgress({
           total_xp: progress.total_xp + xpEarned,
@@ -358,7 +455,6 @@ export const useSupabaseData = () => {
       }
     } catch (error: unknown) {
       supabaseLogger.error('Error adding focus session:', error);
-      // Fall back to local storage on error
       const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions, 'focusSessions') || [];
       savedSessions.push(newSession);
       saveToLocalStorage(STORAGE_KEYS.focusSessions, savedSessions);
@@ -393,7 +489,6 @@ export const useSupabaseData = () => {
     };
 
     if (isGuestMode) {
-      // Save to localStorage for guest users
       const updatedPets = [...pets, newPet];
       setPets(updatedPets);
       saveToLocalStorage(STORAGE_KEYS.pets, updatedPets);
@@ -414,11 +509,14 @@ export const useSupabaseData = () => {
 
       if (error) throw error;
 
-      setPets(prev => [...prev, data]);
+      const updatedPets = [...pets, data];
+      setPets(updatedPets);
+      if (_cachedData) {
+        _broadcastDataUpdate({ ..._cachedData, pets: updatedPets });
+      }
       toast.success(`${name} joined your island!`);
     } catch (error: unknown) {
       supabaseLogger.error('Error adding pet:', error);
-      // Fall back to local storage on error
       const updatedPets = [...pets, newPet];
       setPets(updatedPets);
       saveToLocalStorage(STORAGE_KEYS.pets, updatedPets);
@@ -430,7 +528,6 @@ export const useSupabaseData = () => {
     if (!user) return;
 
     if (isGuestMode) {
-      // Update in localStorage for guest users
       const updatedPets = pets.map(pet =>
         pet.id === petId ? { ...pet, ...updates } : pet
       );
@@ -450,10 +547,13 @@ export const useSupabaseData = () => {
 
       if (error) throw error;
 
-      setPets(prev => prev.map(pet => pet.id === petId ? data : pet));
+      const updatedPets = pets.map(pet => pet.id === petId ? data : pet);
+      setPets(updatedPets);
+      if (_cachedData) {
+        _broadcastDataUpdate({ ..._cachedData, pets: updatedPets });
+      }
     } catch (error: unknown) {
       supabaseLogger.error('Error updating pet:', error);
-      // Fall back to local storage on error
       const updatedPets = pets.map(pet =>
         pet.id === petId ? { ...pet, ...updates } : pet
       );

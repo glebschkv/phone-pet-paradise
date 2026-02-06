@@ -89,3 +89,4 @@ export const appReviewLogger = createLogger({ prefix: 'AppReview' });
 export const settingsLogger = createLogger({ prefix: 'Settings' });
 export const collectionLogger = createLogger({ prefix: 'Collection' });
 export const nativePluginLogger = createLogger({ prefix: 'NativePlugin' });
+export const analyticsLogger = createLogger({ prefix: 'Analytics' });

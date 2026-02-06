@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotifications, _resetNotificationsForTesting } from '@/hooks/useNotifications';
 
 // Mock Capacitor modules
 vi.mock('@capacitor/push-notifications', () => ({
@@ -54,10 +54,11 @@ describe('useNotifications', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+    _resetNotificationsForTesting();
+
     // Default to web platform
     (Capacitor.isNativePlatform as Mock).mockReturnValue(false);
-    
+
     // Setup default listener mocks
     (PushNotifications.addListener as Mock).mockResolvedValue({ remove: mockRemove });
     (LocalNotifications.addListener as Mock).mockResolvedValue({ remove: mockRemove });

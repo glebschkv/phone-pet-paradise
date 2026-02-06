@@ -5,6 +5,9 @@
 	<!-- Required for Screen Time API / Family Controls -->
 	<key>com.apple.developer.family-controls</key>
 	<true/>
+	<!-- Required for DeviceActivity framework (scheduling activity monitors) -->
+	<key>com.apple.developer.device-activity</key>
+	<true/>
 	<!-- Required for App Groups - data sharing between app and extensions -->
 	<key>com.apple.security.application-groups</key>
 	<array>
@@ -20,5 +23,8 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<!-- Required for Push Notifications -->
+	<key>aps-environment</key>
+	<string>production</string>
 </dict>
 </plist>

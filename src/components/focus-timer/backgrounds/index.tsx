@@ -208,7 +208,7 @@ SunsetBackground.displayName = 'SunsetBackground';
 export const NightBackground = memo(() => {
   // Generate stars with varied properties
   const stars = useMemo(() =>
-    Array.from({ length: 40 }, (_, i) => ({
+    Array.from({ length: 40 }, (_) => ({
       top: `${Math.random() * 45}%`,
       left: `${Math.random() * 100}%`,
       size: 1 + Math.random() * 2,
@@ -327,7 +327,7 @@ NightBackground.displayName = 'NightBackground';
 export const ForestBackground = memo(() => {
   // Generate fireflies
   const fireflies = useMemo(() =>
-    Array.from({ length: 12 }, (_, i) => ({
+    Array.from({ length: 12 }, (_) => ({
       top: `${40 + Math.random() * 35}%`,
       left: `${Math.random() * 100}%`,
       delay: Math.random() * 5,
@@ -446,7 +446,7 @@ ForestBackground.displayName = 'ForestBackground';
 export const SnowBackground = memo(() => {
   // Generate snowflakes with varied properties
   const snowflakes = useMemo(() =>
-    Array.from({ length: 35 }, (_, i) => ({
+    Array.from({ length: 35 }, (_) => ({
       left: `${Math.random() * 100}%`,
       size: 2 + Math.random() * 4,
       delay: Math.random() * 8,

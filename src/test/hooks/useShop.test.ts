@@ -10,6 +10,7 @@ const mockCoinSystem = {
   canAfford: vi.fn(),
   spendCoins: vi.fn(),
   addCoins: vi.fn(),
+  syncFromServer: vi.fn().mockResolvedValue(undefined),
 };
 
 const mockBoosterSystem = {
@@ -52,12 +53,63 @@ vi.mock('@/hooks/useAchievementTracking', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  shopLogger: {
-    error: vi.fn(),
-    info: vi.fn(),
+vi.mock('@/lib/logger', () => {
+  const createMockLogger = () => ({
     debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  });
+  return {
+    logger: createMockLogger(),
+    shopLogger: createMockLogger(),
+    coinLogger: createMockLogger(),
+    storageLogger: createMockLogger(),
+    storeKitLogger: createMockLogger(),
+    supabaseLogger: createMockLogger(),
+    xpLogger: createMockLogger(),
+    streakLogger: createMockLogger(),
+    questLogger: createMockLogger(),
+    settingsLogger: createMockLogger(),
+    deviceActivityLogger: createMockLogger(),
+    soundLogger: createMockLogger(),
+    collectionLogger: createMockLogger(),
+    authLogger: createMockLogger(),
+    notificationLogger: createMockLogger(),
+    syncLogger: createMockLogger(),
+    focusModeLogger: createMockLogger(),
+    widgetLogger: createMockLogger(),
+    backupLogger: createMockLogger(),
+    threeLogger: createMockLogger(),
+    timerLogger: createMockLogger(),
+    achievementLogger: createMockLogger(),
+    bondLogger: createMockLogger(),
+    performanceLogger: createMockLogger(),
+    appReviewLogger: createMockLogger(),
+    nativePluginLogger: createMockLogger(),
+    createLogger: (name: string) => createMockLogger(),
+  };
+});
+
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    auth: { getSession: vi.fn().mockResolvedValue({ data: { session: null } }) },
+    from: vi.fn(() => ({ select: vi.fn(), insert: vi.fn(), update: vi.fn() })),
   },
+  isSupabaseConfigured: false,
+}));
+
+vi.mock('@/hooks/useStoreKit', () => ({
+  IAP_EVENTS: {
+    COINS_GRANTED: 'iap:coinsGranted',
+    BUNDLE_GRANTED: 'iap:bundleGranted',
+  },
+  dispatchCoinsGranted: vi.fn(),
+}));
+
+vi.mock('@/lib/errorReporting', () => ({
+  reportError: vi.fn(),
+  initErrorReporting: vi.fn(),
 }));
 
 // Mock animal database
@@ -375,7 +427,7 @@ describe('useShop', () => {
 
       expect(purchaseResult).toEqual({
         success: false,
-        message: 'Failed to process payment',
+        message: 'Purchase failed. Please check your connection and try again.',
       });
     });
 

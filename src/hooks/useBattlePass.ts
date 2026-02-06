@@ -275,7 +275,7 @@ export const useBattlePass = () => {
       if (state.currentXP < cumulativeXP) {
         xpToNextTier = cumulativeXP - state.currentXP;
         const tierProgress = state.currentXP - previousCumulative;
-        progressPercent = (tierProgress / tier.xpRequired) * 100;
+        progressPercent = tier.xpRequired > 0 ? (tierProgress / tier.xpRequired) * 100 : 0;
         break;
       }
     }

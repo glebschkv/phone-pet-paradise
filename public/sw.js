@@ -34,20 +34,13 @@ const SKIP_CACHE_PATTERNS = [
  * Install event - cache static assets
  */
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
-
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('[SW] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
-        console.log('[SW] Service worker installed');
         return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('[SW] Failed to cache static assets:', error);
       })
   );
 });
@@ -56,8 +49,6 @@ self.addEventListener('install', (event) => {
  * Activate event - clean up old caches
  */
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
-
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
@@ -70,13 +61,11 @@ self.addEventListener('activate', (event) => {
                      name !== API_CACHE;
             })
             .map((name) => {
-              console.log('[SW] Deleting old cache:', name);
               return caches.delete(name);
             })
         );
       })
       .then(() => {
-        console.log('[SW] Service worker activated');
         return self.clients.claim();
       })
   );
@@ -107,19 +96,14 @@ async function cacheFirst(request, cacheName) {
     return cachedResponse;
   }
 
-  try {
-    const networkResponse = await fetch(request);
+  const networkResponse = await fetch(request);
 
-    if (networkResponse.ok) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
-    }
-
-    return networkResponse;
-  } catch (error) {
-    console.error('[SW] Cache-first fetch failed:', error);
-    throw error;
+  if (networkResponse.ok) {
+    const cache = await caches.open(cacheName);
+    cache.put(request, networkResponse.clone());
   }
+
+  return networkResponse;
 }
 
 /**
@@ -135,15 +119,13 @@ async function networkFirst(request, cacheName) {
     }
 
     return networkResponse;
-  } catch (error) {
-    console.log('[SW] Network failed, trying cache:', request.url);
-
+  } catch (_error) {
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       return cachedResponse;
     }
 
-    throw error;
+    throw _error;
   }
 }
 
@@ -161,8 +143,8 @@ async function staleWhileRevalidate(request, cacheName) {
       }
       return networkResponse;
     })
-    .catch((error) => {
-      console.log('[SW] Revalidation failed:', error);
+    .catch(() => {
+      // Revalidation failed silently - cached response is still valid
     });
 
   return cachedResponse || fetchPromise;
@@ -230,8 +212,6 @@ self.addEventListener('message', (event) => {
  * Sync event - handle background sync when back online
  */
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync event:', event.tag);
-
   if (event.tag === 'sync-pending-data') {
     event.waitUntil(
       // The main app handles the actual sync via useOfflineSyncManager
@@ -244,5 +224,3 @@ self.addEventListener('sync', (event) => {
     );
   }
 });
-
-console.log('[SW] Service worker loaded');

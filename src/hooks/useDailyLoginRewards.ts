@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/lib/logger';
 
 export interface DailyReward {
@@ -32,10 +33,24 @@ const DAILY_REWARDS: DailyReward[] = [
   { day: 7, type: 'mystery_bonus', xp: 350, coins: 300, luckyWheelSpin: 1, label: 'Weekly Jackpot!', description: 'Massive rewards + free spin!', icon: '🎰' },
 ];
 
-const STORAGE_KEY = 'pet_paradise_daily_login';
+const STORAGE_KEY_PREFIX = 'pet_paradise_daily_login';
+const LEGACY_STORAGE_KEY = 'pet_paradise_daily_login';
 const LOGIN_REWARD_EVENT = 'petIsland_dailyLoginReward';
 
+/**
+ * Build a per-user storage key so that signing out and back in with a
+ * different account doesn't re-award the first user's daily reward.
+ * Falls back to a shared key for guest mode.
+ */
+function getStorageKey(userId: string | undefined): string {
+  if (userId) return `${STORAGE_KEY_PREFIX}_${userId}`;
+  return LEGACY_STORAGE_KEY;
+}
+
 export const useDailyLoginRewards = () => {
+  const { user, isGuestMode } = useAuth();
+  const userId = user?.id;
+
   const [loginState, setLoginState] = useState<DailyLoginState>({
     currentStreak: 0,
     lastClaimDate: '',
@@ -46,13 +61,27 @@ export const useDailyLoginRewards = () => {
   const [pendingReward, setPendingReward] = useState<DailyReward | null>(null);
   const [showRewardModal, setShowRewardModal] = useState(false);
 
-  // Load saved state
-  useEffect(() => {
-    loadLoginState();
-  }, []);
+  // Track the userId we loaded for so we reload when it changes
+  const loadedForRef = useRef<string | undefined>(undefined);
 
-  const loadLoginState = () => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+  const storageKey = getStorageKey(userId);
+
+  const loadLoginState = useCallback(() => {
+    // Try user-specific key first, fall back to legacy shared key for migration
+    let saved = localStorage.getItem(storageKey);
+    if (!saved && storageKey !== LEGACY_STORAGE_KEY) {
+      saved = localStorage.getItem(LEGACY_STORAGE_KEY);
+      // Migrate: if we found data under the legacy key, move it to the user key
+      if (saved) {
+        try {
+          localStorage.setItem(storageKey, saved);
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
+        } catch {
+          // Storage full — continue with what we have
+        }
+      }
+    }
+
     if (saved) {
       try {
         const data = JSON.parse(saved) as DailyLoginState;
@@ -64,6 +93,8 @@ export const useDailyLoginRewards = () => {
         // Check if already claimed today
         if (data.lastClaimDate === today) {
           setLoginState({ ...data, hasClaimedToday: true });
+          setPendingReward(null);
+          setShowRewardModal(false);
           return;
         }
 
@@ -102,12 +133,30 @@ export const useDailyLoginRewards = () => {
       setPendingReward(DAILY_REWARDS[0]);
       setShowRewardModal(true);
     }
-  };
+  }, [storageKey]);
 
-  const saveLoginState = (data: DailyLoginState) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  // Reload when user changes (sign-in / sign-out) or on initial mount
+  useEffect(() => {
+    // Skip if auth is still loading (userId will be undefined for guest too,
+    // but isGuestMode tells us the choice was made)
+    if (!userId && !isGuestMode) return;
+
+    // Only reload if the userId actually changed
+    if (loadedForRef.current === userId) return;
+    loadedForRef.current = userId;
+
+    loadLoginState();
+  }, [userId, isGuestMode, loadLoginState]);
+
+  const saveLoginState = useCallback((data: DailyLoginState) => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(data));
+    } catch {
+      // Storage full — state still updated in-memory so UI stays correct
+      logger.warn('Failed to persist daily login state (storage full)');
+    }
     setLoginState(data);
-  };
+  }, [storageKey]);
 
   const claimReward = useCallback((): DailyReward | null => {
     if (loginState.hasClaimedToday || !pendingReward) {
@@ -136,7 +185,7 @@ export const useDailyLoginRewards = () => {
     setShowRewardModal(false);
 
     return claimedReward;
-  }, [loginState, pendingReward]);
+  }, [loginState, pendingReward, saveLoginState]);
 
   const dismissModal = useCallback(() => {
     setShowRewardModal(false);
