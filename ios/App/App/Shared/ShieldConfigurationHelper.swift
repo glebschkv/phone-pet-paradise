@@ -39,21 +39,26 @@ class ShieldConfigurationHelper {
     // MARK: - Messages
 
     static let shieldMessages = [
-        "You don't need this app. You need a nap.",
-        "This app isn't going anywhere. Neither is your focus session.",
-        "Somewhere, your pet just leveled up because you didn't open this.",
-        "You opened this 3 minutes ago. And 6 minutes before that.",
-        "Remember when you said 'just 5 minutes'? We remember.",
-        "Your screen time report is already crying.",
-        "This is a sign. Go do that thing you've been putting off.",
-        "Every time you try to open this, a pixel pet gets stronger.",
-        "You're not bored. You're just uncomfortable with your own thoughts.",
-        "Congratulations, you played yourself.",
-        "The urge will pass in about 9 seconds. We timed it.",
-        "This app was talking behind your back anyway.",
-        "Your attention span called. It wants custody.",
-        "Be the main character. Main characters don't doomscroll.",
-        "You will not remember this scroll. You will remember finishing your work.",
+        "POV: you thought you were stronger than your screen time.",
+        "Blocked. Ratio'd. Denied. Go outside.",
+        "This app misses you. That's manipulative. Stay here.",
+        "Plot twist: the app you actually need is already open.",
+        "Your future self just mass-reported this attempt.",
+        "Average 'just checking real quick' enjoyer.",
+        "No thoughts, just blocked.",
+        "You vs. your focus timer. Score: 0-1.",
+        "siri, how do i stop being chronically online",
+        "This is your villain origin story. Choose wisely.",
+        "Your pet watched you tap that. It's disappointed.",
+        "Caught in 4K. Go do something with your life.",
+        "The group chat can wait. It's just someone typing '💀' anyway.",
+        "Alexa, play 'Locked Out Of Heaven'.",
+        "You've been gnomed. Go be productive.",
+        "Touch grass. Digital grass doesn't count.",
+        "This screen time intervention is brought to you by: your own decisions.",
+        "You literally set this up yourself and you're still trying.",
+        "Your phone needed a break from you anyway.",
+        "Somewhere, a pixel pet believes in you more than you believe in yourself.",
     ]
 
     func getMotivationalMessage() -> String {
@@ -79,10 +84,11 @@ class ShieldConfigurationHelper {
 
     // MARK: - Neon NOMO Icon
 
-    /// Creates a glowing "NOMO" text icon matching the app's splash screen neon aesthetic.
+    /// Creates a large glowing "NOMO" text icon matching the app's splash screen neon aesthetic.
     /// Uses Core Graphics shadow passes to build up a realistic neon glow effect.
+    /// Rendered at 240x120pt @3x (720x360px) for maximum visual impact.
     func createNoMoIcon() -> UIImage? {
-        let size = CGSize(width: 140, height: 70)
+        let size = CGSize(width: 240, height: 120)
         let renderer = UIGraphicsImageRenderer(size: size, format: {
             let format = UIGraphicsImageRendererFormat()
             format.scale = 3.0
@@ -92,9 +98,9 @@ class ShieldConfigurationHelper {
         return renderer.image { ctx in
             let context = ctx.cgContext
 
-            // Text setup — match splash screen: SF Pro Rounded, Heavy
+            // Text setup — match splash screen: SF Pro Rounded, Heavy, wide kerning
             let text = "NOMO"
-            let fontSize: CGFloat = 32
+            let fontSize: CGFloat = 52
             let font: UIFont
             if let desc = UIFont.systemFont(ofSize: fontSize, weight: .heavy)
                         .fontDescriptor.withDesign(.rounded) {
@@ -109,7 +115,7 @@ class ShieldConfigurationHelper {
             let attributes: [NSAttributedString.Key: Any] = [
                 .font: font,
                 .foregroundColor: NeonColors.textColor,
-                .kern: 8.0,
+                .kern: 14.0,
                 .paragraphStyle: paragraphStyle,
             ]
 
@@ -122,22 +128,34 @@ class ShieldConfigurationHelper {
                 height: textSize.height
             )
 
-            // Build neon glow with multiple shadow passes (outer → inner)
-            // Pass 1: Wide outer glow
+            // Build neon glow with 5 shadow passes for a rich, layered effect
+            // Pass 1: Wide ambient glow
             context.saveGState()
-            context.setShadow(offset: .zero, blur: 24, color: NeonColors.purple.withAlphaComponent(0.35).cgColor)
+            context.setShadow(offset: .zero, blur: 36, color: NeonColors.purple.withAlphaComponent(0.25).cgColor)
             attrString.draw(in: textRect)
             context.restoreGState()
 
-            // Pass 2: Medium glow
+            // Pass 2: Outer glow
             context.saveGState()
-            context.setShadow(offset: .zero, blur: 14, color: NeonColors.purple.withAlphaComponent(0.55).cgColor)
+            context.setShadow(offset: .zero, blur: 22, color: NeonColors.purple.withAlphaComponent(0.4).cgColor)
             attrString.draw(in: textRect)
             context.restoreGState()
 
-            // Pass 3: Tight inner glow
+            // Pass 3: Mid glow
             context.saveGState()
-            context.setShadow(offset: .zero, blur: 6, color: NeonColors.purpleLight.withAlphaComponent(0.7).cgColor)
+            context.setShadow(offset: .zero, blur: 14, color: NeonColors.purple.withAlphaComponent(0.6).cgColor)
+            attrString.draw(in: textRect)
+            context.restoreGState()
+
+            // Pass 4: Inner glow (lighter purple for hot center)
+            context.saveGState()
+            context.setShadow(offset: .zero, blur: 6, color: NeonColors.purpleLight.withAlphaComponent(0.8).cgColor)
+            attrString.draw(in: textRect)
+            context.restoreGState()
+
+            // Pass 5: Bright core halo
+            context.saveGState()
+            context.setShadow(offset: .zero, blur: 2, color: UIColor.white.withAlphaComponent(0.3).cgColor)
             attrString.draw(in: textRect)
             context.restoreGState()
 
