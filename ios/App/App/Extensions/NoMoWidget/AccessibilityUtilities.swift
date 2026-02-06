@@ -395,7 +395,7 @@ enum AccessibilityFormatters {
         if isRunning {
             let minutes = timeRemaining / 60
             let seconds = timeRemaining % 60
-            let time = timeRemaining(minutes: minutes, seconds: seconds)
+            let time = Self.timeRemaining(minutes: minutes, seconds: seconds)
             let type = sessionType ?? WidgetAccessibilityStrings.sessionTypeFocus
             return String(format: WidgetAccessibilityStrings.timerRunning, type, time)
         }
