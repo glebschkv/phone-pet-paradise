@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2, Circle, AlertTriangle } from 'lucide-react';
 import { getAppBaseUrl, isValidEmail, validatePassword, sanitizeErrorMessage } from '@/lib/apiUtils';
 import { PageErrorBoundary } from '@/components/PageErrorBoundary';
 import { checkRateLimit, recordRateLimitAttempt, clearRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/security';
@@ -39,6 +39,10 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailSentTo, setEmailSentTo] = useState('');
+  const formRef = useRef<HTMLDivElement>(null);
 
   // Check for reset-password mode from URL query params
   useEffect(() => {
@@ -103,10 +107,8 @@ export default function Auth() {
 
       // Clear rate limit on success
       clearRateLimit(rateLimitKey);
-      toast.success('Check your email!', {
-        description: 'We sent you a magic link to sign in.',
-      });
-      setMode('welcome');
+      setEmailSentTo(email);
+      setEmailSent(true);
     } catch (error: unknown) {
       const message = sanitizeErrorMessage(error);
       if (message) toast.error(message);
@@ -214,20 +216,18 @@ export default function Auth() {
 
       // Check if user already exists (Supabase returns user but with empty identities)
       if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
-        toast.info('Account may already exist', {
-          description: 'Try signing in or use "Forgot Password" to recover your account.',
+        toast.error('An account with this email already exists', {
+          description: 'Try signing in instead, or use "Forgot Password" to reset.',
         });
         setMode('email-password');
         setIsLoading(false);
         return;
       }
 
-      // Clear rate limit on success
+      // Clear rate limit on success — show inline confirmation
       clearRateLimit(rateLimitKey);
-      toast.success('Check your email!', {
-        description: 'Click the confirmation link we sent to verify your account.',
-      });
-      setMode('welcome');
+      setEmailSentTo(email);
+      setEmailSent(true);
     } catch (error: unknown) {
       const message = sanitizeErrorMessage(error);
       if (message) toast.error(message);
@@ -391,8 +391,14 @@ export default function Auth() {
         if (error) throw error;
       }
     } catch (error: unknown) {
-      const message = sanitizeErrorMessage(error);
-      if (message) toast.error(message);
+      // Don't show error for user-initiated cancellations
+      const errString = String(error);
+      const isCancellation = errString.includes('cancel') || errString.includes('Cancel')
+        || errString.includes('ASAuthorizationError') || errString.includes('1001');
+      if (!isCancellation) {
+        const message = sanitizeErrorMessage(error);
+        if (message) toast.error(message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -402,12 +408,12 @@ export default function Auth() {
   if (authLoading) {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex items-center justify-center" style={{
+        <div className="min-h-screen flex items-center justify-center pt-safe pb-safe" style={{
           background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
         }}>
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading...</p>
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary/20 border-t-primary mx-auto mb-4"></div>
+            <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
           </div>
         </div>
       </PageErrorBoundary>
@@ -418,13 +424,16 @@ export default function Auth() {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setShowPassword(false);
+    setEmailSent(false);
+    setEmailSentTo('');
   };
 
   // Welcome screen with options
   if (mode === 'welcome') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
           background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
         }}>
           <div className="w-full max-w-sm space-y-8">
@@ -512,9 +521,12 @@ export default function Auth() {
             </button>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Guest progress is saved locally and won't sync across devices
-          </p>
+          <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-amber-50 border border-amber-200">
+            <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <p className="text-xs text-amber-700">
+              Guest progress is saved on this device only and won't sync across devices
+            </p>
+          </div>
         </div>
         </div>
       </PageErrorBoundary>
@@ -525,66 +537,104 @@ export default function Auth() {
   if (mode === 'magic-link') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
           background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
         }}>
-          <div className="w-full max-w-sm space-y-6">
+          <div className="w-full max-w-sm space-y-6" ref={formRef}>
           <button
-            onClick={() => setMode('welcome')}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => { resetForm(); setMode('welcome'); }}
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
 
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Mail className="w-7 h-7 text-primary" />
+          {emailSent ? (
+            /* Inline email confirmation */
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center">
+                <Mail className="w-8 h-8 text-green-600" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold">Check your email</h2>
+                <p className="text-sm text-muted-foreground">
+                  We sent a magic link to
+                </p>
+                <p className="text-sm font-semibold text-foreground">{emailSentTo}</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Click the link in the email to sign in. It may take a minute to arrive.
+              </p>
+              <div className="pt-2 space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full h-12 rounded-xl"
+                  onClick={() => { setEmailSent(false); }}
+                >
+                  Didn't receive it? Try again
+                </Button>
+                <button
+                  onClick={() => { resetForm(); setMode('welcome'); }}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Back to sign in options
+                </button>
+              </div>
             </div>
-            <h2 className="text-xl font-bold">Magic Link</h2>
-            <p className="text-sm text-muted-foreground">
-              We'll email you a link to sign in instantly
-            </p>
-          </div>
+          ) : (
+            <>
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Mail className="w-7 h-7 text-primary" />
+                </div>
+                <h2 className="text-xl font-bold">Magic Link</h2>
+                <p className="text-sm text-muted-foreground">
+                  We'll email you a link to sign in instantly
+                </p>
+              </div>
 
-          <form onSubmit={handleMagicLink} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 rounded-xl"
-                disabled={isLoading}
-              />
-            </div>
+              <form onSubmit={handleMagicLink} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 rounded-xl"
+                    disabled={isLoading}
+                  />
+                </div>
 
-            <Button
-              type="submit"
-              className="w-full h-12 rounded-xl font-semibold"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                'Send Magic Link'
-              )}
-            </Button>
-          </form>
+                <Button
+                  type="submit"
+                  className="w-full h-12 rounded-xl font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Magic Link'
+                  )}
+                </Button>
+              </form>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Don't have an account?{' '}
-            <button
-              onClick={() => setMode('signup')}
-              className="text-primary hover:underline font-medium"
-            >
-              Sign up
-            </button>
-          </p>
+              <p className="text-center text-xs text-muted-foreground">
+                Don't have an account?{' '}
+                <button
+                  onClick={() => { resetForm(); setMode('signup'); }}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Sign up
+                </button>
+              </p>
+            </>
+          )}
         </div>
         </div>
       </PageErrorBoundary>
@@ -595,13 +645,13 @@ export default function Auth() {
   if (mode === 'email-password') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
           background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
         }}>
           <div className="w-full max-w-sm space-y-6">
           <button
-            onClick={() => setMode('welcome')}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => { resetForm(); setMode('welcome'); }}
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
@@ -622,6 +672,8 @@ export default function Auth() {
               <Input
                 id="email"
                 type="email"
+                inputMode="email"
+                autoComplete="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -636,20 +688,31 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => { setMode('forgot-password'); }}
-                  className="text-xs text-primary hover:underline"
+                  className="text-xs text-primary hover:underline min-h-[44px] flex items-center"
                 >
                   Forgot password?
                 </button>
               </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-xl"
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-12 rounded-xl pr-12"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             <Button
@@ -685,83 +748,163 @@ export default function Auth() {
 
   // Sign Up form
   if (mode === 'signup') {
+    const pwChecks = password.length > 0 ? {
+      length: password.length >= 8,
+      upper: /[A-Z]/.test(password),
+      lower: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+    } : null;
+
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
           background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
         }}>
-          <div className="w-full max-w-sm space-y-6">
+          <div className="w-full max-w-sm space-y-6" ref={formRef}>
           <button
-            onClick={() => setMode('welcome')}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => { resetForm(); setMode('welcome'); }}
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
 
-          <div className="text-center space-y-2">
-            <img
-              src="/app-icon.png"
-              alt="NoMo"
-              className="w-14 h-14 mx-auto mb-4 rounded-xl shadow-md"
-            />
-            <h2 className="text-xl font-bold">Create Account</h2>
-            <p className="text-sm text-muted-foreground">
-              Join NoMo and sync your progress
-            </p>
-          </div>
-
-          <form onSubmit={handleSignUp} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 rounded-xl"
-                disabled={isLoading}
-              />
+          {emailSent ? (
+            /* Inline email verification confirmation */
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold">Verify your email</h2>
+                <p className="text-sm text-muted-foreground">
+                  We sent a confirmation link to
+                </p>
+                <p className="text-sm font-semibold text-foreground">{emailSentTo}</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Click the link in the email to activate your account. Check your spam folder if you don't see it.
+              </p>
+              <div className="pt-2 space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full h-12 rounded-xl"
+                  onClick={() => { resetForm(); setMode('email-password'); }}
+                >
+                  I've verified — Sign in
+                </Button>
+                <button
+                  onClick={() => { setEmailSent(false); }}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Didn't receive it? Try again
+                </button>
+              </div>
             </div>
+          ) : (
+            <>
+              <div className="text-center space-y-2">
+                <img
+                  src="/app-icon.png"
+                  alt="NoMo"
+                  className="w-14 h-14 mx-auto mb-4 rounded-xl shadow-md"
+                />
+                <h2 className="text-xl font-bold">Create Account</h2>
+                <p className="text-sm text-muted-foreground">
+                  Join NoMo and sync your progress
+                </p>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="At least 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-xl"
-                disabled={isLoading}
-              />
-            </div>
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 rounded-xl"
+                    disabled={isLoading}
+                  />
+                </div>
 
-            <Button
-              type="submit"
-              className="w-full h-12 rounded-xl font-semibold"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                'Create Account'
-              )}
-            </Button>
-          </form>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      placeholder="Create a strong password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="h-12 rounded-xl pr-12"
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {/* Inline password requirements */}
+                  {pwChecks && (
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1">
+                      {[
+                        { met: pwChecks.length, label: '8+ characters' },
+                        { met: pwChecks.upper, label: 'Uppercase letter' },
+                        { met: pwChecks.lower, label: 'Lowercase letter' },
+                        { met: pwChecks.number, label: 'Number' },
+                        { met: pwChecks.special, label: 'Special character' },
+                      ].map(({ met, label }) => (
+                        <div key={label} className="flex items-center gap-1.5">
+                          {met ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                          ) : (
+                            <Circle className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
+                          )}
+                          <span className={`text-[11px] ${met ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            {label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Already have an account?{' '}
-            <button
-              onClick={() => { resetForm(); setMode('email-password'); }}
-              className="text-primary hover:underline font-medium"
-            >
-              Sign in
-            </button>
-          </p>
+                <Button
+                  type="submit"
+                  className="w-full h-12 rounded-xl font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    'Create Account'
+                  )}
+                </Button>
+              </form>
+
+              <p className="text-center text-xs text-muted-foreground">
+                Already have an account?{' '}
+                <button
+                  onClick={() => { resetForm(); setMode('email-password'); }}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Sign in
+                </button>
+              </p>
+            </>
+          )}
         </div>
         </div>
       </PageErrorBoundary>
@@ -772,13 +915,13 @@ export default function Auth() {
   if (mode === 'forgot-password') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
           background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
         }}>
           <div className="w-full max-w-sm space-y-6">
           <button
             onClick={() => setMode('email-password')}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
@@ -799,6 +942,8 @@ export default function Auth() {
               <Input
                 id="email"
                 type="email"
+                inputMode="email"
+                autoComplete="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -842,13 +987,13 @@ export default function Auth() {
   if (mode === 'reset-password') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
           background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
         }}>
           <div className="w-full max-w-sm space-y-6">
           <button
             onClick={() => { resetForm(); setMode('welcome'); navigate('/auth', { replace: true }); }}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
@@ -866,28 +1011,43 @@ export default function Auth() {
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium">New Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="At least 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-xl"
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  placeholder="Create a strong password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-12 rounded-xl pr-12"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
               <Input
                 id="confirmPassword"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="h-12 rounded-xl"
                 disabled={isLoading}
               />
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-xs text-red-500">Passwords don't match</p>
+              )}
             </div>
 
             <Button

@@ -259,6 +259,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
 
   const setChosenStarterPet = useOnboardingStore((s) => s.setChosenStarterPet);
   const setStoredIslandName = useOnboardingStore((s) => s.setIslandName);
+  const skipOnboarding = useOnboardingStore((s) => s.skipOnboarding);
 
   const totalSteps = 5;
 
@@ -400,7 +401,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
         </div>
 
         {/* Bottom: Navigation buttons */}
-        <div className="flex-shrink-0 pb-safe pb-6 pt-4">
+        <div className="flex-shrink-0 pb-safe pb-6 pt-4 space-y-3">
           <div className="flex justify-between items-center gap-4">
             <Button
               variant="ghost"
@@ -425,6 +426,16 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               </span>
             </GoldButton>
           </div>
+
+          {currentStep <= 1 && (
+            <button
+              onClick={() => { skipOnboarding(); onComplete(); }}
+              className="w-full text-center text-xs py-2"
+              style={{ color: 'hsl(220 15% 60%)' }}
+            >
+              Skip for now
+            </button>
+          )}
         </div>
       </div>
     </div>
