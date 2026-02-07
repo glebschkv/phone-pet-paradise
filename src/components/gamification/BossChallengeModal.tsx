@@ -82,7 +82,7 @@ export const BossChallengeModal = ({ isOpen, onClose }: BossChallengeModalProps)
   const onCooldown = currentStatus.cooldownRemaining > 0;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="retro-modal max-w-[340px] p-0 overflow-hidden border-0">
         <VisuallyHidden>
           <DialogTitle>Boss Battles</DialogTitle>

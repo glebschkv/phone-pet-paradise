@@ -81,7 +81,7 @@ export const BattlePassModal = ({ isOpen, onClose, onClaimReward }: BattlePassMo
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-lg h-[85vh] max-h-[85vh] p-0 overflow-hidden retro-modal flex flex-col">
         {/* Retro Header */}
         <div className="retro-modal-header relative overflow-hidden flex-shrink-0">
