@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
+import { useNotifications } from '@/hooks/useNotifications';
 import { BossChallenge, BOSS_CHALLENGES, getBossChallengesByDifficulty } from '@/data/GamificationData';
 
 export interface BossChallengeProgress {
@@ -25,6 +26,8 @@ export interface BossChallengesState {
 const BOSS_CHALLENGE_UPDATE_EVENT = 'petIsland_bossChallengeUpdate';
 
 export const useBossChallenges = () => {
+  const { scheduleBossChallengeReminder, cancelBossChallengeReminder } = useNotifications();
+
   const [state, setState] = useState<BossChallengesState>({
     challengeProgress: {},
     completedChallenges: [],
@@ -105,8 +108,11 @@ export const useBossChallenges = () => {
       },
     });
 
+    // Schedule a reminder notification before the challenge expires
+    scheduleBossChallengeReminder(challenge.name, challenge.cooldownHours);
+
     return true;
-  }, [state, saveState]);
+  }, [state, saveState, scheduleBossChallengeReminder]);
 
   // Record progress from a focus session
   const recordFocusSession = useCallback((minutes: number): {
@@ -172,13 +178,14 @@ export const useBossChallenges = () => {
     saveState(newState);
 
     if (challengeCompleted) {
+      cancelBossChallengeReminder();
       window.dispatchEvent(new CustomEvent(BOSS_CHALLENGE_UPDATE_EVENT, {
         detail: { completed: true, challenge: completedChallenge }
       }));
     }
 
     return { challengeCompleted, completedChallenge };
-  }, [state, saveState]);
+  }, [state, saveState, cancelBossChallengeReminder]);
 
   // Abandon active challenge
   const abandonChallenge = useCallback(() => {
@@ -197,8 +204,9 @@ export const useBossChallenges = () => {
           },
         },
       });
+      cancelBossChallengeReminder();
     }
-  }, [state, saveState]);
+  }, [state, saveState, cancelBossChallengeReminder]);
 
   // Get challenge status
   const getChallengeStatus = useCallback((challengeId: string): {

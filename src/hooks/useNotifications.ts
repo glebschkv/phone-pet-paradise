@@ -257,12 +257,77 @@ export const useNotifications = () => {
     });
   }, [scheduleLocalNotification]);
 
+  // Schedule a notification that fires when a focus timer session ends.
+  // Called at timer START so the notification fires even if the app is killed.
+  const scheduleTimerCompletionNotification = useCallback((durationSeconds: number) => {
+    scheduleLocalNotification({
+      title: '🎉 Focus session complete!',
+      body: 'Great work staying focused! Come back to collect your rewards.',
+      delay: durationSeconds * 1000,
+      id: 1003,
+    });
+  }, [scheduleLocalNotification]);
+
+  // Cancel the timer completion notification (on pause/stop/skip).
+  const cancelTimerCompletionNotification = useCallback(async () => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.cancel({ notifications: [{ id: 1003 }] });
+      }
+      logger.debug('Timer completion notification cancelled');
+    } catch (error) {
+      logger.error('Error cancelling timer notification:', error);
+    }
+  }, []);
+
+  // Schedule a notification for when the daily reward is available (next day at 8 AM).
+  const scheduleDailyRewardNotification = useCallback(() => {
+    const now = new Date();
+    const tomorrow8AM = new Date(now);
+    tomorrow8AM.setDate(tomorrow8AM.getDate() + 1);
+    tomorrow8AM.setHours(8, 0, 0, 0);
+    const delayMs = tomorrow8AM.getTime() - now.getTime();
+
+    if (delayMs > 0) {
+      scheduleLocalNotification({
+        title: '🎁 Daily reward ready!',
+        body: 'Your daily login reward is waiting. Don\'t break your streak!',
+        delay: delayMs,
+        id: 1004,
+      });
+    }
+  }, [scheduleLocalNotification]);
+
+  // Schedule a reminder when a boss challenge is about to expire (fires at 75% of the time limit).
+  const scheduleBossChallengeReminder = useCallback((challengeName: string, cooldownHours: number) => {
+    const reminderDelayMs = cooldownHours * 0.75 * 60 * 60 * 1000;
+
+    if (reminderDelayMs > 0) {
+      scheduleLocalNotification({
+        title: '⚔️ Boss challenge expiring soon!',
+        body: `Your "${challengeName}" challenge is running out of time. Get back to focusing!`,
+        delay: reminderDelayMs,
+        id: 1005,
+      });
+    }
+  }, [scheduleLocalNotification]);
+
+  const cancelBossChallengeReminder = useCallback(async () => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.cancel({ notifications: [{ id: 1005 }] });
+      }
+    } catch (error) {
+      logger.error('Error cancelling boss challenge notification:', error);
+    }
+  }, []);
+
   const scheduleRewardNotification = useCallback((xpGained: number, level?: number) => {
     const isLevelUp = level !== undefined;
-    
+
     scheduleLocalNotification({
       title: isLevelUp ? '🎉 Level Up!' : '✨ XP Earned!',
-      body: isLevelUp 
+      body: isLevelUp
         ? `Congratulations! You reached level ${level}!`
         : `You earned ${xpGained} XP for staying focused!`,
       delay: 1000, // 1 second delay
@@ -272,7 +337,7 @@ export const useNotifications = () => {
 
   const scheduleStreakNotification = useCallback((streak: number) => {
     const streakEmoji = streak >= 7 ? '🔥' : streak >= 3 ? '⭐' : '🌟';
-    
+
     scheduleLocalNotification({
       title: `${streakEmoji} ${streak}-Day Streak!`,
       body: `Amazing! You're on a ${streak}-day focus streak. Keep it going!`,
@@ -320,6 +385,11 @@ export const useNotifications = () => {
     scheduleLocalNotification,
     schedulePetCareReminder,
     scheduleTimerReminder,
+    scheduleTimerCompletionNotification,
+    cancelTimerCompletionNotification,
+    scheduleDailyRewardNotification,
+    scheduleBossChallengeReminder,
+    cancelBossChallengeReminder,
     scheduleRewardNotification,
     scheduleStreakNotification,
     cancelAllNotifications,
