@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from "react";
 import { useAppStateTracking } from "@/hooks/useAppStateTracking";
+import { AppStateProvider } from "@/contexts/AppStateContext";
 import { useRewardHandlers } from "@/hooks/useRewardHandlers";
 import { TopStatusBar } from "@/components/TopStatusBar";
 import { IOSTabBar } from "@/components/IOSTabBar";
@@ -18,9 +19,25 @@ import { AchievementTracker } from "@/components/AchievementTracker";
 import { TabContent, preloadTabComponents } from "@/components/TabContent";
 import { RewardModals } from "@/components/RewardModals";
 
+const TAB_STORAGE_KEY = 'petIsland_currentTab';
+const VALID_TABS = ['home', 'timer', 'collection', 'challenges', 'shop', 'settings'];
+
+function getPersistedTab(): string {
+  try {
+    const saved = localStorage.getItem(TAB_STORAGE_KEY);
+    if (saved && VALID_TABS.includes(saved)) return saved;
+  } catch { /* ignore */ }
+  return 'home';
+}
+
 export const GameUI = () => {
-  const [currentTab, setCurrentTab] = useState("home");
+  const [currentTab, setCurrentTab] = useState(getPersistedTab);
   const [isTaskbarCompact, setIsTaskbarCompact] = useState(false);
+
+  // Persist current tab so it survives iOS WebView reloads
+  useEffect(() => {
+    try { localStorage.setItem(TAB_STORAGE_KEY, currentTab); } catch { /* ignore */ }
+  }, [currentTab]);
 
   // Preload tab components after initial render for faster navigation
   useEffect(() => {
@@ -56,6 +73,8 @@ export const GameUI = () => {
     };
   }, []);
 
+  // Single instance of useAppStateTracking — shared via context with all children
+  const appState = useAppStateTracking();
   const {
     currentLevel,
     showRewardModal,
@@ -64,7 +83,7 @@ export const GameUI = () => {
     getLevelProgress,
     dailyLoginRewards,
     handleClaimDailyReward,
-  } = useAppStateTracking();
+  } = appState;
 
   // Reward handlers (XP, coins, milestones, daily rewards)
   const {
@@ -75,57 +94,59 @@ export const GameUI = () => {
   } = useRewardHandlers(handleClaimDailyReward);
 
   return (
-    <AchievementTracker>
-      <div className="fixed inset-0 pointer-events-none z-40">
-        {/* Unified Top Status Bar */}
-        <TopStatusBar
-          currentTab={currentTab}
-          onSettingsClick={() => setCurrentTab("settings")}
-        />
+    <AppStateProvider value={appState}>
+      <AchievementTracker>
+        <div className="fixed inset-0 pointer-events-none z-40">
+          {/* Unified Top Status Bar */}
+          <TopStatusBar
+            currentTab={currentTab}
+            onSettingsClick={() => setCurrentTab("settings")}
+          />
 
-        {/* Full Screen Content */}
-        {currentTab !== "home" && (
-          <div
-            className={`absolute inset-0 pointer-events-auto overflow-auto pb-24 ${
-              currentTab === "timer" ? "" : "pt-safe"
-            } ${
-              currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" :
-              currentTab === "shop" ? "bg-[hsl(45,50%,92%)]" :
-              currentTab === "collection" ? "collection-page-bg" :
-              currentTab === "timer" ? "" :
-              currentTab === "settings" ? "" :
-              "bg-background"
-            }`}
-            style={currentTab === "settings" ? { background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)' } : undefined}
-          >
-            <TabContent
-              currentTab={currentTab}
-              onXPReward={handleXPReward}
-              onCoinReward={handleCoinReward}
-            />
-          </div>
-        )}
+          {/* Full Screen Content */}
+          {currentTab !== "home" && (
+            <div
+              className={`absolute inset-0 pointer-events-auto overflow-auto pb-24 ${
+                currentTab === "timer" ? "" : "pt-safe"
+              } ${
+                currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" :
+                currentTab === "shop" ? "bg-[hsl(45,50%,92%)]" :
+                currentTab === "collection" ? "collection-page-bg" :
+                currentTab === "timer" ? "" :
+                currentTab === "settings" ? "" :
+                "bg-background"
+              }`}
+              style={currentTab === "settings" ? { background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)' } : undefined}
+            >
+              <TabContent
+                currentTab={currentTab}
+                onXPReward={handleXPReward}
+                onCoinReward={handleCoinReward}
+              />
+            </div>
+          )}
 
-        {/* Modern Floating Dock Navigation */}
-        <IOSTabBar
-          activeTab={currentTab}
-          onTabChange={setCurrentTab}
-          isCompact={isTaskbarCompact}
-          onCompactChange={setIsTaskbarCompact}
-        />
+          {/* Modern Floating Dock Navigation */}
+          <IOSTabBar
+            activeTab={currentTab}
+            onTabChange={setCurrentTab}
+            isCompact={isTaskbarCompact}
+            onCompactChange={setIsTaskbarCompact}
+          />
 
-        {/* Reward Modals */}
-        <RewardModals
-          showRewardModal={showRewardModal}
-          dismissRewardModal={dismissRewardModal}
-          currentReward={currentReward}
-          newLevel={currentLevel}
-          levelProgress={getLevelProgress()}
-          dailyLoginRewards={dailyLoginRewards}
-          onDailyRewardClaim={handleDailyRewardClaim}
-          onMilestoneClaim={handleMilestoneClaim}
-        />
-      </div>
-    </AchievementTracker>
+          {/* Reward Modals */}
+          <RewardModals
+            showRewardModal={showRewardModal}
+            dismissRewardModal={dismissRewardModal}
+            currentReward={currentReward}
+            newLevel={currentLevel}
+            levelProgress={getLevelProgress()}
+            dailyLoginRewards={dailyLoginRewards}
+            onDailyRewardClaim={handleDailyRewardClaim}
+            onMilestoneClaim={handleMilestoneClaim}
+          />
+        </div>
+      </AchievementTracker>
+    </AppStateProvider>
   );
 };

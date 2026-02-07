@@ -148,7 +148,7 @@ extension CAPPluginCall {
     /// Rejects the call with a PluginError
     func reject(with error: PluginError) {
         Log.app.failure("Plugin call rejected", error: error)
-        self.reject(error.errorDescription ?? "Unknown error", error.errorCode, error)
+        self.reject(error.errorDescription ?? "Unknown error", error.errorCode)
     }
 
     /// Resolves with a success status

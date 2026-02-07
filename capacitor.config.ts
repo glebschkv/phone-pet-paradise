@@ -11,12 +11,16 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchAutoHide: false,
+      // Auto-hide Capacitor's built-in splash immediately so the native
+      // AnimatedSplashViewController (shown by SceneDelegate) is visible.
+      // Capacitor's splash is a window-level overlay that sits ABOVE the
+      // animated splash on rootVC.view, blocking it if left visible.
+      launchAutoHide: true,
+      launchShowDuration: 0,
       backgroundColor: '#0a0014',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
-      showSpinner: true,
-      spinnerColor: '#a855f7',
+      showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true,
     },

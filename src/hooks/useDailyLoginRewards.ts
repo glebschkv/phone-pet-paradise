@@ -184,6 +184,10 @@ export const useDailyLoginRewards = () => {
     setPendingReward(null);
     setShowRewardModal(false);
 
+    // Fire event so the notification system can schedule tomorrow's reminder
+    // (avoids needing useNotifications() here, which would duplicate the hook)
+    window.dispatchEvent(new CustomEvent('schedule-daily-reward-notification'));
+
     return claimedReward;
   }, [loginState, pendingReward, saveLoginState]);
 

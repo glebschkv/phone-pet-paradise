@@ -30,12 +30,18 @@ interface NotificationOptions {
 // (e.g. GameUI and TopStatusBar both call useAppStateTracking → useNotifications).
 let globalNotificationsInitialized = false;
 let _notificationInitPromise: Promise<void> | null = null;
+// Cache permissions at module level so every useNotifications() instance can
+// schedule notifications — not just the one that happened to initialize first.
+let _cachedPermissions: NotificationPermissions = { pushEnabled: false, localEnabled: false };
 
 export const useNotifications = () => {
-  const [permissions, setPermissions] = useState<NotificationPermissions>({
-    pushEnabled: false,
-    localEnabled: false,
-  });
+  const [permissions, setPermissionsState] = useState<NotificationPermissions>(_cachedPermissions);
+
+  // Wrap setPermissions to also update the module-level cache
+  const setPermissions = useCallback((p: NotificationPermissions) => {
+    _cachedPermissions = p;
+    setPermissionsState(p);
+  }, []);
   const [isInitialized, setIsInitialized] = useState(globalNotificationsInitialized);
   // Store listener cleanup functions
   const listenerCleanupRef = useRef<Array<() => Promise<void>>>([]);
@@ -111,6 +117,9 @@ export const useNotifications = () => {
     // cleanup (removing all listeners) and re-run (returning early = listeners
     // never re-added). Use the module-level flag instead.
     if (globalNotificationsInitialized) {
+      // Sync cached permissions into this instance's state so
+      // scheduleLocalNotification's guard doesn't block.
+      setPermissionsState(_cachedPermissions);
       setIsInitialized(true);
       return;
     }
@@ -257,12 +266,77 @@ export const useNotifications = () => {
     });
   }, [scheduleLocalNotification]);
 
+  // Schedule a notification that fires when a focus timer session ends.
+  // Called at timer START so the notification fires even if the app is killed.
+  const scheduleTimerCompletionNotification = useCallback((durationSeconds: number) => {
+    scheduleLocalNotification({
+      title: '🎉 Focus session complete!',
+      body: 'Great work staying focused! Come back to collect your rewards.',
+      delay: durationSeconds * 1000,
+      id: 1003,
+    });
+  }, [scheduleLocalNotification]);
+
+  // Cancel the timer completion notification (on pause/stop/skip).
+  const cancelTimerCompletionNotification = useCallback(async () => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.cancel({ notifications: [{ id: 1003 }] });
+      }
+      logger.debug('Timer completion notification cancelled');
+    } catch (error) {
+      logger.error('Error cancelling timer notification:', error);
+    }
+  }, []);
+
+  // Schedule a notification for when the daily reward is available (next day at 8 AM).
+  const scheduleDailyRewardNotification = useCallback(() => {
+    const now = new Date();
+    const tomorrow8AM = new Date(now);
+    tomorrow8AM.setDate(tomorrow8AM.getDate() + 1);
+    tomorrow8AM.setHours(8, 0, 0, 0);
+    const delayMs = tomorrow8AM.getTime() - now.getTime();
+
+    if (delayMs > 0) {
+      scheduleLocalNotification({
+        title: '🎁 Daily reward ready!',
+        body: 'Your daily login reward is waiting. Don\'t break your streak!',
+        delay: delayMs,
+        id: 1004,
+      });
+    }
+  }, [scheduleLocalNotification]);
+
+  // Schedule a reminder when a boss challenge is about to expire (fires at 75% of the time limit).
+  const scheduleBossChallengeReminder = useCallback((challengeName: string, cooldownHours: number) => {
+    const reminderDelayMs = cooldownHours * 0.75 * 60 * 60 * 1000;
+
+    if (reminderDelayMs > 0) {
+      scheduleLocalNotification({
+        title: '⚔️ Boss challenge expiring soon!',
+        body: `Your "${challengeName}" challenge is running out of time. Get back to focusing!`,
+        delay: reminderDelayMs,
+        id: 1005,
+      });
+    }
+  }, [scheduleLocalNotification]);
+
+  const cancelBossChallengeReminder = useCallback(async () => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.cancel({ notifications: [{ id: 1005 }] });
+      }
+    } catch (error) {
+      logger.error('Error cancelling boss challenge notification:', error);
+    }
+  }, []);
+
   const scheduleRewardNotification = useCallback((xpGained: number, level?: number) => {
     const isLevelUp = level !== undefined;
-    
+
     scheduleLocalNotification({
       title: isLevelUp ? '🎉 Level Up!' : '✨ XP Earned!',
-      body: isLevelUp 
+      body: isLevelUp
         ? `Congratulations! You reached level ${level}!`
         : `You earned ${xpGained} XP for staying focused!`,
       delay: 1000, // 1 second delay
@@ -272,7 +346,7 @@ export const useNotifications = () => {
 
   const scheduleStreakNotification = useCallback((streak: number) => {
     const streakEmoji = streak >= 7 ? '🔥' : streak >= 3 ? '⭐' : '🌟';
-    
+
     scheduleLocalNotification({
       title: `${streakEmoji} ${streak}-Day Streak!`,
       body: `Amazing! You're on a ${streak}-day focus streak. Keep it going!`,
@@ -314,12 +388,45 @@ export const useNotifications = () => {
     };
   }, [initializeNotifications]);
 
+  // Listen for notification-scheduling events dispatched by hooks that don't
+  // have direct access to useNotifications (avoids duplicating this hook).
+  // Use refs so event handlers always see the latest callback.
+  const dailyRewardRef = useRef(scheduleDailyRewardNotification);
+  const bossReminderRef = useRef(scheduleBossChallengeReminder);
+  const bossCancelRef = useRef(cancelBossChallengeReminder);
+  dailyRewardRef.current = scheduleDailyRewardNotification;
+  bossReminderRef.current = scheduleBossChallengeReminder;
+  bossCancelRef.current = cancelBossChallengeReminder;
+
+  useEffect(() => {
+    const onDailyReward = () => dailyRewardRef.current();
+    const onBossReminder = (e: Event) => {
+      const { name, cooldownHours } = (e as CustomEvent).detail;
+      bossReminderRef.current(name, cooldownHours);
+    };
+    const onBossCancel = () => { bossCancelRef.current(); };
+
+    window.addEventListener('schedule-daily-reward-notification', onDailyReward);
+    window.addEventListener('schedule-boss-challenge-reminder', onBossReminder);
+    window.addEventListener('cancel-boss-challenge-reminder', onBossCancel);
+    return () => {
+      window.removeEventListener('schedule-daily-reward-notification', onDailyReward);
+      window.removeEventListener('schedule-boss-challenge-reminder', onBossReminder);
+      window.removeEventListener('cancel-boss-challenge-reminder', onBossCancel);
+    };
+  }, []);
+
   return {
     permissions,
     isInitialized,
     scheduleLocalNotification,
     schedulePetCareReminder,
     scheduleTimerReminder,
+    scheduleTimerCompletionNotification,
+    cancelTimerCompletionNotification,
+    scheduleDailyRewardNotification,
+    scheduleBossChallengeReminder,
+    cancelBossChallengeReminder,
     scheduleRewardNotification,
     scheduleStreakNotification,
     cancelAllNotifications,

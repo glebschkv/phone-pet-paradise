@@ -52,7 +52,7 @@ export const useTimerControls = ({
 }: UseTimerControlsProps) => {
   const { recordSession } = useAnalytics();
   const { recordSession: recordStreakSession } = useStreakSystem();
-  const { scheduleStreakNotification, scheduleRewardNotification } = useNotifications();
+  const { scheduleStreakNotification, scheduleRewardNotification, scheduleTimerCompletionNotification, cancelTimerCompletionNotification } = useNotifications();
 
   const requestStartTimer = useCallback(() => {
     if (selectedPreset.type === 'break') {
@@ -130,7 +130,11 @@ export const useTimerControls = ({
         });
       });
     }
-  }, [saveTimerState, timerState.timeLeft, timerState.isCountup, selectedPreset.type, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal]);
+
+    // Schedule a notification for when the timer ends — fires even if app is killed
+    const durationSec = timerState.isCountup ? MAX_COUNTUP_DURATION : timerState.timeLeft;
+    scheduleTimerCompletionNotification(durationSec);
+  }, [saveTimerState, timerState.timeLeft, timerState.isCountup, selectedPreset.type, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal, scheduleTimerCompletionNotification]);
 
   const pauseTimer = useCallback(() => {
     const now = Date.now();
@@ -179,7 +183,10 @@ export const useTimerControls = ({
       timeRemaining: widgetTimeRemaining,
       startTime: null,
     }).catch(e => timerLogger.error('Widget timer sync failed:', e));
-  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, selectedPreset.duration, setDisplayTime]);
+
+    // Cancel the scheduled completion notification
+    cancelTimerCompletionNotification();
+  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, selectedPreset.duration, setDisplayTime, cancelTimerCompletionNotification]);
 
   const stopTimer = useCallback(async () => {
     let elapsedSeconds = 0;
@@ -202,6 +209,9 @@ export const useTimerControls = ({
     }
 
     clearPersistence();
+
+    // Cancel the scheduled completion notification
+    cancelTimerCompletionNotification();
 
     if (timerState.isCountup || selectedPreset.isCountup) {
       // Countup mode: reset to 0
@@ -279,7 +289,7 @@ export const useTimerControls = ({
         timerLogger.error('Failed to record abandoned session:', e);
       }
     }
-  }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
+  }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime, cancelTimerCompletionNotification]);
 
   const skipTimer = useCallback(async () => {
     let elapsedSeconds = 0;
@@ -303,6 +313,9 @@ export const useTimerControls = ({
     }
 
     clearPersistence();
+
+    // Cancel the scheduled completion notification
+    cancelTimerCompletionNotification();
 
     if (timerState.isCountup || selectedPreset.isCountup) {
       // Countup mode: reset to 0
@@ -418,7 +431,7 @@ export const useTimerControls = ({
         }
       }
     }
-  }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, recordStreakSession, scheduleStreakNotification, scheduleRewardNotification, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime]);
+  }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, recordStreakSession, scheduleStreakNotification, scheduleRewardNotification, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime, cancelTimerCompletionNotification]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });

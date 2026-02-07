@@ -105,6 +105,11 @@ export const useBossChallenges = () => {
       },
     });
 
+    // Fire event so the notification system can schedule a reminder
+    window.dispatchEvent(new CustomEvent('schedule-boss-challenge-reminder', {
+      detail: { name: challenge.name, cooldownHours: challenge.cooldownHours }
+    }));
+
     return true;
   }, [state, saveState]);
 
@@ -172,6 +177,7 @@ export const useBossChallenges = () => {
     saveState(newState);
 
     if (challengeCompleted) {
+      window.dispatchEvent(new CustomEvent('cancel-boss-challenge-reminder'));
       window.dispatchEvent(new CustomEvent(BOSS_CHALLENGE_UPDATE_EVENT, {
         detail: { completed: true, challenge: completedChallenge }
       }));
@@ -197,6 +203,7 @@ export const useBossChallenges = () => {
           },
         },
       });
+      window.dispatchEvent(new CustomEvent('cancel-boss-challenge-reminder'));
     }
   }, [state, saveState]);
 

@@ -55,13 +55,9 @@
 		SCFEXT000800000000000000 /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FWKREF000100000000000000 /* FamilyControls.framework */; };
 		SCFEXT000900000000000000 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FWKREF000300000000000000 /* ManagedSettings.framework */; };
 		SCFEXT000950000000000000 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FWKREF000600000000000000 /* ManagedSettingsUI.framework */; };
-/* -- ShieldAction build files -- */
-		SCAEXT000500000000000000 /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCAEXT000100000000000000 /* ShieldActionExtension.swift */; };
-		SCAEXT000600000000000000 /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHARED0001000000000000 /* SharedConstants.swift */; };
-		SCAEXT000800000000000000 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FWKREF000300000000000000 /* ManagedSettings.framework */; };
-		SCAEXT000900000000000000 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FWKREF000600000000000000 /* ManagedSettingsUI.framework */; };
 /* -- NoMoWidget build files -- */
 		NMWEXT001300000000000000 /* NoMoWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = NMWEXT000100000000000000 /* NoMoWidgetBundle.swift */; };
+		NMWEXT004200000000000000 /* WidgetPetMessages.swift in Sources */ = {isa = PBXBuildFile; fileRef = NMWEXT004100000000000000 /* WidgetPetMessages.swift */; };
 		NMWEXT001400000000000000 /* WidgetColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = NMWEXT000200000000000000 /* WidgetColors.swift */; };
 		NMWEXT001500000000000000 /* WidgetStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = NMWEXT000300000000000000 /* WidgetStrings.swift */; };
 		NMWEXT001600000000000000 /* AccessibilityUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = NMWEXT000400000000000000 /* AccessibilityUtilities.swift */; };
@@ -78,7 +74,6 @@
 		EMBEXT000200000000000000 /* DeviceActivityMonitor.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DAMEXT000400000000000000 /* DeviceActivityMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		EMBEXT000300000000000000 /* ShieldConfiguration.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = SCFEXT000400000000000000 /* ShieldConfiguration.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		EMBEXT000400000000000000 /* NoMoWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = NMWEXT001200000000000000 /* NoMoWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		EMBEXT000500000000000000 /* ShieldAction.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = SCAEXT000400000000000000 /* ShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -95,13 +90,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = SCFEXT001400000000000000;
 			remoteInfo = ShieldConfiguration;
-		};
-		SCAEXT001800000000000000 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = SCAEXT001400000000000000;
-			remoteInfo = ShieldAction;
 		};
 		NMWEXT003400000000000000 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -122,7 +110,6 @@
 				EMBEXT000200000000000000 /* DeviceActivityMonitor.appex in Embed App Extensions */,
 				EMBEXT000300000000000000 /* ShieldConfiguration.appex in Embed App Extensions */,
 				EMBEXT000400000000000000 /* NoMoWidget.appex in Embed App Extensions */,
-				EMBEXT000500000000000000 /* ShieldAction.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -178,13 +165,9 @@
 		SCFEXT000200000000000000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		SCFEXT000300000000000000 /* ShieldConfiguration.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShieldConfiguration.entitlements; sourceTree = "<group>"; };
 		SCFEXT000400000000000000 /* ShieldConfiguration.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-/* -- ShieldAction file references -- */
-		SCAEXT000100000000000000 /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
-		SCAEXT000200000000000000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		SCAEXT000300000000000000 /* ShieldAction.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShieldAction.entitlements; sourceTree = "<group>"; };
-		SCAEXT000400000000000000 /* ShieldAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* -- NoMoWidget file references -- */
 		NMWEXT000100000000000000 /* NoMoWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoMoWidgetBundle.swift; sourceTree = "<group>"; };
+		NMWEXT004100000000000000 /* WidgetPetMessages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetPetMessages.swift; sourceTree = "<group>"; };
 		NMWEXT000200000000000000 /* WidgetColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetColors.swift; sourceTree = "<group>"; };
 		NMWEXT000300000000000000 /* WidgetStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStrings.swift; sourceTree = "<group>"; };
 		NMWEXT000400000000000000 /* AccessibilityUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityUtilities.swift; sourceTree = "<group>"; };
@@ -236,15 +219,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		SCAEXT001200000000000000 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				SCAEXT000800000000000000 /* ManagedSettings.framework in Frameworks */,
-				SCAEXT000900000000000000 /* ManagedSettingsUI.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		NMWEXT002800000000000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -288,7 +262,6 @@
 				504EC3041FED79650016851F /* App.app */,
 				DAMEXT000400000000000000 /* DeviceActivityMonitor.appex */,
 				SCFEXT000400000000000000 /* ShieldConfiguration.appex */,
-				SCAEXT000400000000000000 /* ShieldAction.appex */,
 				NMWEXT001200000000000000 /* NoMoWidget.appex */,
 			);
 			name = Products;
@@ -382,7 +355,6 @@
 			children = (
 				DAMEXT001100000000000000 /* DeviceActivityMonitor */,
 				SCFEXT001000000000000000 /* ShieldConfiguration */,
-				SCAEXT001000000000000000 /* ShieldAction */,
 				NMWEXT002500000000000000 /* NoMoWidget */,
 			);
 			name = Extensions;
@@ -409,22 +381,13 @@
 			path = ShieldConfiguration;
 			sourceTree = "<group>";
 		};
-		SCAEXT001000000000000000 /* ShieldAction */ = {
-			isa = PBXGroup;
-			children = (
-				SCAEXT000100000000000000 /* ShieldActionExtension.swift */,
-				SCAEXT000200000000000000 /* Info.plist */,
-				SCAEXT000300000000000000 /* ShieldAction.entitlements */,
-			);
-			path = ShieldAction;
-			sourceTree = "<group>";
-		};
 		NMWEXT002500000000000000 /* NoMoWidget */ = {
 			isa = PBXGroup;
 			children = (
 				NMWEXT000100000000000000 /* NoMoWidgetBundle.swift */,
 				NMWEXT000200000000000000 /* WidgetColors.swift */,
 				NMWEXT000300000000000000 /* WidgetStrings.swift */,
+				NMWEXT004100000000000000 /* WidgetPetMessages.swift */,
 				NMWEXT000400000000000000 /* AccessibilityUtilities.swift */,
 				NMWEXT000500000000000000 /* WidgetAccessibilityStrings.swift */,
 				NMWEXT002600000000000000 /* Widgets */,
@@ -465,7 +428,6 @@
 			dependencies = (
 				DAMEXT002000000000000000 /* PBXTargetDependency */,
 				SCFEXT001900000000000000 /* PBXTargetDependency */,
-				SCAEXT001900000000000000 /* PBXTargetDependency */,
 				NMWEXT003500000000000000 /* PBXTargetDependency */,
 			);
 			name = App;
@@ -524,23 +486,6 @@
 			productReference = NMWEXT001200000000000000 /* NoMoWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		SCAEXT001400000000000000 /* ShieldAction */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = SCAEXT001700000000000000 /* Build configuration list for PBXNativeTarget "ShieldAction" */;
-			buildPhases = (
-				SCAEXT001100000000000000 /* Sources */,
-				SCAEXT001200000000000000 /* Frameworks */,
-				SCAEXT001300000000000000 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = ShieldAction;
-			productName = ShieldAction;
-			productReference = SCAEXT000400000000000000 /* ShieldAction.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -560,10 +505,6 @@
 						ProvisioningStyle = Automatic;
 					};
 					SCFEXT001400000000000000 = {
-						CreatedOnToolsVersion = 15.0;
-						ProvisioningStyle = Automatic;
-					};
-					SCAEXT001400000000000000 = {
 						CreatedOnToolsVersion = 15.0;
 						ProvisioningStyle = Automatic;
 					};
@@ -592,7 +533,6 @@
 				504EC3031FED79650016851F /* App */,
 				DAMEXT001500000000000000 /* DeviceActivityMonitor */,
 				SCFEXT001400000000000000 /* ShieldConfiguration */,
-				SCAEXT001400000000000000 /* ShieldAction */,
 				NMWEXT003000000000000000 /* NoMoWidget */,
 			);
 		};
@@ -620,13 +560,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		SCFEXT001300000000000000 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		SCAEXT001300000000000000 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -733,15 +666,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		SCAEXT001100000000000000 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				SCAEXT000500000000000000 /* ShieldActionExtension.swift in Sources */,
-				SCAEXT000600000000000000 /* SharedConstants.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		NMWEXT002700000000000000 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -756,6 +680,7 @@
 				NMWEXT002000000000000000 /* NoMoStreakWidget.swift in Sources */,
 				NMWEXT002100000000000000 /* NoMoTimerWidget.swift in Sources */,
 				NMWEXT002200000000000000 /* SharedConstants.swift in Sources */,
+				NMWEXT004200000000000000 /* WidgetPetMessages.swift in Sources */,
 				SHARED0004000000000002 /* WidgetSharedModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -772,11 +697,6 @@
 			isa = PBXTargetDependency;
 			target = SCFEXT001400000000000000 /* ShieldConfiguration */;
 			targetProxy = SCFEXT001800000000000000 /* PBXContainerItemProxy */;
-		};
-		SCAEXT001900000000000000 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = SCAEXT001400000000000000 /* ShieldAction */;
-			targetProxy = SCAEXT001800000000000000 /* PBXContainerItemProxy */;
 		};
 		NMWEXT003500000000000000 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1050,51 +970,6 @@
 			};
 			name = Release;
 		};
-/* -- ShieldAction build configs -- */
-		SCAEXT001500000000000000 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_ENTITLEMENTS = App/Extensions/ShieldAction/ShieldAction.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = App/Extensions/ShieldAction/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.nomoinc.nomo.ShieldAction;
-				PRODUCT_MODULE_NAME = NoMoShieldAction;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		SCAEXT001600000000000000 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_ENTITLEMENTS = App/Extensions/ShieldAction/ShieldAction.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = App/Extensions/ShieldAction/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.nomoinc.nomo.ShieldAction;
-				PRODUCT_MODULE_NAME = NoMoShieldAction;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 /* -- NoMoWidget build configs -- */
 		NMWEXT003100000000000000 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1182,15 +1057,6 @@
 			buildConfigurations = (
 				NMWEXT003100000000000000 /* Debug */,
 				NMWEXT003200000000000000 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		SCAEXT001700000000000000 /* Build configuration list for PBXNativeTarget "ShieldAction" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				SCAEXT001500000000000000 /* Debug */,
-				SCAEXT001600000000000000 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

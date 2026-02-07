@@ -4,11 +4,11 @@ import {
   Snowflake,
   Trophy
 } from 'lucide-react';
-import { useAppStateTracking } from '@/hooks/useAppStateTracking';
+import { useAppState } from '@/contexts/AppStateContext';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 
 export const StreakDisplay = () => {
-  const { streakData, getNextMilestone, getStreakIcon } = useAppStateTracking();
+  const { streakData, getNextMilestone, getStreakIcon } = useAppState();
 
   const nextMilestone = getNextMilestone();
   const progressToNext = nextMilestone
