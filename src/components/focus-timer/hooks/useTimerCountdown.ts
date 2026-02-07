@@ -218,6 +218,16 @@ export const useTimerCountdown = ({
 
       // Restart the interval to ensure it's alive after iOS suspension
       restartInterval();
+
+      // Safety net: React re-renders from saveTimerState above can cause the
+      // countdown effect to re-run its cleanup, killing the interval we just
+      // created. Verify the interval survived after renders settle.
+      setTimeout(() => {
+        const s = stateRef.current;
+        if (s.timerState.isRunning && s.timerState.startTime && !intervalRef.current) {
+          restartInterval();
+        }
+      }, 250);
     };
 
     const handleVisibilityChange = () => {
@@ -237,6 +247,9 @@ export const useTimerCountdown = ({
     if (Capacitor.isNativePlatform()) {
       CapApp.addListener('appStateChange', (appState) => {
         if (appState.isActive) {
+          // Always dismiss lock screen when app becomes active
+          setShowLockScreen(false);
+
           const state = stateRef.current;
           if (state.timerState.isRunning && state.timerState.startTime) {
             handleForegroundResume();
