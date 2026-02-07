@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNotifications } from '@/hooks/useNotifications';
 import { logger } from '@/lib/logger';
 
 export interface DailyReward {
@@ -50,7 +49,6 @@ function getStorageKey(userId: string | undefined): string {
 
 export const useDailyLoginRewards = () => {
   const { user, isGuestMode } = useAuth();
-  const { scheduleDailyRewardNotification } = useNotifications();
   const userId = user?.id;
 
   const [loginState, setLoginState] = useState<DailyLoginState>({
@@ -186,11 +184,12 @@ export const useDailyLoginRewards = () => {
     setPendingReward(null);
     setShowRewardModal(false);
 
-    // Schedule a notification for tomorrow's reward so users come back
-    scheduleDailyRewardNotification();
+    // Fire event so the notification system can schedule tomorrow's reminder
+    // (avoids needing useNotifications() here, which would duplicate the hook)
+    window.dispatchEvent(new CustomEvent('schedule-daily-reward-notification'));
 
     return claimedReward;
-  }, [loginState, pendingReward, saveLoginState, scheduleDailyRewardNotification]);
+  }, [loginState, pendingReward, saveLoginState]);
 
   const dismissModal = useCallback(() => {
     setShowRewardModal(false);

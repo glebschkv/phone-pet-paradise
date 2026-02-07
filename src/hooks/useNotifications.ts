@@ -388,6 +388,34 @@ export const useNotifications = () => {
     };
   }, [initializeNotifications]);
 
+  // Listen for notification-scheduling events dispatched by hooks that don't
+  // have direct access to useNotifications (avoids duplicating this hook).
+  // Use refs so event handlers always see the latest callback.
+  const dailyRewardRef = useRef(scheduleDailyRewardNotification);
+  const bossReminderRef = useRef(scheduleBossChallengeReminder);
+  const bossCancelRef = useRef(cancelBossChallengeReminder);
+  dailyRewardRef.current = scheduleDailyRewardNotification;
+  bossReminderRef.current = scheduleBossChallengeReminder;
+  bossCancelRef.current = cancelBossChallengeReminder;
+
+  useEffect(() => {
+    const onDailyReward = () => dailyRewardRef.current();
+    const onBossReminder = (e: Event) => {
+      const { name, cooldownHours } = (e as CustomEvent).detail;
+      bossReminderRef.current(name, cooldownHours);
+    };
+    const onBossCancel = () => { bossCancelRef.current(); };
+
+    window.addEventListener('schedule-daily-reward-notification', onDailyReward);
+    window.addEventListener('schedule-boss-challenge-reminder', onBossReminder);
+    window.addEventListener('cancel-boss-challenge-reminder', onBossCancel);
+    return () => {
+      window.removeEventListener('schedule-daily-reward-notification', onDailyReward);
+      window.removeEventListener('schedule-boss-challenge-reminder', onBossReminder);
+      window.removeEventListener('cancel-boss-challenge-reminder', onBossCancel);
+    };
+  }, []);
+
   return {
     permissions,
     isInitialized,

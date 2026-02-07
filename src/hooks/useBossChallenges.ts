@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
-import { useNotifications } from '@/hooks/useNotifications';
 import { BossChallenge, BOSS_CHALLENGES, getBossChallengesByDifficulty } from '@/data/GamificationData';
 
 export interface BossChallengeProgress {
@@ -26,8 +25,6 @@ export interface BossChallengesState {
 const BOSS_CHALLENGE_UPDATE_EVENT = 'petIsland_bossChallengeUpdate';
 
 export const useBossChallenges = () => {
-  const { scheduleBossChallengeReminder, cancelBossChallengeReminder } = useNotifications();
-
   const [state, setState] = useState<BossChallengesState>({
     challengeProgress: {},
     completedChallenges: [],
@@ -108,11 +105,13 @@ export const useBossChallenges = () => {
       },
     });
 
-    // Schedule a reminder notification before the challenge expires
-    scheduleBossChallengeReminder(challenge.name, challenge.cooldownHours);
+    // Fire event so the notification system can schedule a reminder
+    window.dispatchEvent(new CustomEvent('schedule-boss-challenge-reminder', {
+      detail: { name: challenge.name, cooldownHours: challenge.cooldownHours }
+    }));
 
     return true;
-  }, [state, saveState, scheduleBossChallengeReminder]);
+  }, [state, saveState]);
 
   // Record progress from a focus session
   const recordFocusSession = useCallback((minutes: number): {
@@ -178,14 +177,14 @@ export const useBossChallenges = () => {
     saveState(newState);
 
     if (challengeCompleted) {
-      cancelBossChallengeReminder();
+      window.dispatchEvent(new CustomEvent('cancel-boss-challenge-reminder'));
       window.dispatchEvent(new CustomEvent(BOSS_CHALLENGE_UPDATE_EVENT, {
         detail: { completed: true, challenge: completedChallenge }
       }));
     }
 
     return { challengeCompleted, completedChallenge };
-  }, [state, saveState, cancelBossChallengeReminder]);
+  }, [state, saveState]);
 
   // Abandon active challenge
   const abandonChallenge = useCallback(() => {
@@ -204,9 +203,9 @@ export const useBossChallenges = () => {
           },
         },
       });
-      cancelBossChallengeReminder();
+      window.dispatchEvent(new CustomEvent('cancel-boss-challenge-reminder'));
     }
-  }, [state, saveState, cancelBossChallengeReminder]);
+  }, [state, saveState]);
 
   // Get challenge status
   const getChallengeStatus = useCallback((challengeId: string): {

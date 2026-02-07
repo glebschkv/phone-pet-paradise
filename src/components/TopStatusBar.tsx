@@ -1,4 +1,4 @@
-import { useAppStateTracking } from "@/hooks/useAppStateTracking";
+import { useAppState } from "@/contexts/AppStateContext";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { ChevronDown, Settings } from "lucide-react";
 import { useState, useCallback } from "react";
@@ -44,7 +44,7 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
     availableBiomes,
     currentBiome,
     switchBiome,
-  } = useAppStateTracking();
+  } = useAppState();
   const coinSystem = useCoinSystem();
 
   // Use Zustand stores instead of localStorage/events

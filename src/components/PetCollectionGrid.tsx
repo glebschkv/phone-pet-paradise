@@ -13,7 +13,7 @@
 import { useState, useMemo, useCallback, memo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCollection } from "@/hooks/useCollection";
-import { useAppStateTracking } from "@/hooks/useAppStateTracking";
+import { useAppState } from "@/contexts/AppStateContext";
 import { AnimalData, BIOME_DATABASE } from "@/data/AnimalDatabase";
 import { PREMIUM_BACKGROUNDS, PremiumBackground } from "@/data/ShopData";
 import { toast } from "sonner";
@@ -79,7 +79,7 @@ export const PetCollectionGrid = memo(() => {
     currentLevel,
     currentBiome,
     switchBiome
-  } = useAppStateTracking();
+  } = useAppState();
 
   const {
     stats,
