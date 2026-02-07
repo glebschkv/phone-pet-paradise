@@ -497,19 +497,23 @@
 				TargetAttributes = {
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
+						DevelopmentTeam = V4SX56P296;
 						LastSwiftMigration = 1100;
 						ProvisioningStyle = Automatic;
 					};
 					DAMEXT001500000000000000 = {
 						CreatedOnToolsVersion = 15.0;
+						DevelopmentTeam = V4SX56P296;
 						ProvisioningStyle = Automatic;
 					};
 					SCFEXT001400000000000000 = {
 						CreatedOnToolsVersion = 15.0;
+						DevelopmentTeam = V4SX56P296;
 						ProvisioningStyle = Automatic;
 					};
 					NMWEXT003000000000000000 = {
 						CreatedOnToolsVersion = 15.0;
+						DevelopmentTeam = V4SX56P296;
 						ProvisioningStyle = Automatic;
 					};
 				};
