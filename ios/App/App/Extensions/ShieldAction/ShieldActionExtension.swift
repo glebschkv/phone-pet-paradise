@@ -7,7 +7,7 @@ import UIKit
 /// NOTE: Do NOT import FamilyControls here — it crashes the extension on launch.
 class ShieldActionExtension: ShieldActionDelegate {
 
-    override func handle(
+    func handle(
         action: ShieldAction,
         for application: Application,
         completionHandler: @escaping (ShieldActionResponse) -> Void
@@ -15,7 +15,7 @@ class ShieldActionExtension: ShieldActionDelegate {
         completionHandler(.close)
     }
 
-    override func handle(
+    func handle(
         action: ShieldAction,
         for webDomain: WebDomain,
         completionHandler: @escaping (ShieldActionResponse) -> Void
@@ -23,7 +23,7 @@ class ShieldActionExtension: ShieldActionDelegate {
         completionHandler(.close)
     }
 
-    override func handle(
+    func handle(
         action: ShieldAction,
         for category: ActivityCategory,
         completionHandler: @escaping (ShieldActionResponse) -> Void
