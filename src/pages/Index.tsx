@@ -9,6 +9,7 @@ import { useOnboardingStore } from "@/stores/onboardingStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useWidgetSync } from "@/hooks/useWidgetSync";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PREMIUM_BACKGROUNDS } from "@/data/ShopData";
@@ -50,6 +51,7 @@ const Index = () => {
   const hasCompletedOnboarding = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   usePerformanceMonitor(); // Initialize performance monitoring
+  useWidgetSync(); // Initialize widget data sync + foreground re-sync
 
   // Hide splash screens once after auth check resolves.
   // Module-level _splashHidden survives component remounts (Suspense, route

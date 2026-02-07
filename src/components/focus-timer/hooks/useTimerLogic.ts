@@ -31,6 +31,7 @@ import { useBreakTransition } from "./useBreakTransition";
 import { useTimerControls } from "./useTimerControls";
 import { useTimerCountdown } from "./useTimerCountdown";
 import { timerLogger } from "@/lib/logger";
+import { widgetDataService } from "@/plugins/widget-data";
 
 export const useTimerLogic = () => {
   const { awardXP, coinSystem, xpSystem } = useBackendAppState();
@@ -270,6 +271,20 @@ export const useTimerLogic = () => {
           scheduleRewardNotification(xpEarned);
         }
       }
+
+      // Sync completed session to widgets: stop the timer, then pull
+      // accumulated totals (streak, progress, stats) from localStorage
+      widgetDataService.updateTimer({
+        isRunning: false,
+        timeRemaining: 0,
+        sessionType: null,
+        startTime: null,
+      }).catch(e => timerLogger.error('Widget timer sync failed:', e));
+
+      // Full sync picks up updated streak, daily progress, and XP/stats
+      // from the stores that were just written above.
+      widgetDataService.syncFromAppState()
+        .catch(e => timerLogger.error('Widget full sync failed:', e));
 
       // Reset display based on mode
       if (state.timerState.isCountup) {
