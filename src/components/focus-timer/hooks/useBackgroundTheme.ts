@@ -20,10 +20,13 @@ export const useBackgroundTheme = (isPremium: boolean) => {
     if (theme && (!theme.requiresPremium || isPremium)) {
       setBackgroundTheme(savedTheme!);
     } else {
-      // Fall back to first free theme
+      // Fall back to first free theme and persist, so a downgraded user
+      // doesn't re-compute this fallback on every app load
       const freeThemes = BACKGROUND_THEMES.filter(t => !t.requiresPremium);
       if (freeThemes.length > 0) {
-        setBackgroundTheme(freeThemes[0].id);
+        const fallback = freeThemes[0].id;
+        setBackgroundTheme(fallback);
+        localStorage.setItem(BACKGROUND_THEME_KEY, fallback);
       }
     }
   }, [isPremium]);
