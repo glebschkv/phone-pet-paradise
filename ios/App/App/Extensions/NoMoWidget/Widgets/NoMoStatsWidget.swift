@@ -2,18 +2,15 @@ import SwiftUI
 import WidgetKit
 
 /**
- * NoMoStatsWidget
+ * NoMoStatsWidget - "Pet Stats Card" Widget
  *
- * Displays overall focus statistics.
- * Shows level, XP, total focus time, and sessions.
+ * Trading card-style layout showing your level, XP, and
+ * focus stats with your pet's emoji and funny rank titles.
  *
  * Accessibility Features:
- * - Full VoiceOver support with comprehensive labels and hints
- * - Dynamic Type support for all text
- * - Semantic grouping of related statistics
+ * - Full VoiceOver support
+ * - Dynamic Type support
  * - High contrast support
- * - Proper accessibility traits for statistics
- * - Localized number and time formatting
  */
 struct NoMoStatsWidget: Widget {
     let kind = "NoMoStatsWidget"
@@ -22,8 +19,8 @@ struct NoMoStatsWidget: Widget {
         StaticConfiguration(kind: kind, provider: StatsProvider()) { entry in
             StatsWidgetView(entry: entry)
         }
-        .configurationDisplayName(WidgetStrings.statsTitle)
-        .description(NSLocalizedString("widget.stats_description", value: "View your overall focus statistics", comment: ""))
+        .configurationDisplayName("Pet Stats Card")
+        .description("Your focus stats as an RPG character card")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -48,12 +45,16 @@ struct StatsProvider: TimelineProvider {
 
     private func loadEntry() -> StatsEntry {
         let data = WidgetDataReader.stats
+        let pet = WidgetDataReader.petInfo
         return StatsEntry(
             date: Date(),
             level: data.level,
             totalXP: data.totalXP,
             totalFocusTime: data.totalFocusTime,
-            totalSessions: data.totalSessions
+            totalSessions: data.totalSessions,
+            petName: pet.activePetName,
+            petEmoji: pet.activePetEmoji,
+            totalPets: pet.totalPetsCollected
         )
     }
 }
@@ -66,13 +67,19 @@ struct StatsEntry: TimelineEntry {
     let totalXP: Int
     let totalFocusTime: Int
     let totalSessions: Int
+    let petName: String?
+    let petEmoji: String?
+    let totalPets: Int
 
     static let placeholder = StatsEntry(
         date: Date(),
         level: 12,
         totalXP: 2450,
         totalFocusTime: 3600,
-        totalSessions: 48
+        totalSessions: 48,
+        petName: "Dewdrop Frog",
+        petEmoji: "🐸",
+        totalPets: 8
     )
 
     var formattedFocusTime: String {
@@ -84,38 +91,50 @@ struct StatsEntry: TimelineEntry {
         return "\(minutes)m"
     }
 
-    var focusTimeHours: Int {
-        totalFocusTime / 60
+    var formattedXP: String {
+        if totalXP >= 1000 {
+            let k = Double(totalXP) / 1000.0
+            return String(format: "%.1fk", k)
+        }
+        return "\(totalXP)"
     }
 
-    var focusTimeMinutes: Int {
-        totalFocusTime % 60
+    var displayEmoji: String {
+        petEmoji ?? "🐾"
+    }
+
+    var displayName: String {
+        WidgetPetMessages.petDisplayName(petName)
+    }
+
+    var funMessage: String {
+        WidgetPetMessages.statsMessage(level: level)
+    }
+
+    /// RPG-style rank title based on level
+    var rankTitle: String {
+        switch level {
+        case 1...3: return "Novice Tamer"
+        case 4...7: return "Focus Apprentice"
+        case 8...12: return "Pet Whisperer"
+        case 13...18: return "Focus Knight"
+        case 19...25: return "Zen Master"
+        case 26...35: return "Focus Sage"
+        case 36...45: return "Grand Tamer"
+        default: return "Legendary Hero"
+        }
     }
 
     // MARK: - Accessibility
 
-    /// Full accessibility label for the widget
     var accessibilityLabel: String {
-        let focusTimeDescription = AccessibilityFormatters.totalFocusTime(
-            hours: focusTimeHours,
-            minutes: focusTimeMinutes
-        )
-        return WidgetAccessibilityStrings.statsSummary(
-            level: level,
-            xp: totalXP,
-            focusTime: focusTimeDescription,
-            sessions: totalSessions
-        )
+        let focusHours = totalFocusTime / 60
+        let focusMinutes = totalFocusTime % 60
+        return "Level \(level) \(rankTitle). \(formattedXP) XP. \(focusHours) hours \(focusMinutes) minutes focused across \(totalSessions) sessions. \(totalPets) pets collected"
     }
 
-    /// Accessibility hint for the widget
     var accessibilityHint: String {
-        WidgetAccessibilityStrings.hintTapToOpen
-    }
-
-    /// Accessibility value for XP
-    var accessibilityValue: String {
-        AccessibilityFormatters.xp(amount: totalXP)
+        "Tap to open the app"
     }
 }
 
@@ -123,127 +142,172 @@ struct StatsEntry: TimelineEntry {
 
 struct StatsWidgetView: View {
     let entry: StatsEntry
+    @Environment(\.widgetFamily) var family
     @Environment(\.colorSchemeContrast) var contrast
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Level badge
-            levelBadge
-
-            // XP display
-            xpDisplay
-
-            // Stats grid
-            statsGrid
+        Group {
+            switch family {
+            case .systemMedium:
+                mediumLayout
+            default:
+                smallLayout
+            }
         }
-        .padding()
         .containerBackground(for: .widget) {
-            WidgetColors.background
+            WidgetColors.statsBackground
         }
-        // Apply comprehensive accessibility to entire widget
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(entry.accessibilityLabel)
         .accessibilityHint(entry.accessibilityHint)
-        .accessibilityValue(entry.accessibilityValue)
     }
 
-    // MARK: - Subviews
+    // MARK: - Small Layout
 
-    private var levelBadge: some View {
-        HStack {
-            Image(systemName: "star.circle.fill")
-                .foregroundColor(levelColor)
-                .accessibilityHidden(true)
-            Text(WidgetStrings.level(entry.level))
-                .font(AccessibleFonts.headline)
-                .foregroundColor(primaryTextColor)
-                .accessibilityHidden(true)
-        }
-    }
+    private var smallLayout: some View {
+        VStack(spacing: 4) {
+            // Level badge
+            HStack(spacing: 4) {
+                Text("⭐")
+                    .font(.system(size: 12))
+                Text("LV.\(entry.level)")
+                    .font(.system(.caption, design: .rounded).weight(.black))
+                    .foregroundColor(WidgetColors.level)
+            }
 
-    private var xpDisplay: some View {
-        HStack(spacing: 4) {
-            Text(WidgetStrings.xp(entry.totalXP))
-                .font(AccessibleFonts.title)
-                .foregroundColor(accentColor)
-                .minimumScaleFactor(0.6)
+            // Pet emoji + name
+            Text(entry.displayEmoji)
+                .font(.system(size: 24))
+
+            Text(entry.displayName)
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
                 .lineLimit(1)
-                .accessibilityHidden(true)
+                .minimumScaleFactor(0.7)
+
+            // Rank title
+            Text(entry.rankTitle)
+                .font(.system(size: 9, weight: .semibold, design: .rounded))
+                .foregroundColor(WidgetColors.accent)
+                .textCase(.uppercase)
+
+            Spacer(minLength: 2)
+
+            // XP display
+            Text("\(entry.formattedXP) XP")
+                .font(.system(.subheadline, design: .rounded).weight(.bold))
+                .foregroundColor(WidgetColors.xpGlow)
+
+            // Stats row
+            HStack(spacing: 8) {
+                miniStat(icon: "🕐", value: entry.formattedFocusTime)
+                miniStat(icon: "✅", value: "\(entry.totalSessions)")
+            }
+
+            // Fun message
+            Text(entry.funMessage)
+                .font(.system(size: 9, weight: .medium, design: .rounded))
+                .foregroundColor(WidgetColors.messageText)
+                .multilineTextAlignment(.center)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
+        .padding(10)
     }
 
-    private var statsGrid: some View {
-        HStack(spacing: 16) {
-            AccessibleStatItem(
-                icon: "clock.fill",
-                value: entry.formattedFocusTime,
-                label: WidgetStrings.focused,
-                iconColor: accentColor,
-                valueColor: primaryTextColor,
-                labelColor: tertiaryTextColor
-            )
+    // MARK: - Medium Layout (Trading Card)
 
-            AccessibleStatItem(
-                icon: "checkmark.circle.fill",
-                value: "\(entry.totalSessions)",
-                label: WidgetStrings.sessions,
-                iconColor: accentColor,
-                valueColor: primaryTextColor,
-                labelColor: tertiaryTextColor
-            )
+    private var mediumLayout: some View {
+        HStack(spacing: 12) {
+            // Left: Character card
+            VStack(spacing: 4) {
+                // Pet avatar area
+                VStack(spacing: 2) {
+                    Text(entry.displayEmoji)
+                        .font(.system(size: 36))
+
+                    Text(entry.displayName)
+                        .font(.system(.caption, design: .rounded).weight(.bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+
+                    Text(entry.rankTitle)
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                        .foregroundColor(WidgetColors.accent)
+                        .textCase(.uppercase)
+                }
+
+                Spacer(minLength: 2)
+
+                // Fun message
+                Text(entry.funMessage)
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundColor(WidgetColors.messageText)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
+
+            // Divider line
+            Rectangle()
+                .fill(WidgetColors.pixelBorder)
+                .frame(width: 1)
+                .padding(.vertical, 4)
+
+            // Right: Stats sheet
+            VStack(alignment: .leading, spacing: 6) {
+                // Level + XP header
+                HStack {
+                    HStack(spacing: 3) {
+                        Text("⭐")
+                            .font(.system(size: 12))
+                        Text("LV.\(entry.level)")
+                            .font(.system(.subheadline, design: .rounded).weight(.black))
+                            .foregroundColor(WidgetColors.level)
+                    }
+                    Spacer()
+                    Text("\(entry.formattedXP) XP")
+                        .font(.system(.caption, design: .rounded).weight(.bold))
+                        .foregroundColor(WidgetColors.xpGlow)
+                }
+
+                Spacer(minLength: 2)
+
+                // Stats grid
+                statRow(label: "Focus Time", value: entry.formattedFocusTime, icon: "🕐")
+                statRow(label: "Sessions", value: "\(entry.totalSessions)", icon: "✅")
+                statRow(label: "Pets", value: "\(entry.totalPets)/44", icon: "🐾")
+            }
+            .frame(maxWidth: .infinity)
         }
+        .padding(14)
     }
 
-    // MARK: - Accessible Colors
+    // MARK: - Helper Views
 
-    private var accentColor: Color {
-        contrast == .increased ? WidgetColors.accentHighContrast : WidgetColors.accent
-    }
-
-    private var primaryTextColor: Color {
-        .white
-    }
-
-    private var tertiaryTextColor: Color {
-        contrast == .increased ? WidgetColors.tertiaryHighContrast : WidgetColors.tertiary
-    }
-
-    private var levelColor: Color {
-        contrast == .increased ? WidgetColors.levelHighContrast : .yellow
-    }
-}
-
-// MARK: - Accessible Stat Item
-
-/// Accessible statistic item with proper VoiceOver support
-struct AccessibleStatItem: View {
-    let icon: String
-    let value: String
-    let label: String
-    let iconColor: Color
-    let valueColor: Color
-    let labelColor: Color
-
-    var body: some View {
-        VStack(spacing: 2) {
-            Image(systemName: icon)
-                .font(.caption)
-                .foregroundColor(iconColor)
-                .accessibilityHidden(true)
-
+    private func miniStat(icon: String, value: String) -> some View {
+        HStack(spacing: 2) {
+            Text(icon)
+                .font(.system(size: 9))
             Text(value)
-                .font(AccessibleFonts.subheadline)
-                .foregroundColor(valueColor)
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
-                .accessibilityHidden(true)
-
-            Text(label)
-                .font(AccessibleFonts.caption2)
-                .foregroundColor(labelColor)
-                .accessibilityHidden(true)
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                .foregroundColor(WidgetColors.secondary)
         }
-        .accessibilityHidden(true)
+    }
+
+    private func statRow(label: String, value: String, icon: String) -> some View {
+        HStack {
+            HStack(spacing: 4) {
+                Text(icon)
+                    .font(.system(size: 11))
+                Text(label)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundColor(WidgetColors.secondary)
+            }
+            Spacer()
+            Text(value)
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+        }
     }
 }
 
@@ -253,37 +317,37 @@ struct AccessibleStatItem: View {
 struct StatsWidget_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            // Default stats
             StatsWidgetView(entry: .placeholder)
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
-                .previewDisplayName("Default Stats")
+                .previewDisplayName("Default - Small")
 
-            // High level
             StatsWidgetView(entry: StatsEntry(
-                date: Date(),
-                level: 50,
-                totalXP: 125000,
-                totalFocusTime: 12000,
-                totalSessions: 500
+                date: Date(), level: 50, totalXP: 125000,
+                totalFocusTime: 12000, totalSessions: 500,
+                petName: "Storm Spirit", petEmoji: "⚡", totalPets: 44
             ))
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
-                .previewDisplayName("High Level")
+                .previewDisplayName("Max Level")
 
-            // New user
             StatsWidgetView(entry: StatsEntry(
-                date: Date(),
-                level: 1,
-                totalXP: 50,
-                totalFocusTime: 25,
-                totalSessions: 1
+                date: Date(), level: 1, totalXP: 50,
+                totalFocusTime: 25, totalSessions: 1,
+                petName: "Mushroom Kid", petEmoji: "🍄", totalPets: 1
             ))
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
                 .previewDisplayName("New User")
 
-            // Medium size
             StatsWidgetView(entry: .placeholder)
                 .previewContext(WidgetPreviewContext(family: .systemMedium))
-                .previewDisplayName("Medium Widget")
+                .previewDisplayName("Default - Medium")
+
+            StatsWidgetView(entry: StatsEntry(
+                date: Date(), level: 50, totalXP: 125000,
+                totalFocusTime: 12000, totalSessions: 500,
+                petName: "Storm Spirit", petEmoji: "⚡", totalPets: 44
+            ))
+                .previewContext(WidgetPreviewContext(family: .systemMedium))
+                .previewDisplayName("Max Level - Medium")
         }
     }
 }

@@ -69,10 +69,25 @@ struct WidgetSharedData: Codable {
         }
     }
 
+    struct PetInfo: Codable {
+        var activePetName: String?
+        var activePetEmoji: String?
+        var totalPetsCollected: Int
+        var currentBiome: String?
+
+        init() {
+            activePetName = nil
+            activePetEmoji = nil
+            totalPetsCollected = 0
+            currentBiome = nil
+        }
+    }
+
     var timer: TimerData
     var streak: StreakData
     var dailyProgress: DailyProgress
     var stats: Stats
+    var petInfo: PetInfo
     var lastUpdated: Double
 
     init() {
@@ -80,6 +95,7 @@ struct WidgetSharedData: Codable {
         streak = StreakData()
         dailyProgress = DailyProgress()
         stats = Stats()
+        petInfo = PetInfo()
         lastUpdated = Date().timeIntervalSince1970 * 1000
     }
 }
@@ -114,5 +130,9 @@ final class WidgetDataReader {
 
     static var stats: WidgetSharedData.Stats {
         load().stats
+    }
+
+    static var petInfo: WidgetSharedData.PetInfo {
+        load().petInfo
     }
 }

@@ -6,21 +6,103 @@
 */
 
 // Widget Titles
-"widget.timer_title" = "Focus Timer";
-"widget.streak_title" = "Current Streak";
-"widget.progress_title" = "Daily Progress";
-"widget.stats_title" = "Focus Stats";
+"widget.timer_title" = "Pet Buddy";
+"widget.streak_title" = "Streak Fire";
+"widget.progress_title" = "Daily Quest";
+"widget.stats_title" = "Pet Stats Card";
+
+// Widget Descriptions
+"widget.timer_description" = "Your pet keeps you company during focus sessions";
+"widget.streak_description" = "Watch your streak grow with your pet cheering you on";
+"widget.progress_description" = "Track your daily focus quest like an RPG adventure";
+"widget.stats_description" = "Your focus stats as an RPG character card";
 
 // Widget Content
 "widget.no_session" = "No active session";
-"widget.tap_to_start" = "Tap to start";
+"widget.tap_to_start" = "tap to start";
 "widget.streak_days" = "%d days";
 "widget.minutes_remaining" = "%d min remaining";
 "widget.percent_complete" = "%d%% complete";
 "widget.sessions" = "sessions";
 "widget.focused" = "focused";
-"widget.record" = "Record!";
+"widget.record" = "NEW RECORD";
+"widget.daily_quest" = "Daily Quest";
+"widget.quest_cleared" = "QUEST CLEARED!";
+"widget.complete" = "COMPLETE!";
 
 // Stats
-"stats.level" = "Level %d";
+"stats.level" = "LV.%d";
 "stats.xp" = "%d XP";
+
+// Accessibility - Icon Descriptions
+"a11y.icon.timer" = "Focus timer";
+"a11y.icon.moon" = "Resting moon";
+"a11y.icon.flame_active" = "Active streak flame";
+"a11y.icon.flame_inactive" = "Inactive streak";
+"a11y.icon.star" = "Achievement star";
+"a11y.icon.snowflake" = "Streak freeze";
+"a11y.icon.checkmark" = "Completed";
+"a11y.icon.clock" = "Time focused";
+"a11y.icon.level" = "Level indicator";
+
+// Accessibility - Widget Labels
+"a11y.widget.timer" = "Pet Buddy focus timer widget";
+"a11y.widget.streak" = "Streak fire widget";
+"a11y.widget.progress" = "Daily quest progress widget";
+"a11y.widget.stats" = "Pet stats card widget";
+
+// Accessibility - Hints
+"a11y.hint.tap_to_open" = "Tap to open the app";
+"a11y.hint.tap_to_start" = "Tap to start a focus session";
+"a11y.hint.live_progress" = "Shows live focus session progress";
+
+// Accessibility - Time Formatting
+"a11y.time.remaining_minutes_seconds" = "%d minutes and %d seconds remaining";
+"a11y.time.remaining_minutes" = "%d minutes remaining";
+"a11y.time.remaining_seconds" = "%d seconds remaining";
+
+// Accessibility - Progress
+"a11y.progress.complete" = "Daily quest complete";
+"a11y.progress.percent" = "%d percent complete";
+"a11y.progress.summary" = "Daily quest: %d percent complete. %d of %d minutes focused. %d sessions completed";
+"a11y.progress.goal_reached" = "Daily focus quest complete! Goal reached";
+
+// Accessibility - Streak
+"a11y.streak.record" = "New record! %d day streak";
+"a11y.streak.none" = "No active streak";
+"a11y.streak.one_day" = "1 day streak";
+"a11y.streak.days" = "%d day streak";
+"a11y.streak.summary" = "%d day focus streak";
+"a11y.streak.summary_record" = "New record! %d day focus streak";
+"a11y.streak.summary_freezes" = "%d day focus streak with %d streak freezes available";
+"a11y.streak.summary_record_freezes" = "New record! %d day focus streak with %d streak freezes available";
+"a11y.freeze.one" = "1 streak freeze available";
+"a11y.freeze.multiple" = "%d streak freezes available";
+
+// Accessibility - Focus Time
+"a11y.focus.time_progress" = "%d of %d minutes focused";
+"a11y.sessions.one" = "1 session completed";
+"a11y.sessions.multiple" = "%d sessions completed";
+
+// Accessibility - Total Time
+"a11y.total.hours_minutes" = "%d hours and %d minutes";
+"a11y.total.hours" = "%d hours";
+"a11y.total.minutes" = "%d minutes";
+
+// Accessibility - Stats
+"a11y.stats.xp" = "%d experience points";
+"a11y.stats.level" = "Level %d";
+"a11y.stats.summary" = "Level %d. %d XP. %@ focused across %d sessions";
+
+// Accessibility - Timer State
+"a11y.timer.running" = "%@ session in progress. %@ remaining";
+"a11y.timer.idle" = "No focus session active. Your pet is waiting";
+"a11y.session.focus" = "Focus";
+"a11y.timer.summary_active" = "%@ session. %@ remaining. %d percent complete";
+"a11y.timer.summary_inactive" = "No active focus session. Your pet is waiting for you";
+
+// Accessibility - Shield
+"a11y.shield.title" = "Focus shield active";
+"a11y.shield.description" = "This app is blocked during your focus session";
+"a11y.shield.return_button" = "Return to focus";
+"a11y.shield.return_hint" = "Go back to your focus session";

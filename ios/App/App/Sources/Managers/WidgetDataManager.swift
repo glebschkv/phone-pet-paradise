@@ -216,3 +216,20 @@ struct WidgetStats: Codable {
         ]
     }
 }
+
+struct WidgetPetInfo: Codable {
+    var activePetName: String?
+    var activePetEmoji: String?
+    var totalPetsCollected: Int = 0
+    var currentBiome: String?
+
+    var asDictionary: [String: Any] {
+        var dict: [String: Any] = [
+            "totalPetsCollected": totalPetsCollected
+        ]
+        if let activePetName = activePetName { dict["activePetName"] = activePetName }
+        if let activePetEmoji = activePetEmoji { dict["activePetEmoji"] = activePetEmoji }
+        if let currentBiome = currentBiome { dict["currentBiome"] = currentBiome }
+        return dict
+    }
+}
