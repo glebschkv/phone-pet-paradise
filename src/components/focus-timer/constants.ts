@@ -11,16 +11,16 @@ export interface BackgroundTheme {
   id: string;
   name: string;
   icon: LucideIcon;
-  unlockLevel: number;
+  requiresPremium: boolean;
 }
 
 export const BACKGROUND_THEMES: BackgroundTheme[] = [
-  { id: 'night', name: 'Night', icon: Moon, unlockLevel: 1 },
-  { id: 'snow', name: 'Snow', icon: Snowflake, unlockLevel: 3 },
-  { id: 'sky', name: 'Meadow', icon: Sun, unlockLevel: 5 },
-  { id: 'sunset', name: 'Sunset', icon: Sunset, unlockLevel: 8 },
-  { id: 'forest', name: 'Forest', icon: TreePine, unlockLevel: 12 },
-  { id: 'city', name: 'City', icon: Building2, unlockLevel: 15 },
+  { id: 'night', name: 'Night', icon: Moon, requiresPremium: false },
+  { id: 'sky', name: 'Meadow', icon: Sun, requiresPremium: false },
+  { id: 'snow', name: 'Snow', icon: Snowflake, requiresPremium: true },
+  { id: 'sunset', name: 'Sunset', icon: Sunset, requiresPremium: true },
+  { id: 'forest', name: 'Forest', icon: TreePine, requiresPremium: true },
+  { id: 'city', name: 'City', icon: Building2, requiresPremium: true },
 ];
 
 export interface TimerState {

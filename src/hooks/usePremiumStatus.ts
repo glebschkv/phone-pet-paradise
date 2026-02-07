@@ -112,7 +112,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'All 13 ambient sounds',
       'Auto-break Pomodoro cycles',
       '2 Streak Freezes/month',
-      'Sound mixing (2 layers)',
+      'All timer backgrounds',
     ],
     iapProductId: 'co.nomoinc.nomo.premium.monthly',
     bonusCoins: 500,
@@ -133,7 +133,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'All 13 ambient sounds',
       'Auto-break Pomodoro cycles',
       '2 Streak Freezes/month',
-      'Sound mixing (2 layers)',
+      'All timer backgrounds',
     ],
     iapProductId: 'co.nomoinc.nomo.premium.yearly',
     savings: 'Save 33%',
@@ -156,7 +156,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Battle Pass Premium included',
       '5 Streak Freezes/month',
       'Sound mixing (3 layers)',
-      'Exclusive profile frames',
+      'All timer backgrounds',
     ],
     iapProductId: 'co.nomoinc.nomo.premiumplus.monthly',
     bonusCoins: 1500,
@@ -177,7 +177,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Battle Pass Premium included',
       '5 Streak Freezes/month',
       'Sound mixing (3 layers)',
-      'Exclusive profile frames',
+      'All timer backgrounds',
     ],
     iapProductId: 'co.nomoinc.nomo.premiumplus.yearly',
     savings: 'Save 40%',
@@ -697,7 +697,8 @@ export const usePremiumStatus = () => {
 
   // Check if a specific feature is available
   type FeatureType = 'ambient_sounds' | 'auto_breaks' | 'session_notes' | 'advanced_analytics' |
-                     'sound_mixing' | 'focus_presets' | 'battle_pass' | 'founder_badge' | 'founder_pet';
+                     'sound_mixing' | 'focus_presets' | 'battle_pass' | 'founder_badge' | 'founder_pet' |
+                     'all_timer_backgrounds';
 
   const hasFeature = useCallback((feature: FeatureType) => {
     if (state.tier === 'free') return false;

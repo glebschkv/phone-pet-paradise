@@ -17,6 +17,7 @@ import {
   Loader2,
   Dices,
   PenLine,
+  Palette,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PixelIcon } from '@/components/ui/PixelIcon';
@@ -62,6 +63,7 @@ const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string; coming
   'Everything in Premium+': { icon: <Check className="w-3.5 h-3.5" />, label: 'All Premium+' },
   'Battle Pass Premium included': { icon: <Award className="w-3.5 h-3.5" />, label: 'Battle Pass', comingSoon: true },
   'Early access to features': { icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Early Access' },
+  'All timer backgrounds': { icon: <Palette className="w-3.5 h-3.5" />, label: 'All Backgrounds' },
   'Exclusive profile frames': { icon: <Star className="w-3.5 h-3.5" />, label: 'Profile Frames', comingSoon: true },
   'No recurring fees ever': { icon: <InfinityIcon className="w-3.5 h-3.5" />, label: 'Pay Once' },
   'All future updates included': { icon: <RefreshCw className="w-3.5 h-3.5" />, label: 'All Updates' },
