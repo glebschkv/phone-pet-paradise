@@ -6,21 +6,103 @@
 */
 
 // Widget Titles
-"widget.timer_title" = "Temporizador de Enfoque";
-"widget.streak_title" = "Racha Actual";
-"widget.progress_title" = "Progreso Diario";
-"widget.stats_title" = "Estadísticas de Enfoque";
+"widget.timer_title" = "Compañero Pet";
+"widget.streak_title" = "Racha de Fuego";
+"widget.progress_title" = "Misión Diaria";
+"widget.stats_title" = "Carta de Stats";
+
+// Widget Descriptions
+"widget.timer_description" = "Tu mascota te acompaña durante las sesiones de enfoque";
+"widget.streak_description" = "Mira crecer tu racha mientras tu mascota te anima";
+"widget.progress_description" = "Sigue tu misión de enfoque diaria como una aventura RPG";
+"widget.stats_description" = "Tus estadísticas de enfoque como carta de personaje RPG";
 
 // Widget Content
 "widget.no_session" = "Sin sesión activa";
-"widget.tap_to_start" = "Toca para iniciar";
+"widget.tap_to_start" = "toca para iniciar";
 "widget.streak_days" = "%d días";
 "widget.minutes_remaining" = "%d min restantes";
 "widget.percent_complete" = "%d%% completado";
 "widget.sessions" = "sesiones";
 "widget.focused" = "enfocado";
-"widget.record" = "¡Récord!";
+"widget.record" = "¡NUEVO RÉCORD!";
+"widget.daily_quest" = "Misión Diaria";
+"widget.quest_cleared" = "¡MISIÓN COMPLETADA!";
+"widget.complete" = "¡COMPLETO!";
 
 // Stats
-"stats.level" = "Nivel %d";
+"stats.level" = "NV.%d";
 "stats.xp" = "%d XP";
+
+// Accessibility - Icon Descriptions
+"a11y.icon.timer" = "Temporizador de enfoque";
+"a11y.icon.moon" = "Luna de descanso";
+"a11y.icon.flame_active" = "Llama de racha activa";
+"a11y.icon.flame_inactive" = "Racha inactiva";
+"a11y.icon.star" = "Estrella de logro";
+"a11y.icon.snowflake" = "Congelador de racha";
+"a11y.icon.checkmark" = "Completado";
+"a11y.icon.clock" = "Tiempo enfocado";
+"a11y.icon.level" = "Indicador de nivel";
+
+// Accessibility - Widget Labels
+"a11y.widget.timer" = "Widget de compañero pet";
+"a11y.widget.streak" = "Widget de racha de fuego";
+"a11y.widget.progress" = "Widget de misión diaria";
+"a11y.widget.stats" = "Widget de carta de stats";
+
+// Accessibility - Hints
+"a11y.hint.tap_to_open" = "Toca para abrir la app";
+"a11y.hint.tap_to_start" = "Toca para iniciar una sesión de enfoque";
+"a11y.hint.live_progress" = "Muestra el progreso de la sesión en vivo";
+
+// Accessibility - Time Formatting
+"a11y.time.remaining_minutes_seconds" = "%d minutos y %d segundos restantes";
+"a11y.time.remaining_minutes" = "%d minutos restantes";
+"a11y.time.remaining_seconds" = "%d segundos restantes";
+
+// Accessibility - Progress
+"a11y.progress.complete" = "Misión diaria completada";
+"a11y.progress.percent" = "%d por ciento completado";
+"a11y.progress.summary" = "Misión diaria: %d por ciento completada. %d de %d minutos enfocados. %d sesiones completadas";
+"a11y.progress.goal_reached" = "¡Misión de enfoque diaria completada! Meta alcanzada";
+
+// Accessibility - Streak
+"a11y.streak.record" = "¡Nuevo récord! Racha de %d días";
+"a11y.streak.none" = "Sin racha activa";
+"a11y.streak.one_day" = "Racha de 1 día";
+"a11y.streak.days" = "Racha de %d días";
+"a11y.streak.summary" = "Racha de enfoque de %d días";
+"a11y.streak.summary_record" = "¡Nuevo récord! Racha de enfoque de %d días";
+"a11y.streak.summary_freezes" = "Racha de enfoque de %d días con %d congeladores disponibles";
+"a11y.streak.summary_record_freezes" = "¡Nuevo récord! Racha de %d días con %d congeladores disponibles";
+"a11y.freeze.one" = "1 congelador de racha disponible";
+"a11y.freeze.multiple" = "%d congeladores de racha disponibles";
+
+// Accessibility - Focus Time
+"a11y.focus.time_progress" = "%d de %d minutos enfocados";
+"a11y.sessions.one" = "1 sesión completada";
+"a11y.sessions.multiple" = "%d sesiones completadas";
+
+// Accessibility - Total Time
+"a11y.total.hours_minutes" = "%d horas y %d minutos";
+"a11y.total.hours" = "%d horas";
+"a11y.total.minutes" = "%d minutos";
+
+// Accessibility - Stats
+"a11y.stats.xp" = "%d puntos de experiencia";
+"a11y.stats.level" = "Nivel %d";
+"a11y.stats.summary" = "Nivel %d. %d XP. %@ enfocados en %d sesiones";
+
+// Accessibility - Timer State
+"a11y.timer.running" = "Sesión de %@ en progreso. %@ restantes";
+"a11y.timer.idle" = "Sin sesión de enfoque activa. Tu mascota está esperando";
+"a11y.session.focus" = "Enfoque";
+"a11y.timer.summary_active" = "Sesión de %@. %@ restantes. %d por ciento completado";
+"a11y.timer.summary_inactive" = "Sin sesión de enfoque activa. Tu mascota te está esperando";
+
+// Accessibility - Shield
+"a11y.shield.title" = "Escudo de enfoque activo";
+"a11y.shield.description" = "Esta app está bloqueada durante tu sesión de enfoque";
+"a11y.shield.return_button" = "Volver al enfoque";
+"a11y.shield.return_hint" = "Regresar a tu sesión de enfoque";

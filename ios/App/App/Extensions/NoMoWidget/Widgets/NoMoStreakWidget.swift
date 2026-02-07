@@ -2,18 +2,16 @@ import SwiftUI
 import WidgetKit
 
 /**
- * NoMoStreakWidget
+ * NoMoStreakWidget - "Streak Fire" Widget
  *
- * Displays the user's current focus streak.
- * Shows streak count and motivational progress.
+ * Shows your focus streak with escalating fire emojis and
+ * sassy/funny messages that change based on streak length.
+ * The longer your streak, the more dramatic the display.
  *
  * Accessibility Features:
- * - Full VoiceOver support with comprehensive labels and hints
- * - Dynamic Type support for all text
- * - Color-independent status indicators (not relying on color alone)
+ * - Full VoiceOver support
+ * - Dynamic Type support
  * - High contrast support
- * - Semantic accessibility structure
- * - Localized accessibility descriptions
  */
 struct NoMoStreakWidget: Widget {
     let kind = "NoMoStreakWidget"
@@ -22,8 +20,8 @@ struct NoMoStreakWidget: Widget {
         StaticConfiguration(kind: kind, provider: StreakProvider()) { entry in
             StreakWidgetView(entry: entry)
         }
-        .configurationDisplayName(WidgetStrings.streakTitle)
-        .description(NSLocalizedString("widget.streak_description", value: "Track your daily focus streak", comment: ""))
+        .configurationDisplayName("Streak Fire")
+        .description("Watch your streak grow with your pet cheering you on")
         .supportedFamilies([.systemSmall])
     }
 }
@@ -48,11 +46,13 @@ struct StreakProvider: TimelineProvider {
 
     private func loadEntry() -> StreakEntry {
         let data = WidgetDataReader.streakData
+        let pet = WidgetDataReader.petInfo
         return StreakEntry(
             date: Date(),
             currentStreak: data.currentStreak,
             longestStreak: data.longestStreak,
-            streakFreezes: data.streakFreezes
+            streakFreezes: data.streakFreezes,
+            petEmoji: pet.activePetEmoji
         )
     }
 }
@@ -64,12 +64,14 @@ struct StreakEntry: TimelineEntry {
     let currentStreak: Int
     let longestStreak: Int
     let streakFreezes: Int
+    let petEmoji: String?
 
     static let placeholder = StreakEntry(
         date: Date(),
         currentStreak: 7,
         longestStreak: 14,
-        streakFreezes: 2
+        streakFreezes: 2,
+        petEmoji: "🐸"
     )
 
     var isNewRecord: Bool {
@@ -80,25 +82,39 @@ struct StreakEntry: TimelineEntry {
         currentStreak > 0
     }
 
+    /// Escalating fire display based on streak length
+    var fireDisplay: String {
+        switch currentStreak {
+        case 0: return "💨"
+        case 1: return "🕯️"
+        case 2...3: return "🔥"
+        case 4...6: return "🔥🔥"
+        case 7...13: return "🔥🔥🔥"
+        case 14...29: return "🔥🔥🔥🔥"
+        case 30...99: return "☄️🔥🔥🔥"
+        default: return "🌋🔥🔥🔥"
+        }
+    }
+
+    var funMessage: String {
+        WidgetPetMessages.streakMessage(days: currentStreak)
+    }
+
+    var displayEmoji: String {
+        petEmoji ?? "🐾"
+    }
+
     // MARK: - Accessibility
 
-    /// Full accessibility label for the widget
     var accessibilityLabel: String {
-        WidgetAccessibilityStrings.streakSummary(
-            days: currentStreak,
-            isRecord: isNewRecord,
-            freezes: streakFreezes
-        )
+        if isNewRecord {
+            return "New record! \(currentStreak) day streak. \(funMessage)"
+        }
+        return "\(currentStreak) day streak. Best: \(longestStreak) days. \(funMessage)"
     }
 
-    /// Accessibility hint for the widget
     var accessibilityHint: String {
-        WidgetAccessibilityStrings.hintTapToOpen
-    }
-
-    /// Accessibility value showing current streak
-    var accessibilityValue: String {
-        AccessibilityFormatters.streak(days: currentStreak, isRecord: isNewRecord)
+        "Tap to open the app"
     }
 }
 
@@ -109,107 +125,61 @@ struct StreakWidgetView: View {
     @Environment(\.colorSchemeContrast) var contrast
 
     var body: some View {
-        VStack(spacing: 8) {
-            // Flame icon with accessibility
-            flameIcon
+        VStack(spacing: 4) {
+            // Fire emojis at top
+            Text(entry.fireDisplay)
+                .font(.system(size: entry.currentStreak > 13 ? 18 : 22))
+                .minimumScaleFactor(0.6)
 
-            // Streak count
-            streakCountView
+            // Big streak number
+            Text("\(entry.currentStreak)")
+                .font(.system(size: 42, weight: .black, design: .rounded))
+                .foregroundColor(.white)
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
 
-            // Days label
-            daysLabel
+            // "days" label
+            Text(entry.currentStreak == 1 ? "day" : "days")
+                .font(.system(.caption, design: .rounded).weight(.semibold))
+                .foregroundColor(WidgetColors.streakEmber)
+                .textCase(.uppercase)
 
-            // Record badge (if applicable)
+            // Record badge or freeze indicator
             if entry.isNewRecord {
-                recordBadge
+                HStack(spacing: 3) {
+                    Text("⭐")
+                        .font(.system(size: 10))
+                    Text("NEW RECORD")
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .foregroundColor(WidgetColors.record)
+                }
+            } else if entry.streakFreezes > 0 {
+                HStack(spacing: 3) {
+                    Text("❄️")
+                        .font(.system(size: 10))
+                    Text("\(entry.streakFreezes)")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundColor(WidgetColors.freeze)
+                }
             }
 
-            // Freezes indicator
-            if entry.streakFreezes > 0 {
-                freezesIndicator
-            }
+            Spacer(minLength: 2)
+
+            // Fun message at bottom
+            Text(entry.funMessage)
+                .font(.system(size: 10, weight: .medium, design: .rounded))
+                .foregroundColor(WidgetColors.messageText)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
         }
-        .padding()
+        .padding(12)
         .containerBackground(for: .widget) {
-            WidgetColors.background
+            WidgetColors.streakBackground
         }
-        // Apply comprehensive accessibility to entire widget
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(entry.accessibilityLabel)
         .accessibilityHint(entry.accessibilityHint)
-        .accessibilityValue(entry.accessibilityValue)
-    }
-
-    // MARK: - Subviews
-
-    private var flameIcon: some View {
-        Image(systemName: entry.hasActiveStreak ? "flame.fill" : "flame")
-            .font(.title)
-            .foregroundColor(flameColor)
-            .accessibilityHidden(true)
-    }
-
-    private var streakCountView: some View {
-        Text("\(entry.currentStreak)")
-            .font(AccessibleFonts.statsNumber)
-            .foregroundColor(primaryTextColor)
-            .minimumScaleFactor(0.6)
-            .lineLimit(1)
-            .accessibilityHidden(true)
-    }
-
-    private var daysLabel: some View {
-        Text(WidgetStrings.streakDays(entry.currentStreak))
-            .font(AccessibleFonts.caption)
-            .foregroundColor(secondaryTextColor)
-            .accessibilityHidden(true)
-    }
-
-    private var recordBadge: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "star.fill")
-                .font(.caption2)
-            Text(WidgetStrings.record)
-                .font(AccessibleFonts.caption2)
-        }
-        .foregroundColor(recordColor)
-        .accessibilityHidden(true)
-    }
-
-    private var freezesIndicator: some View {
-        HStack(spacing: 2) {
-            Image(systemName: "snowflake")
-                .font(.caption2)
-            Text("\(entry.streakFreezes)")
-                .font(AccessibleFonts.caption2)
-        }
-        .foregroundColor(freezeColor)
-        .accessibilityHidden(true)
-    }
-
-    // MARK: - Accessible Colors
-
-    private var flameColor: Color {
-        if entry.hasActiveStreak {
-            return contrast == .increased ? WidgetColors.warningHighContrast : .orange
-        }
-        return contrast == .increased ? WidgetColors.secondaryHighContrast : WidgetColors.secondary
-    }
-
-    private var primaryTextColor: Color {
-        .white
-    }
-
-    private var secondaryTextColor: Color {
-        contrast == .increased ? WidgetColors.secondaryHighContrast : WidgetColors.secondary
-    }
-
-    private var recordColor: Color {
-        contrast == .increased ? WidgetColors.recordHighContrast : .yellow
-    }
-
-    private var freezeColor: Color {
-        contrast == .increased ? WidgetColors.freezeHighContrast : .cyan
     }
 }
 
@@ -219,30 +189,30 @@ struct StreakWidgetView: View {
 struct StreakWidget_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            // Active streak
             StreakWidgetView(entry: .placeholder)
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
-                .previewDisplayName("Active Streak")
+                .previewDisplayName("7-Day Streak")
 
-            // Record streak
             StreakWidgetView(entry: StreakEntry(
-                date: Date(),
-                currentStreak: 14,
-                longestStreak: 14,
-                streakFreezes: 1
+                date: Date(), currentStreak: 14, longestStreak: 14,
+                streakFreezes: 1, petEmoji: "🦊"
             ))
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
                 .previewDisplayName("Record Streak")
 
-            // No streak
             StreakWidgetView(entry: StreakEntry(
-                date: Date(),
-                currentStreak: 0,
-                longestStreak: 10,
-                streakFreezes: 0
+                date: Date(), currentStreak: 0, longestStreak: 10,
+                streakFreezes: 0, petEmoji: "🐱"
             ))
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
                 .previewDisplayName("No Streak")
+
+            StreakWidgetView(entry: StreakEntry(
+                date: Date(), currentStreak: 100, longestStreak: 100,
+                streakFreezes: 3, petEmoji: "🐸"
+            ))
+                .previewContext(WidgetPreviewContext(family: .systemSmall))
+                .previewDisplayName("100+ Legend")
         }
     }
 }

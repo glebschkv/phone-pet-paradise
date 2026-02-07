@@ -2,18 +2,15 @@ import SwiftUI
 import WidgetKit
 
 /**
- * NoMoProgressWidget
+ * NoMoProgressWidget - "Daily Quest" Widget
  *
- * Displays daily focus progress towards goal.
- * Shows completed sessions and time focused.
+ * RPG-styled daily progress tracker. Shows focus minutes
+ * as a quest with a pixel-art progress bar and fun messages.
  *
  * Accessibility Features:
- * - Full VoiceOver support with comprehensive labels and hints
- * - Dynamic Type support for all text
- * - Circular progress indicator with accessible value description
+ * - Full VoiceOver support
+ * - Dynamic Type support
  * - High contrast support
- * - Semantic accessibility structure
- * - Goal completion announcements
  */
 struct NoMoProgressWidget: Widget {
     let kind = "NoMoProgressWidget"
@@ -22,8 +19,8 @@ struct NoMoProgressWidget: Widget {
         StaticConfiguration(kind: kind, provider: ProgressProvider()) { entry in
             ProgressWidgetView(entry: entry)
         }
-        .configurationDisplayName(WidgetStrings.progressTitle)
-        .description(NSLocalizedString("widget.progress_description", value: "Track your daily focus progress", comment: ""))
+        .configurationDisplayName("Daily Quest")
+        .description("Track your daily focus quest like an RPG adventure")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -48,11 +45,13 @@ struct ProgressProvider: TimelineProvider {
 
     private func loadEntry() -> ProgressEntry {
         let data = WidgetDataReader.dailyProgress
+        let pet = WidgetDataReader.petInfo
         return ProgressEntry(
             date: Date(),
             focusMinutes: data.focusMinutes,
             goalMinutes: data.goalMinutes,
-            sessionsCompleted: data.sessionsCompleted
+            sessionsCompleted: data.sessionsCompleted,
+            petEmoji: pet.activePetEmoji
         )
     }
 }
@@ -64,12 +63,14 @@ struct ProgressEntry: TimelineEntry {
     let focusMinutes: Int
     let goalMinutes: Int
     let sessionsCompleted: Int
+    let petEmoji: String?
 
     static let placeholder = ProgressEntry(
         date: Date(),
         focusMinutes: 75,
         goalMinutes: 120,
-        sessionsCompleted: 3
+        sessionsCompleted: 3,
+        petEmoji: "🐸"
     )
 
     var progress: Double {
@@ -85,29 +86,33 @@ struct ProgressEntry: TimelineEntry {
         focusMinutes >= goalMinutes
     }
 
+    var funMessage: String {
+        WidgetPetMessages.progressMessage(percent: percentComplete)
+    }
+
+    var questStatusIcon: String {
+        if isGoalReached { return "🏆" }
+        if percentComplete >= 75 { return "⚔️" }
+        if percentComplete >= 50 { return "🗡️" }
+        if percentComplete >= 25 { return "🛡️" }
+        return "📜"
+    }
+
+    var displayEmoji: String {
+        petEmoji ?? "🐾"
+    }
+
     // MARK: - Accessibility
 
-    /// Full accessibility label for the widget
     var accessibilityLabel: String {
         if isGoalReached {
-            return WidgetAccessibilityStrings.progressGoalReached
+            return "Daily quest complete! Focused \(focusMinutes) minutes across \(sessionsCompleted) sessions"
         }
-        return WidgetAccessibilityStrings.progressSummary(
-            percent: percentComplete,
-            focusMinutes: focusMinutes,
-            goalMinutes: goalMinutes,
-            sessions: sessionsCompleted
-        )
+        return "Daily quest: \(percentComplete) percent complete. \(focusMinutes) of \(goalMinutes) minutes focused. \(sessionsCompleted) sessions completed"
     }
 
-    /// Accessibility hint for the widget
     var accessibilityHint: String {
-        WidgetAccessibilityStrings.hintTapToOpen
-    }
-
-    /// Accessibility value for the progress
-    var accessibilityValue: String {
-        AccessibilityFormatters.progress(percent: percentComplete, isComplete: isGoalReached)
+        "Tap to open the app"
     }
 }
 
@@ -115,114 +120,165 @@ struct ProgressEntry: TimelineEntry {
 
 struct ProgressWidgetView: View {
     let entry: ProgressEntry
+    @Environment(\.widgetFamily) var family
     @Environment(\.colorSchemeContrast) var contrast
-    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
-        VStack(spacing: 10) {
-            // Circular progress indicator
-            circularProgressView
-
-            // Focus time and sessions info
-            focusInfoView
+        Group {
+            switch family {
+            case .systemMedium:
+                mediumLayout
+            default:
+                smallLayout
+            }
         }
-        .padding()
         .containerBackground(for: .widget) {
-            WidgetColors.background
+            WidgetColors.questBackground
         }
-        // Apply comprehensive accessibility to entire widget
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(entry.accessibilityLabel)
         .accessibilityHint(entry.accessibilityHint)
-        .accessibilityValue(entry.accessibilityValue)
-        .accessibilityAddTraits(entry.isGoalReached ? .startsMediaSession : [])
     }
 
-    // MARK: - Circular Progress View
+    // MARK: - Small Layout
 
-    private var circularProgressView: some View {
-        ZStack {
-            // Background circle
-            Circle()
-                .stroke(progressBackgroundColor, lineWidth: 8)
-                .accessibilityHidden(true)
-
-            // Progress circle
-            Circle()
-                .trim(from: 0, to: entry.progress)
-                .stroke(
-                    progressForegroundColor,
-                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .accessibilityHidden(true)
-
-            // Center content
-            VStack(spacing: 2) {
-                Text(WidgetStrings.percentComplete(entry.percentComplete))
-                    .font(AccessibleFonts.headline)
-                    .foregroundColor(primaryTextColor)
-                    .minimumScaleFactor(0.6)
+    private var smallLayout: some View {
+        VStack(spacing: 4) {
+            // Quest header
+            HStack(spacing: 4) {
+                Text(entry.questStatusIcon)
+                    .font(.system(size: 14))
+                Text("Daily Quest")
+                    .font(.system(.caption, design: .rounded).weight(.bold))
+                    .foregroundColor(WidgetColors.pixelYellow)
                     .lineLimit(1)
-                    .accessibilityHidden(true)
+            }
 
-                if entry.isGoalReached {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundColor(successColor)
-                        .accessibilityHidden(true)
+            Spacer(minLength: 2)
+
+            // Minutes display
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text("\(entry.focusMinutes)")
+                    .font(.system(size: 28, weight: .black, design: .rounded))
+                    .foregroundColor(.white)
+                Text("/\(entry.goalMinutes)")
+                    .font(.system(.caption, design: .rounded).weight(.semibold))
+                    .foregroundColor(WidgetColors.tertiary)
+            }
+            .minimumScaleFactor(0.6)
+            .lineLimit(1)
+
+            Text("min")
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                .foregroundColor(WidgetColors.secondary)
+                .textCase(.uppercase)
+
+            // Progress bar
+            PixelProgressBar(
+                progress: entry.progress,
+                fillColor: entry.isGoalReached ? WidgetColors.success : WidgetColors.progressFill,
+                height: 10
+            )
+            .padding(.horizontal, 4)
+
+            // Sessions or completion message
+            if entry.isGoalReached {
+                Text("🎉 COMPLETE!")
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundColor(WidgetColors.pixelYellow)
+            } else {
+                HStack(spacing: 4) {
+                    Text("✓ \(entry.sessionsCompleted)")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundColor(WidgetColors.progressFill)
+                    Text("sessions")
+                        .font(.system(size: 10, design: .rounded))
+                        .foregroundColor(WidgetColors.tertiary)
                 }
             }
+
+            Spacer(minLength: 1)
+
+            // Fun message
+            Text(entry.funMessage)
+                .font(.system(size: 9, weight: .medium, design: .rounded))
+                .foregroundColor(WidgetColors.messageText)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
         }
-        .frame(width: 70, height: 70)
-        .accessibilityHidden(true)
+        .padding(12)
     }
 
-    // MARK: - Focus Info View
+    // MARK: - Medium Layout
 
-    private var focusInfoView: some View {
-        VStack(spacing: 2) {
-            // Focus time
-            Text("\(entry.focusMinutes) / \(entry.goalMinutes) min")
-                .font(AccessibleFonts.caption)
-                .foregroundColor(secondaryTextColor)
-                .accessibilityHidden(true)
+    private var mediumLayout: some View {
+        HStack(spacing: 14) {
+            // Left: Quest info
+            VStack(alignment: .leading, spacing: 6) {
+                // Quest header
+                HStack(spacing: 6) {
+                    Text(entry.questStatusIcon)
+                        .font(.system(size: 18))
+                    Text("Daily Quest")
+                        .font(.system(.subheadline, design: .rounded).weight(.bold))
+                        .foregroundColor(WidgetColors.pixelYellow)
+                }
 
-            // Sessions count
-            Text("\(entry.sessionsCompleted) \(WidgetStrings.sessions)")
-                .font(AccessibleFonts.caption2)
-                .foregroundColor(tertiaryTextColor)
-                .accessibilityHidden(true)
+                Spacer(minLength: 4)
+
+                // Progress bar with label
+                VStack(alignment: .leading, spacing: 4) {
+                    PixelProgressBar(
+                        progress: entry.progress,
+                        fillColor: entry.isGoalReached ? WidgetColors.success : WidgetColors.progressFill,
+                        height: 12
+                    )
+
+                    HStack {
+                        Text("\(entry.focusMinutes)/\(entry.goalMinutes) min")
+                            .font(.system(.caption2, design: .rounded).weight(.semibold))
+                            .foregroundColor(WidgetColors.secondary)
+                        Spacer()
+                        Text("\(entry.percentComplete)%")
+                            .font(.system(.caption2, design: .rounded).weight(.bold))
+                            .foregroundColor(entry.isGoalReached ? WidgetColors.success : WidgetColors.progressFill)
+                    }
+                }
+
+                // Fun message
+                Text(entry.funMessage)
+                    .font(.system(.caption, design: .rounded).weight(.medium))
+                    .foregroundColor(WidgetColors.messageText)
+                    .lineLimit(2)
+            }
+
+            // Right: Big stats
+            VStack(spacing: 8) {
+                if entry.isGoalReached {
+                    Text("🏆")
+                        .font(.system(size: 32))
+                    Text("QUEST\nCLEARED!")
+                        .font(.system(size: 11, weight: .black, design: .rounded))
+                        .foregroundColor(WidgetColors.pixelYellow)
+                        .multilineTextAlignment(.center)
+                } else {
+                    VStack(spacing: 2) {
+                        Text("\(entry.sessionsCompleted)")
+                            .font(.system(size: 28, weight: .black, design: .rounded))
+                            .foregroundColor(.white)
+                        Text("sessions")
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .foregroundColor(WidgetColors.tertiary)
+                    }
+
+                    Text(entry.displayEmoji)
+                        .font(.system(size: 20))
+                }
+            }
+            .frame(minWidth: 70)
         }
-    }
-
-    // MARK: - Accessible Colors
-
-    private var progressBackgroundColor: Color {
-        contrast == .increased ? WidgetColors.progressBackgroundHighContrast : WidgetColors.progressBackground
-    }
-
-    private var progressForegroundColor: Color {
-        if entry.isGoalReached {
-            return contrast == .increased ? WidgetColors.successHighContrast : WidgetColors.success
-        }
-        return contrast == .increased ? WidgetColors.accentHighContrast : WidgetColors.accent
-    }
-
-    private var primaryTextColor: Color {
-        .white
-    }
-
-    private var secondaryTextColor: Color {
-        contrast == .increased ? WidgetColors.secondaryHighContrast : WidgetColors.secondary
-    }
-
-    private var tertiaryTextColor: Color {
-        contrast == .increased ? WidgetColors.tertiaryHighContrast : WidgetColors.tertiary
-    }
-
-    private var successColor: Color {
-        contrast == .increased ? WidgetColors.successHighContrast : WidgetColors.success
+        .padding(14)
     }
 }
 
@@ -232,35 +288,34 @@ struct ProgressWidgetView: View {
 struct ProgressWidget_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            // In progress
             ProgressWidgetView(entry: .placeholder)
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
-                .previewDisplayName("In Progress")
+                .previewDisplayName("In Progress - Small")
 
-            // Goal reached
             ProgressWidgetView(entry: ProgressEntry(
-                date: Date(),
-                focusMinutes: 120,
-                goalMinutes: 120,
-                sessionsCompleted: 5
+                date: Date(), focusMinutes: 120, goalMinutes: 120,
+                sessionsCompleted: 5, petEmoji: "🐝"
             ))
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
-                .previewDisplayName("Goal Reached")
+                .previewDisplayName("Completed - Small")
 
-            // Just started
             ProgressWidgetView(entry: ProgressEntry(
-                date: Date(),
-                focusMinutes: 10,
-                goalMinutes: 120,
-                sessionsCompleted: 1
+                date: Date(), focusMinutes: 10, goalMinutes: 120,
+                sessionsCompleted: 1, petEmoji: "🐰"
             ))
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
                 .previewDisplayName("Just Started")
 
-            // Medium size
             ProgressWidgetView(entry: .placeholder)
                 .previewContext(WidgetPreviewContext(family: .systemMedium))
-                .previewDisplayName("Medium Widget")
+                .previewDisplayName("In Progress - Medium")
+
+            ProgressWidgetView(entry: ProgressEntry(
+                date: Date(), focusMinutes: 120, goalMinutes: 120,
+                sessionsCompleted: 5, petEmoji: "🦊"
+            ))
+                .previewContext(WidgetPreviewContext(family: .systemMedium))
+                .previewDisplayName("Completed - Medium")
         }
     }
 }

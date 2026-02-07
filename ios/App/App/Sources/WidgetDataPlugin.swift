@@ -27,7 +27,8 @@ public class WidgetDataPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "updateTimer", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "updateStreak", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "updateDailyProgress", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "updateStats", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "updateStats", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "updatePetInfo", returnType: CAPPluginReturnPromise)
     ]
 
     // MARK: - Dependencies
@@ -125,6 +126,16 @@ public class WidgetDataPlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(with: error as? PluginError ?? .dataEncodingFailed)
         }
     }
+
+    @objc func updatePetInfo(_ call: CAPPluginCall) {
+        do {
+            let petData = try PluginValidation.requiredObject(call, key: "petInfo")
+            try widgetManager.updatePartialData(key: "petInfo", value: petData)
+            call.resolveSuccess()
+        } catch {
+            call.reject(with: error as? PluginError ?? .dataEncodingFailed)
+        }
+    }
 }
 
 // MARK: - Widget Data Model (for Widget Extension)
@@ -196,10 +207,25 @@ struct WidgetSharedData: Codable {
         }
     }
 
+    struct PetInfo: Codable {
+        var activePetName: String?
+        var activePetEmoji: String?
+        var totalPetsCollected: Int
+        var currentBiome: String?
+
+        init() {
+            activePetName = nil
+            activePetEmoji = nil
+            totalPetsCollected = 0
+            currentBiome = nil
+        }
+    }
+
     var timer: TimerData
     var streak: StreakData
     var dailyProgress: DailyProgress
     var stats: Stats
+    var petInfo: PetInfo
     var lastUpdated: Double
 
     init() {
@@ -207,6 +233,7 @@ struct WidgetSharedData: Codable {
         streak = StreakData()
         dailyProgress = DailyProgress()
         stats = Stats()
+        petInfo = PetInfo()
         lastUpdated = Date().timeIntervalSince1970 * 1000
     }
 }
@@ -242,5 +269,9 @@ final class WidgetDataReader {
 
     static var stats: WidgetSharedData.Stats {
         load().stats
+    }
+
+    static var petInfo: WidgetSharedData.PetInfo {
+        load().petInfo
     }
 }

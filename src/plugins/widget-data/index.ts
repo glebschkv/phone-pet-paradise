@@ -50,6 +50,14 @@ export interface WidgetData {
     totalSessions: number;
   };
 
+  // Pet info for widget display
+  petInfo: {
+    activePetName: string | null;
+    activePetEmoji: string | null;
+    totalPetsCollected: number;
+    currentBiome: string | null;
+  };
+
   // Last updated timestamp
   lastUpdated: number;
 }
@@ -63,6 +71,7 @@ interface WidgetDataPluginInterface {
   updateStreak(options: { streak: Partial<WidgetData['streak']> }): Promise<{ success: boolean }>;
   updateDailyProgress(options: { dailyProgress: Partial<WidgetData['dailyProgress']> }): Promise<{ success: boolean }>;
   updateStats(options: { stats: Partial<WidgetData['stats']> }): Promise<{ success: boolean }>;
+  updatePetInfo(options: { petInfo: Partial<WidgetData['petInfo']> }): Promise<{ success: boolean }>;
 }
 
 // Register native plugin
@@ -70,6 +79,54 @@ const WidgetDataPlugin = registerPlugin<WidgetDataPluginInterface>('WidgetData')
 
 // Local storage key
 const WIDGET_DATA_KEY = 'widget_data';
+
+// Pet ID to emoji mapping for widget display
+const PET_EMOJI_MAP: Record<string, { name: string; emoji: string }> = {
+  'dewdrop-frog': { name: 'Dewdrop Frog', emoji: '🐸' },
+  'sprout-bunny': { name: 'Sprout Bunny', emoji: '🐰' },
+  'petal-puff': { name: 'Petal Puff', emoji: '🌸' },
+  'honey-bee': { name: 'Honey Bee', emoji: '🐝' },
+  'acorn-squirrel': { name: 'Acorn Squirrel', emoji: '🐿️' },
+  'bamboo-panda': { name: 'Bamboo Panda', emoji: '🐼' },
+  'honey-bear': { name: 'Honey Bear', emoji: '🐻' },
+  'clover-cat': { name: 'Clover Cat', emoji: '🍀' },
+  'slime-king': { name: 'Slime King', emoji: '👑' },
+  'playful-cat': { name: 'Playful Cat', emoji: '🐱' },
+  'happy-doggo': { name: 'Happy Doggo', emoji: '🐶' },
+  'spotted-doggo': { name: 'Spotted Doggo', emoji: '🐕' },
+  'mushroom-kid': { name: 'Mushroom Kid', emoji: '🍄' },
+  'bunny-hood': { name: 'Bunny Hood', emoji: '🐰' },
+  'star-wizard': { name: 'Star Wizard', emoji: '⭐' },
+  'cat-hood': { name: 'Cat Hood', emoji: '🐱' },
+  'ember-fox': { name: 'Ember Fox', emoji: '🦊' },
+  'dusk-owl': { name: 'Dusk Owl', emoji: '🦉' },
+  'golden-moth': { name: 'Golden Moth', emoji: '🦋' },
+  'shark-hood': { name: 'Shark Hood', emoji: '🦈' },
+  'wild-horse': { name: 'Wild Horse', emoji: '🐴' },
+  'sea-turtle': { name: 'Sea Turtle', emoji: '🐢' },
+  'golden-fox': { name: 'Golden Fox', emoji: '🦊' },
+  'luna-moth': { name: 'Luna Moth', emoji: '🦋' },
+  'star-jelly': { name: 'Star Jelly', emoji: '🪼' },
+  'shadow-cat': { name: 'Shadow Cat', emoji: '🐈‍⬛' },
+  'cute-ghost': { name: 'Cute Ghost', emoji: '👻' },
+  'kitsune-spirit': { name: 'Kitsune Spirit', emoji: '🦊' },
+  'mystic-kitsune': { name: 'Mystic Kitsune', emoji: '✨' },
+  'vampire-bat': { name: 'Vampire Bat', emoji: '🦇' },
+  'flame-spirit': { name: 'Flame Spirit', emoji: '🔥' },
+  'aqua-spirit': { name: 'Aqua Spirit', emoji: '💧' },
+  'storm-spirit': { name: 'Storm Spirit', emoji: '⚡' },
+  'dino-kid': { name: 'Dino Kid', emoji: '🦕' },
+  'dude-monster': { name: 'Dude Monster', emoji: '👾' },
+  'flower-fairy': { name: 'Flower Fairy', emoji: '🧚' },
+  'penguin-kid': { name: 'Penguin Kid', emoji: '🐧' },
+  'pirate-kid': { name: 'Pirate Kid', emoji: '🏴‍☠️' },
+  'robot-buddy': { name: 'Robot Buddy', emoji: '🤖' },
+  'dragon-knight': { name: 'Dragon Knight', emoji: '🐉' },
+  'goblin-king': { name: 'Goblin King', emoji: '👺' },
+  'baby-dragon': { name: 'Baby Dragon', emoji: '🐲' },
+  'frog-hood': { name: 'Frog Hood', emoji: '🐸' },
+  'bear-hood': { name: 'Bear Hood', emoji: '🐻' },
+};
 
 class WidgetDataService {
   private data: WidgetData;
@@ -113,6 +170,12 @@ class WidgetDataService {
         totalXP: 0,
         totalFocusTime: 0,
         totalSessions: 0,
+      },
+      petInfo: {
+        activePetName: null,
+        activePetEmoji: null,
+        totalPetsCollected: 0,
+        currentBiome: null,
       },
       lastUpdated: Date.now(),
     };
@@ -258,6 +321,24 @@ class WidgetDataService {
   }
 
   /**
+   * Update pet info
+   */
+  async updatePetInfo(petData: Partial<WidgetData['petInfo']>): Promise<void> {
+    this.data.petInfo = { ...this.data.petInfo, ...petData };
+    this.data.lastUpdated = Date.now();
+
+    localStorage.setItem(WIDGET_DATA_KEY, JSON.stringify(this.data));
+
+    if (this.isNative) {
+      try {
+        await WidgetDataPlugin.updatePetInfo({ petInfo: petData });
+      } catch (error) {
+        widgetLogger.error('Failed to update pet info:', error);
+      }
+    }
+  }
+
+  /**
    * Get current widget data
    */
   getData(): WidgetData {
@@ -375,6 +456,65 @@ class WidgetDataService {
           goalMinutes: analyticsSettings.dailyGoalMinutes,
         });
       }
+
+      // Load pet info from collection and XP stores
+      const collectionData = localStorage.getItem('petparadise-collection');
+      const xpSystemData = storage.get<{
+        currentBiome?: string;
+        unlockedAnimals?: string[];
+      }>(STORAGE_KEYS.XP_SYSTEM);
+
+      let activePetName: string | null = null;
+      let activePetEmoji: string | null = null;
+      let totalPetsCollected = 0;
+
+      if (collectionData) {
+        try {
+          const parsed = JSON.parse(collectionData);
+          const state = parsed?.state;
+          const activeHomePets: string[] = state?.activeHomePets ?? [];
+          if (activeHomePets.length > 0) {
+            const petId = activeHomePets[0];
+            const petInfo = PET_EMOJI_MAP[petId];
+            if (petInfo) {
+              activePetName = petInfo.name;
+              activePetEmoji = petInfo.emoji;
+            }
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+
+      if (xpSystemData?.unlockedAnimals) {
+        totalPetsCollected = xpSystemData.unlockedAnimals.length;
+      }
+
+      // Also count shop-bought pets
+      const shopData = localStorage.getItem('petIsland_shopInventory');
+      if (shopData) {
+        try {
+          const parsed = JSON.parse(shopData);
+          const state = parsed?.state;
+          const ownedCharacters: string[] = state?.ownedCharacters ?? [];
+          // Add unique shop pets not already counted
+          const unlocked = new Set(xpSystemData?.unlockedAnimals ?? []);
+          for (const id of ownedCharacters) {
+            if (!unlocked.has(id)) {
+              totalPetsCollected++;
+            }
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+
+      await this.updatePetInfo({
+        activePetName,
+        activePetEmoji,
+        totalPetsCollected,
+        currentBiome: xpSystemData?.currentBiome ?? null,
+      });
     } catch (error) {
       widgetLogger.error('Failed to sync from app state:', error);
     }

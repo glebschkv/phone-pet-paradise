@@ -87,11 +87,20 @@ export const useWidgetSync = () => {
     [],
   );
 
+  const syncPetInfo = useCallback(
+    (data: Partial<WidgetData['petInfo']>) => {
+      widgetDataService.updatePetInfo(data).catch((err) => {
+        widgetLogger.error('Pet info sync failed:', err);
+      });
+    },
+    [],
+  );
+
   const syncAll = useCallback(() => {
     widgetDataService.syncFromAppState().catch((err) => {
       widgetLogger.error('Full sync failed:', err);
     });
   }, []);
 
-  return { syncTimer, syncStreak, syncDailyProgress, syncStats, syncAll };
+  return { syncTimer, syncStreak, syncDailyProgress, syncStats, syncPetInfo, syncAll };
 };

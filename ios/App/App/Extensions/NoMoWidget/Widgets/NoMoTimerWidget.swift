@@ -2,18 +2,17 @@ import SwiftUI
 import WidgetKit
 
 /**
- * NoMoTimerWidget
+ * NoMoTimerWidget - "Pet Buddy" Widget
  *
- * Displays the current focus timer status.
- * Shows remaining time and session type.
+ * Shows your active pet alongside the focus timer.
+ * Features rotating funny messages based on session state.
+ * Screenshot-worthy design with retro pixel aesthetic.
  *
  * Accessibility Features:
- * - Full VoiceOver support with comprehensive labels and hints
- * - Dynamic Type support for all text
- * - Reduced motion support
+ * - Full VoiceOver support
+ * - Dynamic Type support
  * - High contrast support
- * - Semantic accessibility structure
- * - Updates frequently trait for live timer
+ * - Reduced motion support
  */
 struct NoMoTimerWidget: Widget {
     let kind = "NoMoTimerWidget"
@@ -22,8 +21,8 @@ struct NoMoTimerWidget: Widget {
         StaticConfiguration(kind: kind, provider: TimerProvider()) { entry in
             TimerWidgetView(entry: entry)
         }
-        .configurationDisplayName(WidgetStrings.timerTitle)
-        .description(NSLocalizedString("widget.timer_description", value: "Track your focus session progress", comment: ""))
+        .configurationDisplayName("Pet Buddy")
+        .description("Your pet keeps you company during focus sessions")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -48,13 +47,16 @@ struct TimerProvider: TimelineProvider {
 
     private func loadEntry() -> TimerEntry {
         let data = WidgetDataReader.timerData
+        let pet = WidgetDataReader.petInfo
         return TimerEntry(
             date: Date(),
             isRunning: data.isRunning,
             timeRemaining: data.timeRemaining,
             sessionDuration: data.sessionDuration,
             sessionType: data.sessionType,
-            taskLabel: data.taskLabel
+            taskLabel: data.taskLabel,
+            petName: pet.activePetName,
+            petEmoji: pet.activePetEmoji
         )
     }
 }
@@ -68,6 +70,8 @@ struct TimerEntry: TimelineEntry {
     let sessionDuration: Int
     let sessionType: String?
     let taskLabel: String?
+    let petName: String?
+    let petEmoji: String?
 
     static let placeholder = TimerEntry(
         date: Date(),
@@ -75,7 +79,9 @@ struct TimerEntry: TimelineEntry {
         timeRemaining: 15 * 60,
         sessionDuration: 25 * 60,
         sessionType: "Focus",
-        taskLabel: nil
+        taskLabel: nil,
+        petName: "Dewdrop Frog",
+        petEmoji: "🐸"
     )
 
     var progress: Double {
@@ -93,45 +99,40 @@ struct TimerEntry: TimelineEntry {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
-    var minutes: Int {
-        timeRemaining / 60
+    var minutes: Int { timeRemaining / 60 }
+    var seconds: Int { timeRemaining % 60 }
+
+    var isAlmostDone: Bool { isRunning && timeRemaining <= 300 }
+
+    var funMessage: String {
+        if isRunning {
+            return isAlmostDone
+                ? WidgetPetMessages.timerAlmostDone
+                : WidgetPetMessages.timerRunning
+        }
+        return WidgetPetMessages.timerIdle
     }
 
-    var seconds: Int {
-        timeRemaining % 60
+    var displayEmoji: String {
+        petEmoji ?? "🐾"
+    }
+
+    var displayName: String {
+        WidgetPetMessages.petDisplayName(petName)
     }
 
     // MARK: - Accessibility
 
-    /// Full accessibility label for the widget
     var accessibilityLabel: String {
         if isRunning {
-            let type = sessionType ?? WidgetAccessibilityStrings.sessionTypeFocus
-            let timeDescription = AccessibilityFormatters.timeRemaining(minutes: minutes, seconds: seconds)
-            return String(
-                format: WidgetAccessibilityStrings.timerSummaryActive,
-                type,
-                timeDescription,
-                progressPercent
-            )
+            let type = sessionType ?? "Focus"
+            return "\(displayName) is helping you focus. \(type) session, \(minutes) minutes and \(seconds) seconds remaining, \(progressPercent) percent complete"
         }
-        return WidgetAccessibilityStrings.timerSummaryInactive
+        return "\(displayName) is waiting for you to start a focus session"
     }
 
-    /// Accessibility hint for the widget
     var accessibilityHint: String {
-        if isRunning {
-            return WidgetAccessibilityStrings.hintLiveProgress
-        }
-        return WidgetAccessibilityStrings.hintTapToStart
-    }
-
-    /// Accessibility value for the timer
-    var accessibilityValue: String {
-        if isRunning {
-            return AccessibilityFormatters.timeRemaining(minutes: minutes, seconds: seconds)
-        }
-        return ""
+        isRunning ? "Shows live focus session progress" : "Tap to start a focus session"
     }
 }
 
@@ -139,103 +140,176 @@ struct TimerEntry: TimelineEntry {
 
 struct TimerWidgetView: View {
     let entry: TimerEntry
+    @Environment(\.widgetFamily) var family
     @Environment(\.colorSchemeContrast) var contrast
-    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
-        VStack(spacing: 8) {
-            if entry.isRunning {
-                activeSessionView
-            } else {
-                inactiveSessionView
+        Group {
+            switch family {
+            case .systemMedium:
+                mediumLayout
+            default:
+                smallLayout
             }
         }
-        .padding()
         .containerBackground(for: .widget) {
             WidgetColors.background
         }
-        // Apply comprehensive accessibility to entire widget
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(entry.accessibilityLabel)
         .accessibilityHint(entry.accessibilityHint)
-        .accessibilityValue(entry.accessibilityValue)
         .accessibilityAddTraits(entry.isRunning ? .updatesFrequently : [])
     }
 
-    // MARK: - Active Session View
+    // MARK: - Small Layout
 
-    private var activeSessionView: some View {
-        VStack(spacing: 8) {
-            // Timer icon
-            Image(systemName: "timer")
-                .font(.title2)
-                .foregroundColor(accessibleAccentColor)
-                .accessibilityHidden(true)
-
-            // Time display
-            Text(entry.formattedTime)
-                .font(AccessibleFonts.timerDisplay)
-                .foregroundColor(accessiblePrimaryTextColor)
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
-                .accessibilityHidden(true)
-
-            // Session type
-            if let sessionType = entry.sessionType {
-                Text(sessionType)
-                    .font(AccessibleFonts.caption)
-                    .foregroundColor(accessibleSecondaryTextColor)
-                    .accessibilityHidden(true)
+    private var smallLayout: some View {
+        VStack(spacing: 4) {
+            // Pet header
+            HStack(spacing: 4) {
+                Text(entry.displayEmoji)
+                    .font(.system(size: 16))
+                Text(entry.displayName)
+                    .font(.system(.caption, design: .rounded).weight(.bold))
+                    .foregroundColor(WidgetColors.secondary)
+                    .lineLimit(1)
             }
 
-            // Progress bar
-            ProgressView(value: entry.progress)
-                .progressViewStyle(LinearProgressViewStyle(tint: accessibleAccentColor))
-                .padding(.horizontal)
-                .accessibilityHidden(true)
+            Spacer(minLength: 2)
+
+            if entry.isRunning {
+                // Big timer display
+                Text(entry.formattedTime)
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+
+                // Pixel-style progress bar
+                PixelProgressBar(
+                    progress: entry.progress,
+                    fillColor: entry.isAlmostDone ? WidgetColors.warning : WidgetColors.accent,
+                    height: 8
+                )
+                .padding(.horizontal, 4)
+            } else {
+                // Idle state with zzz
+                Text("💤")
+                    .font(.system(size: 28))
+
+                Text("zzz...")
+                    .font(.system(.title3, design: .rounded).weight(.medium))
+                    .foregroundColor(WidgetColors.tertiary)
+            }
+
+            Spacer(minLength: 2)
+
+            // Fun message
+            Text(entry.funMessage)
+                .font(.system(size: 10, weight: .medium, design: .rounded))
+                .foregroundColor(WidgetColors.messageText)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
         }
+        .padding(12)
     }
 
-    // MARK: - Inactive Session View
+    // MARK: - Medium Layout
 
-    private var inactiveSessionView: some View {
-        VStack(spacing: 8) {
-            // Moon icon
-            Image(systemName: "moon.stars.fill")
-                .font(.largeTitle)
-                .foregroundColor(accessibleAccentColor)
-                .accessibilityHidden(true)
+    private var mediumLayout: some View {
+        HStack(spacing: 12) {
+            // Left: Pet + message
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Text(entry.displayEmoji)
+                        .font(.system(size: 24))
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(entry.displayName)
+                            .font(.system(.subheadline, design: .rounded).weight(.bold))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                        if let type = entry.sessionType, entry.isRunning {
+                            Text(type)
+                                .font(.system(.caption2, design: .rounded))
+                                .foregroundColor(WidgetColors.accent)
+                        }
+                    }
+                }
 
-            // No session message
-            Text(WidgetStrings.noSession)
-                .font(AccessibleFonts.subheadline)
-                .foregroundColor(accessibleSecondaryTextColor)
-                .accessibilityHidden(true)
+                Spacer(minLength: 4)
 
-            // Tap to start instruction
-            Text(WidgetStrings.tapToStart)
-                .font(AccessibleFonts.caption2)
-                .foregroundColor(accessibleTertiaryTextColor)
-                .accessibilityHidden(true)
+                Text(entry.funMessage)
+                    .font(.system(.caption, design: .rounded).weight(.medium))
+                    .foregroundColor(WidgetColors.messageText)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if entry.isRunning {
+                    PixelProgressBar(
+                        progress: entry.progress,
+                        fillColor: entry.isAlmostDone ? WidgetColors.warning : WidgetColors.accent,
+                        height: 8
+                    )
+                }
+            }
+
+            Spacer(minLength: 0)
+
+            // Right: Timer or idle
+            VStack(spacing: 4) {
+                if entry.isRunning {
+                    Text(entry.formattedTime)
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .minimumScaleFactor(0.6)
+
+                    Text("\(entry.progressPercent)%")
+                        .font(.system(.caption, design: .rounded).weight(.semibold))
+                        .foregroundColor(WidgetColors.accent)
+                } else {
+                    Text("💤")
+                        .font(.system(size: 32))
+                    Text("tap to start")
+                        .font(.system(.caption2, design: .rounded))
+                        .foregroundColor(WidgetColors.tertiary)
+                }
+            }
+            .frame(minWidth: 90)
         }
+        .padding(14)
     }
+}
 
-    // MARK: - Accessible Colors
+// MARK: - Pixel Progress Bar
 
-    private var accessibleAccentColor: Color {
-        contrast == .increased ? WidgetColors.accentHighContrast : WidgetColors.accent
-    }
+struct PixelProgressBar: View {
+    let progress: Double
+    let fillColor: Color
+    var height: CGFloat = 8
 
-    private var accessiblePrimaryTextColor: Color {
-        contrast == .increased ? .white : .white
-    }
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                // Background track
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(WidgetColors.progressBackground)
 
-    private var accessibleSecondaryTextColor: Color {
-        contrast == .increased ? WidgetColors.secondaryHighContrast : WidgetColors.secondary
-    }
+                // Filled portion
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(fillColor)
+                    .frame(width: max(0, geometry.size.width * CGFloat(min(progress, 1.0))))
 
-    private var accessibleTertiaryTextColor: Color {
-        contrast == .increased ? WidgetColors.tertiaryHighContrast : WidgetColors.tertiary
+                // Top highlight for pixel emboss effect
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.white.opacity(0.15))
+                    .frame(height: height / 3)
+                    .frame(width: max(0, geometry.size.width * CGFloat(min(progress, 1.0))))
+                    .offset(y: -height / 4)
+            }
+        }
+        .frame(height: height)
+        .clipShape(RoundedRectangle(cornerRadius: 2))
     }
 }
 
@@ -245,27 +319,29 @@ struct TimerWidgetView: View {
 struct TimerWidget_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            // Active session
             TimerWidgetView(entry: .placeholder)
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
-                .previewDisplayName("Active Session")
+                .previewDisplayName("Active - Small")
 
-            // Inactive session
             TimerWidgetView(entry: TimerEntry(
-                date: Date(),
-                isRunning: false,
-                timeRemaining: 0,
-                sessionDuration: 0,
-                sessionType: nil,
-                taskLabel: nil
+                date: Date(), isRunning: false, timeRemaining: 0,
+                sessionDuration: 0, sessionType: nil, taskLabel: nil,
+                petName: "Shadow Cat", petEmoji: "🐱"
             ))
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
-                .previewDisplayName("No Session")
+                .previewDisplayName("Idle - Small")
 
-            // Medium size
             TimerWidgetView(entry: .placeholder)
                 .previewContext(WidgetPreviewContext(family: .systemMedium))
-                .previewDisplayName("Medium Widget")
+                .previewDisplayName("Active - Medium")
+
+            TimerWidgetView(entry: TimerEntry(
+                date: Date(), isRunning: true, timeRemaining: 180,
+                sessionDuration: 1500, sessionType: "Deep Work", taskLabel: nil,
+                petName: "Star Wizard", petEmoji: "⭐"
+            ))
+                .previewContext(WidgetPreviewContext(family: .systemSmall))
+                .previewDisplayName("Almost Done")
         }
     }
 }
