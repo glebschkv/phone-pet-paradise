@@ -110,15 +110,15 @@ class ShieldConfigurationHelper {
                 )
             }
 
-            // Text setup — SF Mono Heavy for a techy/terminal aesthetic
+            // Text setup — SF Pro Rounded Heavy, wide kerning
             let text = "NOMO"
             let fontSize: CGFloat = 52
             let font: UIFont
             if let desc = UIFont.systemFont(ofSize: fontSize, weight: .heavy)
-                        .fontDescriptor.withDesign(.monospaced) {
+                        .fontDescriptor.withDesign(.rounded) {
                 font = UIFont(descriptor: desc, size: fontSize)
             } else {
-                font = UIFont.monospacedSystemFont(ofSize: fontSize, weight: .heavy)
+                font = UIFont.systemFont(ofSize: fontSize, weight: .heavy)
             }
 
             let paragraphStyle = NSMutableParagraphStyle()
