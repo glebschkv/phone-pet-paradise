@@ -45,8 +45,9 @@ interface TimerViewProps {
 
   // Background theme
   backgroundTheme: string;
-  currentLevel: number;
+  isPremium: boolean;
   onThemeChange: (themeId: string) => void;
+  onLockedBackgroundClick: () => void;
 }
 
 export const TimerView = ({
@@ -61,8 +62,9 @@ export const TimerView = ({
   onToggleSound,
   onSelectPreset,
   backgroundTheme,
-  currentLevel,
+  isPremium,
   onThemeChange,
+  onLockedBackgroundClick,
 }: TimerViewProps) => {
   const [showMore, setShowMore] = useState(false);
 
@@ -105,8 +107,9 @@ export const TimerView = ({
       <div className="mt-4 w-full flex justify-center">
         <BackgroundThemeSwitcher
           currentTheme={backgroundTheme}
-          currentLevel={currentLevel}
+          isPremium={isPremium}
           onThemeChange={onThemeChange}
+          onLockedClick={onLockedBackgroundClick}
         />
       </div>
 

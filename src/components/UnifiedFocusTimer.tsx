@@ -12,7 +12,7 @@
  */
 
 import { useState } from "react";
-import { useBackendAppState } from "@/hooks/useBackendAppState";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useTimerLogic } from "./focus-timer/hooks/useTimerLogic";
 import { useBackgroundTheme } from "./focus-timer/hooks/useBackgroundTheme";
 import { FocusBackground } from "./focus-timer/backgrounds";
@@ -22,15 +22,17 @@ import { AmbientSoundPicker } from "./focus-timer/AmbientSoundPicker";
 import { TimerView } from "./focus-timer/TimerView";
 import { StatsView } from "./focus-timer/StatsView";
 import { TimerModals } from "./focus-timer/TimerModals";
+import { PremiumSubscription } from "./PremiumSubscription";
 
 type TimerViewType = 'timer' | 'stats';
 
 export const UnifiedFocusTimer = () => {
-  const { currentLevel } = useBackendAppState();
+  const { isPremium } = usePremiumStatus();
   const [currentView, setCurrentView] = useState<TimerViewType>('timer');
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   // Background theme management
-  const { backgroundTheme, changeBackgroundTheme } = useBackgroundTheme(currentLevel);
+  const { backgroundTheme, changeBackgroundTheme } = useBackgroundTheme(isPremium);
 
   // Timer logic (state, controls, countdown, rewards, etc.)
   const {
@@ -92,8 +94,9 @@ export const UnifiedFocusTimer = () => {
               onToggleSound={toggleSound}
               onSelectPreset={setPreset}
               backgroundTheme={backgroundTheme}
-              currentLevel={currentLevel}
+              isPremium={isPremium}
               onThemeChange={changeBackgroundTheme}
+              onLockedBackgroundClick={() => setShowPremiumModal(true)}
             />
 
             <TimerModals
@@ -133,6 +136,10 @@ export const UnifiedFocusTimer = () => {
             />
           </>
         )}
+        <PremiumSubscription
+          isOpen={showPremiumModal}
+          onClose={() => setShowPremiumModal(false)}
+        />
       </div>
     </FocusThemeProvider>
   );
