@@ -281,10 +281,27 @@ export const useCoinSystem = () => {
   const storeResetCoins = useCoinStore((s) => s.resetCoins);
   const storeSyncFromServer = useCoinStore((s) => s.syncFromServer);
 
-  // Sync balance from server - returns true if balance was actually updated
-  const syncFromServer = useCallback(async (): Promise<boolean> => {
+  // Sync balance from server - returns true if balance was actually updated.
+  // SAFETY: Only syncs if the server balance is higher or if there are no
+  // pending local operations. This prevents the periodic sync from erasing
+  // coins that were earned/purchased locally but whose server validation
+  // hasn't completed yet (e.g. edge function cold start, network delay).
+  const syncFromServer = useCallback(async (force = false): Promise<boolean> => {
     const response = await serverGetBalance();
     if (response.success && response.newBalance !== undefined) {
+      const currentBalance = useCoinStore.getState().balance;
+      const hasPending = useCoinStore.getState().pendingServerValidation;
+
+      // If there are pending local operations and server balance is lower,
+      // skip the sync to avoid erasing locally-optimistic coins.
+      // Force mode (used after explicit IAP sync) always applies.
+      if (!force && hasPending && response.newBalance < currentBalance) {
+        coinLogger.debug('Skipping sync — pending local ops and server balance is lower', {
+          server: response.newBalance, local: currentBalance,
+        });
+        return false;
+      }
+
       storeSyncFromServer(
         response.newBalance,
         response.totalEarned ?? totalEarned,
@@ -386,14 +403,15 @@ export const useCoinSystem = () => {
   }, [storeAddCoins]);
 
   // Listen for IAP coin grants (coin packs and bundles)
-  // Server has already added coins, so we just need to sync the local state
+  // Server has already added coins, so we force-sync the local state.
+  // Uses syncFromServerRef to keep the effect stable and avoid listener churn.
   useEffect(() => {
     const handleIAPCoins = (event: Event) => {
       const customEvent = event as CustomEvent<{ coinsGranted: number }>;
       const { coinsGranted } = customEvent.detail;
       if (coinsGranted > 0) {
-        // Sync from server to get the updated balance
-        syncFromServer().then(() => {
+        // Force-sync from server to get the updated balance (server already added coins)
+        syncFromServerRef.current(true).then(() => {
           coinLogger.debug('IAP coins synced from server', { coinsGranted });
         }).catch((err) => {
           // Fallback: optimistically add coins locally if sync fails
@@ -407,7 +425,7 @@ export const useCoinSystem = () => {
     return () => {
       window.removeEventListener('iap:coinsGranted', handleIAPCoins);
     };
-  }, [syncFromServer, storeAddCoins]);
+  }, [storeAddCoins]);
 
   // Helper to get subscription multiplier
   const getSubscriptionMultiplier = useCallback((): number => {

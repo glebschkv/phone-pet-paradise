@@ -183,8 +183,20 @@ export const useTimerCountdown = ({
     };
   }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, timerState.isCountup, saveTimerState, handleComplete, setDisplayTime, setElapsedTime, intervalRef]);
 
-  // Page visibility + Capacitor appStateChange handling
+  // Store setShowLockScreen in a ref to keep the visibility effect stable
+  const setShowLockScreenRef = useRef(setShowLockScreen);
   useEffect(() => {
+    setShowLockScreenRef.current = setShowLockScreen;
+  });
+
+  // Page visibility + Capacitor appStateChange handling
+  // IMPORTANT: This effect uses refs for ALL callbacks so it only runs once.
+  // Previously, handleComplete (which changes frequently) was in the dependency
+  // array, causing the effect to re-run and leak Capacitor listeners because
+  // the async .then() cleanup pattern doesn't work with synchronous effect cleanup.
+  useEffect(() => {
+    let cancelled = false;
+
     const handleForegroundResume = () => {
       const state = stateRef.current;
 
@@ -196,22 +208,22 @@ export const useTimerCountdown = ({
 
       if (state.timerState.isCountup) {
         const newElapsedTime = Math.min(elapsedSeconds, MAX_COUNTUP_DURATION);
-        setElapsedTime(newElapsedTime);
-        saveTimerState({ elapsedTime: newElapsedTime });
-        setShowLockScreen(false);
+        setElapsedTimeRef.current(newElapsedTime);
+        saveTimerStateRef.current({ elapsedTime: newElapsedTime });
+        setShowLockScreenRef.current(false);
 
         if (newElapsedTime >= MAX_COUNTUP_DURATION) {
-          handleComplete().catch((err) => timerLogger.error('Timer completion failed:', err));
+          handleCompleteRef.current().catch((err) => timerLogger.error('Timer completion failed:', err));
           return;
         }
       } else {
         const newTimeLeft = Math.max(0, state.timerState.sessionDuration - elapsedSeconds);
-        setDisplayTime(newTimeLeft);
-        saveTimerState({ timeLeft: newTimeLeft });
-        setShowLockScreen(false);
+        setDisplayTimeRef.current(newTimeLeft);
+        saveTimerStateRef.current({ timeLeft: newTimeLeft });
+        setShowLockScreenRef.current(false);
 
         if (newTimeLeft === 0) {
-          handleComplete().catch((err) => timerLogger.error('Timer completion failed:', err));
+          handleCompleteRef.current().catch((err) => timerLogger.error('Timer completion failed:', err));
           return;
         }
       }
@@ -234,7 +246,7 @@ export const useTimerCountdown = ({
       const state = stateRef.current;
 
       if (document.hidden && state.timerState.isRunning && state.timerState.sessionType !== 'break') {
-        setShowLockScreen(true);
+        setShowLockScreenRef.current(true);
       } else if (!document.hidden && state.timerState.isRunning && state.timerState.startTime) {
         handleForegroundResume();
       }
@@ -242,13 +254,14 @@ export const useTimerCountdown = ({
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // On iOS, also listen to Capacitor's appStateChange for reliability
+    // On iOS, also listen to Capacitor's appStateChange for reliability.
+    // Uses a cancellation flag to properly clean up async listener registration.
     let capHandle: { remove: () => Promise<void> } | null = null;
     if (Capacitor.isNativePlatform()) {
       CapApp.addListener('appStateChange', (appState) => {
         if (appState.isActive) {
           // Always dismiss lock screen when app becomes active
-          setShowLockScreen(false);
+          setShowLockScreenRef.current(false);
 
           const state = stateRef.current;
           if (state.timerState.isRunning && state.timerState.startTime) {
@@ -257,17 +270,25 @@ export const useTimerCountdown = ({
         } else {
           const state = stateRef.current;
           if (state.timerState.isRunning && state.timerState.sessionType !== 'break') {
-            setShowLockScreen(true);
+            setShowLockScreenRef.current(true);
           }
         }
       }).then((h) => {
-        capHandle = h;
+        if (cancelled) {
+          // Effect already cleaned up before listener was registered — remove immediately
+          h.remove();
+        } else {
+          capHandle = h;
+        }
       });
     }
 
     return () => {
+      cancelled = true;
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       capHandle?.remove();
     };
-  }, [saveTimerState, handleComplete, setDisplayTime, setElapsedTime, setShowLockScreen, restartInterval]);
+  // All callbacks accessed via refs — this effect is intentionally stable (runs once).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restartInterval, intervalRef]);
 };

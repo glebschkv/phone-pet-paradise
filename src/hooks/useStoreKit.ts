@@ -110,9 +110,23 @@ async function serverValidatePurchase(
 
     // SECURITY: Server errors should fail closed, not grant access
     if (error) {
-      logger.error('Server validation error:', error);
-      // SECURITY: Fail closed - server errors mean validation failed
-      // User should retry the validation
+      // Extract the actual error details from the response body when available.
+      // supabase.functions.invoke puts the response body in error.context for non-2xx.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorContext = (error as any)?.context;
+      const serverErrorMsg = errorContext && typeof errorContext === 'object' && 'error' in errorContext
+        ? String(errorContext.error)
+        : error.message;
+      logger.error('Server validation error:', serverErrorMsg);
+
+      // If the server returned a structured error body (e.g. JWS verification failed,
+      // unknown product, revoked transaction), it's a definitive rejection.
+      // Only mark as retryable for truly transient errors (network, auth).
+      if (errorContext && typeof errorContext === 'object' && 'success' in errorContext) {
+        return { success: false }; // Definitive server rejection
+      }
+
+      // SECURITY: Fail closed - transient errors mean validation couldn't complete
       return { success: false, requiresRetry: true };
     }
 
@@ -396,13 +410,15 @@ export const useStoreKit = (): UseStoreKitReturn => {
       } else if (validationResult.requiresRetry) {
         // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
         toast.error('Verification Pending', {
-          description: 'Unable to verify purchase. Please try restoring purchases or check your connection.',
+          description: 'Unable to verify purchase right now. Please try "Restore Purchases" or check your connection.',
+          duration: 6000,
         });
         // Don't grant access - user needs to restore purchases
       } else {
         // SECURITY: Validation failed definitively
         toast.error('Verification Failed', {
-          description: 'Purchase could not be verified. Please contact support if this persists.',
+          description: 'Purchase could not be verified with the server. Please try "Restore Purchases" or contact support.',
+          duration: 6000,
         });
         // Don't grant access
       }
