@@ -18,9 +18,25 @@ import { AchievementTracker } from "@/components/AchievementTracker";
 import { TabContent, preloadTabComponents } from "@/components/TabContent";
 import { RewardModals } from "@/components/RewardModals";
 
+const TAB_STORAGE_KEY = 'petIsland_currentTab';
+const VALID_TABS = ['home', 'timer', 'collection', 'challenges', 'shop', 'settings'];
+
+function getPersistedTab(): string {
+  try {
+    const saved = localStorage.getItem(TAB_STORAGE_KEY);
+    if (saved && VALID_TABS.includes(saved)) return saved;
+  } catch { /* ignore */ }
+  return 'home';
+}
+
 export const GameUI = () => {
-  const [currentTab, setCurrentTab] = useState("home");
+  const [currentTab, setCurrentTab] = useState(getPersistedTab);
   const [isTaskbarCompact, setIsTaskbarCompact] = useState(false);
+
+  // Persist current tab so it survives iOS WebView reloads
+  useEffect(() => {
+    try { localStorage.setItem(TAB_STORAGE_KEY, currentTab); } catch { /* ignore */ }
+  }, [currentTab]);
 
   // Preload tab components after initial render for faster navigation
   useEffect(() => {
