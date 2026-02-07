@@ -38,6 +38,7 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     private func makeConfig() -> ShieldConfiguration {
         let message = helper.getMotivationalMessage()
+        let secondaryText = helper.getSecondaryButtonText()
 
         return ShieldConfiguration(
             backgroundBlurStyle: .systemThickMaterialDark,
@@ -56,7 +57,10 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
                 color: .white
             ),
             primaryButtonBackgroundColor: ShieldConfigurationHelper.shieldButtonColor,
-            secondaryButtonLabel: nil
+            secondaryButtonLabel: ShieldConfiguration.Label(
+                text: secondaryText,
+                color: ShieldConfigurationHelper.shieldSubtitleColor
+            )
         )
     }
 }
