@@ -47,8 +47,8 @@ const mockXPSystem = {
   currentLevel: 5,
   xpToNextLevel: 100,
   totalXPForCurrentLevel: 400,
-  currentBiome: 'Meadow',
-  availableBiomes: ['Meadow', 'Forest'],
+  currentBiome: 'Snow',
+  availableBiomes: ['Snow', 'Forest'],
   isLoading: false,
   awardXP: vi.fn(() => ({
     xpGained: 50,
@@ -519,14 +519,14 @@ describe('useBackendAppState', () => {
     it('should return current biome', () => {
       const { result } = renderHook(() => useBackendAppState());
 
-      expect(result.current.currentBiome).toBe('Meadow');
+      expect(result.current.currentBiome).toBe('Snow');
     });
 
     it('should return available biomes', () => {
       const { result } = renderHook(() => useBackendAppState());
       const state = result.current.getAppState();
 
-      expect(state.availableBiomes).toContain('Meadow');
+      expect(state.availableBiomes).toContain('Snow');
       expect(state.availableBiomes).toContain('Forest');
     });
   });

@@ -64,8 +64,8 @@ export const xpSystemSchema = z.object({
   xpToNextLevel: safeNonNegativeInt.default(15),
   totalXPForCurrentLevel: safeNonNegativeInt.default(0),
   unlockedAnimals: safeArray(safeString(100), 500).default([]),
-  currentBiome: safeString(100).default('Meadow'),
-  availableBiomes: safeArray(safeString(100), 50).default(['Meadow']),
+  currentBiome: safeString(100).default('Snow'),
+  availableBiomes: safeArray(safeString(100), 50).default(['Snow']),
 });
 
 export type ValidatedXPSystem = z.infer<typeof xpSystemSchema>;

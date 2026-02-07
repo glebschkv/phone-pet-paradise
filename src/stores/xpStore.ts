@@ -73,8 +73,8 @@ const initialState: XPState = {
   xpToNextLevel: 15,
   totalXPForCurrentLevel: 0,
   unlockedAnimals: [],
-  currentBiome: 'Meadow',
-  availableBiomes: ['Meadow'],
+  currentBiome: 'Snow',
+  availableBiomes: ['Snow'],
 };
 
 export const useXPStore = create<XPStore>()(
