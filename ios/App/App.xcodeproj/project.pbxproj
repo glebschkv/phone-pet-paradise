@@ -71,7 +71,7 @@
 		NMWEXT002400000000000000 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FWKREF000500000000000000 /* SwiftUI.framework */; };
 		NMWEXT003900000000000000 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = NMWEXT003600000000000000 /* Localizable.strings */; };
 /* -- Embed Extensions build files -- */
-		EMBEXT000200000000000000 /* DeviceActivityMonitor.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DAMEXT000400000000000000 /* DeviceActivityMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		EMBEXT000200000000000000 /* DeviceActivityMonitor.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = DAMEXT000400000000000000 /* DeviceActivityMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		EMBEXT000300000000000000 /* ShieldConfiguration.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = SCFEXT000400000000000000 /* ShieldConfiguration.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		EMBEXT000400000000000000 /* NoMoWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = NMWEXT001200000000000000 /* NoMoWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -107,11 +107,21 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				EMBEXT000200000000000000 /* DeviceActivityMonitor.appex in Embed App Extensions */,
 				EMBEXT000300000000000000 /* ShieldConfiguration.appex in Embed App Extensions */,
 				EMBEXT000400000000000000 /* NoMoWidget.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EMBEXT000600000000000000 /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				EMBEXT000200000000000000 /* DeviceActivityMonitor.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -422,6 +432,7 @@
 				504EC3021FED79650016851F /* Resources */,
 				9592DBEFFC6D2A0C8D5DEB22 /* [CP] Embed Pods Frameworks */,
 				EMBEXT000100000000000000 /* Embed App Extensions */,
+				EMBEXT000600000000000000 /* Embed ExtensionKit Extensions */,
 			);
 			buildRules = (
 			);
