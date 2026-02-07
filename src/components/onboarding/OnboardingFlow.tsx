@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
@@ -8,120 +8,153 @@ interface OnboardingFlowProps {
   onComplete: () => void;
 }
 
-// ─── Floating particles (stars / snowflakes) ────────────────────────────────
+// ─── Preload critical images so sprites don't flash blank ────────────────────
 
-const Particle = ({ delay, x, size, duration, type }: {
-  delay: number; x: number; size: number; duration: number; type: 'star' | 'snow';
-}) => (
-  <motion.div
-    className="absolute pointer-events-none"
-    style={{ left: `${x}%`, top: -10 }}
-    initial={{ y: -10, opacity: 0, rotate: 0 }}
-    animate={{
-      y: '110vh',
-      opacity: [0, 0.8, 0.8, 0],
-      rotate: type === 'snow' ? 360 : 0,
-    }}
-    transition={{
-      duration,
-      delay,
-      repeat: Infinity,
-      ease: 'linear',
-    }}
-  >
-    {type === 'star' ? (
-      <div
-        style={{
-          width: size,
-          height: size,
-          background: 'radial-gradient(circle, rgba(255,220,150,0.9) 0%, rgba(255,180,80,0) 70%)',
-          borderRadius: '50%',
-          boxShadow: `0 0 ${size * 2}px rgba(255,200,100,0.3)`,
-        }}
-      />
-    ) : (
-      <div
-        style={{
-          width: size,
-          height: size,
-          background: 'rgba(255,255,255,0.6)',
-          borderRadius: '50%',
-          filter: 'blur(0.5px)',
-        }}
-      />
-    )}
-  </motion.div>
-);
+const PRELOAD_SRCS = [
+  '/assets/sprites/humanoid/star-wizard-walk.png',
+  '/assets/worlds/snowbiome1.png',
+  '/assets/icons/clock.png',
+  '/assets/icons/star.png',
+  '/assets/icons/paw.png',
+  '/assets/icons/wizard.png',
+];
 
-const FloatingParticles = () => {
-  const particles = Array.from({ length: 18 }, (_, i) => ({
+function usePreloadImages(srcs: string[]) {
+  useEffect(() => {
+    srcs.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  // Only run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}
+
+// ─── Floating particles — pure CSS for GPU performance ──────────────────────
+// Uses CSS @keyframes + inline style for each particle instead of Framer Motion.
+// This avoids 12+ concurrent JS-driven animation loops on mobile.
+
+interface ParticleConfig {
+  id: number;
+  left: string;
+  size: number;
+  opacity: number;
+  animDuration: string;
+  animDelay: string;
+  type: 'star' | 'snow';
+}
+
+function generateParticles(): ParticleConfig[] {
+  return Array.from({ length: 12 }, (_, i) => ({
     id: i,
-    delay: Math.random() * 8,
-    x: Math.random() * 100,
-    size: 2 + Math.random() * 4,
-    duration: 6 + Math.random() * 8,
-    type: (Math.random() > 0.5 ? 'star' : 'snow') as 'star' | 'snow',
+    left: `${Math.random() * 100}%`,
+    size: 2 + Math.random() * 3,
+    opacity: 0.4 + Math.random() * 0.4,
+    animDuration: `${8 + Math.random() * 10}s`,
+    animDelay: `${-Math.random() * 12}s`,
+    type: (i % 2 === 0 ? 'star' : 'snow') as 'star' | 'snow',
   }));
+}
+
+const FloatingParticles = memo(() => {
+  // Stable across re-renders — generated once
+  const particles = useMemo(generateParticles, []);
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {particles.map((p) => (
-        <Particle key={p.id} {...p} />
+        <div
+          key={p.id}
+          className="onboarding-particle"
+          style={{
+            position: 'absolute',
+            left: p.left,
+            top: '-2%',
+            width: p.size,
+            height: p.size,
+            opacity: p.opacity,
+            borderRadius: '50%',
+            background: p.type === 'star'
+              ? 'radial-gradient(circle, rgba(255,220,150,0.9) 0%, rgba(255,180,80,0) 70%)'
+              : 'rgba(255,255,255,0.6)',
+            boxShadow: p.type === 'star'
+              ? `0 0 ${p.size * 2}px rgba(255,200,100,0.25)`
+              : 'none',
+            animationName: 'onboarding-fall',
+            animationDuration: p.animDuration,
+            animationDelay: p.animDelay,
+            animationTimingFunction: 'linear',
+            animationIterationCount: 'infinite',
+            willChange: 'transform',
+          }}
+        />
       ))}
     </div>
   );
-};
+});
+FloatingParticles.displayName = 'FloatingParticles';
 
-// ─── Sparkle burst around wizard ─────────────────────────────────────────────
+// ─── Sparkle burst around wizard — CSS-driven ───────────────────────────────
 
-const SparkleRing = () => {
-  const sparkles = Array.from({ length: 6 }, (_, i) => ({
+interface SparkleConfig {
+  id: number;
+  angle: number;
+  distance: number;
+  size: number;
+  delay: string;
+  duration: string;
+}
+
+function generateSparkles(): SparkleConfig[] {
+  return Array.from({ length: 6 }, (_, i) => ({
     id: i,
     angle: (i * 60) + Math.random() * 20,
-    distance: 50 + Math.random() * 20,
-    size: 3 + Math.random() * 3,
-    delay: i * 0.3,
+    distance: 45 + Math.random() * 20,
+    size: 3 + Math.random() * 2,
+    delay: `${i * 0.4}s`,
+    duration: '2.5s',
   }));
+}
+
+const SparkleRing = memo(() => {
+  const sparkles = useMemo(generateSparkles, []);
 
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {sparkles.map((s) => (
-        <motion.div
-          key={s.id}
-          className="absolute"
-          style={{
-            left: '50%',
-            top: '50%',
-            width: s.size,
-            height: s.size,
-          }}
-          animate={{
-            x: [0, Math.cos(s.angle * Math.PI / 180) * s.distance, 0],
-            y: [0, Math.sin(s.angle * Math.PI / 180) * s.distance, 0],
-            opacity: [0, 1, 0],
-            scale: [0, 1.2, 0],
-          }}
-          transition={{
-            duration: 2.5,
-            delay: s.delay,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        >
+      {sparkles.map((s) => {
+        const tx = Math.cos((s.angle * Math.PI) / 180) * s.distance;
+        const ty = Math.sin((s.angle * Math.PI) / 180) * s.distance;
+        return (
           <div
+            key={s.id}
+            className="onboarding-sparkle"
             style={{
-              width: '100%',
-              height: '100%',
-              background: 'radial-gradient(circle, rgba(255,220,120,1) 0%, rgba(255,180,60,0) 70%)',
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              width: s.size,
+              height: s.size,
               borderRadius: '50%',
-              boxShadow: '0 0 6px rgba(255,200,100,0.6)',
-            }}
+              background:
+                'radial-gradient(circle, rgba(255,220,120,1) 0%, rgba(255,180,60,0) 70%)',
+              boxShadow: '0 0 6px rgba(255,200,100,0.5)',
+              // Custom properties drive the CSS keyframes
+              '--sparkle-tx': `${tx}px`,
+              '--sparkle-ty': `${ty}px`,
+              animationName: 'onboarding-sparkle',
+              animationDuration: s.duration,
+              animationDelay: s.delay,
+              animationTimingFunction: 'ease-in-out',
+              animationIterationCount: 'infinite',
+              willChange: 'transform, opacity',
+            } as React.CSSProperties}
           />
-        </motion.div>
-      ))}
+        );
+      })}
     </div>
   );
-};
+});
+SparkleRing.displayName = 'SparkleRing';
 
 // ─── Step indicator dots ────────────────────────────────────────────────────
 
@@ -138,12 +171,12 @@ const StepDots = ({ current, total }: { current: number; total: number }) => (
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         className="h-2 rounded-full"
         style={{
-          backgroundColor: i === current
-            ? 'rgba(255,255,255,0.95)'
-            : 'rgba(255,255,255,0.4)',
-          boxShadow: i === current
-            ? '0 0 8px rgba(255,255,255,0.4)'
-            : 'none',
+          backgroundColor:
+            i === current
+              ? 'rgba(255,255,255,0.95)'
+              : 'rgba(255,255,255,0.4)',
+          boxShadow:
+            i === current ? '0 0 8px rgba(255,255,255,0.4)' : 'none',
         }}
       />
     ))}
@@ -151,6 +184,14 @@ const StepDots = ({ current, total }: { current: number; total: number }) => (
 );
 
 // ─── Walking pet sprite ─────────────────────────────────────────────────────
+
+const SPRITE_IMAGE_RENDERING: React.CSSProperties = {
+  // Standard
+  imageRendering: 'pixelated',
+  // Safari fallback — typed as `any` because React CSSProperties
+  // doesn't include the -webkit- vendor prefix
+  ...(({ '-webkit-image-rendering': 'pixelated' } as unknown) as React.CSSProperties),
+};
 
 const WalkingPetSprite = ({
   spritePath,
@@ -183,7 +224,7 @@ const WalkingPetSprite = ({
           backgroundImage: `url(${spritePath})`,
           backgroundPosition: `-${frame * frameWidth * scale}px 0px`,
           backgroundSize: `${frameCount * frameWidth * scale}px ${frameHeight * scale}px`,
-          imageRendering: 'pixelated',
+          ...SPRITE_IMAGE_RENDERING,
         }}
       />
     </div>
@@ -192,7 +233,15 @@ const WalkingPetSprite = ({
 
 // ─── Pixel icon with fallback ───────────────────────────────────────────────
 
-const PixelIcon = ({ src, fallback, size = 32 }: { src: string; fallback: string; size?: number }) => {
+const PixelIcon = ({
+  src,
+  fallback,
+  size = 32,
+}: {
+  src: string;
+  fallback: string;
+  size?: number;
+}) => {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
@@ -203,7 +252,7 @@ const PixelIcon = ({ src, fallback, size = 32 }: { src: string; fallback: string
     <img
       src={src}
       alt=""
-      style={{ width: size, height: size, imageRendering: 'pixelated' }}
+      style={{ width: size, height: size, ...SPRITE_IMAGE_RENDERING }}
       onError={() => setFailed(true)}
     />
   );
@@ -214,6 +263,8 @@ const PixelIcon = ({ src, fallback, size = 32 }: { src: string; fallback: string
 // ═════════════════════════════════════════════════════════════════════════════
 
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
+  usePreloadImages(PRELOAD_SRCS);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
 
@@ -237,12 +288,21 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     }
   }, [currentStep]);
 
-  const handleDragEnd = (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
+  const handleDragEnd = (
+    _: unknown,
+    info: { offset: { x: number }; velocity: { x: number } },
+  ) => {
     const swipeThreshold = 50;
     const velocityThreshold = 500;
-    if (info.offset.x < -swipeThreshold || info.velocity.x < -velocityThreshold) {
+    if (
+      info.offset.x < -swipeThreshold ||
+      info.velocity.x < -velocityThreshold
+    ) {
       nextStep();
-    } else if (info.offset.x > swipeThreshold || info.velocity.x > velocityThreshold) {
+    } else if (
+      info.offset.x > swipeThreshold ||
+      info.velocity.x > velocityThreshold
+    ) {
       prevStep();
     }
   };
@@ -268,45 +328,62 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
+      {/* Inject CSS keyframes once */}
+      <OnboardingKeyframes />
+
       {/* Immersive background — dark sky fading to snow biome feel */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(180deg, hsl(230 35% 14%) 0%, hsl(225 30% 22%) 25%, hsl(220 28% 32%) 50%, hsl(215 25% 45%) 70%, hsl(210 30% 60%) 85%, hsl(200 35% 75%) 100%)',
+          background:
+            'linear-gradient(180deg, hsl(230 35% 14%) 0%, hsl(225 30% 22%) 25%, hsl(220 28% 32%) 50%, hsl(215 25% 45%) 70%, hsl(210 30% 60%) 85%, hsl(200 35% 75%) 100%)',
         }}
       />
 
       {/* Snow biome ground image at bottom */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-[35%] opacity-30"
+        className="absolute bottom-0 left-0 right-0"
         style={{
+          height: '35%',
+          opacity: 0.3,
           backgroundImage: 'url(/assets/worlds/snowbiome1.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center bottom',
-          maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%)',
+          maskImage:
+            'linear-gradient(to bottom, transparent 0%, black 40%)',
+          WebkitMaskImage:
+            'linear-gradient(to bottom, transparent 0%, black 40%)',
         }}
       />
 
-      {/* Atmospheric glow */}
+      {/* Atmospheric glow — uses box-shadow trick instead of filter:blur */}
       <div
-        className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[300px] h-[300px] pointer-events-none"
+        className="absolute top-[20%] left-1/2 -translate-x-1/2 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, rgba(140,120,255,0.12) 0%, rgba(100,80,200,0.05) 50%, transparent 70%)',
+          width: 200,
+          height: 200,
+          borderRadius: '50%',
+          background:
+            'radial-gradient(circle, rgba(140,120,255,0.12) 0%, rgba(100,80,200,0.05) 50%, transparent 70%)',
         }}
       />
 
-      {/* Floating particles */}
+      {/* Floating particles — pure CSS, GPU-accelerated */}
       <FloatingParticles />
 
       <div className="relative h-full flex flex-col max-w-md mx-auto px-5">
-        {/* Top: Step dots */}
-        <div className="pt-safe flex-shrink-0 flex justify-center pt-6 pb-4">
+        {/* Top: Step dots — respects safe area on notched phones */}
+        <div
+          className="flex-shrink-0 flex justify-center pb-4"
+          style={{
+            paddingTop: 'max(env(safe-area-inset-top, 0px) + 12px, 24px)',
+          }}
+        >
           <StepDots current={currentStep} total={totalSteps} />
         </div>
 
-        {/* Middle: Content */}
-        <div className="flex-1 min-h-0 flex items-center overflow-y-auto">
+        {/* Middle: Content — overflow-hidden prevents iOS rubber-band bounce */}
+        <div className="flex-1 min-h-0 flex items-center overflow-hidden">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentStep}
@@ -321,51 +398,87 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               dragElastic={0.2}
               onDragEnd={handleDragEnd}
               className="w-full touch-pan-y"
+              // Prevent drag from triggering near screen edges (iOS back gesture)
+              dragListener
+              dragMomentum={false}
             >
               {renderStep()}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Bottom: Navigation */}
-        <div className="flex-shrink-0 pb-safe pb-6 pt-4 space-y-3">
+        {/* Bottom: Navigation — safe area with sane max() padding */}
+        <div
+          className="flex-shrink-0 pt-4 space-y-2"
+          style={{
+            paddingBottom:
+              'max(env(safe-area-inset-bottom, 0px) + 8px, 24px)',
+          }}
+        >
           <div className="flex justify-between items-center gap-4">
-            <Button
-              variant="ghost"
+            {/* Back button — min 44px tap target */}
+            <button
               onClick={prevStep}
               disabled={currentStep === 0}
-              className={`flex items-center gap-1.5 text-sm transition-opacity ${
-                currentStep === 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'
+              className={`flex items-center gap-1.5 text-sm transition-all duration-200 rounded-xl active:scale-95 ${
+                currentStep === 0
+                  ? 'opacity-0 pointer-events-none'
+                  : 'opacity-100'
               }`}
-              style={{ color: 'rgba(255,255,255,0.6)' }}
+              style={{
+                color: 'rgba(255,255,255,0.6)',
+                minHeight: 44,
+                minWidth: 44,
+                padding: '0 12px',
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
+              }}
             >
               <ChevronLeft className="w-4 h-4" />
               Back
-            </Button>
+            </button>
 
+            {/* Primary CTA — 48px tall, prominent active state */}
             <Button
               onClick={nextStep}
               size="lg"
-              className="font-semibold tracking-wide border-0 min-w-[160px]"
+              className="font-semibold tracking-wide border-0 min-w-[160px] active:scale-[0.97] transition-transform duration-150"
               style={{
-                background: 'linear-gradient(180deg, hsl(260 65% 62%) 0%, hsl(265 55% 48%) 100%)',
+                background:
+                  'linear-gradient(180deg, hsl(260 65% 62%) 0%, hsl(265 55% 48%) 100%)',
                 border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 16px rgba(120,60,220,0.35), 0 2px 4px rgba(0,0,0,0.2)',
+                boxShadow:
+                  'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 16px rgba(120,60,220,0.35), 0 2px 4px rgba(0,0,0,0.2)',
                 color: 'white',
+                minHeight: 48,
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
               }}
             >
               <span className="flex items-center gap-2">
-                {currentStep === totalSteps - 1 ? 'Begin Adventure' : 'Next'}
+                {currentStep === totalSteps - 1
+                  ? 'Begin Adventure'
+                  : 'Next'}
                 <ChevronRight className="w-4 h-4" />
               </span>
             </Button>
           </div>
 
+          {/* Skip — 44px minimum tap target */}
           {currentStep === 0 && (
             <button
-              onClick={() => { skipOnboarding(); onComplete(); }}
-              className="w-full text-center text-xs py-2 transition-opacity active:opacity-50"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
+              onClick={() => {
+                skipOnboarding();
+                onComplete();
+              }}
+              className="w-full text-center text-xs transition-opacity duration-150 active:opacity-30"
+              style={{
+                color: 'rgba(255,255,255,0.35)',
+                minHeight: 44,
+                lineHeight: '44px',
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
+              }}
             >
               Skip intro
             </button>
@@ -375,6 +488,26 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     </div>
   );
 };
+
+// ─── CSS keyframes injected once ────────────────────────────────────────────
+// Keeps all particle/sparkle animation on the GPU via transform3d.
+
+const OnboardingKeyframes = memo(() => (
+  <style>{`
+    @keyframes onboarding-fall {
+      0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+      5%   { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translate3d(0, calc(100vh + 20px), 0); opacity: 0; }
+    }
+    @keyframes onboarding-sparkle {
+      0%   { transform: translate3d(0, 0, 0) scale(0); opacity: 0; }
+      40%  { transform: translate3d(var(--sparkle-tx), var(--sparkle-ty), 0) scale(1.2); opacity: 1; }
+      100% { transform: translate3d(0, 0, 0) scale(0); opacity: 0; }
+    }
+  `}</style>
+));
+OnboardingKeyframes.displayName = 'OnboardingKeyframes';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // Step 1: Welcome — "Your adventure begins"
@@ -392,7 +525,8 @@ const StepWelcome = () => (
         className="text-4xl font-extrabold tracking-tight"
         style={{
           color: 'rgba(255,255,255,0.95)',
-          textShadow: '0 0 30px rgba(160,120,255,0.3), 0 2px 4px rgba(0,0,0,0.3)',
+          textShadow:
+            '0 0 30px rgba(160,120,255,0.3), 0 2px 4px rgba(0,0,0,0.3)',
         }}
       >
         Welcome to NoMo
@@ -411,12 +545,15 @@ const StepWelcome = () => (
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.3, duration: 0.6, type: 'spring' }}
     >
-      {/* Glow behind sprite */}
+      {/* Glow behind sprite — gradient only, no filter:blur */}
       <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 pointer-events-none"
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, rgba(160,120,255,0.2) 0%, transparent 70%)',
-          filter: 'blur(20px)',
+          width: 180,
+          height: 180,
+          borderRadius: '50%',
+          background:
+            'radial-gradient(circle, rgba(160,120,255,0.18) 0%, transparent 65%)',
         }}
       />
       <div className="relative">
@@ -429,14 +566,14 @@ const StepWelcome = () => (
           scale={2.5}
         />
       </div>
-      {/* Ground shadow */}
+      {/* Ground shadow — simple gradient, no filter:blur */}
       <div
         className="mx-auto mt-1 rounded-full"
         style={{
           width: 80,
-          height: 12,
-          background: 'radial-gradient(ellipse, rgba(0,0,0,0.25) 0%, transparent 70%)',
-          filter: 'blur(3px)',
+          height: 10,
+          background:
+            'radial-gradient(ellipse, rgba(0,0,0,0.2) 0%, transparent 70%)',
         }}
       />
     </motion.div>
@@ -457,7 +594,7 @@ const StepWelcome = () => (
 // Step 2: How It Works — glass cards with stagger
 // ═════════════════════════════════════════════════════════════════════════════
 
-const steps = [
+const howItWorksSteps = [
   {
     icon: '/assets/icons/clock.png',
     fallback: '\u23F1',
@@ -496,7 +633,8 @@ const StepHowItWorks = () => (
         className="text-4xl font-extrabold tracking-tight"
         style={{
           color: 'rgba(255,255,255,0.95)',
-          textShadow: '0 0 30px rgba(160,120,255,0.3), 0 2px 4px rgba(0,0,0,0.3)',
+          textShadow:
+            '0 0 30px rgba(160,120,255,0.3), 0 2px 4px rgba(0,0,0,0.3)',
         }}
       >
         How it works
@@ -507,24 +645,30 @@ const StepHowItWorks = () => (
     </motion.div>
 
     <div className="space-y-3 px-1">
-      {steps.map((step, i) => (
+      {howItWorksSteps.map((step, i) => (
         <motion.div
           key={step.label}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 + i * 0.12, type: 'spring', stiffness: 200, damping: 20 }}
+          transition={{
+            delay: 0.2 + i * 0.12,
+            type: 'spring',
+            stiffness: 200,
+            damping: 20,
+          }}
         >
           <div
-            className="flex items-center gap-4 px-4 py-4 rounded-2xl backdrop-blur-md"
+            className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl backdrop-blur-sm"
             style={{
               background: step.color,
               border: `1px solid ${step.borderColor}`,
-              boxShadow: '0 2px 12px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
+              boxShadow:
+                '0 2px 12px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
             }}
           >
             {/* Step number */}
             <div
-              className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
               style={{
                 background: step.borderColor,
                 color: 'rgba(255,255,255,0.9)',
@@ -534,8 +678,8 @@ const StepHowItWorks = () => (
             </div>
 
             {/* Icon */}
-            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
-              <PixelIcon src={step.icon} fallback={step.fallback} size={36} />
+            <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+              <PixelIcon src={step.icon} fallback={step.fallback} size={32} />
             </div>
 
             {/* Text */}
@@ -576,12 +720,16 @@ const StepMeetCompanion = () => (
         className="text-4xl font-extrabold tracking-tight"
         style={{
           color: 'rgba(255,255,255,0.95)',
-          textShadow: '0 0 30px rgba(160,120,255,0.3), 0 2px 4px rgba(0,0,0,0.3)',
+          textShadow:
+            '0 0 30px rgba(160,120,255,0.3), 0 2px 4px rgba(0,0,0,0.3)',
         }}
       >
         Meet your companion
       </h1>
-      <p className="text-base px-4 leading-relaxed" style={{ color: 'rgba(200,210,240,0.75)' }}>
+      <p
+        className="text-base px-4 leading-relaxed"
+        style={{ color: 'rgba(200,210,240,0.75)' }}
+      >
         Star Wizard is ready for your first adventure together.
       </p>
     </motion.div>
@@ -591,17 +739,25 @@ const StepMeetCompanion = () => (
       className="py-4 relative"
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.25, duration: 0.7, type: 'spring', stiffness: 150 }}
+      transition={{
+        delay: 0.25,
+        duration: 0.7,
+        type: 'spring',
+        stiffness: 150,
+      }}
     >
-      {/* Glow burst behind sprite */}
+      {/* Glow burst behind sprite — no filter:blur, pure gradient */}
       <motion.div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-52 pointer-events-none"
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.8 }}
         style={{
-          background: 'radial-gradient(circle, rgba(160,120,255,0.25) 0%, rgba(120,80,220,0.1) 40%, transparent 70%)',
-          filter: 'blur(24px)',
+          width: 220,
+          height: 220,
+          borderRadius: '50%',
+          background:
+            'radial-gradient(circle, rgba(160,120,255,0.22) 0%, rgba(120,80,220,0.08) 40%, transparent 70%)',
         }}
       />
 
@@ -621,20 +777,21 @@ const StepMeetCompanion = () => (
         className="mx-auto mt-1 rounded-full"
         style={{
           width: 100,
-          height: 14,
-          background: 'radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, transparent 70%)',
-          filter: 'blur(4px)',
+          height: 12,
+          background:
+            'radial-gradient(ellipse, rgba(0,0,0,0.25) 0%, transparent 70%)',
         }}
       />
     </motion.div>
 
     {/* Character card */}
     <motion.div
-      className="mx-auto max-w-[260px] rounded-2xl px-5 py-4 backdrop-blur-md"
+      className="mx-auto max-w-[260px] rounded-2xl px-5 py-4 backdrop-blur-sm"
       style={{
         background: 'rgba(255,255,255,0.06)',
         border: '1px solid rgba(255,255,255,0.1)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
+        boxShadow:
+          '0 4px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
       }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
