@@ -14,7 +14,7 @@ interface RewardModalProps {
 
 export const RewardModal = ({ isOpen, onClose, newPetsEarned, timeAwayMinutes }: RewardModalProps) => {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="bg-gradient-sky border-primary/20 shadow-glow">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold text-foreground flex items-center justify-center gap-2">
