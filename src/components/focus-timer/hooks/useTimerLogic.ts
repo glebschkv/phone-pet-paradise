@@ -39,7 +39,7 @@ export const useTimerLogic = () => {
   const { recordSession } = useAnalytics();
   const { stopAll: stopAmbientSound, isPlaying: isAmbientPlaying } = useSoundMixer();
   const { recordSession: recordStreakSession } = useStreakSystem();
-  const { scheduleStreakNotification, scheduleRewardNotification } = useNotifications();
+  const { scheduleStreakNotification, scheduleRewardNotification, cancelTimerCompletionNotification } = useNotifications();
 
   // Composed hooks
   const { awardSessionRewards, showFocusBonusToast } = useTimerRewards();
@@ -177,6 +177,9 @@ export const useTimerLogic = () => {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+
+      // Cancel the OS-scheduled notification — the in-app completion UI is showing instead
+      cancelTimerCompletionNotification();
 
       clearPersistence();
 
@@ -337,6 +340,7 @@ export const useTimerLogic = () => {
     recordStreakSession,
     scheduleStreakNotification,
     scheduleRewardNotification,
+    cancelTimerCompletionNotification,
     saveTimerState,
     triggerHaptic,
     coinSystem,

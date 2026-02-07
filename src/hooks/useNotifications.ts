@@ -30,12 +30,18 @@ interface NotificationOptions {
 // (e.g. GameUI and TopStatusBar both call useAppStateTracking → useNotifications).
 let globalNotificationsInitialized = false;
 let _notificationInitPromise: Promise<void> | null = null;
+// Cache permissions at module level so every useNotifications() instance can
+// schedule notifications — not just the one that happened to initialize first.
+let _cachedPermissions: NotificationPermissions = { pushEnabled: false, localEnabled: false };
 
 export const useNotifications = () => {
-  const [permissions, setPermissions] = useState<NotificationPermissions>({
-    pushEnabled: false,
-    localEnabled: false,
-  });
+  const [permissions, setPermissionsState] = useState<NotificationPermissions>(_cachedPermissions);
+
+  // Wrap setPermissions to also update the module-level cache
+  const setPermissions = useCallback((p: NotificationPermissions) => {
+    _cachedPermissions = p;
+    setPermissionsState(p);
+  }, []);
   const [isInitialized, setIsInitialized] = useState(globalNotificationsInitialized);
   // Store listener cleanup functions
   const listenerCleanupRef = useRef<Array<() => Promise<void>>>([]);
@@ -111,6 +117,9 @@ export const useNotifications = () => {
     // cleanup (removing all listeners) and re-run (returning early = listeners
     // never re-added). Use the module-level flag instead.
     if (globalNotificationsInitialized) {
+      // Sync cached permissions into this instance's state so
+      // scheduleLocalNotification's guard doesn't block.
+      setPermissionsState(_cachedPermissions);
       setIsInitialized(true);
       return;
     }
