@@ -1,4 +1,4 @@
-import { Lock, Crown } from "lucide-react";
+import { Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BACKGROUND_THEMES } from "./constants";
 
@@ -30,37 +30,34 @@ export const BackgroundThemeSwitcher = ({
               className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center transition-all relative",
                 isLocked
-                  ? "opacity-40 cursor-pointer"
+                  ? "cursor-pointer active:scale-95"
                   : "active:scale-95",
                 isSelected && !isLocked
                   ? "ring-2 ring-white ring-offset-2 ring-offset-transparent"
                   : !isLocked && "opacity-60 hover:opacity-100"
               )}
-              style={{
-                background: isLocked
-                  ? 'hsl(var(--muted) / 0.5)'
-                  : isSelected
-                    ? 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.9) 100%)'
-                    : 'hsl(var(--card) / 0.6)',
+              style={isLocked ? {
+                background: 'linear-gradient(180deg, hsl(40 50% 18%) 0%, hsl(35 45% 12%) 100%)',
+                border: '2px solid hsl(40 70% 45%)',
+                boxShadow: '0 0 8px hsl(40 80% 50% / 0.3), inset 0 1px 0 hsl(40 60% 55% / 0.3)',
+              } : {
+                background: isSelected
+                  ? 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.9) 100%)'
+                  : 'hsl(var(--card) / 0.6)',
                 border: '2px solid hsl(var(--border))',
-                boxShadow: isSelected && !isLocked
+                boxShadow: isSelected
                   ? '0 2px 0 hsl(var(--border) / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.2)'
                   : 'none'
               }}
               title={isLocked ? 'Premium' : theme.name}
             >
               {isLocked ? (
-                <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                <Crown className="w-4 h-4" style={{ color: 'hsl(40 80% 60%)' }} />
               ) : (
                 <Icon className={cn(
                   "w-4 h-4",
                   isSelected ? "text-foreground" : "text-muted-foreground"
                 )} />
-              )}
-              {isLocked && (
-                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(35 90% 55%), hsl(25 90% 50%))', border: '1px solid hsl(40 80% 65%)' }}>
-                  <Crown className="w-2 h-2 text-white" />
-                </div>
               )}
             </button>
           );
