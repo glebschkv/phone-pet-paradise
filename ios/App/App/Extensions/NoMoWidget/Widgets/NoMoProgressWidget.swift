@@ -119,18 +119,16 @@ struct ProgressWidgetView: View {
     @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
-        ZStack {
-            ContainerRelativeShape()
-                .fill(WidgetColors.background)
+        VStack(spacing: 10) {
+            // Circular progress indicator
+            circularProgressView
 
-            VStack(spacing: 10) {
-                // Circular progress indicator
-                circularProgressView
-
-                // Focus time and sessions info
-                focusInfoView
-            }
-            .padding()
+            // Focus time and sessions info
+            focusInfoView
+        }
+        .padding()
+        .containerBackground(for: .widget) {
+            WidgetColors.background
         }
         // Apply comprehensive accessibility to entire widget
         .accessibilityElement(children: .ignore)

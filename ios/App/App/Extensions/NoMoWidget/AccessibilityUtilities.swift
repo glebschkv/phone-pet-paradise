@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /**
  * AccessibilityUtilities
@@ -394,7 +395,7 @@ enum AccessibilityFormatters {
         if isRunning {
             let minutes = timeRemaining / 60
             let seconds = timeRemaining % 60
-            let time = timeRemaining(minutes: minutes, seconds: seconds)
+            let time = Self.timeRemaining(minutes: minutes, seconds: seconds)
             let type = sessionType ?? WidgetAccessibilityStrings.sessionTypeFocus
             return String(format: WidgetAccessibilityStrings.timerRunning, type, time)
         }
@@ -511,18 +512,12 @@ enum AccessibilityDebug {
         UIAccessibility.isBoldTextEnabled
     }
 
-    /// Get current preferred content size category
-    static var preferredContentSizeCategory: UIContentSizeCategory {
-        UIApplication.shared.preferredContentSizeCategory
-    }
-
     /// Log current accessibility settings
     static func logAccessibilitySettings() {
         print("=== Accessibility Settings ===")
         print("VoiceOver: \(isVoiceOverRunning)")
         print("Reduce Motion: \(isReduceMotionEnabled)")
         print("Bold Text: \(isBoldTextEnabled)")
-        print("Content Size: \(preferredContentSizeCategory.rawValue)")
         print("==============================")
     }
 }

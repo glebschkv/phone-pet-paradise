@@ -209,6 +209,13 @@ class NomoViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
 
+        // Register local native plugins that aren't auto-discovered
+        // via capacitor.config.json (which only lists pod-installed plugins).
+        bridge?.registerPluginInstance(DeviceActivityPlugin())
+        bridge?.registerPluginInstance(StoreKitPlugin())
+        bridge?.registerPluginInstance(WidgetDataPlugin())
+        bridge?.registerPluginInstance(AppReviewPlugin())
+
         guard let wv = webView else { return }
 
         // Disable back/forward swipe navigation — the app is a single-page web

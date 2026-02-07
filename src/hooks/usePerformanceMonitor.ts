@@ -32,8 +32,8 @@ const IS_DEV = import.meta.env.DEV;
 const defaultSettings: PerformanceSettings = {
   targetFPS: 60,
   maxMemoryMB: 512,
-  enableMonitoring: IS_DEV,
-  autoOptimize: IS_DEV,
+  enableMonitoring: false,
+  autoOptimize: false,
 };
 
 export const usePerformanceMonitor = () => {

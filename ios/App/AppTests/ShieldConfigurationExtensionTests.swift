@@ -141,18 +141,18 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
         // When
         let messages = sut.getAllMotivationalMessages()
 
-        // Then - verify key motivational messages exist
-        XCTAssertTrue(messages.contains("Your focus pet is counting on you!"))
-        XCTAssertTrue(messages.contains("Focus = XP = Level Up!"))
-        XCTAssertTrue(messages.contains("Your pet believes in you!"))
+        // Then - verify key messages exist
+        XCTAssertTrue(messages.contains("You set this up yourself. Think about that."))
+        XCTAssertTrue(messages.contains("Plot twist: the app you actually need is already open."))
+        XCTAssertTrue(messages.contains("The best version of you doesn't need to open this right now."))
     }
 
     func testMotivationalMessageHasCorrectCount() {
         // When
         let messages = sut.getAllMotivationalMessages()
 
-        // Then - should have exactly 10 messages
-        XCTAssertEqual(messages.count, 10)
+        // Then - should have exactly 20 messages
+        XCTAssertEqual(messages.count, 20)
     }
 
     func testAllMotivationalMessagesAreNonEmpty() {
@@ -228,11 +228,11 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 
-        // Then - verify dark purple/black tint
-        XCTAssertEqual(red, 0.1, accuracy: 0.01)
-        XCTAssertEqual(green, 0.05, accuracy: 0.01)
-        XCTAssertEqual(blue, 0.15, accuracy: 0.01)
-        XCTAssertEqual(alpha, 0.95, accuracy: 0.01)
+        // Then - verify deep dark purple matching splash #080012
+        XCTAssertEqual(red, 8.0/255.0, accuracy: 0.01)
+        XCTAssertEqual(green, 0.0, accuracy: 0.01)
+        XCTAssertEqual(blue, 18.0/255.0, accuracy: 0.01)
+        XCTAssertEqual(alpha, 0.97, accuracy: 0.01)
     }
 
     // MARK: - Default State Tests
@@ -301,11 +301,33 @@ final class ShieldConfigurationExtensionTests: XCTestCase {
         XCTAssertFalse(message.isEmpty)
     }
 
+    // MARK: - Title Tests
+
+    func testGetTitleAlwaysReturnsNOMO() {
+        // Title is always the brand name — messages go in subtitle
+        for _ in 0..<10 {
+            XCTAssertEqual(sut.getTitle(), "NOMO")
+        }
+    }
+
+    // MARK: - Secondary Button Tests
+
+    func testGetSecondaryButtonTextReturnsValidString() {
+        let text = sut.getSecondaryButtonText()
+        XCTAssertFalse(text.isEmpty)
+    }
+
+    func testGetSecondaryButtonTextReturnsFromValidList() {
+        let validTexts = ShieldConfigurationHelper.secondaryButtonTexts
+        let text = sut.getSecondaryButtonText()
+        XCTAssertTrue(validTexts.contains(text))
+    }
+
     // MARK: - Static Messages Tests
 
     func testStaticMotivationalMessagesMatchInstance() {
         // When
-        let staticMessages = ShieldConfigurationHelper.motivationalMessages
+        let staticMessages = ShieldConfigurationHelper.shieldMessages
         let instanceMessages = sut.getAllMotivationalMessages()
 
         // Then
