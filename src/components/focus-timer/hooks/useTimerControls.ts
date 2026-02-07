@@ -11,6 +11,7 @@ import { timerLogger } from '@/lib/logger';
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { useNotifications } from "@/hooks/useNotifications";
+import { widgetDataService } from "@/plugins/widget-data";
 import { FocusCategory, FocusQuality } from "@/types/analytics";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { TimerState } from "./useTimerPersistence";
@@ -102,6 +103,17 @@ export const useTimerControls = ({
       });
     }
 
+    // Sync timer state to widgets
+    widgetDataService.updateTimer({
+      isRunning: true,
+      timeRemaining: timerState.isCountup ? MAX_COUNTUP_DURATION : timerState.timeLeft,
+      sessionDuration: timerState.isCountup ? MAX_COUNTUP_DURATION : timerState.timeLeft,
+      sessionType: selectedPreset.type === 'break' ? 'break' : (selectedPreset.type as 'pomodoro' | 'deep-work'),
+      category,
+      taskLabel,
+      startTime: now,
+    }).catch(e => timerLogger.error('Widget timer sync failed:', e));
+
     // Start app blocking AFTER UI update — don't block the visual transition.
     // We intentionally use a loose guard here: startAppBlocking() does its own
     // pre-flight permission & status checks against the native plugin, so we
@@ -122,6 +134,7 @@ export const useTimerControls = ({
 
   const pauseTimer = useCallback(() => {
     const now = Date.now();
+    let widgetTimeRemaining = 0;
 
     if (timerState.isCountup) {
       // Countup mode: calculate elapsed time
@@ -132,6 +145,7 @@ export const useTimerControls = ({
         currentElapsed = Math.min(elapsedSeconds, MAX_COUNTUP_DURATION);
       }
 
+      widgetTimeRemaining = currentElapsed;
       setDisplayTime(currentElapsed);
       saveTimerState({
         isRunning: false,
@@ -149,6 +163,7 @@ export const useTimerControls = ({
         currentTimeLeft = Math.max(0, timerState.sessionDuration - elapsedSeconds);
       }
 
+      widgetTimeRemaining = currentTimeLeft;
       setDisplayTime(currentTimeLeft);
       saveTimerState({
         isRunning: false,
@@ -157,6 +172,13 @@ export const useTimerControls = ({
         sessionDuration: selectedPreset.duration * 60,
       });
     }
+
+    // Sync paused state to widgets
+    widgetDataService.updateTimer({
+      isRunning: false,
+      timeRemaining: widgetTimeRemaining,
+      startTime: null,
+    }).catch(e => timerLogger.error('Widget timer sync failed:', e));
   }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, selectedPreset.duration, setDisplayTime]);
 
   const stopTimer = useCallback(async () => {
@@ -208,6 +230,14 @@ export const useTimerControls = ({
         isCountup: false,
       });
     }
+
+    // Sync stopped state to widgets
+    widgetDataService.updateTimer({
+      isRunning: false,
+      timeRemaining: (timerState.isCountup || selectedPreset.isCountup) ? 0 : selectedPreset.duration * 60,
+      sessionType: null,
+      startTime: null,
+    }).catch(e => timerLogger.error('Widget timer sync failed:', e));
 
     // Async cleanup AFTER UI is reset — stop app blocking and record session
     let shieldAttempts = 0;
@@ -301,6 +331,14 @@ export const useTimerControls = ({
         isCountup: false,
       });
     }
+
+    // Sync skipped/reset state to widgets
+    widgetDataService.updateTimer({
+      isRunning: false,
+      timeRemaining: (timerState.isCountup || selectedPreset.isCountup) ? 0 : selectedPreset.duration * 60,
+      sessionType: null,
+      startTime: null,
+    }).catch(e => timerLogger.error('Widget timer sync failed:', e));
 
     // Async cleanup AFTER UI is reset
     let shieldAttempts = 0;
