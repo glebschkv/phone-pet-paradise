@@ -4751,13 +4751,14 @@ input, textarea, [contenteditable="true"] {
     align-items: center;
     padding: 3px 10px;
     border-radius: 8px;
-    background: hsl(0 0% 100% / 0.08);
-    border: 1px solid hsl(0 0% 100% / 0.1);
+    background: hsl(0 0% 0% / 0.25);
+    border: 1px solid hsl(0 0% 100% / 0.15);
     font-size: 11px;
     font-weight: 600;
-    color: hsl(0 0% 100% / 0.65);
+    color: hsl(0 0% 100% / 0.85);
     letter-spacing: 0.02em;
     margin-top: 6px;
+    text-shadow: 0 1px 3px hsl(0 0% 0% / 0.4);
   }
 
   .timer-status-badge.active {
