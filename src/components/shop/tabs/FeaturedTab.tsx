@@ -237,7 +237,7 @@ export const FeaturedTab = ({
         </div>
         <div className="space-y-2">
           {STARTER_BUNDLES.map((bundle) => {
-            const hasCharacter = bundle.contents.characterId ? inventory.ownedCharacters.includes(bundle.contents.characterId) : true;
+            const hasCharacter = bundle.contents.characterId ? inventory.ownedCharacters.includes(bundle.contents.characterId) : false;
             const alreadyPurchased = hasCharacter;
 
             return (
