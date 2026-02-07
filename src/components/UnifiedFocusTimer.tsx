@@ -11,7 +11,7 @@
  * - TimerModals: Orchestrates all timer-related modals
  */
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useTimerLogic } from "./focus-timer/hooks/useTimerLogic";
 import { useBackgroundTheme } from "./focus-timer/hooks/useBackgroundTheme";
@@ -63,6 +63,18 @@ export const UnifiedFocusTimer = () => {
     setShowLockScreen,
   } = useTimerLogic();
 
+  // Stable callbacks for memoized TimerModals
+  const handleCloseIntentionModal = useCallback(() => setShowIntentionModal(false), [setShowIntentionModal]);
+  const handleCloseSessionNotes = useCallback(() => {
+    setShowSessionNotesModal(false);
+    setShowBreakTransitionModal(true);
+  }, [setShowSessionNotesModal, setShowBreakTransitionModal]);
+  const handleReturnToApp = useCallback(() => setShowLockScreen(false), [setShowLockScreen]);
+  const handleAbandonSession = useCallback(() => {
+    setShowLockScreen(false);
+    stopTimer();
+  }, [setShowLockScreen, stopTimer]);
+
   return (
     <FocusThemeProvider theme={backgroundTheme}>
       <div className="min-h-screen w-full relative overflow-hidden">
@@ -102,15 +114,12 @@ export const UnifiedFocusTimer = () => {
             <TimerModals
               // Intention modal
               showIntentionModal={showIntentionModal}
-              onCloseIntentionModal={() => setShowIntentionModal(false)}
+              onCloseIntentionModal={handleCloseIntentionModal}
               onStartWithIntent={startTimerWithIntent}
               selectedPreset={selectedPreset}
               // Session notes modal
               showSessionNotesModal={showSessionNotesModal}
-              onCloseSessionNotes={() => {
-                setShowSessionNotesModal(false);
-                setShowBreakTransitionModal(true);
-              }}
+              onCloseSessionNotes={handleCloseSessionNotes}
               onSaveSessionNotes={handleSessionNotesSave}
               sessionDuration={timerState.sessionDuration}
               lastSessionXP={lastSessionXP}
@@ -128,11 +137,8 @@ export const UnifiedFocusTimer = () => {
               timeRemaining={displayTime}
               category={timerState.category}
               lockScreenTaskLabel={timerState.taskLabel}
-              onReturnToApp={() => setShowLockScreen(false)}
-              onAbandonSession={() => {
-                setShowLockScreen(false);
-                stopTimer();
-              }}
+              onReturnToApp={handleReturnToApp}
+              onAbandonSession={handleAbandonSession}
             />
           </>
         )}

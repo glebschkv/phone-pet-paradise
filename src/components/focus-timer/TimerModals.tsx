@@ -8,6 +8,7 @@
  * - FocusLockScreen: Shown when app loses focus during work
  */
 
+import { memo } from "react";
 import { TaskIntentionModal } from "./TaskIntentionModal";
 import { SessionNotesModal } from "./SessionNotesModal";
 import { BreakTransitionModal } from "./BreakTransitionModal";
@@ -48,7 +49,7 @@ interface TimerModalsProps {
   onAbandonSession: () => void;
 }
 
-export const TimerModals = ({
+export const TimerModals = memo(({
   // Intention modal
   showIntentionModal,
   onCloseIntentionModal,
@@ -123,4 +124,4 @@ export const TimerModals = ({
       />
     </>
   );
-};
+});

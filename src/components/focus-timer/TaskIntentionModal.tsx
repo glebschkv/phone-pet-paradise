@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -50,7 +50,7 @@ const CATEGORY_GLOW: Record<FocusCategory, { border: string; shadow: string; bg:
   },
 };
 
-export const TaskIntentionModal = ({
+export const TaskIntentionModal = memo(({
   isOpen,
   onClose,
   onStart,
@@ -196,4 +196,6 @@ export const TaskIntentionModal = ({
       </DialogContent>
     </Dialog>
   );
-};
+}, (prev, next) =>
+  prev.isOpen === next.isOpen && prev.selectedPreset === next.selectedPreset
+);
