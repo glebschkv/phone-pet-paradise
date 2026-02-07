@@ -32,6 +32,7 @@ import { useTimerControls } from "./useTimerControls";
 import { useTimerCountdown } from "./useTimerCountdown";
 import { timerLogger } from "@/lib/logger";
 import { widgetDataService } from "@/plugins/widget-data";
+import { DeviceActivity } from "@/plugins/device-activity";
 
 export const useTimerLogic = () => {
   const { awardXP, coinSystem, xpSystem } = useBackendAppState();
@@ -184,12 +185,26 @@ export const useTimerLogic = () => {
       clearPersistence();
 
       let shieldAttempts = 0;
-      if (state.timerState.sessionType !== 'break' && state.hasAppsConfigured) {
+      if (state.timerState.sessionType !== 'break') {
+        // Always attempt to stop blocking — don't rely on hasAppsConfigured
+        // which can be stale if plugin init had issues
+        let blockingStopped = false;
         try {
           const blockingResult = await stopAppBlocking();
           shieldAttempts = blockingResult.shieldAttempts;
+          blockingStopped = blockingResult.success;
         } catch (e) {
-          timerLogger.error('Failed to stop app blocking:', e);
+          timerLogger.error('Failed to stop app blocking via hook:', e);
+        }
+
+        // Fallback: direct plugin call if hook-based call failed or bailed
+        if (!blockingStopped) {
+          try {
+            await DeviceActivity.stopAppBlocking();
+            timerLogger.info('Stopped app blocking via direct plugin call fallback');
+          } catch {
+            // Plugin not available — nothing more we can do
+          }
         }
       }
 

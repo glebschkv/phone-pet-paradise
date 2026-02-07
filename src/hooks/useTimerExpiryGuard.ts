@@ -24,6 +24,21 @@ interface PersistedTimerState {
   elapsedTime?: number;
 }
 
+/** Try to stop app blocking with retries for reliability */
+async function stopBlockingWithRetry() {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await DeviceActivity.stopAppBlocking();
+      return; // success
+    } catch {
+      // Wait before retrying (500ms, 1s, 2s)
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt)));
+      }
+    }
+  }
+}
+
 function checkAndClearExpiredTimer(): boolean {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -77,7 +92,7 @@ export function useTimerExpiryGuard() {
     hasChecked.current = true;
 
     if (checkAndClearExpiredTimer()) {
-      DeviceActivity.stopAppBlocking().catch(() => { /* plugin not available */ });
+      stopBlockingWithRetry();
     }
   }, []);
 
@@ -90,7 +105,7 @@ export function useTimerExpiryGuard() {
     CapApp.addListener('appStateChange', (appState) => {
       if (appState.isActive) {
         if (checkAndClearExpiredTimer()) {
-          DeviceActivity.stopAppBlocking().catch(() => { /* plugin not available */ });
+          stopBlockingWithRetry();
         }
       }
     }).then((h) => {
