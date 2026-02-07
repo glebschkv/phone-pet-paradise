@@ -122,14 +122,14 @@ describe('xpStore', () => {
       expect(unlockedAnimals).toEqual([]);
     });
 
-    it('should have Meadow as default biome', () => {
+    it('should have Snow as default biome', () => {
       const { currentBiome } = useXPStore.getState();
-      expect(currentBiome).toBe('Meadow');
+      expect(currentBiome).toBe('Snow');
     });
 
-    it('should have Meadow in available biomes', () => {
+    it('should have Snow in available biomes', () => {
       const { availableBiomes } = useXPStore.getState();
-      expect(availableBiomes).toContain('Meadow');
+      expect(availableBiomes).toContain('Snow');
     });
   });
 
@@ -331,7 +331,7 @@ describe('xpStore', () => {
         switchBiome('Desert');
       });
 
-      expect(useXPStore.getState().currentBiome).toBe('Meadow');
+      expect(useXPStore.getState().currentBiome).toBe('Snow');
     });
 
     it('should allow switching back to original biome', () => {
@@ -345,10 +345,10 @@ describe('xpStore', () => {
       expect(useXPStore.getState().currentBiome).toBe('Beach');
 
       act(() => {
-        switchBiome('Meadow');
+        switchBiome('Snow');
       });
 
-      expect(useXPStore.getState().currentBiome).toBe('Meadow');
+      expect(useXPStore.getState().currentBiome).toBe('Snow');
     });
   });
 
@@ -375,7 +375,7 @@ describe('xpStore', () => {
       expect(biomes.filter(b => b === 'Forest')).toHaveLength(1);
     });
 
-    it('should keep default Meadow when adding new biomes', () => {
+    it('should keep default Snow when adding new biomes', () => {
       const { addBiome } = useXPStore.getState();
 
       act(() => {
@@ -383,7 +383,7 @@ describe('xpStore', () => {
         addBiome('Cave');
       });
 
-      expect(useXPStore.getState().availableBiomes).toContain('Meadow');
+      expect(useXPStore.getState().availableBiomes).toContain('Snow');
     });
   });
 
@@ -438,8 +438,8 @@ describe('xpStore', () => {
       expect(state.currentXP).toBe(0);
       expect(state.currentLevel).toBe(0);
       expect(state.unlockedAnimals).toEqual([]);
-      expect(state.availableBiomes).toEqual(['Meadow']);
-      expect(state.currentBiome).toBe('Meadow');
+      expect(state.availableBiomes).toEqual(['Snow']);
+      expect(state.currentBiome).toBe('Snow');
     });
   });
 
@@ -474,17 +474,17 @@ describe('xpStore', () => {
 
     it('useCurrentBiome should return current biome', () => {
       const { result } = renderHook(() => useCurrentBiome());
-      expect(result.current).toBe('Meadow');
+      expect(result.current).toBe('Snow');
     });
 
     it('useAvailableBiomes should return available biomes', () => {
       act(() => {
-        useXPStore.getState().addBiome('Snow');
+        useXPStore.getState().addBiome('Meadow');
       });
 
       const { result } = renderHook(() => useAvailableBiomes());
-      expect(result.current).toContain('Meadow');
       expect(result.current).toContain('Snow');
+      expect(result.current).toContain('Meadow');
     });
 
     it('selectors should update on state change', () => {

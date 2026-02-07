@@ -93,8 +93,8 @@ describe('Storage Validation', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.unlockedAnimals).toEqual([]);
-        expect(result.data.availableBiomes).toEqual(['Meadow']);
-        expect(result.data.currentBiome).toBe('Meadow');
+        expect(result.data.availableBiomes).toEqual(['Snow']);
+        expect(result.data.currentBiome).toBe('Snow');
       }
     });
 

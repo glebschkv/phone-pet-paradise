@@ -124,8 +124,8 @@ const loadXPState = (defaultAnimals: string[]): XPSystemState => {
     xpToNextLevel: 15,
     totalXPForCurrentLevel: 0,
     unlockedAnimals: defaultAnimals,
-    currentBiome: 'Meadow',
-    availableBiomes: ['Meadow'],
+    currentBiome: 'Snow',
+    availableBiomes: ['Snow'],
     totalStudyMinutes: 0,
   };
 
@@ -215,8 +215,8 @@ export const useXPSystem = () => {
     xpToNextLevel: 15,
     totalXPForCurrentLevel: 0,
     unlockedAnimals: startingAnimals,
-    currentBiome: 'Meadow',
-    availableBiomes: ['Meadow'],
+    currentBiome: 'Snow',
+    availableBiomes: ['Snow'],
     totalStudyMinutes: 0,
   });
 
@@ -246,7 +246,7 @@ export const useXPSystem = () => {
         const availableBiomes = BIOME_DATABASE
           .filter(biome => biome.unlockLevel <= effectiveLevel)
           .map(biome => biome.name);
-        const currentBiome = availableBiomes[availableBiomes.length - 1] || 'Meadow';
+        const currentBiome = availableBiomes[availableBiomes.length - 1] || 'Snow';
 
         const newState = {
           currentXP: effectiveXP,

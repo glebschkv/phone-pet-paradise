@@ -6,7 +6,6 @@ import { SplashScreen as NativeSplash } from '@capacitor/splash-screen';
 import { DeviceActivity } from '@/plugins/device-activity';
 import { useBackendAppState } from "@/hooks/useBackendAppState";
 import { useOnboardingStore } from "@/stores/onboardingStore";
-import { useCollectionStore } from "@/stores/collectionStore";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -50,7 +49,6 @@ const Index = () => {
   const { unlockedAnimals, currentLevel, currentBiome, isLoading: isDataLoading } = useBackendAppState();
   const hasCompletedOnboarding = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
-  const setActiveHomePets = useCollectionStore((s) => s.setActiveHomePets);
   usePerformanceMonitor(); // Initialize performance monitoring
 
   // Hide splash screens once after auth check resolves.
@@ -93,9 +91,13 @@ const Index = () => {
     }
 
     // Otherwise, if background is still 'day' (default), set it based on current biome
-    if (backgroundTheme === 'day' && currentBiome && currentBiome !== 'Meadow') {
-      const biomeBackground = BIOME_TO_BACKGROUND[currentBiome] || 'day';
+    if (backgroundTheme === 'day' && currentBiome && currentBiome !== 'Snow') {
+      const biomeBackground = BIOME_TO_BACKGROUND[currentBiome] || 'snow';
       setHomeBackground(biomeBackground);
+    }
+    // Set snow as default for new users (Snow is the starting biome)
+    if (backgroundTheme === 'day' && (!currentBiome || currentBiome === 'Snow')) {
+      setHomeBackground('snow');
     }
   }, [equippedBackground, currentBiome, backgroundTheme, setHomeBackground]);
 
@@ -142,11 +144,6 @@ const Index = () => {
   // Show onboarding if not completed
   if (!hasCompletedOnboarding) {
     const handleOnboardingComplete = () => {
-      // Set the chosen starter pet as the active home pet
-      const starterPet = useOnboardingStore.getState().chosenStarterPet;
-      if (starterPet) {
-        setActiveHomePets([starterPet]);
-      }
       completeOnboarding();
     };
 

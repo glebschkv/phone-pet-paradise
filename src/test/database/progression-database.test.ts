@@ -53,8 +53,8 @@ describe('Progression Database – XP Store', () => {
       xpToNextLevel: 15,
       totalXPForCurrentLevel: 0,
       unlockedAnimals: [],
-      currentBiome: 'Meadow',
-      availableBiomes: ['Meadow'],
+      currentBiome: 'Snow',
+      availableBiomes: ['Snow'],
     });
   });
 
@@ -69,10 +69,10 @@ describe('Progression Database – XP Store', () => {
       expect(state.currentLevel).toBe(0);
     });
 
-    it('should start in Meadow biome', () => {
+    it('should start in Snow biome', () => {
       const state = useXPStore.getState();
-      expect(state.currentBiome).toBe('Meadow');
-      expect(state.availableBiomes).toContain('Meadow');
+      expect(state.currentBiome).toBe('Snow');
+      expect(state.availableBiomes).toContain('Snow');
     });
 
     it('should require 15 XP to reach next level', () => {
@@ -204,7 +204,7 @@ describe('Progression Database – XP Store', () => {
       act(() => {
         useXPStore.getState().switchBiome('Volcano');
       });
-      expect(useXPStore.getState().currentBiome).toBe('Meadow');
+      expect(useXPStore.getState().currentBiome).toBe('Snow');
     });
 
     it('should add new biomes', () => {
@@ -213,16 +213,16 @@ describe('Progression Database – XP Store', () => {
         useXPStore.getState().addBiome('Beach');
       });
       const biomes = useXPStore.getState().availableBiomes;
-      expect(biomes).toContain('Meadow');
+      expect(biomes).toContain('Snow');
       expect(biomes).toContain('Forest');
       expect(biomes).toContain('Beach');
     });
 
     it('should not add duplicate biomes', () => {
       act(() => {
-        useXPStore.getState().addBiome('Meadow');
+        useXPStore.getState().addBiome('Snow');
       });
-      expect(useXPStore.getState().availableBiomes.filter(b => b === 'Meadow')).toHaveLength(1);
+      expect(useXPStore.getState().availableBiomes.filter(b => b === 'Snow')).toHaveLength(1);
     });
   });
 
@@ -243,8 +243,8 @@ describe('Progression Database – XP Store', () => {
       expect(state.currentXP).toBe(0);
       expect(state.currentLevel).toBe(0);
       expect(state.unlockedAnimals).toEqual([]);
-      expect(state.currentBiome).toBe('Meadow');
-      expect(state.availableBiomes).toEqual(['Meadow']);
+      expect(state.currentBiome).toBe('Snow');
+      expect(state.availableBiomes).toEqual(['Snow']);
     });
   });
 
@@ -275,7 +275,7 @@ describe('Progression Database – XP Store', () => {
 
     it('should return current biome via selector hook', () => {
       const { result } = renderHook(() => useCurrentBiome());
-      expect(result.current).toBe('Meadow');
+      expect(result.current).toBe('Snow');
     });
 
     it('should return available biomes via selector hook', () => {
@@ -283,7 +283,7 @@ describe('Progression Database – XP Store', () => {
         useXPStore.getState().addBiome('Forest');
       });
       const { result } = renderHook(() => useAvailableBiomes());
-      expect(result.current).toContain('Meadow');
+      expect(result.current).toContain('Snow');
       expect(result.current).toContain('Forest');
     });
   });
@@ -602,8 +602,8 @@ describe('Progression Database – End-to-End Flows', () => {
       xpToNextLevel: 15,
       totalXPForCurrentLevel: 0,
       unlockedAnimals: [],
-      currentBiome: 'Meadow',
-      availableBiomes: ['Meadow'],
+      currentBiome: 'Snow',
+      availableBiomes: ['Snow'],
     });
     useCoinStore.setState({
       balance: 0,
