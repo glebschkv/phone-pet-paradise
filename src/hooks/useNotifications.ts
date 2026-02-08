@@ -242,12 +242,12 @@ export const useNotifications = () => {
 
   const schedulePetCareReminder = useCallback(() => {
     scheduleLocalNotification({
-      title: '🐾 Your pets miss you!',
-      body: 'Come back to feed and play with your island pets',
+      title: 'Your pets miss you!',
+      body: 'Come back and start a focus session!',
       delay: 2 * 60 * 60 * 1000, // 2 hours
       id: 1001,
       actionButtons: [
-        { id: 'check_pets', title: 'Check Pets' },
+        { id: 'check_pets', title: 'Open App' },
         { id: 'dismiss', title: 'Later' }
       ]
     });
@@ -335,23 +335,25 @@ export const useNotifications = () => {
     const isLevelUp = level !== undefined;
 
     scheduleLocalNotification({
-      title: isLevelUp ? '🎉 Level Up!' : '✨ XP Earned!',
+      title: isLevelUp ? 'Level Up!' : 'XP Earned!',
       body: isLevelUp
         ? `Congratulations! You reached level ${level}!`
         : `You earned ${xpGained} XP for staying focused!`,
       delay: 1000, // 1 second delay
-      id: Date.now(),
+      // Use fixed ID so repeated calls overwrite instead of stacking notifications
+      id: 1006,
     });
   }, [scheduleLocalNotification]);
 
   const scheduleStreakNotification = useCallback((streak: number) => {
-    const streakEmoji = streak >= 7 ? '🔥' : streak >= 3 ? '⭐' : '🌟';
+    const streakEmoji = streak >= 7 ? 'fire' : streak >= 3 ? 'star' : 'sparkle';
 
     scheduleLocalNotification({
-      title: `${streakEmoji} ${streak}-Day Streak!`,
-      body: `Amazing! You're on a ${streak}-day focus streak. Keep it going!`,
+      title: `${streak}-Day Streak!`,
+      body: `You're on a ${streak}-day focus streak. Keep it going!`,
       delay: 2000, // 2 second delay
-      id: Date.now(),
+      // Use fixed ID so repeated calls overwrite instead of stacking notifications
+      id: 1007,
     });
   }, [scheduleLocalNotification]);
 

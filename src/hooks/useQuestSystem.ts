@@ -33,9 +33,9 @@ const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
     rewards: [{ type: 'xp' as const, amount: 150, description: "+150 XP" }, { type: 'coins' as const, amount: 100, description: "+100 coins" }]
   },
   {
-    title: "Pet Companion",
-    description: "Interact with 3 different pets",
-    objectives: [{ type: 'pet_interaction', target: 3, description: "Interact with 3 pets" }],
+    title: "Triple Session",
+    description: "Complete 3 focus sessions today",
+    objectives: [{ type: 'sessions', target: 3, description: "Complete 3 sessions" }],
     rewards: [{ type: 'xp' as const, amount: 50, description: "+50 XP" }, { type: 'coins' as const, amount: 40, description: "+40 coins" }]
   },
   {
@@ -51,9 +51,9 @@ const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
     rewards: [{ type: 'xp' as const, amount: 100, description: "+100 XP" }, { type: 'coins' as const, amount: 60, description: "+60 coins" }]
   },
   {
-    title: "Bond Builder",
-    description: "Increase bond level with any pet",
-    objectives: [{ type: 'bond_level', target: 1, description: "Level up a pet bond" }],
+    title: "Endurance Run",
+    description: "Complete a 90-minute deep work session",
+    objectives: [{ type: 'focus_time', target: 90, description: "Focus for 90 minutes" }],
     rewards: [{ type: 'xp' as const, amount: 125, description: "+125 XP" }, { type: 'coins' as const, amount: 80, description: "+80 coins" }]
   }
 ];

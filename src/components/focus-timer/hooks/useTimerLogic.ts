@@ -33,6 +33,7 @@ import { useTimerCountdown } from "./useTimerCountdown";
 import { timerLogger } from "@/lib/logger";
 import { widgetDataService } from "@/plugins/widget-data";
 import { DeviceActivity } from "@/plugins/device-activity";
+import { markBlockingStopped } from "@/hooks/useTimerExpiryGuard";
 
 export const useTimerLogic = () => {
   const { awardXP, coinSystem, xpSystem } = useBackendAppState();
@@ -187,6 +188,9 @@ export const useTimerLogic = () => {
 
       let shieldAttempts = 0;
       if (state.timerState.sessionType !== 'break') {
+        // Mark blocking as stopped FIRST so the expiry guard won't try to
+        // stop it again if the WebView reloads during cleanup
+        markBlockingStopped();
         // Always attempt to stop blocking — don't rely on hasAppsConfigured
         // which can be stale if plugin init had issues
         let blockingStopped = false;
