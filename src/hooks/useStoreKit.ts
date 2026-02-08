@@ -416,12 +416,13 @@ export const useStoreKit = (): UseStoreKitReturn => {
         if (validationResult.success) {
           // Server validated — finish the transaction with Apple.
           // This tells Apple the purchase was delivered to the user.
+          // Must await so Apple doesn't re-deliver on next launch.
           if (result.transactionId) {
-            safeStoreKitCall(
+            await safeStoreKitCall(
               () => StoreKit.finishTransaction({ transactionId: result.transactionId! }),
               { success: false },
               'finishTransaction'
-            ).catch(err => logger.warn('Failed to finish transaction:', err));
+            );
           }
 
           // Handle different product types
@@ -544,6 +545,15 @@ export const useStoreKit = (): UseStoreKitReturn => {
             }
           }
           // Note: coin packs are consumable and NOT restored (they were already used)
+
+          // Finish the restored transaction so Apple doesn't re-deliver it
+          if (purchase.transactionId) {
+            await safeStoreKitCall(
+              () => StoreKit.finishTransaction({ transactionId: purchase.transactionId! }),
+              { success: false },
+              'finishTransaction'
+            );
+          }
           validatedCount++;
         } else {
           // Log but don't track count since we show generic error anyway

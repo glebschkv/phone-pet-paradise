@@ -200,6 +200,7 @@ export const useTimerPersistence = (): UseTimerPersistenceReturn => {
 
         // Restore to both React state and localStorage
         setTimerState(nativeState);
+        setSelectedPreset(findPresetForState(nativeState));
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(nativeState));
         } catch {
