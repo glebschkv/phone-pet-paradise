@@ -130,7 +130,10 @@ export const useTimerCountdown = ({
     }
   }, [timerState.timeLeft, timerState.elapsedTime, timerState.isRunning, timerState.isCountup, setDisplayTime, setElapsedTime]);
 
-  // Timer countdown/countup effect
+  // Timer countdown/countup effect.
+  // All callbacks are accessed through refs so this effect only re-runs when
+  // the timer actually starts/stops or the startTime changes — NOT on every
+  // render when handleComplete or other callbacks get new references.
   useEffect(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -138,35 +141,39 @@ export const useTimerCountdown = ({
     }
 
     if (timerState.isRunning && timerState.startTime) {
+      const startTime = timerState.startTime;
+      const sessionDuration = timerState.sessionDuration;
+      const isCountup = timerState.isCountup;
+
       const tick = () => {
         const now = Date.now();
-        const elapsedMs = now - timerState.startTime!;
+        const elapsedMs = now - startTime;
         const elapsedSeconds = Math.floor(elapsedMs / 1000);
 
-        if (timerState.isCountup) {
+        if (isCountup) {
           // Countup mode: track elapsed time up to max duration
           const newElapsedTime = Math.min(elapsedSeconds, MAX_COUNTUP_DURATION);
-          setElapsedTime(newElapsedTime);
+          setElapsedTimeRef.current(newElapsedTime);
 
           if (elapsedSeconds % 5 === 0) {
-            saveTimerState({ elapsedTime: newElapsedTime });
+            saveTimerStateRef.current({ elapsedTime: newElapsedTime });
           }
 
           // Complete when max duration is reached
           if (newElapsedTime >= MAX_COUNTUP_DURATION) {
-            handleComplete().catch((err) => timerLogger.error('Timer completion failed:', err));
+            handleCompleteRef.current().catch((err) => timerLogger.error('Timer completion failed:', err));
           }
         } else {
           // Countdown mode: track remaining time
-          const newTimeLeft = Math.max(0, timerState.sessionDuration - elapsedSeconds);
-          setDisplayTime(newTimeLeft);
+          const newTimeLeft = Math.max(0, sessionDuration - elapsedSeconds);
+          setDisplayTimeRef.current(newTimeLeft);
 
           if (elapsedSeconds % 5 === 0) {
-            saveTimerState({ timeLeft: newTimeLeft });
+            saveTimerStateRef.current({ timeLeft: newTimeLeft });
           }
 
           if (newTimeLeft === 0) {
-            handleComplete().catch((err) => timerLogger.error('Timer completion failed:', err));
+            handleCompleteRef.current().catch((err) => timerLogger.error('Timer completion failed:', err));
           }
         }
       };
@@ -181,7 +188,9 @@ export const useTimerCountdown = ({
         intervalRef.current = null;
       }
     };
-  }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, timerState.isCountup, saveTimerState, handleComplete, setDisplayTime, setElapsedTime, intervalRef]);
+  // Callbacks accessed via refs — only re-run when timer starts/stops.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timerState.isRunning, timerState.startTime, timerState.sessionDuration, timerState.isCountup, intervalRef]);
 
   // Store setShowLockScreen in a ref to keep the visibility effect stable
   const setShowLockScreenRef = useRef(setShowLockScreen);
@@ -260,12 +269,15 @@ export const useTimerCountdown = ({
     if (Capacitor.isNativePlatform()) {
       CapApp.addListener('appStateChange', (appState) => {
         if (appState.isActive) {
-          // Always dismiss lock screen when app becomes active
-          setShowLockScreenRef.current(false);
-
           const state = stateRef.current;
           if (state.timerState.isRunning && state.timerState.startTime) {
+            // handleForegroundResume updates displayTime FIRST, then
+            // dismisses the lock screen — so the user never sees stale time
+            // through the lock screen fade-out animation.
             handleForegroundResume();
+          } else {
+            // Timer not running — just dismiss the lock screen
+            setShowLockScreenRef.current(false);
           }
         } else {
           const state = stateRef.current;
