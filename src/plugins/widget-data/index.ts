@@ -142,6 +142,15 @@ class WidgetDataService {
     );
   }
 
+  /** Safe localStorage write — swallows QuotaExceededError */
+  private persistToLocalStorage(): void {
+    try {
+      this.persistToLocalStorage();
+    } catch {
+      // Storage full — in-memory data is still up to date
+    }
+  }
+
   private getDefaultData(): WidgetData {
     const today = new Date().toISOString().split('T')[0];
     return {
@@ -218,7 +227,7 @@ class WidgetDataService {
       };
 
       // Save to localStorage
-      localStorage.setItem(WIDGET_DATA_KEY, JSON.stringify(this.data));
+      this.persistToLocalStorage();
 
       // Save to native shared storage for widgets (debounced)
       if (this.isNative) {
@@ -236,7 +245,7 @@ class WidgetDataService {
     this.data.timer = { ...this.data.timer, ...timerData };
     this.data.lastUpdated = Date.now();
 
-    localStorage.setItem(WIDGET_DATA_KEY, JSON.stringify(this.data));
+    this.persistToLocalStorage();
 
     if (this.isNative) {
       try {
@@ -254,7 +263,7 @@ class WidgetDataService {
     this.data.streak = { ...this.data.streak, ...streakData };
     this.data.lastUpdated = Date.now();
 
-    localStorage.setItem(WIDGET_DATA_KEY, JSON.stringify(this.data));
+    this.persistToLocalStorage();
 
     if (this.isNative) {
       try {
@@ -291,7 +300,7 @@ class WidgetDataService {
     this.data.dailyProgress = newProgress;
     this.data.lastUpdated = Date.now();
 
-    localStorage.setItem(WIDGET_DATA_KEY, JSON.stringify(this.data));
+    this.persistToLocalStorage();
 
     if (this.isNative) {
       try {
@@ -309,7 +318,7 @@ class WidgetDataService {
     this.data.stats = { ...this.data.stats, ...statsData };
     this.data.lastUpdated = Date.now();
 
-    localStorage.setItem(WIDGET_DATA_KEY, JSON.stringify(this.data));
+    this.persistToLocalStorage();
 
     if (this.isNative) {
       try {
@@ -327,7 +336,7 @@ class WidgetDataService {
     this.data.petInfo = { ...this.data.petInfo, ...petData };
     this.data.lastUpdated = Date.now();
 
-    localStorage.setItem(WIDGET_DATA_KEY, JSON.stringify(this.data));
+    this.persistToLocalStorage();
 
     if (this.isNative) {
       try {

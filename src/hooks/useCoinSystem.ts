@@ -361,6 +361,8 @@ export const useCoinSystem = () => {
   }, []);
 
   // PHASE 4: Periodic background sync every 5 minutes
+  // Skip syncs when the page is hidden (iOS suspends JS, so the interval
+  // fires as a burst of queued callbacks when the app returns to foreground)
   useEffect(() => {
     // Skip if Supabase is not configured (guest mode)
     if (!isSupabaseConfigured) {
@@ -370,6 +372,8 @@ export const useCoinSystem = () => {
     const SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
     const interval = setInterval(async () => {
+      // Don't fire network requests while backgrounded
+      if (document.hidden) return;
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {

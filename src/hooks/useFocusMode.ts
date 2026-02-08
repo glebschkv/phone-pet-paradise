@@ -111,7 +111,9 @@ export const useFocusMode = () => {
   const updateSettings = useCallback((updates: Partial<FocusModeSettings>) => {
     setSettings(prev => {
       const newSettings = { ...prev, ...updates };
-      localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+      try {
+        localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+      } catch { /* storage full — state still updated in-memory */ }
 
       // Sync with native plugin
       if (isNative) {
@@ -131,7 +133,9 @@ export const useFocusMode = () => {
         app.id === appId ? { ...app, isBlocked: blocked } : app
       );
       const newSettings = { ...prev, blockedApps: newApps };
-      localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+      try {
+        localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+      } catch { /* storage full — state still updated in-memory */ }
 
       // Sync with native plugin
       if (isNative) {
@@ -155,7 +159,9 @@ export const useFocusMode = () => {
         ...prev,
         blockedWebsites: [...prev.blockedWebsites, normalized],
       };
-      localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+      try {
+        localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+      } catch { /* storage full */ }
       return newSettings;
     });
   }, []);
@@ -167,7 +173,9 @@ export const useFocusMode = () => {
         ...prev,
         blockedWebsites: prev.blockedWebsites.filter(w => w !== website),
       };
-      localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+      try {
+        localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
+      } catch { /* storage full */ }
       return newSettings;
     });
   }, []);
@@ -226,7 +234,9 @@ export const useFocusMode = () => {
   // Reset to defaults
   const resetToDefaults = useCallback(() => {
     setSettings(defaultSettings);
-    localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(defaultSettings));
+    try {
+      localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(defaultSettings));
+    } catch { /* storage full */ }
 
     // Clear native selection
     if (isNative) {
