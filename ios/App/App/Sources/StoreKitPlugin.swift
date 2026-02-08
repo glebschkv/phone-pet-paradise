@@ -19,6 +19,7 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "getProducts", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "purchase", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "finishTransaction", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "restorePurchases", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getSubscriptionStatus", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getPurchaseHistory", returnType: CAPPluginReturnPromise),
@@ -112,6 +113,23 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                 Log.storeKit.failure("purchase failed", error: error)
                 call.reject("Purchase failed: \(error.localizedDescription)", errorCode(from: error))
             }
+        }
+    }
+
+    // MARK: - Finish Transaction
+
+    /// Finishes a transaction after server-side validation.
+    /// Must be called after purchase + server validation to tell Apple the purchase is complete.
+    @objc func finishTransaction(_ call: CAPPluginCall) {
+        guard let transactionIdString = call.getString("transactionId"),
+              let transactionId = UInt64(transactionIdString) else {
+            call.reject("Missing or invalid transactionId parameter", "STOREKIT_INVALID_PARAMS")
+            return
+        }
+
+        Task {
+            let success = await transactionManager.finishStoredTransaction(transactionId: transactionId)
+            call.resolve(["success": success])
         }
     }
 

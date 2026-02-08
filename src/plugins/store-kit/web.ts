@@ -101,6 +101,11 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
     };
   }
 
+  async finishTransaction(_options: { transactionId: string }): Promise<{ success: boolean }> {
+    log('Finishing transaction:', _options.transactionId);
+    return { success: true };
+  }
+
   async restorePurchases(): Promise<RestoreResult> {
     log('Restoring purchases');
 

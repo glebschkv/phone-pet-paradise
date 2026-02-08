@@ -6,6 +6,11 @@ import StoreKit
  *
  * Manages StoreKit transaction listening, verification, and finishing.
  * Handles the continuous stream of transaction updates.
+ *
+ * IMPORTANT: Transactions from the purchase flow are NOT auto-finished.
+ * The JS side calls `finishTransaction` after successful server validation.
+ * Only background transaction updates (renewals, deferred purchases) are
+ * auto-finished by the listener.
  */
 @available(iOS 15.0, *)
 final class StoreKitTransactionManager {
@@ -19,6 +24,11 @@ final class StoreKitTransactionManager {
     private var updateListenerTask: Task<Void, Error>?
     private var transactionHandler: (([String: Any]) -> Void)?
 
+    /// Transactions pending server-side validation (keyed by transaction ID).
+    /// The purchase flow stores them here; JS calls finishTransaction after validation.
+    private var unfinishedTransactions: [UInt64: Transaction] = [:]
+    private let lock = NSLock()
+
     // MARK: - Initialization
 
     init() {
@@ -29,9 +39,51 @@ final class StoreKitTransactionManager {
         stopListening()
     }
 
+    // MARK: - Unfinished Transaction Storage
+
+    /// Stores a transaction that is pending server-side validation.
+    func storeUnfinishedTransaction(_ transaction: Transaction) {
+        lock.lock()
+        unfinishedTransactions[transaction.id] = transaction
+        lock.unlock()
+        Log.storeKit.debug("Stored unfinished transaction: \(transaction.id) (\(transaction.productID))")
+    }
+
+    /// Finishes a previously stored unfinished transaction by ID.
+    /// Returns true if the transaction was found and finished.
+    func finishStoredTransaction(transactionId: UInt64) async -> Bool {
+        lock.lock()
+        let transaction = unfinishedTransactions.removeValue(forKey: transactionId)
+        lock.unlock()
+
+        if let transaction = transaction {
+            await transaction.finish()
+            Log.storeKit.success("Finished stored transaction: \(transactionId) (\(transaction.productID))")
+            return true
+        }
+
+        // Transaction not in our storage — try to find it in unfinished transactions
+        // This handles the case where the app was restarted between purchase and finish
+        for await result in Transaction.unfinished {
+            do {
+                let tx = try verifyTransaction(result)
+                if tx.id == transactionId {
+                    await tx.finish()
+                    Log.storeKit.success("Finished unfinished transaction from store: \(transactionId)")
+                    return true
+                }
+            } catch {
+                continue
+            }
+        }
+
+        Log.storeKit.warning("Transaction not found for finishing: \(transactionId)")
+        return false
+    }
+
     // MARK: - Transaction Listener
 
-    /// Starts listening for transaction updates
+    /// Starts listening for transaction updates (renewals, deferred purchases, etc.)
     func startListening() {
         guard updateListenerTask == nil else {
             Log.storeKit.debug("Transaction listener already running")
@@ -45,8 +97,10 @@ final class StoreKitTransactionManager {
                 do {
                     let transaction = try self?.verifyTransaction(result)
                     if let transaction = transaction {
+                        // Auto-finish background updates (renewals, etc.)
+                        // These are not from the active purchase flow.
                         await transaction.finish()
-                        Log.storeKit.success("Transaction finished: \(transaction.productID)")
+                        Log.storeKit.success("Transaction update finished: \(transaction.productID)")
 
                         let data: [String: Any] = [
                             "productId": transaction.productID,

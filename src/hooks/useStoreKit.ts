@@ -358,81 +358,95 @@ export const useStoreKit = (): UseStoreKitReturn => {
     setIsPurchasing(true);
     setError(null);
 
-    logger.debug('Starting purchase:', productId);
-    const { result, success } = await safeStoreKitCall(
-      () => StoreKit.purchase({ productId }),
-      failedResult,
-      'purchase'
-    );
+    try {
+      logger.debug('Starting purchase:', productId);
+      const { result, success } = await safeStoreKitCall(
+        () => StoreKit.purchase({ productId }),
+        failedResult,
+        'purchase'
+      );
 
-    if (!success) {
-      setIsPurchasing(false);
-      setError('Purchase failed. Please try again.');
-      toast.error('Purchase Failed', {
-        description: 'Unable to complete the purchase. Please try again.',
-      });
-      return result;
-    }
-
-    if (result.success) {
-      // SECURITY: Validate with server before granting access
-      const validationResult = await serverValidatePurchase(result);
-
-      if (validationResult.success) {
-        // Handle different product types
-        if (validationResult.productType === 'subscription' && validationResult.subscription) {
-          // Update local storage with server-validated subscription
-          const premiumState = {
-            tier: validationResult.subscription.tier,
-            expiresAt: validationResult.subscription.expiresAt,
-            purchasedAt: validationResult.subscription.purchasedAt,
-            planId: validationResult.subscription.productId,
-            validated: true,
-            environment: validationResult.subscription.environment,
-          };
-          localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
-          // Refresh subscription status
-          await checkSubscriptionStatus();
-        } else if (validationResult.productType === 'coin_pack' && validationResult.coinPack) {
-          // Dispatch event for coin balance refresh
-          dispatchCoinsGranted(validationResult.coinPack.coinsGranted);
-          logger.debug('Coins granted:', validationResult.coinPack.coinsGranted);
-        } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
-          // Dispatch event for bundle fulfillment (coins already granted server-side)
-          dispatchCoinsGranted(validationResult.bundle.coinsGranted);
-          dispatchBundleGranted(validationResult.bundle);
-          logger.debug('Bundle granted:', validationResult.bundle);
-        }
-
-        // Return success with validation data for caller to use
-        setIsPurchasing(false);
-        return { ...result, validationResult };
-      } else if (validationResult.requiresRetry) {
-        // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
-        toast.error('Verification Pending', {
-          description: 'Unable to verify purchase right now. Please try "Restore Purchases" or check your connection.',
-          duration: 6000,
+      if (!success) {
+        setError('Purchase failed. Please try again.');
+        toast.error('Purchase Failed', {
+          description: 'Could not start the purchase. Check your internet connection and try again.',
+          duration: 5000,
         });
-        // Don't grant access - user needs to restore purchases
-      } else {
-        // SECURITY: Validation failed definitively
-        toast.error('Verification Failed', {
-          description: 'Purchase could not be verified with the server. Please try "Restore Purchases" or contact support.',
-          duration: 6000,
-        });
-        // Don't grant access
+        return result;
       }
-    } else if (result.cancelled) {
-      // User cancelled - no toast needed
-      logger.debug('Purchase cancelled by user');
-    } else if (result.pending) {
-      toast.info('Purchase Pending', {
-        description: 'Your purchase is awaiting approval.',
-      });
-    }
 
-    setIsPurchasing(false);
-    return result;
+      if (result.success) {
+        // SECURITY: Validate with server before granting access
+        const validationResult = await serverValidatePurchase(result);
+
+        if (validationResult.success) {
+          // Server validated — finish the transaction with Apple.
+          // This tells Apple the purchase was delivered to the user.
+          if (result.transactionId) {
+            safeStoreKitCall(
+              () => StoreKit.finishTransaction({ transactionId: result.transactionId! }),
+              { success: false },
+              'finishTransaction'
+            ).catch(err => logger.warn('Failed to finish transaction:', err));
+          }
+
+          // Handle different product types
+          if (validationResult.productType === 'subscription' && validationResult.subscription) {
+            // Update local storage with server-validated subscription
+            const premiumState = {
+              tier: validationResult.subscription.tier,
+              expiresAt: validationResult.subscription.expiresAt,
+              purchasedAt: validationResult.subscription.purchasedAt,
+              planId: validationResult.subscription.productId,
+              validated: true,
+              environment: validationResult.subscription.environment,
+            };
+            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+            // Refresh subscription status
+            await checkSubscriptionStatus();
+          } else if (validationResult.productType === 'coin_pack' && validationResult.coinPack) {
+            // Dispatch event for coin balance refresh
+            dispatchCoinsGranted(validationResult.coinPack.coinsGranted);
+            logger.debug('Coins granted:', validationResult.coinPack.coinsGranted);
+          } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
+            // Dispatch event for bundle fulfillment (coins already granted server-side)
+            dispatchCoinsGranted(validationResult.bundle.coinsGranted);
+            dispatchBundleGranted(validationResult.bundle);
+            logger.debug('Bundle granted:', validationResult.bundle);
+          }
+
+          // Return success with validation data for caller to use
+          return { ...result, validationResult };
+        } else if (validationResult.requiresRetry) {
+          // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
+          // Transaction is NOT finished — Apple will retry delivery on next app launch.
+          toast.error('Verification Pending', {
+            description: 'Unable to verify purchase right now. Your payment is safe — try "Restore Purchases" later.',
+            duration: 6000,
+          });
+          // Don't grant access - user needs to restore purchases
+        } else {
+          // SECURITY: Validation failed definitively
+          // Transaction is NOT finished — so Apple may refund or retry.
+          toast.error('Verification Failed', {
+            description: 'Purchase could not be verified. Try "Restore Purchases" or contact support.',
+            duration: 6000,
+          });
+          // Don't grant access
+        }
+      } else if (result.cancelled) {
+        // User cancelled - no toast needed
+        logger.debug('Purchase cancelled by user');
+      } else if (result.pending) {
+        toast.info('Purchase Pending', {
+          description: 'Your purchase is awaiting approval.',
+        });
+      }
+
+      return result;
+    } finally {
+      setIsPurchasing(false);
+    }
   }, [checkSubscriptionStatus]);
 
   // Restore purchases

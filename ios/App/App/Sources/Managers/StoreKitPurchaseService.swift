@@ -32,7 +32,10 @@ final class StoreKitPurchaseService {
 
     // MARK: - Purchase
 
-    /// Purchases a product by ID
+    /// Purchases a product by ID.
+    /// NOTE: The transaction is NOT finished here — the JS side must call
+    /// `finishTransaction` after successful server validation. This prevents
+    /// the "money taken but nothing granted" scenario when validation fails.
     func purchase(productId: String) async throws -> PurchaseResult {
         Log.storeKit.operationStart("purchase: \(productId)")
 
@@ -44,9 +47,10 @@ final class StoreKitPurchaseService {
             let transaction = try transactionManager.verifyTransaction(verification)
             let jwsRepresentation = verification.jwsRepresentation
 
-            await transactionManager.finishTransaction(transaction)
+            // Store but DON'T finish — JS finishes after server validation
+            transactionManager.storeUnfinishedTransaction(transaction)
 
-            Log.storeKit.success("Purchase completed: \(productId)")
+            Log.storeKit.success("Purchase completed (pending finish): \(productId)")
             return .success(PurchaseSuccess(
                 transaction: transaction,
                 jwsRepresentation: jwsRepresentation
