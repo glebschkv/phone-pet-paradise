@@ -15,11 +15,13 @@ import { DeviceActivity } from '@/plugins/device-activity';
 import { TIMER_VALIDATION } from '@/lib/validation';
 
 const STORAGE_KEY = 'petIsland_unifiedTimer';
+const BLOCKING_ACTIVE_KEY = 'petIsland_blockingActive';
 
 interface PersistedTimerState {
   isRunning: boolean;
   startTime: number | null;
   sessionDuration: number;
+  sessionType?: string;
   isCountup?: boolean;
   elapsedTime?: number;
 }
@@ -29,6 +31,7 @@ async function stopBlockingWithRetry() {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       await DeviceActivity.stopAppBlocking();
+      localStorage.removeItem(BLOCKING_ACTIVE_KEY);
       return; // success
     } catch {
       // Wait before retrying (500ms, 1s, 2s)
@@ -39,13 +42,42 @@ async function stopBlockingWithRetry() {
   }
 }
 
+/**
+ * Mark that app blocking is active. Called from timer start.
+ * This persists across WebView reloads so the guard can detect orphaned blocking.
+ */
+export function markBlockingActive() {
+  try {
+    localStorage.setItem(BLOCKING_ACTIVE_KEY, Date.now().toString());
+  } catch { /* ignore */ }
+}
+
+/** Mark that app blocking was stopped. Called from timer stop/complete. */
+export function markBlockingStopped() {
+  try {
+    localStorage.removeItem(BLOCKING_ACTIVE_KEY);
+  } catch { /* ignore */ }
+}
+
 function checkAndClearExpiredTimer(): boolean {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
 
     const state: PersistedTimerState = JSON.parse(raw);
-    if (!state.isRunning || !state.startTime) return false;
+
+    // If timer is not running, check for orphaned blocking state.
+    // This handles the case where the timer crashed/reset to default (25:00)
+    // but apps are still blocked from a previous session.
+    if (!state.isRunning || !state.startTime) {
+      const blockingTimestamp = localStorage.getItem(BLOCKING_ACTIVE_KEY);
+      if (blockingTimestamp) {
+        // Blocking was active but timer is no longer running — stop blocking
+        localStorage.removeItem(BLOCKING_ACTIVE_KEY);
+        return true;
+      }
+      return false;
+    }
 
     const now = Date.now();
     const elapsedMs = now - state.startTime;

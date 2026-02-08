@@ -15,6 +15,7 @@ import { widgetDataService } from "@/plugins/widget-data";
 import { FocusCategory, FocusQuality } from "@/types/analytics";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { TimerState } from "./useTimerPersistence";
+import { markBlockingActive, markBlockingStopped } from "@/hooks/useTimerExpiryGuard";
 import type { StartBlockingResult, StopBlockingResult } from "@/plugins/device-activity/definitions";
 
 interface UseTimerControlsProps {
@@ -119,6 +120,7 @@ export const useTimerControls = ({
     // pre-flight permission & status checks against the native plugin, so we
     // only skip the call for obviously-impossible scenarios (break sessions).
     if (selectedPreset.type !== 'break') {
+      markBlockingActive();
       startAppBlocking().then((result) => {
         if (result.appsBlocked > 0 || result.categoriesBlocked > 0) {
           triggerHaptic('light');
@@ -173,7 +175,9 @@ export const useTimerControls = ({
         isRunning: false,
         startTime: null,
         timeLeft: currentTimeLeft,
-        sessionDuration: selectedPreset.duration * 60,
+        // Preserve the actual session duration — do NOT overwrite with selectedPreset
+        // which can be stale after a WebView reload / tab switch
+        sessionDuration: timerState.sessionDuration,
       });
     }
 
@@ -250,6 +254,9 @@ export const useTimerControls = ({
     }).catch(e => timerLogger.error('Widget timer sync failed:', e));
 
     // Async cleanup AFTER UI is reset — stop app blocking and record session
+    // Always mark blocking stopped — even if stopAppBlocking fails, the expiry
+    // guard will detect the orphaned blocking state and retry on next foreground.
+    markBlockingStopped();
     let shieldAttempts = 0;
     if (isWorkSession && hasAppsConfigured) {
       try {
@@ -354,6 +361,7 @@ export const useTimerControls = ({
     }).catch(e => timerLogger.error('Widget timer sync failed:', e));
 
     // Async cleanup AFTER UI is reset
+    markBlockingStopped();
     let shieldAttempts = 0;
     if (isWorkSession && hasAppsConfigured) {
       try {

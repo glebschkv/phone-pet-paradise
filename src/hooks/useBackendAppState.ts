@@ -163,17 +163,14 @@ export const useBackendAppState = () => {
         });
       }
 
-      // Record streak progress
-      const streakReward = await systems.streaks.recordSession();
+      // NOTE: Streak recording is handled exclusively by useTimerLogic.handleComplete()
+      // to avoid double-counting. Do NOT call streaks.recordSession() here.
 
       // Update quest progress
       await systems.quests.updateQuestProgress('focus_time', sessionMinutes);
 
-      // Update bond system for active pets (parallel execution to avoid N+1)
-      const activePets = systems.supabaseData.pets.filter(pet => pet.is_favorite);
-      await Promise.all(
-        activePets.map(pet => systems.bondSystem.interactWithPet(pet.pet_type, 'focus_session'))
-      );
+      // NOTE: Bond system interactions removed — they awarded phantom XP/bond
+      // on every timer completion for every favorite pet, causing unearned rewards.
 
       return {
         xpGained: reward.xpGained,
@@ -181,7 +178,7 @@ export const useBackendAppState = () => {
         newLevel: reward.newLevel,
         leveledUp: reward.leveledUp,
         unlockedRewards: reward.unlockedRewards,
-        streakReward,
+        streakReward: null,
         coinReward: typeof coinReward === 'object' && coinReward !== null ? coinReward.coinsGained : (typeof coinReward === 'number' ? coinReward : 0)
       };
     } catch (error) {
