@@ -202,7 +202,11 @@ export const useTimerLogic = () => {
       // Cancel the OS-scheduled notification — the in-app completion UI is showing instead
       cancelTimerCompletionNotification();
 
-      clearPersistence();
+      // NOTE: clearPersistence() is intentionally NOT called here.
+      // It runs after rewards/recording so that if iOS kills the WebView
+      // during async work below, the timer is still marked "running" on
+      // relaunch and the expiry guard will stop blocking. The session can
+      // then be re-completed rather than silently lost.
 
       let shieldAttempts = 0;
       if (state.timerState.sessionType !== 'break') {
@@ -312,6 +316,10 @@ export const useTimerLogic = () => {
           scheduleRewardNotification(xpEarned);
         }
       }
+
+      // All critical async work (rewards, recording, streak) is done.
+      // NOW clear persistence so the timer won't re-complete on WebView reload.
+      clearPersistence();
 
       // Sync completed session to widgets: stop the timer, then pull
       // accumulated totals (streak, progress, stats) from localStorage

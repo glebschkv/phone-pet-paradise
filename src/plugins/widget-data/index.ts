@@ -145,7 +145,7 @@ class WidgetDataService {
   /** Safe localStorage write — swallows QuotaExceededError */
   private persistToLocalStorage(): void {
     try {
-      this.persistToLocalStorage();
+      localStorage.setItem(WIDGET_DATA_KEY, JSON.stringify(this.data));
     } catch {
       // Storage full — in-memory data is still up to date
     }

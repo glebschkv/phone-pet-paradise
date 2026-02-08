@@ -13,6 +13,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { DeviceActivity } from '@/plugins/device-activity';
 import { TIMER_VALIDATION } from '@/lib/validation';
+import { MAX_COUNTUP_DURATION } from '@/components/focus-timer/constants';
 
 const STORAGE_KEY = 'petIsland_unifiedTimer';
 const BLOCKING_ACTIVE_KEY = 'petIsland_blockingActive';
@@ -24,6 +25,7 @@ interface PersistedTimerState {
   sessionType?: string;
   isCountup?: boolean;
   elapsedTime?: number;
+  timeLeft?: number;
 }
 
 /** Try to stop app blocking with retries for reliability */
@@ -89,16 +91,32 @@ function checkAndClearExpiredTimer(): boolean {
     const elapsedSeconds = Math.floor(elapsedMs / 1000);
 
     // Guard against clock drift / corrupted state
-    if (elapsedSeconds < 0 || elapsedSeconds > TIMER_VALIDATION.MAX_DURATION_SECONDS) {
-      // Clear corrupted state
+    if (elapsedSeconds < 0) {
+      // Clock went backward (NTP correction, timezone change, DST, etc.)
+      // Adjust startTime to preserve the session rather than killing it.
+      if (state.isCountup) {
+        const lastElapsed = state.elapsedTime || 0;
+        const adjusted = { ...state, startTime: now - lastElapsed * 1000 };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(adjusted));
+      } else {
+        // Back-calculate elapsed from last-saved timeLeft
+        const elapsed = state.sessionDuration - (state.timeLeft ?? state.sessionDuration);
+        const adjusted = { ...state, startTime: now - Math.max(0, elapsed) * 1000 };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(adjusted));
+      }
+      return false; // Timer still running — don't stop blocking
+    }
+
+    if (elapsedSeconds > TIMER_VALIDATION.MAX_DURATION_SECONDS) {
+      // Elapsed exceeds absolute maximum — clear corrupted state
       const cleared = { ...state, isRunning: false, startTime: null };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(cleared));
       return true;
     }
 
-    // Countup mode: only expires at max duration (6 hours)
+    // Countup mode: only expires at max duration
     if (state.isCountup) {
-      const maxDuration = 6 * 60 * 60; // 21600 seconds
+      const maxDuration = MAX_COUNTUP_DURATION;
       if (elapsedSeconds >= maxDuration) {
         const cleared = { ...state, isRunning: false, startTime: null, elapsedTime: maxDuration };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cleared));
