@@ -27,12 +27,12 @@ interface PersistedTimerState {
 }
 
 /** Try to stop app blocking with retries for reliability */
-async function stopBlockingWithRetry() {
+async function stopBlockingWithRetry(): Promise<boolean> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       await DeviceActivity.stopAppBlocking();
       localStorage.removeItem(BLOCKING_ACTIVE_KEY);
-      return; // success
+      return true; // success
     } catch {
       // Wait before retrying (500ms, 1s, 2s)
       if (attempt < 2) {
@@ -40,6 +40,10 @@ async function stopBlockingWithRetry() {
       }
     }
   }
+  // All retries failed — leave the BLOCKING_ACTIVE_KEY so the next
+  // foreground resume will try again
+  console.error('[TimerExpiryGuard] Failed to stop app blocking after 3 attempts');
+  return false;
 }
 
 /**
@@ -72,8 +76,9 @@ function checkAndClearExpiredTimer(): boolean {
     if (!state.isRunning || !state.startTime) {
       const blockingTimestamp = localStorage.getItem(BLOCKING_ACTIVE_KEY);
       if (blockingTimestamp) {
-        // Blocking was active but timer is no longer running — stop blocking
-        localStorage.removeItem(BLOCKING_ACTIVE_KEY);
+        // Blocking was active but timer is no longer running — stop blocking.
+        // Don't remove BLOCKING_ACTIVE_KEY here; stopBlockingWithRetry will
+        // clear it on success, or leave it for the next foreground attempt.
         return true;
       }
       return false;
@@ -132,6 +137,7 @@ export function useTimerExpiryGuard() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
+    let cancelled = false;
     let handle: { remove: () => Promise<void> } | null = null;
 
     CapApp.addListener('appStateChange', (appState) => {
@@ -141,10 +147,16 @@ export function useTimerExpiryGuard() {
         }
       }
     }).then((h) => {
-      handle = h;
+      if (cancelled) {
+        // Effect already cleaned up before listener registered — remove immediately
+        h.remove();
+      } else {
+        handle = h;
+      }
     });
 
     return () => {
+      cancelled = true;
       handle?.remove();
     };
   }, []);

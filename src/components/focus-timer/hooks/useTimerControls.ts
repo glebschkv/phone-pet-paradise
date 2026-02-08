@@ -62,6 +62,9 @@ export const useTimerControls = ({
       saveTimerState({
         isRunning: true,
         startTime: now,
+        // Use timeLeft as new sessionDuration so countdown math works from
+        // the remaining time, but preserve the original sessionDuration for
+        // analytics if this is a resume from pause.
         sessionDuration: timerState.timeLeft,
         category: undefined,
         taskLabel: undefined,
