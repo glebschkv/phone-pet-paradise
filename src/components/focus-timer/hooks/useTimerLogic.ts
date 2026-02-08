@@ -81,6 +81,11 @@ export const useTimerLogic = () => {
   const [showLockScreen, setShowLockScreen] = useState(false);
   const [showSessionNotesModal, setShowSessionNotesModal] = useState(false);
   const [lastSessionXP, setLastSessionXP] = useState(0);
+  // Preserve category/taskLabel for session notes — handleComplete clears
+  // them from timerState before the notes modal opens, so we snapshot here.
+  const lastSessionMetaRef = useRef<{ category?: string; taskLabel?: string; sessionDuration: number }>({
+    sessionDuration: timerState.sessionDuration,
+  });
 
   // Refs for stable timer management
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -153,11 +158,25 @@ export const useTimerLogic = () => {
   const handleComplete = useCallback(async () => {
     const state = stateRef.current;
 
+    // Guard: if the timer was already stopped/reset by stopTimer or skipTimer,
+    // bail out. This prevents double-completion when the tick fires at 0:00
+    // concurrently with the user pressing Stop.
+    if (!state.timerState.isRunning) {
+      timerLogger.debug('handleComplete: timer not running, skipping');
+      return;
+    }
+
     // SECURITY: Prevent race conditions with async lock pattern
     const completionId = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
     if (completionLockRef.current) {
       await completionLockRef.current;
+      // After waiting for the lock, re-check if timer is still running
+      // (stopTimer may have run while we waited)
+      if (!stateRef.current.timerState.isRunning) {
+        timerLogger.debug('handleComplete: timer stopped while waiting for lock');
+        return;
+      }
       if (completionIdRef.current && completionIdRef.current !== completionId) {
         return;
       }
@@ -337,6 +356,12 @@ export const useTimerLogic = () => {
       }
 
       if (state.timerState.sessionType !== 'break') {
+        // Snapshot metadata BEFORE it gets cleared by saveTimerState below
+        lastSessionMetaRef.current = {
+          category: state.timerState.category,
+          taskLabel: state.timerState.taskLabel,
+          sessionDuration: state.timerState.sessionDuration,
+        };
         setLastSessionXP(xpEarned);
         setShowSessionNotesModal(true);
       } else {
@@ -414,14 +439,15 @@ export const useTimerLogic = () => {
   // ============================================================================
 
   const handleSessionNotesSave = useCallback((notes: string, rating: number) => {
-    const state = stateRef.current;
+    // Use the snapshot taken before handleComplete cleared the metadata
+    const meta = lastSessionMetaRef.current;
 
     saveSessionNote({
       notes,
       rating,
-      sessionDuration: state.timerState.sessionDuration,
-      category: state.timerState.category,
-      taskLabel: state.timerState.taskLabel,
+      sessionDuration: meta.sessionDuration,
+      category: meta.category,
+      taskLabel: meta.taskLabel,
       xpEarned: lastSessionXP,
     });
 

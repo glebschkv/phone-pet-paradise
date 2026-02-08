@@ -76,6 +76,10 @@ export const useTimerCountdown = ({
       intervalRef.current = null;
     }
 
+    // Track whether completion has been dispatched from this interval instance
+    // so we don't call handleComplete on every subsequent tick after time hits 0.
+    let completionDispatched = false;
+
     const tick = () => {
       const s = stateRef.current.timerState;
       if (!s.isRunning || !s.startTime) {
@@ -90,6 +94,9 @@ export const useTimerCountdown = ({
       const elapsedMs = now - s.startTime;
       const elapsedSeconds = Math.floor(elapsedMs / 1000);
 
+      // Guard against clock adjustment backward — skip this tick
+      if (elapsedSeconds < 0) return;
+
       if (s.isCountup) {
         const newElapsedTime = Math.min(elapsedSeconds, MAX_COUNTUP_DURATION);
         setElapsedTimeRef.current(newElapsedTime);
@@ -98,25 +105,33 @@ export const useTimerCountdown = ({
           saveTimerStateRef.current({ elapsedTime: newElapsedTime });
         }
 
-        if (newElapsedTime >= MAX_COUNTUP_DURATION) {
+        if (newElapsedTime >= MAX_COUNTUP_DURATION && !completionDispatched) {
+          completionDispatched = true;
+          if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
           handleCompleteRef.current().catch((err) => timerLogger.error('Timer completion failed:', err));
         }
       } else {
-        const newTimeLeft = Math.max(0, s.sessionDuration - elapsedSeconds);
+        // Clamp to [0, sessionDuration] to prevent display overflow from clock drift
+        const newTimeLeft = Math.max(0, Math.min(s.sessionDuration, s.sessionDuration - elapsedSeconds));
         setDisplayTimeRef.current(newTimeLeft);
 
         if (elapsedSeconds % 5 === 0) {
           saveTimerStateRef.current({ timeLeft: newTimeLeft });
         }
 
-        if (newTimeLeft === 0) {
+        if (newTimeLeft === 0 && !completionDispatched) {
+          completionDispatched = true;
+          if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
           handleCompleteRef.current().catch((err) => timerLogger.error('Timer completion failed:', err));
         }
       }
     };
 
     tick(); // Run immediately to update display
-    intervalRef.current = setInterval(tick, 1000);
+    // Only start interval if completion wasn't already dispatched by the immediate tick
+    if (!completionDispatched) {
+      intervalRef.current = setInterval(tick, 1000);
+    }
   }, [intervalRef]);
 
   // Sync displayTime/elapsedTime with timerState when not running
@@ -145,10 +160,16 @@ export const useTimerCountdown = ({
       const sessionDuration = timerState.sessionDuration;
       const isCountup = timerState.isCountup;
 
+      // Prevent calling handleComplete more than once from this interval instance.
+      let completionDispatched = false;
+
       const tick = () => {
         const now = Date.now();
         const elapsedMs = now - startTime;
         const elapsedSeconds = Math.floor(elapsedMs / 1000);
+
+        // Guard against clock adjustment backward — skip this tick
+        if (elapsedSeconds < 0) return;
 
         if (isCountup) {
           // Countup mode: track elapsed time up to max duration
@@ -159,27 +180,34 @@ export const useTimerCountdown = ({
             saveTimerStateRef.current({ elapsedTime: newElapsedTime });
           }
 
-          // Complete when max duration is reached
-          if (newElapsedTime >= MAX_COUNTUP_DURATION) {
+          // Complete when max duration is reached — once only
+          if (newElapsedTime >= MAX_COUNTUP_DURATION && !completionDispatched) {
+            completionDispatched = true;
+            if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
             handleCompleteRef.current().catch((err) => timerLogger.error('Timer completion failed:', err));
           }
         } else {
-          // Countdown mode: track remaining time
-          const newTimeLeft = Math.max(0, sessionDuration - elapsedSeconds);
+          // Countdown mode: track remaining time, clamped to [0, sessionDuration]
+          const newTimeLeft = Math.max(0, Math.min(sessionDuration, sessionDuration - elapsedSeconds));
           setDisplayTimeRef.current(newTimeLeft);
 
           if (elapsedSeconds % 5 === 0) {
             saveTimerStateRef.current({ timeLeft: newTimeLeft });
           }
 
-          if (newTimeLeft === 0) {
+          if (newTimeLeft === 0 && !completionDispatched) {
+            completionDispatched = true;
+            if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
             handleCompleteRef.current().catch((err) => timerLogger.error('Timer completion failed:', err));
           }
         }
       };
 
       tick();
-      intervalRef.current = setInterval(tick, 1000);
+      // Only start interval if completion wasn't already dispatched by the immediate tick
+      if (!completionDispatched) {
+        intervalRef.current = setInterval(tick, 1000);
+      }
     }
 
     return () => {
