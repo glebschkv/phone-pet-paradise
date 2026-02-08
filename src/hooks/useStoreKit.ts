@@ -276,7 +276,15 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setPluginAvailable(true);
       setPluginError(null);
       setProducts(result.products);
-      logger.debug('Loaded products:', result.products.length);
+
+      // Log which products were loaded vs. requested so we can
+      // diagnose "purchase failed" for missing products.
+      const loadedIds = new Set(result.products.map(p => p.id));
+      const missingIds = ALL_PRODUCT_IDS.filter(id => !loadedIds.has(id));
+      logger.debug(`Loaded ${result.products.length}/${ALL_PRODUCT_IDS.length} products`);
+      if (missingIds.length > 0) {
+        logger.warn('Products NOT found in App Store Connect:', missingIds);
+      }
     }
 
     setIsLoading(false);
@@ -341,6 +349,10 @@ export const useStoreKit = (): UseStoreKitReturn => {
     logger.debug('Subscription status:', status);
   }, []);
 
+  // Keep a ref to products so purchaseProduct doesn't need it as a dependency
+  const productsRef = useRef<StoreKitProduct[]>([]);
+  useEffect(() => { productsRef.current = products; }, [products]);
+
   // Purchase a product
   const purchaseProduct = useCallback(async (productId: string): Promise<ExtendedPurchaseResult> => {
     const failedResult: ExtendedPurchaseResult = {
@@ -355,11 +367,24 @@ export const useStoreKit = (): UseStoreKitReturn => {
       return { ...failedResult, message: 'Plugin unavailable' };
     }
 
+    // Pre-flight check: is the product in our loaded products list?
+    // If not, it's likely not configured in App Store Connect.
+    const loadedProduct = productsRef.current.find(p => p.id === productId);
+    if (!loadedProduct && productsRef.current.length > 0) {
+      const shortId = productId.split('.').slice(-1)[0] || productId;
+      logger.error(`Product "${productId}" not found in loaded products. It may not be configured in App Store Connect.`);
+      toast.error('Product Not Available', {
+        description: `"${shortId}" is not available for purchase yet. This product may still be in review.`,
+        duration: 5000,
+      });
+      return { ...failedResult, message: `Product not available: ${productId}` };
+    }
+
     setIsPurchasing(true);
     setError(null);
 
     try {
-      logger.debug('Starting purchase:', productId);
+      logger.debug('Starting purchase:', productId, loadedProduct ? `(${loadedProduct.displayName})` : '(not pre-loaded)');
       const { result, success } = await safeStoreKitCall(
         () => StoreKit.purchase({ productId }),
         failedResult,
@@ -369,7 +394,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       if (!success) {
         setError('Purchase failed. Please try again.');
         toast.error('Purchase Failed', {
-          description: 'Could not start the purchase. Check your internet connection and try again.',
+          description: `Could not purchase "${loadedProduct?.displayName || productId}". Check your internet connection and try again.`,
           duration: 5000,
         });
         return result;
