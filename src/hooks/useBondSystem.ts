@@ -152,20 +152,21 @@ export const useBondSystem = (): BondSystemReturn => {
     return true;
   }, [initializeBond, calculateMood, saveBondData]);
 
-  // Generic interaction method
+  // Generic interaction method.
+  // Automatic interactions (like 'focus_session') skip the toast to avoid
+  // spamming the user on every timer completion.
   const interactWithPet = useCallback(async (animalId: string, activity: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const experienceGain = Math.floor(Math.random() * 15) + 10;
-        addExperience(animalId, experienceGain);
-        
-        toast.success("Pet Interaction", {
-          description: `${activity} with your pet! +${experienceGain} bond experience`,
-        });
-        
-        resolve(true);
-      }, 1000);
-    });
+    const experienceGain = Math.floor(Math.random() * 15) + 10;
+    addExperience(animalId, experienceGain);
+
+    // Only show toast for explicit user-initiated interactions
+    if (activity !== 'focus_session') {
+      toast.success("Pet Interaction", {
+        description: `${activity} with your pet! +${experienceGain} bond experience`,
+      });
+    }
+
+    return true;
   }, [addExperience]);
 
   // Specific interaction methods
