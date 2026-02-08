@@ -34,6 +34,7 @@ export const useWidgetSync = () => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
+    let cancelled = false;
     let handle: { remove: () => Promise<void> } | null = null;
 
     CapApp.addListener('appStateChange', (state) => {
@@ -43,10 +44,16 @@ export const useWidgetSync = () => {
         });
       }
     }).then((h) => {
-      handle = h;
+      if (cancelled) {
+        // Effect already cleaned up before listener registered — remove immediately
+        h.remove();
+      } else {
+        handle = h;
+      }
     });
 
     return () => {
+      cancelled = true;
       handle?.remove();
     };
   }, []);

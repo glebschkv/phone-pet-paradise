@@ -152,6 +152,13 @@ export const useDeviceActivity = () => {
   // Track plugin initialization errors
   const pluginErrorRef = useRef<Error | null>(null);
 
+  // Guard against setState after unmount (retries and intervals)
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   // Track initialization retries
   const initRetryCountRef = useRef(0);
   const MAX_INIT_RETRIES = 3;
@@ -235,7 +242,7 @@ export const useDeviceActivity = () => {
             `DeviceActivity init failed, scheduling retry ${initRetryCountRef.current}/${MAX_INIT_RETRIES} in ${retryDelay}ms`
           );
           setState(prev => ({ ...prev, isLoading: false }));
-          setTimeout(() => { initialize(); }, retryDelay);
+          setTimeout(() => { if (mountedRef.current) initialize(); }, retryDelay);
           return;
         }
         // All retries exhausted — still keep plugin available so user can try requesting permissions
@@ -860,7 +867,11 @@ export const useDeviceActivity = () => {
   // Periodic usage data refresh
   useEffect(() => {
     if (state.isMonitoring) {
-      const interval = setInterval(getUsageData, 30000); // Every 30 seconds
+      const interval = setInterval(() => {
+        // Don't fire plugin calls while backgrounded (iOS suspends JS,
+        // so the interval fires as a burst on foreground resume)
+        if (!document.hidden) getUsageData();
+      }, 30000);
       return () => clearInterval(interval);
     }
   }, [state.isMonitoring, getUsageData]);

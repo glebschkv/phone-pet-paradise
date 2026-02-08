@@ -229,6 +229,13 @@ export const useStoreKit = (): UseStoreKitReturn => {
   const initRetryCountRef = useRef(0);
   const MAX_INIT_RETRIES = 3;
 
+  // Guard against setState after unmount (retries fire on a timer)
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   // Guard against the initialization useEffect running more than once
   const initStartedRef = useRef(false);
 
@@ -251,7 +258,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
         logger.debug(`StoreKit init failed, scheduling retry ${initRetryCountRef.current}/${MAX_INIT_RETRIES} in ${retryDelay}ms`);
         setError('Loading products...');
         setIsLoading(false);
-        setTimeout(() => { loadProducts(); }, retryDelay);
+        setTimeout(() => { if (mountedRef.current) loadProducts(); }, retryDelay);
         return;
       }
       // On native platforms, the StoreKit plugin bridge is always available —
@@ -325,7 +332,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
             planId: plan.id,
             environment: activeSub.environment,
           };
-          localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+          try {
+            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+          } catch { /* storage full */ }
 
           // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
           dispatchSubscriptionChange(plan.tier);
@@ -342,7 +351,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       }
     } else {
       // No active subscription - clear local storage
-      localStorage.removeItem(PREMIUM_STORAGE_KEY);
+      try { localStorage.removeItem(PREMIUM_STORAGE_KEY); } catch { /* ignore */ }
       dispatchSubscriptionChange('free');
     }
 
@@ -426,7 +435,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
               validated: true,
               environment: validationResult.subscription.environment,
             };
-            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+            try {
+              localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+            } catch { /* storage full */ }
             // Refresh subscription status
             await checkSubscriptionStatus();
           } else if (validationResult.productType === 'coin_pack' && validationResult.coinPack) {
@@ -520,7 +531,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
               validated: true,
               environment: validationResult.subscription.environment,
             };
-            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+            try {
+              localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+            } catch { /* storage full */ }
           } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
             // For bundles: always dispatch to restore characters/boosters/freezes on new devices
             // Server returns coinsGranted=0 when alreadyOwned, so no double coin grant
@@ -606,14 +619,20 @@ export const useStoreKit = (): UseStoreKitReturn => {
     initialize();
 
     // Listen for transaction updates
-    let removeListener: (() => void) | undefined;
+    let cancelled = false;
+    let listenerHandle: { remove: () => void } | null = null;
 
     if (Capacitor.isNativePlatform()) {
       StoreKit.addListener('transactionUpdated', (data) => {
         logger.debug('Transaction updated:', data);
         checkSubscriptionStatus();
-      }).then(({ remove }) => {
-        removeListener = remove;
+      }).then((handle) => {
+        if (cancelled) {
+          // Effect already cleaned up before listener registered — remove immediately
+          handle.remove();
+        } else {
+          listenerHandle = handle;
+        }
       }).catch((err) => {
         logger.error('Failed to add transaction listener:', err);
         // Don't mark plugin as unavailable - listener failure is non-critical
@@ -621,7 +640,8 @@ export const useStoreKit = (): UseStoreKitReturn => {
     }
 
     return () => {
-      removeListener?.();
+      cancelled = true;
+      listenerHandle?.remove();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

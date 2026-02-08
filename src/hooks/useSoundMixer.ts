@@ -46,6 +46,31 @@ export const useSoundMixer = () => {
     return 1; // Free tier = 1 sound only
   }, []);
 
+  // Clean up AudioContext on unmount to prevent resource leaks
+  useEffect(() => {
+    return () => {
+      layerNodesRef.current.forEach((nodes) => {
+        try {
+          if (nodes.source && 'stop' in nodes.source) {
+            nodes.source.stop();
+          }
+          if (nodes.oscillator2) {
+            nodes.oscillator2.stop();
+          }
+        } catch {
+          // Ignore errors during cleanup
+        }
+      });
+      layerNodesRef.current.clear();
+
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => { /* ignore */ });
+        audioContextRef.current = null;
+        masterGainRef.current = null;
+      }
+    };
+  }, []);
+
   // Load saved preferences
   useEffect(() => {
     const saved = localStorage.getItem(SOUND_MIXER_STORAGE_KEY);

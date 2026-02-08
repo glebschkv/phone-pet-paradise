@@ -129,7 +129,9 @@ export function useTimerExpiryGuard() {
     hasChecked.current = true;
 
     if (checkAndClearExpiredTimer()) {
-      stopBlockingWithRetry();
+      stopBlockingWithRetry().catch(() => {
+        // Logged inside stopBlockingWithRetry — BLOCKING_ACTIVE_KEY preserved for next attempt
+      });
     }
   }, []);
 
@@ -143,7 +145,9 @@ export function useTimerExpiryGuard() {
     CapApp.addListener('appStateChange', (appState) => {
       if (appState.isActive) {
         if (checkAndClearExpiredTimer()) {
-          stopBlockingWithRetry();
+          stopBlockingWithRetry().catch(() => {
+            // Logged inside stopBlockingWithRetry
+          });
         }
       }
     }).then((h) => {

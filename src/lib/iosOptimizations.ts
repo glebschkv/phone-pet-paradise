@@ -189,33 +189,29 @@ export function cancelIdleCallback(handle: number): void {
 // ============================================================================
 
 /**
- * Force garbage collection hint (not guaranteed to work)
- * Use sparingly - only when transitioning between major app states
+ * Hint garbage collection — no-op.
+ *
+ * Previously allocated a 1M-element array to "hint" GC, but that actually
+ * causes memory pressure spikes on iOS WKWebView and can trigger jetsam kills.
+ * The JS engine's GC runs automatically; manual hints are counterproductive.
+ *
+ * @deprecated No-op. Remove call sites when convenient.
  */
 export function hintGarbageCollection(): void {
-  // Create and immediately discard a large array to hint GC
-  // This is a soft hint, not a guarantee
-  try {
-    const arr = new Array(1000000);
-    arr.length = 0;
-  } catch {
-    // Ignore memory errors
-  }
+  // Intentionally empty — see JSDoc
 }
 
 /**
- * Clear image cache hint
- * Useful when switching between views with many images
+ * Clear image cache — no-op.
+ *
+ * Previously appended `?t=<timestamp>` to every <img> src on the page, which
+ * forces the browser to re-download ALL images simultaneously. On iOS this
+ * causes massive memory spikes and potential WKWebView crashes.
+ *
+ * @deprecated No-op. Remove call sites when convenient.
  */
 export function clearImageCache(): void {
-  // Force reload of cached images by appending timestamp
-  // This is a workaround, not a direct cache clear
-  document.querySelectorAll('img').forEach((img) => {
-    const src = img.src;
-    if (src && !src.includes('?t=')) {
-      img.src = `${src}?t=${Date.now()}`;
-    }
-  });
+  // Intentionally empty — see JSDoc
 }
 
 // ============================================================================
