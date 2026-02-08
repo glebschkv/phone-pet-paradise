@@ -87,7 +87,7 @@ export const CharacterUnlockModal: React.FC<CharacterUnlockModalProps> = ({
     : 1;
 
   return (
-    <Dialog open={open} onOpenChange={() => onClose()}>
+    <Dialog open={open && !!animal} onOpenChange={() => onClose()}>
       <DialogContent
         className={cn(
           "max-w-[320px] p-0 overflow-hidden border-0 rounded-xl",

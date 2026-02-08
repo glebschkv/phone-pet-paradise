@@ -27,8 +27,11 @@ export const XPRewardModal = ({
 
   if (!displayReward) return null;
 
+  // Guard open with content presence — on iOS/Capacitor, a Dialog opening
+  // without content (or closing abruptly via state race) can leave an orphaned
+  // bg-black/60 overlay that blocks the entire screen.
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open={isOpen && !!displayReward} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="retro-modal max-w-[320px] p-0 overflow-hidden border-0 max-h-[90vh] overflow-y-auto">
         <VisuallyHidden>
           <DialogTitle>Session Complete</DialogTitle>

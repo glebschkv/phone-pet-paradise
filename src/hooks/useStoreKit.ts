@@ -110,9 +110,23 @@ async function serverValidatePurchase(
 
     // SECURITY: Server errors should fail closed, not grant access
     if (error) {
-      logger.error('Server validation error:', error);
-      // SECURITY: Fail closed - server errors mean validation failed
-      // User should retry the validation
+      // Extract the actual error details from the response body when available.
+      // supabase.functions.invoke puts the response body in error.context for non-2xx.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorContext = (error as any)?.context;
+      const serverErrorMsg = errorContext && typeof errorContext === 'object' && 'error' in errorContext
+        ? String(errorContext.error)
+        : error.message;
+      logger.error('Server validation error:', serverErrorMsg);
+
+      // If the server returned a structured error body (e.g. JWS verification failed,
+      // unknown product, revoked transaction), it's a definitive rejection.
+      // Only mark as retryable for truly transient errors (network, auth).
+      if (errorContext && typeof errorContext === 'object' && 'success' in errorContext) {
+        return { success: false }; // Definitive server rejection
+      }
+
+      // SECURITY: Fail closed - transient errors mean validation couldn't complete
       return { success: false, requiresRetry: true };
     }
 
@@ -262,7 +276,15 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setPluginAvailable(true);
       setPluginError(null);
       setProducts(result.products);
-      logger.debug('Loaded products:', result.products.length);
+
+      // Log which products were loaded vs. requested so we can
+      // diagnose "purchase failed" for missing products.
+      const loadedIds = new Set(result.products.map(p => p.id));
+      const missingIds = ALL_PRODUCT_IDS.filter(id => !loadedIds.has(id));
+      logger.debug(`Loaded ${result.products.length}/${ALL_PRODUCT_IDS.length} products`);
+      if (missingIds.length > 0) {
+        logger.warn('Products NOT found in App Store Connect:', missingIds);
+      }
     }
 
     setIsLoading(false);
@@ -327,6 +349,10 @@ export const useStoreKit = (): UseStoreKitReturn => {
     logger.debug('Subscription status:', status);
   }, []);
 
+  // Keep a ref to products so purchaseProduct doesn't need it as a dependency
+  const productsRef = useRef<StoreKitProduct[]>([]);
+  useEffect(() => { productsRef.current = products; }, [products]);
+
   // Purchase a product
   const purchaseProduct = useCallback(async (productId: string): Promise<ExtendedPurchaseResult> => {
     const failedResult: ExtendedPurchaseResult = {
@@ -341,82 +367,111 @@ export const useStoreKit = (): UseStoreKitReturn => {
       return { ...failedResult, message: 'Plugin unavailable' };
     }
 
+    // Pre-flight check: is the product in our loaded products list?
+    // If not, it's likely not configured in App Store Connect.
+    const loadedProduct = productsRef.current.find(p => p.id === productId);
+    if (!loadedProduct && productsRef.current.length > 0) {
+      const shortId = productId.split('.').slice(-1)[0] || productId;
+      logger.error(`Product "${productId}" not found in loaded products. It may not be configured in App Store Connect.`);
+      toast.error('Product Not Available', {
+        description: `"${shortId}" is not available for purchase yet. This product may still be in review.`,
+        duration: 5000,
+      });
+      return { ...failedResult, message: `Product not available: ${productId}` };
+    }
+
     setIsPurchasing(true);
     setError(null);
 
-    logger.debug('Starting purchase:', productId);
-    const { result, success } = await safeStoreKitCall(
-      () => StoreKit.purchase({ productId }),
-      failedResult,
-      'purchase'
-    );
+    try {
+      logger.debug('Starting purchase:', productId, loadedProduct ? `(${loadedProduct.displayName})` : '(not pre-loaded)');
+      const { result, success } = await safeStoreKitCall(
+        () => StoreKit.purchase({ productId }),
+        failedResult,
+        'purchase'
+      );
 
-    if (!success) {
-      setIsPurchasing(false);
-      setError('Purchase failed. Please try again.');
-      toast.error('Purchase Failed', {
-        description: 'Unable to complete the purchase. Please try again.',
-      });
-      return result;
-    }
-
-    if (result.success) {
-      // SECURITY: Validate with server before granting access
-      const validationResult = await serverValidatePurchase(result);
-
-      if (validationResult.success) {
-        // Handle different product types
-        if (validationResult.productType === 'subscription' && validationResult.subscription) {
-          // Update local storage with server-validated subscription
-          const premiumState = {
-            tier: validationResult.subscription.tier,
-            expiresAt: validationResult.subscription.expiresAt,
-            purchasedAt: validationResult.subscription.purchasedAt,
-            planId: validationResult.subscription.productId,
-            validated: true,
-            environment: validationResult.subscription.environment,
-          };
-          localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
-          // Refresh subscription status
-          await checkSubscriptionStatus();
-        } else if (validationResult.productType === 'coin_pack' && validationResult.coinPack) {
-          // Dispatch event for coin balance refresh
-          dispatchCoinsGranted(validationResult.coinPack.coinsGranted);
-          logger.debug('Coins granted:', validationResult.coinPack.coinsGranted);
-        } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
-          // Dispatch event for bundle fulfillment (coins already granted server-side)
-          dispatchCoinsGranted(validationResult.bundle.coinsGranted);
-          dispatchBundleGranted(validationResult.bundle);
-          logger.debug('Bundle granted:', validationResult.bundle);
-        }
-
-        // Return success with validation data for caller to use
-        setIsPurchasing(false);
-        return { ...result, validationResult };
-      } else if (validationResult.requiresRetry) {
-        // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
-        toast.error('Verification Pending', {
-          description: 'Unable to verify purchase. Please try restoring purchases or check your connection.',
+      if (!success) {
+        setError('Purchase failed. Please try again.');
+        toast.error('Purchase Failed', {
+          description: `Could not purchase "${loadedProduct?.displayName || productId}". Check your internet connection and try again.`,
+          duration: 5000,
         });
-        // Don't grant access - user needs to restore purchases
-      } else {
-        // SECURITY: Validation failed definitively
-        toast.error('Verification Failed', {
-          description: 'Purchase could not be verified. Please contact support if this persists.',
-        });
-        // Don't grant access
+        return result;
       }
-    } else if (result.cancelled) {
-      // User cancelled - no toast needed
-      logger.debug('Purchase cancelled by user');
-    } else if (result.pending) {
-      toast.info('Purchase Pending', {
-        description: 'Your purchase is awaiting approval.',
-      });
-    }
 
-    setIsPurchasing(false);
-    return result;
+      if (result.success) {
+        // SECURITY: Validate with server before granting access
+        const validationResult = await serverValidatePurchase(result);
+
+        if (validationResult.success) {
+          // Server validated — finish the transaction with Apple.
+          // This tells Apple the purchase was delivered to the user.
+          if (result.transactionId) {
+            safeStoreKitCall(
+              () => StoreKit.finishTransaction({ transactionId: result.transactionId! }),
+              { success: false },
+              'finishTransaction'
+            ).catch(err => logger.warn('Failed to finish transaction:', err));
+          }
+
+          // Handle different product types
+          if (validationResult.productType === 'subscription' && validationResult.subscription) {
+            // Update local storage with server-validated subscription
+            const premiumState = {
+              tier: validationResult.subscription.tier,
+              expiresAt: validationResult.subscription.expiresAt,
+              purchasedAt: validationResult.subscription.purchasedAt,
+              planId: validationResult.subscription.productId,
+              validated: true,
+              environment: validationResult.subscription.environment,
+            };
+            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+            // Refresh subscription status
+            await checkSubscriptionStatus();
+          } else if (validationResult.productType === 'coin_pack' && validationResult.coinPack) {
+            // Dispatch event for coin balance refresh
+            dispatchCoinsGranted(validationResult.coinPack.coinsGranted);
+            logger.debug('Coins granted:', validationResult.coinPack.coinsGranted);
+          } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
+            // Dispatch event for bundle fulfillment (coins already granted server-side)
+            dispatchCoinsGranted(validationResult.bundle.coinsGranted);
+            dispatchBundleGranted(validationResult.bundle);
+            logger.debug('Bundle granted:', validationResult.bundle);
+          }
+
+          // Return success with validation data for caller to use
+          return { ...result, validationResult };
+        } else if (validationResult.requiresRetry) {
+          // SECURITY: Validation failed but may succeed on retry (network issue, etc.)
+          // Transaction is NOT finished — Apple will retry delivery on next app launch.
+          toast.error('Verification Pending', {
+            description: 'Unable to verify purchase right now. Your payment is safe — try "Restore Purchases" later.',
+            duration: 6000,
+          });
+          // Don't grant access - user needs to restore purchases
+        } else {
+          // SECURITY: Validation failed definitively
+          // Transaction is NOT finished — so Apple may refund or retry.
+          toast.error('Verification Failed', {
+            description: 'Purchase could not be verified. Try "Restore Purchases" or contact support.',
+            duration: 6000,
+          });
+          // Don't grant access
+        }
+      } else if (result.cancelled) {
+        // User cancelled - no toast needed
+        logger.debug('Purchase cancelled by user');
+      } else if (result.pending) {
+        toast.info('Purchase Pending', {
+          description: 'Your purchase is awaiting approval.',
+        });
+      }
+
+      return result;
+    } finally {
+      setIsPurchasing(false);
+    }
   }, [checkSubscriptionStatus]);
 
   // Restore purchases

@@ -64,8 +64,10 @@ export const RewardModals = ({
 }: RewardModalsProps) => {
   // Only show ONE modal at a time to prevent stacking black overlays.
   // Priority: XP reward (most important) > Daily login > Milestone celebration.
-  const showXP = showRewardModal;
-  const showDaily = !showXP && dailyLoginRewards.showRewardModal;
+  // Guard each with content presence — opening a Dialog without content
+  // on iOS/Capacitor can leave an orphaned bg-black/60 overlay.
+  const showXP = showRewardModal && !!currentReward;
+  const showDaily = !showXP && dailyLoginRewards.showRewardModal && !!dailyLoginRewards.pendingReward;
   // MilestoneCelebration manages its own open state internally, so we
   // suppress it by not rendering when a higher-priority modal is open.
   const suppressMilestone = showXP || dailyLoginRewards.showRewardModal;
@@ -95,12 +97,12 @@ export const RewardModals = ({
         />
       </RewardModalErrorBoundary>
 
-      {/* Milestone Celebration — only mount when no other modal is showing */}
-      {!suppressMilestone && (
-        <RewardModalErrorBoundary>
-          <MilestoneCelebration onClaimReward={onMilestoneClaim} />
-        </RewardModalErrorBoundary>
-      )}
+      {/* Milestone Celebration — always mounted to prevent orphaned overlays
+           when React unmounts the component while a Dialog is open on iOS.
+           Pass suppress prop to keep its Dialog closed when a higher-priority modal shows. */}
+      <RewardModalErrorBoundary>
+        <MilestoneCelebration onClaimReward={onMilestoneClaim} suppress={suppressMilestone} />
+      </RewardModalErrorBoundary>
     </>
   );
 };

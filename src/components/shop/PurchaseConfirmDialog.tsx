@@ -42,7 +42,7 @@ export const PurchaseConfirmDialog = ({
   if (!selectedItem) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open && !!selectedItem} onOpenChange={onOpenChange}>
       <DialogContent className="retro-modal max-w-[280px] p-0 overflow-hidden border-0">
         <>
           <div className="retro-modal-header p-4 text-center">

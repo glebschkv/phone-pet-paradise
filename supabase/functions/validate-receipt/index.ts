@@ -247,18 +247,22 @@ async function verifyAndDecodeJWS(signedTransaction: string): Promise<JWSTransac
     const leafCertPEM = `-----BEGIN CERTIFICATE-----\n${leafCertB64.match(/.{1,64}/g)?.join('\n')}\n-----END CERTIFICATE-----`;
 
     // Import the leaf certificate's public key
-    const leafCert = await jose.importX509(leafCertPEM, header.alg || 'ES256');
+    const alg = header.alg || 'ES256';
+    const leafCert = await jose.importX509(leafCertPEM, alg);
 
-    // Verify the JWS signature using the leaf certificate
-    const { payload } = await jose.jwtVerify(signedTransaction, leafCert, {
-      algorithms: ['ES256'],
-    });
+    // IMPORTANT: Use compactVerify instead of jwtVerify.
+    // StoreKit 2 signed transactions are JWS tokens, NOT JWTs.
+    // jwtVerify adds JWT-specific claim validation (exp, nbf, iat) that can
+    // reject Apple's JWS tokens which use custom date fields (signedDate,
+    // expiresDate) rather than standard JWT claims.
+    const { payload: payloadBytes } = await jose.compactVerify(signedTransaction, leafCert);
+    const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
 
     // Validate the certificate chain (basic validation)
     // In production, you should fully validate the chain back to Apple's root CA
     await validateCertificateChain(header.x5c);
 
-    return payload as unknown as JWSTransactionDecodedPayload;
+    return payload as JWSTransactionDecodedPayload;
   } catch (error) {
     console.error('JWS verification failed:', error);
     throw new Error(`JWS verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

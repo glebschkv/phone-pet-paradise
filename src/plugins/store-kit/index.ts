@@ -66,9 +66,17 @@ export interface StoreKitPlugin {
   getProducts(options: { productIds: string[] }): Promise<{ products: StoreKitProduct[] }>;
 
   /**
-   * Purchase a product
+   * Purchase a product.
+   * The transaction is NOT finished on the native side — call finishTransaction()
+   * after successful server validation.
    */
   purchase(options: { productId: string }): Promise<PurchaseResult>;
+
+  /**
+   * Finish a transaction after server validation.
+   * Must be called after purchase + server validation to tell Apple the purchase is complete.
+   */
+  finishTransaction(options: { transactionId: string }): Promise<{ success: boolean }>;
 
   /**
    * Restore previous purchases
