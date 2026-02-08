@@ -9,9 +9,11 @@ import { PixelIcon } from '@/components/ui/PixelIcon';
 
 interface MilestoneCelebrationProps {
   onClaimReward?: (milestone: Milestone) => void;
+  /** When true, keep the Dialog closed (a higher-priority modal is showing). */
+  suppress?: boolean;
 }
 
-export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProps) => {
+export const MilestoneCelebration = ({ onClaimReward, suppress }: MilestoneCelebrationProps) => {
   const { showCelebration, pendingCelebration, dismissCelebration, getCelebrationType } = useMilestoneCelebrations();
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: string; delay: number }[]>([]);
   const lastCelebrationRef = useRef<Milestone | null>(null);
@@ -63,7 +65,7 @@ export const MilestoneCelebration = ({ onClaimReward }: MilestoneCelebrationProp
   if (!displayCelebration) return null;
 
   return (
-    <Dialog open={showCelebration && !!pendingCelebration} onOpenChange={(open) => { if (!open) handleClaim(); }}>
+    <Dialog open={!suppress && showCelebration && !!pendingCelebration} onOpenChange={(open) => { if (!open) handleClaim(); }}>
       <DialogContent className="retro-modal max-w-[320px] p-0 overflow-hidden border-0">
         <VisuallyHidden>
           <DialogTitle>Milestone Celebration</DialogTitle>

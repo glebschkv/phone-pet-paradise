@@ -52,7 +52,7 @@ export const DailyLoginRewardModal = ({
   const iconName = EMOJI_TO_ICON[displayReward.icon] || 'star';
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onDismiss(); }}>
+    <Dialog open={isOpen && !!displayReward} onOpenChange={(open) => { if (!open) onDismiss(); }}>
       <DialogContent className="retro-modal max-w-[320px] p-0 overflow-hidden border-0 max-h-[90vh] overflow-y-auto">
         <VisuallyHidden>
           <DialogTitle>Daily Login Reward</DialogTitle>

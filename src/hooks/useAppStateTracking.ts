@@ -90,11 +90,12 @@ export const useAppStateTracking = () => {
     // Update ref immediately so handleAppActive reads the correct value
     // even if React hasn't re-rendered yet
     lastActiveTimeRef.current = now;
-    saveState({
-      lastActiveTime: now,
-      showRewardModal: false,
-      currentReward: null
-    });
+    // Only persist the timestamp — do NOT clear showRewardModal/currentReward here.
+    // Clearing modal state on every visibilitychange (screenshots, Apple Pay sheets,
+    // notification center) causes rapid Dialog open→close→open cycles that leave
+    // orphaned bg-black/60 overlays on iOS/Capacitor. The modal dismiss handlers
+    // are the only safe way to clear modal state.
+    saveState({ lastActiveTime: now });
   }, [saveState]);
 
   // Simple web-only visibility tracking

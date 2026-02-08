@@ -101,7 +101,7 @@ export const BundleConfirmDialog = ({
   const pet = petId ? getAnimalById(petId) : null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open && !!bundle} onOpenChange={onOpenChange}>
       <DialogContent className="retro-modal max-w-[300px] p-0 overflow-hidden border-0">
         <VisuallyHidden>
           <DialogTitle>{bundle.name}</DialogTitle>

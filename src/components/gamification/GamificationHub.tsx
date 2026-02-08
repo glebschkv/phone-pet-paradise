@@ -19,7 +19,6 @@ import { BossChallengeModal } from './BossChallengeModal';
 import { LuckyWheelModal } from './LuckyWheelModal';
 import { ComboDisplay } from './ComboDisplay';
 import { EventIndicator } from './SpecialEventBanner';
-import { AchievementUnlockModal } from './AchievementUnlockModal';
 import { AchievementGallery } from '@/components/AchievementGallery';
 
 // Icons
@@ -82,15 +81,6 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
     }
   };
 
-  const handleAchievementRewardClaim = (xp: number, coins: number) => {
-    if (xp > 0 && onXPReward) {
-      onXPReward(xp);
-    }
-    if (coins > 0 && onCoinReward) {
-      onCoinReward(coins);
-    }
-  };
-
   // If achievements view is open, show it instead
   if (showAchievements) {
     return (
@@ -99,7 +89,8 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           embedded={true}
           onClose={() => setShowAchievements(false)}
         />
-        <AchievementUnlockModal onClaimReward={handleAchievementRewardClaim} />
+        {/* AchievementUnlockModal removed — AchievementTracker (in GameUI) already
+             renders one globally. Duplicates cause stacked overlays on iOS. */}
       </div>
     );
   }
@@ -439,8 +430,8 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
         }}
       />
 
-      {/* Achievement Unlock Modal */}
-      <AchievementUnlockModal onClaimReward={handleAchievementRewardClaim} />
+      {/* AchievementUnlockModal removed — AchievementTracker (in GameUI) already
+           renders one globally. Duplicates cause stacked overlays on iOS. */}
     </div>
   );
 };
