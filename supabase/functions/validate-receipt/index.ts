@@ -298,11 +298,22 @@ async function validateCertificateChain(x5cChain: string[]): Promise<void> {
   }
 
   // Verify we can decode all certificates
+  // Apple uses ES256 (P-256) for the leaf cert but ES384 (P-384) for
+  // intermediate and root certs, so we try multiple algorithms.
+  const ALGORITHMS = ['ES256', 'ES384', 'ES512'] as const;
   for (let i = 0; i < x5cChain.length; i++) {
-    try {
-      const certPEM = `-----BEGIN CERTIFICATE-----\n${x5cChain[i].match(/.{1,64}/g)?.join('\n')}\n-----END CERTIFICATE-----`;
-      await jose.importX509(certPEM, 'ES256');
-    } catch (_error) {
+    const certPEM = `-----BEGIN CERTIFICATE-----\n${x5cChain[i].match(/.{1,64}/g)?.join('\n')}\n-----END CERTIFICATE-----`;
+    let parsed = false;
+    for (const alg of ALGORITHMS) {
+      try {
+        await jose.importX509(certPEM, alg);
+        parsed = true;
+        break;
+      } catch {
+        // Try next algorithm
+      }
+    }
+    if (!parsed) {
       throw new Error(`Invalid certificate at position ${i}: failed to parse as X.509`);
     }
   }
