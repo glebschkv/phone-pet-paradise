@@ -55,7 +55,7 @@ export const GameUI = () => {
       timer: 'hsl(200, 60%, 85%)',
       collection: 'hsl(252, 40%, 16%)',
       settings: 'hsl(200, 60%, 85%)',
-      shop: 'hsl(135, 20%, 95%)',
+      shop: 'hsl(45, 50%, 92%)',
       challenges: 'hsl(280, 25%, 8%)',
     };
 
@@ -111,7 +111,7 @@ export const GameUI = () => {
                 currentTab === "timer" ? "" : "pt-safe"
               } ${
                 currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" :
-                currentTab === "shop" ? "bg-background" :
+                currentTab === "shop" ? "bg-[hsl(45,50%,92%)]" :
                 currentTab === "collection" ? "collection-page-bg" :
                 currentTab === "timer" ? "" :
                 currentTab === "settings" ? "" :
