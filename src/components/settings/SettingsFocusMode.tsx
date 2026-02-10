@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, Bell, BellOff, Lock, Unlock, Plus, X, Globe, Smartphone, Crown, AlertTriangle, ShieldCheck, ShieldOff, Sparkles, Settings as SettingsIcon } from 'lucide-react';
+import { Shield, Bell, BellOff, Lock, Unlock, Plus, X, Globe, Smartphone, Crown, AlertTriangle, ShieldCheck, Sparkles, Settings as SettingsIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';

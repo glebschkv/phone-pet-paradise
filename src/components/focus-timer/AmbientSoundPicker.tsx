@@ -213,6 +213,7 @@ export const AmbientSoundPicker = () => {
                 </div>
                 <button
                   onClick={handleToggle}
+                  aria-label={isPlaying ? 'Pause sounds' : 'Play sounds'}
                   className="w-11 h-11 rounded-xl flex items-center justify-center transition-all active:scale-95"
                   style={{
                     background: isPlaying
