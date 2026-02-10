@@ -102,7 +102,7 @@ export const PetCollectionGrid = memo(() => {
 
   // Local UI state
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState<PetSortOption>("default");
+  const [sortOption, setSortOption] = useState<PetSortOption>("owned");
   const [selectedPet, setSelectedPet] = useState<AnimalData | null>(null);
   const [activeTab, setActiveTab] = useState<"pets" | "worlds">("pets");
   const [selectedBackground, setSelectedBackground] = useState<PremiumBackground | null>(null);

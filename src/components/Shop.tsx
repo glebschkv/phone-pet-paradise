@@ -177,7 +177,7 @@ export const Shop = () => {
       {/* Compact Header Row */}
       <div className="shop-header">
         <div className="flex items-center gap-2">
-          <h1 className="text-base font-black uppercase tracking-tight text-amber-900">Shop</h1>
+          <h1 className="text-base font-black uppercase tracking-tight text-foreground">Shop</h1>
           {/* Active booster pill */}
           {isBoosterActive() && activeBooster && (
             <div className="shop-booster-pill">

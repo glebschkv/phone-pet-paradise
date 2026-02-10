@@ -114,22 +114,26 @@ export const AmbientSoundPicker = () => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <button
-          className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all active:scale-95"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all active:scale-95"
           style={{
             background: isPlaying
               ? 'linear-gradient(180deg, hsl(140 60% 45%) 0%, hsl(140 60% 38%) 100%)'
-              : 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.9) 100%)',
-            border: '2px solid hsl(var(--border))',
+              : 'rgba(0,0,0,0.25)',
+            border: isPlaying
+              ? '2px solid hsl(140 50% 55%)'
+              : '2px solid rgba(255,255,255,0.15)',
             boxShadow: isPlaying
               ? '0 3px 0 hsl(140 50% 25%), inset 0 1px 0 hsl(140 70% 60% / 0.3)'
-              : '0 2px 0 hsl(var(--border) / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.1)',
-            color: isPlaying ? 'white' : 'inherit',
+              : '0 2px 0 rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
+            color: isPlaying ? 'white' : 'rgba(255,255,255,0.8)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
           }}
         >
           {isPlaying ? (
             <SoundWaveBars isPlaying={true} small />
           ) : (
-            <VolumeX className="w-4 h-4 text-muted-foreground" />
+            <Volume2 className="w-4 h-4 opacity-70" />
           )}
           <span className="text-xs font-bold">
             {triggerLabel}

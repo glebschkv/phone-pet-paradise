@@ -34,6 +34,7 @@ interface TopStatusBarProps {
 
 export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps) => {
   const [statsOpen, setStatsOpen] = useState(false);
+  const [streakOpen, setStreakOpen] = useState(false);
   const {
     currentLevel,
     currentXP,
@@ -193,10 +194,42 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
 
         {/* Right section: Streak + Settings */}
         <div className="top-bar-right">
-          <div className={`stat-chip streak-chip ${hasActiveStreak ? 'active' : ''}`}>
-            <PixelIcon name="flame-streak" size={18} className="chip-icon streak-icon" />
-            <span className="chip-value">{streakData.currentStreak}</span>
-          </div>
+          <Popover open={streakOpen} onOpenChange={setStreakOpen}>
+            <PopoverTrigger asChild>
+              <button className={`stat-chip streak-chip ${hasActiveStreak ? 'active' : ''}`} aria-label="View daily streak">
+                <PixelIcon name="flame-streak" size={18} className="chip-icon streak-icon" />
+                <span className="chip-value">{streakData.currentStreak}</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="stats-popover w-auto min-w-[180px]" align="end" sideOffset={8}>
+              <div className="stats-popover-content">
+                <div className="stats-header">
+                  <PixelIcon name="flame-streak" size={16} className="inline mr-1" />
+                  <span>Daily Streak</span>
+                </div>
+                <div className="stats-grid">
+                  <div className="stat-row">
+                    <span className="stat-label">Current</span>
+                    <span className="stat-val">{streakData.currentStreak} {streakData.currentStreak === 1 ? 'day' : 'days'}</span>
+                  </div>
+                  <div className="stat-row">
+                    <span className="stat-label">Best</span>
+                    <span className="stat-val">{streakData.longestStreak} {streakData.longestStreak === 1 ? 'day' : 'days'}</span>
+                  </div>
+                </div>
+                {hasActiveStreak && (
+                  <p className="text-[10px] text-center mt-2" style={{ color: 'hsl(20 70% 45%)' }}>
+                    Keep it up! Streaks boost your XP.
+                  </p>
+                )}
+                {!hasActiveStreak && streakData.currentStreak > 0 && (
+                  <p className="text-[10px] text-muted-foreground text-center mt-2">
+                    Reach 3 days to activate streak bonuses!
+                  </p>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           {/* Settings Button */}
           <button

@@ -18,6 +18,7 @@ import { IOSTabBar } from "@/components/IOSTabBar";
 import { AchievementTracker } from "@/components/AchievementTracker";
 import { TabContent, preloadTabComponents } from "@/components/TabContent";
 import { RewardModals } from "@/components/RewardModals";
+import { GlobalSoundToggle } from "@/components/GlobalSoundToggle";
 
 const TAB_STORAGE_KEY = 'petIsland_currentTab';
 const VALID_TABS = ['home', 'timer', 'collection', 'challenges', 'shop', 'settings'];
@@ -54,7 +55,7 @@ export const GameUI = () => {
       timer: 'hsl(200, 60%, 85%)',
       collection: 'hsl(252, 40%, 16%)',
       settings: 'hsl(200, 60%, 85%)',
-      shop: 'hsl(45, 50%, 92%)',
+      shop: 'hsl(135, 20%, 95%)',
       challenges: 'hsl(280, 25%, 8%)',
     };
 
@@ -110,7 +111,7 @@ export const GameUI = () => {
                 currentTab === "timer" ? "" : "pt-safe"
               } ${
                 currentTab === "challenges" ? "bg-[hsl(280,25%,8%)]" :
-                currentTab === "shop" ? "bg-[hsl(45,50%,92%)]" :
+                currentTab === "shop" ? "bg-background" :
                 currentTab === "collection" ? "collection-page-bg" :
                 currentTab === "timer" ? "" :
                 currentTab === "settings" ? "" :
@@ -125,6 +126,9 @@ export const GameUI = () => {
               />
             </div>
           )}
+
+          {/* Global sound mini-player — shows when sounds active, hidden on timer tab */}
+          <GlobalSoundToggle currentTab={currentTab} />
 
           {/* Modern Floating Dock Navigation */}
           <IOSTabBar

@@ -1,12 +1,22 @@
 import { useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { TimerPreset, TIMER_PRESETS } from "./constants";
+import { XP_CONFIG } from "@/lib/constants";
 
 interface TimerPresetGridProps {
   selectedPreset: TimerPreset;
   isRunning: boolean;
   onSelectPreset: (preset: TimerPreset) => void;
 }
+
+/** Calculate estimated base XP for a focus session duration */
+const getEstimatedXP = (preset: TimerPreset): number | null => {
+  // No XP for breaks or sessions under 25 min
+  if (preset.type === 'break') return null;
+  if (preset.isCountup) return null; // Variable, can't estimate
+  if (preset.duration < 25) return null;
+  return Math.floor(preset.duration * XP_CONFIG.BASE_XP_PER_MINUTE);
+};
 
 export const TimerPresetGrid = ({
   selectedPreset,
@@ -71,6 +81,7 @@ export const TimerPresetGrid = ({
           const Icon = preset.icon;
           const isSelected = selectedPreset.id === preset.id;
           const isBreak = preset.type === 'break';
+          const estimatedXP = getEstimatedXP(preset);
 
           return (
             <button
@@ -80,7 +91,7 @@ export const TimerPresetGrid = ({
               disabled={isRunning}
               role="radio"
               aria-checked={isSelected}
-              aria-label={`${preset.name}: ${preset.isCountup ? 'open-ended up to 6 hours' : `${preset.duration} minutes`}${isBreak ? ' (break)' : ''}`}
+              aria-label={`${preset.name}: ${preset.isCountup ? 'open-ended up to 6 hours' : `${preset.duration} minutes`}${isBreak ? ' (break)' : ''}${estimatedXP ? `, +${estimatedXP} XP` : ''}`}
               tabIndex={isSelected ? 0 : -1}
               className={cn(
                 "timer-preset-btn focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
@@ -104,6 +115,14 @@ export const TimerPresetGrid = ({
               )}>
                 {preset.name}
               </div>
+              {estimatedXP !== null && (
+                <div className={cn(
+                  "text-[9px] font-bold mt-0.5",
+                  isSelected ? "text-yellow-200" : "text-yellow-600 dark:text-yellow-400"
+                )}>
+                  +{estimatedXP} XP
+                </div>
+              )}
             </button>
           );
         })}
