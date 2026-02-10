@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef } from "react";
 import { Timer, Home, ShoppingBag, Grid3X3, Settings, ChevronUp, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useClickSound } from "@/hooks/useClickSound";
+import { useHaptics } from "@/hooks/useHaptics";
 
 const DARK_TABS = new Set(["collection", "challenges"]);
 
@@ -34,14 +36,8 @@ export const IOSTabBar = ({ activeTab, onTabChange, isCompact = false, onCompact
   const [pressedTab, setPressedTab] = useState<string | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const isLongPress = useRef(false);
-
-  // Enhanced haptic feedback
-  const triggerHaptic = useCallback((intensity: 'light' | 'medium' | 'heavy' = 'light') => {
-    if ('vibrate' in navigator) {
-      const patterns = { light: 1, medium: 5, heavy: 10 };
-      navigator.vibrate(patterns[intensity]);
-    }
-  }, []);
+  const { playClick } = useClickSound();
+  const { haptic: triggerHaptic } = useHaptics();
 
   const toggleCompact = useCallback(() => {
     triggerHaptic('medium');
@@ -75,6 +71,7 @@ export const IOSTabBar = ({ activeTab, onTabChange, isCompact = false, onCompact
   const handleTabChange = (tabId: string) => {
     if (tabId !== activeTab) {
       triggerHaptic('medium');
+      playClick();
       onTabChange(tabId);
     }
     setPressedTab(null);

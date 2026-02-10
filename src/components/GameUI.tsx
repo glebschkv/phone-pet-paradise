@@ -18,6 +18,7 @@ import { IOSTabBar } from "@/components/IOSTabBar";
 import { AchievementTracker } from "@/components/AchievementTracker";
 import { TabContent, preloadTabComponents } from "@/components/TabContent";
 import { RewardModals } from "@/components/RewardModals";
+import { GlobalSoundToggle } from "@/components/GlobalSoundToggle";
 
 const TAB_STORAGE_KEY = 'petIsland_currentTab';
 const VALID_TABS = ['home', 'timer', 'collection', 'challenges', 'shop', 'settings'];
@@ -125,6 +126,9 @@ export const GameUI = () => {
               />
             </div>
           )}
+
+          {/* Global sound mini-player — shows when sounds active, hidden on timer tab */}
+          <GlobalSoundToggle currentTab={currentTab} />
 
           {/* Modern Floating Dock Navigation */}
           <IOSTabBar

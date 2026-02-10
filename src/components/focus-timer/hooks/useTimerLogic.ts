@@ -111,6 +111,7 @@ export const useTimerLogic = () => {
 
   const setPreset = useCallback((preset: TimerPreset) => {
     if (!stateRef.current.timerState.isRunning) {
+      triggerHaptic('light');
       setSelectedPreset(preset);
 
       if (preset.isCountup) {
@@ -142,7 +143,7 @@ export const useTimerLogic = () => {
         });
       }
     }
-  }, [setSelectedPreset, saveTimerState]);
+  }, [setSelectedPreset, saveTimerState, triggerHaptic]);
 
   // ============================================================================
   // SESSION COMPLETION
