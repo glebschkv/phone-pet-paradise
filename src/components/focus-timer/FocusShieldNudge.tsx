@@ -9,7 +9,7 @@
  * Styled to match the timer page's frosted-glass design language.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Shield, X, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
@@ -17,9 +17,18 @@ import { useDeviceActivity } from '@/hooks/useDeviceActivity';
 
 const DISMISSED_KEY = 'nomoPhone_shieldNudgeDismissed';
 
+/** Read dismissed state synchronously so it never flickers back on remount */
+const wasPreviouslyDismissed = (): boolean => {
+  try {
+    return localStorage.getItem(DISMISSED_KEY) === 'true';
+  } catch {
+    return true; // if storage fails, stay hidden
+  }
+};
+
 export const FocusShieldNudge = () => {
-  const [visible, setVisible] = useState(false);
   const isNative = Capacitor.isNativePlatform();
+  const [visible, setVisible] = useState(() => isNative && !wasPreviouslyDismissed());
 
   const {
     isPermissionGranted,
@@ -29,17 +38,10 @@ export const FocusShieldNudge = () => {
     isLoading,
   } = useDeviceActivity();
 
-  // Check localStorage on mount — only show if native + not dismissed
-  useEffect(() => {
-    if (!isNative) return;
-    const wasDismissed = localStorage.getItem(DISMISSED_KEY);
-    if (!wasDismissed) setVisible(true);
-  }, [isNative]);
-
-  const handleDismiss = () => {
+  const dismiss = useCallback(() => {
     setVisible(false);
-    localStorage.setItem(DISMISSED_KEY, 'true');
-  };
+    try { localStorage.setItem(DISMISSED_KEY, 'true'); } catch { /* noop */ }
+  }, []);
 
   const handleAction = async () => {
     if (!isPermissionGranted) {
@@ -49,13 +51,10 @@ export const FocusShieldNudge = () => {
     }
   };
 
-  // Auto-hide once configured
+  // Auto-dismiss once the user has configured apps — mission accomplished
   useEffect(() => {
-    if (hasAppsConfigured && visible) {
-      setVisible(false);
-      localStorage.setItem(DISMISSED_KEY, 'true');
-    }
-  }, [hasAppsConfigured, visible]);
+    if (hasAppsConfigured) dismiss();
+  }, [hasAppsConfigured, dismiss]);
 
   // Don't render: web, dismissed, or already set up
   if (!isNative || !visible || hasAppsConfigured) return null;
@@ -135,7 +134,7 @@ export const FocusShieldNudge = () => {
 
             {/* Dismiss */}
             <button
-              onClick={handleDismiss}
+              onClick={dismiss}
               className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full transition-all active:scale-90"
               style={{ color: 'rgba(255,255,255,0.25)' }}
               aria-label="Dismiss"

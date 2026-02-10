@@ -237,14 +237,14 @@ export const AmbientSoundPicker = () => {
                   {layerDetails.map((layer) => (
                     <div
                       key={layer.soundId}
-                      className="flex items-center gap-2 p-2 rounded-lg"
+                      className="flex items-center gap-1.5 p-1.5 rounded-lg"
                       style={{
                         background: 'hsl(var(--background) / 0.6)',
                         border: '1px solid hsl(var(--border) / 0.5)',
                       }}
                     >
-                      {layer.sound?.icon && <PixelIcon name={layer.sound.icon} size={20} className="flex-shrink-0" />}
-                      <span className="text-[10px] font-bold flex-shrink-0 w-14 truncate">
+                      {layer.sound?.icon && <PixelIcon name={layer.sound.icon} size={18} className="flex-shrink-0" />}
+                      <span className="text-[10px] font-bold flex-shrink-0 max-w-[52px] truncate">
                         {layer.sound?.name}
                       </span>
                       <Slider
@@ -268,13 +268,13 @@ export const AmbientSoundPicker = () => {
 
               {/* Master Volume Control */}
               <div
-                className="flex items-center gap-3 p-2.5 rounded-lg"
+                className="flex items-center gap-2 p-2 rounded-lg"
                 style={{
                   background: 'hsl(var(--background) / 0.6)',
                   border: '1px solid hsl(var(--border) / 0.5)',
                 }}
               >
-                <VolumeX className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <VolumeX className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                 <Slider
                   min={0}
                   max={100}
@@ -289,9 +289,9 @@ export const AmbientSoundPicker = () => {
                   }}
                   className="flex-1"
                 />
-                <Volume2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <Volume2 className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                 <span
-                  className="text-xs font-bold w-9 text-center py-0.5 rounded"
+                  className="text-[10px] font-bold w-8 text-center py-0.5 rounded"
                   style={{
                     background: 'hsl(var(--muted) / 0.5)',
                   }}
@@ -323,9 +323,7 @@ export const AmbientSoundPicker = () => {
           <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={cn(
-                "px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1.5"
-              )}
+              className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1"
               style={{
                 background: selectedCategory === 'all'
                   ? 'linear-gradient(180deg, hsl(260 60% 55%) 0%, hsl(260 60% 45%) 100%)'
@@ -343,7 +341,7 @@ export const AmbientSoundPicker = () => {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className="px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1.5"
+                className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1"
                 style={{
                   background: selectedCategory === cat.id
                     ? 'linear-gradient(180deg, hsl(260 60% 55%) 0%, hsl(260 60% 45%) 100%)'
@@ -355,7 +353,7 @@ export const AmbientSoundPicker = () => {
                   color: selectedCategory === cat.id ? 'white' : 'inherit',
                 }}
               >
-                <PixelIcon name={cat.icon} size={14} />
+                <PixelIcon name={cat.icon} size={12} />
                 {cat.name}
               </button>
             ))}
@@ -376,7 +374,7 @@ export const AmbientSoundPicker = () => {
                     <button
                       key={sound.id}
                       onClick={() => handleSoundSelect(sound)}
-                      className="relative p-3 rounded-xl text-left transition-all active:scale-[0.98]"
+                      className="relative p-2.5 rounded-xl text-left transition-all active:scale-[0.98]"
                       style={{
                         background: isCurrentlyPlaying
                           ? 'linear-gradient(180deg, hsl(140 40% 92%) 0%, hsl(140 35% 85%) 100%)'
@@ -389,8 +387,8 @@ export const AmbientSoundPicker = () => {
                           : '0 2px 0 hsl(var(--border) / 0.4), inset 0 1px 0 hsl(0 0% 100% / 0.2)',
                       }}
                     >
-                      <div className="flex items-start justify-between mb-1">
-                        <PixelIcon name={sound.icon} size={28} />
+                      <div className="flex items-start justify-between mb-0.5">
+                        <PixelIcon name={sound.icon} size={24} />
                         {isCurrentlyPlaying && (
                           <div className="text-green-600 dark:text-green-400">
                             <SoundWaveBars isPlaying={true} small />
@@ -402,8 +400,8 @@ export const AmbientSoundPicker = () => {
                           </div>
                         )}
                       </div>
-                      <p className="text-xs font-bold truncate">{sound.name}</p>
-                      <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+                      <p className="text-[11px] font-bold truncate">{sound.name}</p>
+                      <p className="text-[10px] text-muted-foreground line-clamp-1">
                         {sound.description}
                       </p>
                     </button>
@@ -434,7 +432,7 @@ export const AmbientSoundPicker = () => {
                       onClick={() => handleSoundSelect(sound)}
                       disabled={isLocked}
                       className={cn(
-                        "relative p-3 rounded-xl text-left transition-all active:scale-[0.98]",
+                        "relative p-2.5 rounded-xl text-left transition-all active:scale-[0.98]",
                         isLocked && "opacity-70"
                       )}
                       style={{
@@ -465,8 +463,8 @@ export const AmbientSoundPicker = () => {
                         )}
                       </div>
 
-                      <div className="flex items-start justify-between mb-1">
-                        <PixelIcon name={sound.icon} size={28} />
+                      <div className="flex items-start justify-between mb-0.5">
+                        <PixelIcon name={sound.icon} size={24} />
                         {isCurrentlyPlaying && (
                           <div className="text-green-600 dark:text-green-400">
                             <SoundWaveBars isPlaying={true} small />
@@ -478,8 +476,8 @@ export const AmbientSoundPicker = () => {
                           </div>
                         )}
                       </div>
-                      <p className="text-xs font-bold truncate">{sound.name}</p>
-                      <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+                      <p className="text-[11px] font-bold truncate">{sound.name}</p>
+                      <p className="text-[10px] text-muted-foreground line-clamp-1">
                         {sound.description}
                       </p>
                     </button>
@@ -535,7 +533,7 @@ export const AmbientSoundPicker = () => {
           {layers.length > 0 && (
             <button
               onClick={() => stopAll()}
-              className="w-full py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.98]"
+              className="w-full py-2 rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
               style={{
                 background: 'linear-gradient(180deg, hsl(var(--muted) / 0.5) 0%, hsl(var(--muted) / 0.3) 100%)',
                 border: '2px solid hsl(var(--border))',
