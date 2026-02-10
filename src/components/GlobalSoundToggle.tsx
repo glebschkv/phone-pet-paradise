@@ -41,7 +41,7 @@ export const GlobalSoundToggle = ({ currentTab }: GlobalSoundToggleProps) => {
         bottom: 90, // Above the tab bar
         WebkitBackdropFilter: 'blur(12px)',
         backdropFilter: 'blur(12px)',
-        zIndex: 45,
+        zIndex: 51,
       }}
       aria-label={isPlaying ? `Pause ${label}` : `Play ${label}`}
     >

@@ -88,7 +88,7 @@ export const TimerView = ({
       />
 
       {/* Preset grid BELOW timer — secondary selection */}
-      <div className="mt-5 w-full flex justify-center">
+      <div className="mt-4 w-full flex justify-center">
         <TimerPresetGrid
           selectedPreset={selectedPreset}
           isRunning={timerState.isRunning}

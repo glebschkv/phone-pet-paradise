@@ -2929,10 +2929,11 @@ input, textarea, [contenteditable="true"] {
     animation: crt-flicker 0.15s infinite;
   }
 
-  /* Retro Font Style — uses app font with bold weight + wide tracking for arcade feel */
+  /* Retro Font Style — monospace with toned-down arcade feel */
   .retro-pixel-text {
-    font-weight: 800;
-    letter-spacing: 0.05em;
+    font-family: 'Courier New', 'Monaco', monospace;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
   }
 

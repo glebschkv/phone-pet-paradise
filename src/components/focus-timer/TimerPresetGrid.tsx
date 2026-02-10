@@ -117,7 +117,7 @@ export const TimerPresetGrid = ({
               </div>
               {estimatedXP !== null && (
                 <div className={cn(
-                  "text-[9px] font-bold mt-0.5",
+                  "text-[10px] font-bold mt-0.5",
                   isSelected ? "text-yellow-200" : "text-yellow-600 dark:text-yellow-400"
                 )}>
                   +{estimatedXP} XP
