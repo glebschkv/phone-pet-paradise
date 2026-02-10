@@ -31,7 +31,7 @@ export const GlobalSoundToggle = ({ currentTab }: GlobalSoundToggleProps) => {
     <button
       onClick={toggle}
       className={cn(
-        "pointer-events-auto absolute right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all active:scale-95",
+        "pointer-events-auto absolute right-4 flex items-center gap-2 px-3.5 min-h-[44px] rounded-full transition-all active:scale-95",
         "backdrop-blur-md shadow-lg border",
         isPlaying
           ? "bg-green-500/20 border-green-400/40 text-green-300"
@@ -46,11 +46,11 @@ export const GlobalSoundToggle = ({ currentTab }: GlobalSoundToggleProps) => {
       aria-label={isPlaying ? `Pause ${label}` : `Play ${label}`}
     >
       {isPlaying ? (
-        <Volume2 className="w-3.5 h-3.5" />
+        <Volume2 className="w-4 h-4" />
       ) : (
-        <VolumeX className="w-3.5 h-3.5" />
+        <VolumeX className="w-4 h-4" />
       )}
-      <span className="text-[11px] font-semibold max-w-[80px] truncate">
+      <span className="text-[11px] font-semibold max-w-[100px] truncate">
         {label}
       </span>
     </button>

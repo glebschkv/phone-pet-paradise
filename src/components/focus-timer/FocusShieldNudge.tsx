@@ -68,7 +68,7 @@ export const FocusShieldNudge = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ type: 'spring', stiffness: 280, damping: 28 }}
           className="w-full max-w-sm"
         >
           <div
@@ -117,7 +117,7 @@ export const FocusShieldNudge = () => {
             <button
               onClick={handleAction}
               disabled={isLoading}
-              className="flex-shrink-0 flex items-center gap-0.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all active:scale-95"
+              className="flex-shrink-0 flex items-center gap-0.5 px-3.5 min-h-[36px] rounded-lg text-[12px] font-bold transition-all active:scale-95"
               style={{
                 background:
                   'linear-gradient(180deg, hsl(260 55% 58%) 0%, hsl(265 50% 45%) 100%)',
@@ -135,11 +135,11 @@ export const FocusShieldNudge = () => {
             {/* Dismiss */}
             <button
               onClick={dismiss}
-              className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full transition-all active:scale-90"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
+              className="flex-shrink-0 w-9 h-9 -mr-1 flex items-center justify-center rounded-full transition-all active:scale-90"
+              style={{ color: 'rgba(255,255,255,0.3)' }}
               aria-label="Dismiss"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </motion.div>

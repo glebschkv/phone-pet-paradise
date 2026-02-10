@@ -138,7 +138,7 @@ export const SettingsSound = ({ settings, onUpdate }: SettingsSoundProps) => {
             </div>
             <div>
               <Label className="text-sm font-bold">Button Sounds</Label>
-              <p className="text-[10px] text-muted-foreground">Subtle tap feedback</p>
+              <p className="text-[11px] text-muted-foreground">Subtle tap feedback</p>
             </div>
           </div>
           <Switch

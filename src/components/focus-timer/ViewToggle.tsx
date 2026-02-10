@@ -14,7 +14,7 @@ export const ViewToggle = ({ currentView, onViewChange }: ViewToggleProps) => {
       <button
         onClick={() => onViewChange('timer')}
         className={cn(
-          "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95",
+          "flex items-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl text-sm font-bold transition-all active:scale-95",
           currentView === 'timer'
             ? "bg-white text-gray-900 shadow-lg"
             : "text-white/70 hover:text-white hover:bg-white/10"
@@ -26,7 +26,7 @@ export const ViewToggle = ({ currentView, onViewChange }: ViewToggleProps) => {
       <button
         onClick={() => onViewChange('stats')}
         className={cn(
-          "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95",
+          "flex items-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl text-sm font-bold transition-all active:scale-95",
           currentView === 'stats'
             ? "bg-white text-gray-900 shadow-lg"
             : "text-white/70 hover:text-white hover:bg-white/10"

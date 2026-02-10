@@ -151,7 +151,7 @@ export const SettingsFocusMode = () => {
                 </div>
                 <div className="flex-1">
                   <Label className="text-sm font-bold">Focus Shield</Label>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground">
                     {shieldPermissionGranted
                       ? shieldAppsConfigured
                         ? `${shieldLabel} will be blocked during focus`
@@ -163,7 +163,7 @@ export const SettingsFocusMode = () => {
                 {shieldPermissionGranted && shieldAppsConfigured && (
                   <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-100 dark:bg-green-900/30">
                     <Sparkles className="w-3 h-3 text-green-600 dark:text-green-400" />
-                    <span className="text-[10px] font-bold text-green-700 dark:text-green-400">Active</span>
+                    <span className="text-[11px] font-bold text-green-700 dark:text-green-400">Active</span>
                   </div>
                 )}
               </div>

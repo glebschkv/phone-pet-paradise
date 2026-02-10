@@ -812,7 +812,7 @@ const StepMeetCompanion = () => (
           Star Wizard
         </p>
         <span
-          className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+          className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
           style={{
             background: 'rgba(160,120,255,0.2)',
             color: 'rgba(200,180,255,0.9)',
@@ -834,7 +834,7 @@ const StepMeetCompanion = () => (
         {['Magic Focus', 'Star Spell', 'Wizard Wisdom'].map((ability) => (
           <span
             key={ability}
-            className="text-[10px] px-2 py-0.5 rounded-full"
+            className="text-[11px] px-2 py-0.5 rounded-full"
             style={{
               background: 'rgba(255,255,255,0.06)',
               color: 'rgba(200,210,240,0.6)',

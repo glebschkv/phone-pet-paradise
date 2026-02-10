@@ -165,7 +165,7 @@ export const AmbientSoundPicker = () => {
               </div>
               <div>
                 <span className="text-base font-bold">Focus Sounds</span>
-                <p className="text-[10px] text-muted-foreground font-normal">
+                <p className="text-[11px] text-muted-foreground font-normal">
                   {maxLayers > 1 ? 'Mix ambient sounds for better focus' : 'Ambient audio for better concentration'}
                 </p>
               </div>
@@ -203,10 +203,10 @@ export const AmbientSoundPicker = () => {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                           </span>
-                          <span className="text-[10px] font-medium text-green-600 dark:text-green-400">Now playing</span>
+                          <span className="text-[11px] font-medium text-green-600 dark:text-green-400">Now playing</span>
                         </>
                       ) : (
-                        <span className="text-[10px] text-muted-foreground">Paused</span>
+                        <span className="text-[11px] text-muted-foreground">Paused</span>
                       )}
                     </div>
                   </div>
@@ -244,7 +244,7 @@ export const AmbientSoundPicker = () => {
                       }}
                     >
                       {layer.sound?.icon && <PixelIcon name={layer.sound.icon} size={18} className="flex-shrink-0" />}
-                      <span className="text-[10px] font-bold flex-shrink-0 max-w-[52px] truncate">
+                      <span className="text-[11px] font-bold flex-shrink-0 max-w-[52px] truncate">
                         {layer.sound?.name}
                       </span>
                       <Slider
@@ -257,9 +257,10 @@ export const AmbientSoundPicker = () => {
                       />
                       <button
                         onClick={() => removeLayer(layer.soundId)}
-                        className="w-5 h-5 rounded-full flex items-center justify-center text-muted-foreground hover:text-red-500 transition-colors flex-shrink-0"
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-red-500 transition-colors flex-shrink-0 active:scale-90"
+                        aria-label={`Remove ${layer.sound?.name || 'sound'}`}
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
@@ -291,7 +292,7 @@ export const AmbientSoundPicker = () => {
                 />
                 <Volume2 className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                 <span
-                  className="text-[10px] font-bold w-8 text-center py-0.5 rounded"
+                  className="text-[11px] font-bold w-8 text-center py-0.5 rounded"
                   style={{
                     background: 'hsl(var(--muted) / 0.5)',
                   }}
@@ -307,12 +308,12 @@ export const AmbientSoundPicker = () => {
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
                   Sound Layers: {layers.length}/{maxLayers}
                 </span>
               </div>
               {canAddLayer() && (
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-[11px] text-muted-foreground">
                   Tap a sound to add a layer
                 </span>
               )}
@@ -323,7 +324,7 @@ export const AmbientSoundPicker = () => {
           <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
             <button
               onClick={() => setSelectedCategory('all')}
-              className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1"
+              className="px-2.5 py-1.5 min-h-[36px] rounded-lg text-[11px] font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1"
               style={{
                 background: selectedCategory === 'all'
                   ? 'linear-gradient(180deg, hsl(260 60% 55%) 0%, hsl(260 60% 45%) 100%)'
@@ -341,7 +342,7 @@ export const AmbientSoundPicker = () => {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1"
+                className="px-2.5 py-1.5 min-h-[36px] rounded-lg text-[11px] font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-1"
                 style={{
                   background: selectedCategory === cat.id
                     ? 'linear-gradient(180deg, hsl(260 60% 55%) 0%, hsl(260 60% 45%) 100%)'
@@ -362,7 +363,7 @@ export const AmbientSoundPicker = () => {
           {/* Free Sounds Section */}
           {freeSounds.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide px-1">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide px-1">
                 Free Sounds
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -401,7 +402,7 @@ export const AmbientSoundPicker = () => {
                         )}
                       </div>
                       <p className="text-[11px] font-bold truncate">{sound.name}</p>
-                      <p className="text-[10px] text-muted-foreground line-clamp-1">
+                      <p className="text-[11px] text-muted-foreground line-clamp-1">
                         {sound.description}
                       </p>
                     </button>
@@ -416,7 +417,7 @@ export const AmbientSoundPicker = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2 px-1">
                 <Crown className="w-3.5 h-3.5 text-amber-500" />
-                <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">
+                <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">
                   Premium Sounds
                 </p>
               </div>
@@ -477,7 +478,7 @@ export const AmbientSoundPicker = () => {
                         )}
                       </div>
                       <p className="text-[11px] font-bold truncate">{sound.name}</p>
-                      <p className="text-[10px] text-muted-foreground line-clamp-1">
+                      <p className="text-[11px] text-muted-foreground line-clamp-1">
                         {sound.description}
                       </p>
                     </button>

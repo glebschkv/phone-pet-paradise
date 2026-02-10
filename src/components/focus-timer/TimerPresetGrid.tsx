@@ -110,14 +110,14 @@ export const TimerPresetGrid = ({
                 {preset.isCountup ? '∞' : `${preset.duration}m`}
               </div>
               <div className={cn(
-                "text-[10px] font-medium",
+                "text-[11px] font-medium leading-tight",
                 isSelected ? "text-white/80" : "text-muted-foreground"
               )}>
                 {preset.name}
               </div>
               {estimatedXP !== null && (
                 <div className={cn(
-                  "text-[10px] font-bold mt-0.5",
+                  "text-[11px] font-bold mt-0.5",
                   isSelected ? "text-yellow-200" : "text-yellow-600 dark:text-yellow-400"
                 )}>
                   +{estimatedXP} XP

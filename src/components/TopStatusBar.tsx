@@ -218,12 +218,12 @@ export const TopStatusBar = ({ currentTab, onSettingsClick }: TopStatusBarProps)
                   </div>
                 </div>
                 {hasActiveStreak && (
-                  <p className="text-[10px] text-center mt-2" style={{ color: 'hsl(20 70% 45%)' }}>
+                  <p className="text-[11px] text-center mt-2" style={{ color: 'hsl(20 70% 45%)' }}>
                     Keep it up! Streaks boost your XP.
                   </p>
                 )}
                 {!hasActiveStreak && streakData.currentStreak > 0 && (
-                  <p className="text-[10px] text-muted-foreground text-center mt-2">
+                  <p className="text-[11px] text-muted-foreground text-center mt-2">
                     Reach 3 days to activate streak bonuses!
                   </p>
                 )}
