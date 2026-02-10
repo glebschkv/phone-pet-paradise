@@ -23,6 +23,7 @@ import { TimerControls } from "./TimerControls";
 import { TimerPresetGrid } from "./TimerPresetGrid";
 import { BackgroundThemeSwitcher } from "./BackgroundThemeSwitcher";
 import { TimerPetSprite } from "./TimerPetSprite";
+import { FocusShieldNudge } from "./FocusShieldNudge";
 import { TimerState, TimerPreset } from "./constants";
 
 interface TimerViewProps {
@@ -86,6 +87,13 @@ export const TimerView = ({
         onStop={onStop}
         onSkip={onSkip}
       />
+
+      {/* Focus Shield setup nudge — one-time, hidden while running */}
+      {!timerState.isRunning && (
+        <div className="mt-4 w-full flex justify-center">
+          <FocusShieldNudge />
+        </div>
+      )}
 
       {/* Preset grid BELOW timer — secondary selection */}
       <div className="mt-4 w-full flex justify-center">
