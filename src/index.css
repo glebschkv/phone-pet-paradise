@@ -813,11 +813,31 @@ input, textarea, [contenteditable="true"] {
       animation: none !important;
     }
 
+    /* Onboarding particles and sparkles */
+    .onboarding-particle,
+    .onboarding-sparkle {
+      animation: none !important;
+      opacity: 0 !important;
+    }
+
+    /* Sound wave bars — show static instead of pulsing */
+    .animate-pulse {
+      animation: none !important;
+    }
+
+    /* Disable spring/bounce transitions everywhere */
     .focus-bg-transition,
     .timer-header-pill,
     .timer-ring-container,
     .timer-header-icon {
       transition: none !important;
+    }
+
+    /* Reduce all transition durations to near-instant crossfades */
+    * {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
     }
   }
 

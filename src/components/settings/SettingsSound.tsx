@@ -53,7 +53,7 @@ export const SettingsSound = ({ settings, onUpdate }: SettingsSoundProps) => {
             </div>
             <div>
               <Label className="text-sm font-bold">Sound Effects</Label>
-              <p className="text-[10px] text-muted-foreground">Audio notifications</p>
+              <p className="text-[11px] text-muted-foreground">Timer alerts and game sounds</p>
             </div>
           </div>
           <Switch
@@ -116,7 +116,7 @@ export const SettingsSound = ({ settings, onUpdate }: SettingsSoundProps) => {
                       }}
                     >
                       <Icon className={cn("w-4 h-4", isSelected ? "text-primary" : "text-muted-foreground")} />
-                      <span className="text-[10px] font-bold">{theme.label}</span>
+                      <span className="text-[11px] font-bold">{theme.label}</span>
                     </button>
                   );
                 })}

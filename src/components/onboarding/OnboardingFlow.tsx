@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft, Shield, Lock, Settings, Sparkles } from 'lucide-react';
 import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useDeviceActivity } from '@/hooks/useDeviceActivity';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { Capacitor } from '@capacitor/core';
 
 interface OnboardingFlowProps {
@@ -266,6 +267,7 @@ const PixelIcon = ({
 
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   usePreloadImages(PRELOAD_SRCS);
+  const prefersReducedMotion = useReducedMotion();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -311,11 +313,17 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     }
   };
 
-  const slideVariants = {
-    enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
-  };
+  const slideVariants = prefersReducedMotion
+    ? {
+        enter: { opacity: 0 },
+        center: { opacity: 1 },
+        exit: { opacity: 0 },
+      }
+    : {
+        enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
+        center: { x: 0, opacity: 1 },
+        exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
+      };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -398,8 +406,8 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              drag="x"
+              transition={prefersReducedMotion ? { duration: 0.15 } : { type: 'spring', stiffness: 300, damping: 30 }}
+              drag={prefersReducedMotion ? false : "x"}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.2}
               onDragEnd={handleDragEnd}

@@ -66,7 +66,7 @@ export const Settings = () => {
           </div>
           <div>
             <h1 className="text-base font-black uppercase tracking-tight">Settings</h1>
-            <p className="text-[10px] text-muted-foreground">Customize your experience</p>
+            <p className="text-[11px] text-muted-foreground">Customize your experience</p>
           </div>
         </div>
       </div>

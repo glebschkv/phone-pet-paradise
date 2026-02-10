@@ -55,7 +55,7 @@ export const SettingsAppearance = ({ settings, onUpdate }: SettingsAppearancePro
                 </div>
                 <div className="text-center">
                   <div className="text-xs font-bold">{option.label}</div>
-                  <div className="text-[10px] text-muted-foreground">{option.description}</div>
+                  <div className="text-[11px] text-muted-foreground">{option.description}</div>
                 </div>
               </button>
             );

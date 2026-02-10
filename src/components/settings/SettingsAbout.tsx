@@ -109,7 +109,7 @@ export const SettingsAbout = () => {
 
       {/* Footer */}
       <div className="retro-stat-pill p-3 text-center">
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground">
           &copy; {new Date().getFullYear()} NoMo Inc. All rights reserved.
         </p>
       </div>

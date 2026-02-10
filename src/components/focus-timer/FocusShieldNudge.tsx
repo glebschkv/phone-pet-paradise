@@ -14,6 +14,7 @@ import { Shield, X, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { useDeviceActivity } from '@/hooks/useDeviceActivity';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const DISMISSED_KEY = 'nomoPhone_shieldNudgeDismissed';
 
@@ -28,6 +29,7 @@ const wasPreviouslyDismissed = (): boolean => {
 
 export const FocusShieldNudge = () => {
   const isNative = Capacitor.isNativePlatform();
+  const prefersReducedMotion = useReducedMotion();
   const [visible, setVisible] = useState(() => isNative && !wasPreviouslyDismissed());
 
   const {
@@ -65,10 +67,10 @@ export const FocusShieldNudge = () => {
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
-          transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 280, damping: 28 }}
           className="w-full max-w-sm"
         >
           <div

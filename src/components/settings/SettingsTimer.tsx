@@ -98,7 +98,7 @@ export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
             </div>
             <div>
               <Label className="text-sm font-bold">Notifications</Label>
-              <p className="text-[10px] text-muted-foreground">Alert when timer ends</p>
+              <p className="text-[11px] text-muted-foreground">Alert when timer ends</p>
             </div>
           </div>
           <Switch
