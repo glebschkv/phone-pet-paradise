@@ -442,10 +442,14 @@ export const useStoreKit = (): UseStoreKitReturn => {
             dispatchCoinsGranted(validationResult.coinPack.coinsGranted);
             logger.debug('Coins granted:', validationResult.coinPack.coinsGranted);
           } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
-            // Dispatch event for bundle fulfillment (coins already granted server-side)
-            dispatchCoinsGranted(validationResult.bundle.coinsGranted);
-            dispatchBundleGranted(validationResult.bundle);
-            logger.debug('Bundle granted:', validationResult.bundle);
+            // Only dispatch grant events for NEW purchases, not already-owned bundles
+            if (!validationResult.bundle.alreadyOwned) {
+              dispatchCoinsGranted(validationResult.bundle.coinsGranted);
+              dispatchBundleGranted(validationResult.bundle);
+              logger.debug('Bundle granted:', validationResult.bundle);
+            } else {
+              logger.debug('Bundle already owned, skipping grant:', validationResult.bundle);
+            }
           }
 
           // Return success with validation data for caller to use
@@ -583,7 +587,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
     }
   }, [checkSubscriptionStatus]);
 
-  // Open subscription management
+  // Open subscription management — re-check status when user returns
   const manageSubscriptions = useCallback(async () => {
     if (!pluginAvailableRef.current) {
       toast.error('Feature Unavailable', {
@@ -603,7 +607,11 @@ export const useStoreKit = (): UseStoreKitReturn => {
         description: 'Failed to open subscription management.',
       });
     }
-  }, []);
+
+    // After returning from subscription management, re-check status
+    // (user may have cancelled, upgraded, or downgraded)
+    await checkSubscriptionStatus();
+  }, [checkSubscriptionStatus]);
 
   // Get product by ID
   const getProductById = useCallback((productId: string): StoreKitProduct | undefined => {
@@ -645,9 +653,29 @@ export const useStoreKit = (): UseStoreKitReturn => {
       });
     }
 
+    // Periodically re-check subscription status so expired subscriptions
+    // are detected without requiring an app restart or transactionUpdated event.
+    const SUB_CHECK_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+    const subCheckInterval = setInterval(() => {
+      if (!document.hidden) {
+        checkSubscriptionStatus();
+      }
+    }, SUB_CHECK_INTERVAL_MS);
+
+    // Re-check when app returns from background (e.g., after user visits
+    // Settings > Subscriptions to cancel/upgrade)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkSubscriptionStatus();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       cancelled = true;
       listenerHandle?.remove();
+      clearInterval(subCheckInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

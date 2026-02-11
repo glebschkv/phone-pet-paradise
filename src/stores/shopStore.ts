@@ -30,6 +30,7 @@ export interface ShopInventory {
   ownedCharacters: string[];
   ownedBackgrounds: string[];
   equippedBackground: string | null;
+  purchasedStarterBundleIds: string[];
 }
 
 interface ShopState extends ShopInventory {
@@ -38,6 +39,7 @@ interface ShopState extends ShopInventory {
   addOwnedBackground: (backgroundId: string) => void;
   addOwnedCharacters: (characterIds: string[]) => void;
   addOwnedBackgrounds: (backgroundIds: string[]) => void;
+  addPurchasedStarterBundleId: (productId: string) => void;
   setEquippedBackground: (backgroundId: string | null) => void;
   setInventory: (inventory: Partial<ShopInventory>) => void;
   resetShop: () => void;
@@ -51,6 +53,7 @@ const initialState: ShopInventory = {
   ownedCharacters: [],
   ownedBackgrounds: [],
   equippedBackground: null,
+  purchasedStarterBundleIds: [],
 };
 
 export const useShopStore = create<ShopState>()(
@@ -92,6 +95,14 @@ export const useShopStore = create<ShopState>()(
         }
       },
 
+      addPurchasedStarterBundleId: (productId) => {
+        const { purchasedStarterBundleIds } = get();
+        if (!purchasedStarterBundleIds.includes(productId)) {
+          set({ purchasedStarterBundleIds: [...purchasedStarterBundleIds, productId] });
+          shopLogger.debug('Starter bundle recorded as purchased:', productId);
+        }
+      },
+
       setEquippedBackground: (backgroundId) => {
         set({ equippedBackground: backgroundId });
         shopLogger.debug('Background equipped:', backgroundId);
@@ -118,6 +129,7 @@ export const useShopStore = create<ShopState>()(
           // Guard against corrupt localStorage where arrays became null/undefined
           if (!Array.isArray(state.ownedCharacters)) state.ownedCharacters = [];
           if (!Array.isArray(state.ownedBackgrounds)) state.ownedBackgrounds = [];
+          if (!Array.isArray(state.purchasedStarterBundleIds)) state.purchasedStarterBundleIds = [];
           shopLogger.debug('Shop store rehydrated');
         }
       },

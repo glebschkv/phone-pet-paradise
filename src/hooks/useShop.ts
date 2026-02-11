@@ -62,11 +62,13 @@ export const useShop = () => {
     ownedCharacters,
     ownedBackgrounds,
     equippedBackground,
+    purchasedStarterBundleIds,
   } = useShopStore(
     useShallow((state) => ({
       ownedCharacters: state.ownedCharacters,
       ownedBackgrounds: state.ownedBackgrounds,
       equippedBackground: state.equippedBackground,
+      purchasedStarterBundleIds: state.purchasedStarterBundleIds,
     }))
   );
 
@@ -76,6 +78,7 @@ export const useShop = () => {
     addOwnedBackground,
     addOwnedCharacters,
     addOwnedBackgrounds,
+    addPurchasedStarterBundleId,
     storeSetEquippedBackground,
     storeResetShop,
   } = useShopStore(
@@ -84,6 +87,7 @@ export const useShop = () => {
       addOwnedBackground: state.addOwnedBackground,
       addOwnedCharacters: state.addOwnedCharacters,
       addOwnedBackgrounds: state.addOwnedBackgrounds,
+      addPurchasedStarterBundleId: state.addPurchasedStarterBundleId,
       storeSetEquippedBackground: state.setEquippedBackground,
       storeResetShop: state.resetShop,
     }))
@@ -94,6 +98,7 @@ export const useShop = () => {
     ownedCharacters,
     ownedBackgrounds,
     equippedBackground,
+    purchasedStarterBundleIds,
   };
 
   // Track total purchases for achievements
@@ -117,11 +122,17 @@ export const useShop = () => {
     const handleBundleGranted = (event: Event) => {
       try {
         const customEvent = event as CustomEvent<{
+          productId?: string;
           characterId?: string;
           boosterId?: string;
           streakFreezes: number;
         }>;
-        const { characterId, boosterId, streakFreezes } = customEvent.detail;
+        const { productId, characterId, boosterId, streakFreezes } = customEvent.detail;
+
+        // Record this bundle as purchased (prevents re-purchase in UI)
+        if (productId) {
+          addPurchasedStarterBundleId(productId);
+        }
 
         // Grant character if included
         if (characterId) {
@@ -151,7 +162,7 @@ export const useShop = () => {
     return () => {
       window.removeEventListener(IAP_EVENTS.BUNDLE_GRANTED, handleBundleGranted);
     };
-  }, [ownedCharacters, addOwnedCharacter, boosterSystem, streakSystem]);
+  }, [ownedCharacters, addOwnedCharacter, addPurchasedStarterBundleId, boosterSystem, streakSystem]);
 
   // Check if item is owned
   const isOwned = useCallback((itemId: string, category: ShopCategory): boolean => {

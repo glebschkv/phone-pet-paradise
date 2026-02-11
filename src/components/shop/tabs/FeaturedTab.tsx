@@ -62,6 +62,11 @@ export const FeaturedTab = ({
 
       if (result.success && result.validationResult?.success) {
         if (isStarterBundle && result.validationResult.bundle) {
+          if (result.validationResult.bundle.alreadyOwned) {
+            toast.info("You already own this bundle!");
+            setShowBundleConfirm(false);
+            return;
+          }
           // Bundle contents (coins, character, booster, freezes) are granted via:
           // - Server grants coins via add_user_coins RPC
           // - Client syncs coins via iap:coinsGranted event
@@ -238,7 +243,8 @@ export const FeaturedTab = ({
         <div className="space-y-2">
           {STARTER_BUNDLES.map((bundle) => {
             const hasCharacter = bundle.contents.characterId ? inventory.ownedCharacters.includes(bundle.contents.characterId) : false;
-            const alreadyPurchased = hasCharacter;
+            const bundleRecorded = inventory.purchasedStarterBundleIds.includes(bundle.iapProductId);
+            const alreadyPurchased = hasCharacter || bundleRecorded;
 
             return (
               <button
