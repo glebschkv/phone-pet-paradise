@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, Bell, BellOff, Lock, Unlock, Plus, X, Globe, Smartphone, Crown, AlertTriangle } from 'lucide-react';
+import { Shield, Bell, BellOff, Lock, Unlock, Plus, X, Globe, Crown, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,6 @@ export const SettingsFocusMode = () => {
   const {
     settings,
     updateSettings,
-    toggleAppBlocking,
     addBlockedWebsite,
     removeBlockedWebsite,
   } = useFocusMode();
@@ -23,8 +22,6 @@ export const SettingsFocusMode = () => {
       setNewWebsite('');
     }
   };
-
-  const blockedAppsCount = settings.blockedApps.filter(a => a.isBlocked).length;
 
   return (
     <div className="space-y-3">
@@ -108,48 +105,6 @@ export const SettingsFocusMode = () => {
 
       {settings.enabled && (
         <>
-          {/* Blocked Apps */}
-          <div className="retro-card p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-primary" />
-                <Label className="text-sm font-bold">Blocked Apps</Label>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {blockedAppsCount} selected
-              </span>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2">
-              {settings.blockedApps.map((app) => (
-                <button
-                  key={app.id}
-                  onClick={() => toggleAppBlocking(app.id, !app.isBlocked)}
-                  className={cn(
-                    "p-2 rounded-xl flex flex-col items-center gap-1 transition-all",
-                    app.isBlocked
-                      ? "bg-red-100 dark:bg-red-900/30 ring-2 ring-red-400"
-                      : "bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  )}
-                >
-                  <span className="text-xl">{app.icon}</span>
-                  <span className="text-[9px] font-semibold text-center line-clamp-1">
-                    {app.name}
-                  </span>
-                  {app.isBlocked && (
-                    <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
-                      <X className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <p className="text-[10px] text-muted-foreground mt-3 text-center">
-              Tap apps to toggle blocking during focus sessions
-            </p>
-          </div>
-
           {/* Blocked Websites */}
           <div className="retro-card p-4">
             <div className="flex items-center justify-between mb-3">
