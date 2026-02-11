@@ -376,17 +376,13 @@ export const useStoreKit = (): UseStoreKitReturn => {
       return { ...failedResult, message: 'Plugin unavailable' };
     }
 
-    // Pre-flight check: is the product in our loaded products list?
-    // If not, it's likely not configured in App Store Connect.
+    // Check if the product was in the initial bulk load. If not, log a
+    // warning but still attempt the purchase — the native StoreKit layer
+    // will try to fetch the product individually and may succeed even when
+    // the bulk getProducts() call didn't return it (Apple sandbox quirk).
     const loadedProduct = productsRef.current.find(p => p.id === productId);
-    if (!loadedProduct && productsRef.current.length > 0) {
-      const shortId = productId.split('.').slice(-1)[0] || productId;
-      logger.error(`Product "${productId}" not found in loaded products. It may not be configured in App Store Connect.`);
-      toast.error('Product Not Available', {
-        description: `"${shortId}" is not available for purchase yet. This product may still be in review.`,
-        duration: 5000,
-      });
-      return { ...failedResult, message: `Product not available: ${productId}` };
+    if (!loadedProduct) {
+      logger.warn(`Product "${productId}" not in pre-loaded list — attempting direct purchase via native StoreKit`);
     }
 
     setIsPurchasing(true);
