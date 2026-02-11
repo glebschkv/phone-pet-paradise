@@ -318,39 +318,45 @@ export const useStoreKit = (): UseStoreKitReturn => {
     setSubscriptionStatus(status);
 
     // Sync with local storage for offline access
-    if (status.hasActiveSubscription) {
-      const activeSub = status.activeSubscriptions[0] || status.purchasedProducts[0];
-      if (activeSub) {
-        const plan = SUBSCRIPTION_PLANS.find(p => p.iapProductId === activeSub.productId);
-        if (plan) {
-          const premiumState = {
-            tier: plan.tier,
-            expiresAt: activeSub.expirationDate
-              ? new Date(activeSub.expirationDate).toISOString()
-              : null,
-            purchasedAt: new Date(activeSub.purchaseDate).toISOString(),
-            planId: plan.id,
-            environment: activeSub.environment,
-          };
-          try {
-            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
-          } catch { /* storage full */ }
+    // Check active subscriptions first, then look for lifetime purchase
+    // in purchasedProducts (non-consumable bundles are also in purchasedProducts
+    // but should NOT count as subscriptions)
+    const activeSub = status.activeSubscriptions?.[0];
+    const lifetimePurchase = status.purchasedProducts?.find(
+      (p: { productId: string }) => SUBSCRIPTION_PLANS.some(plan => plan.iapProductId === p.productId)
+    );
+    const subscriptionProduct = activeSub || lifetimePurchase;
 
-          // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
-          dispatchSubscriptionChange(plan.tier);
+    if (subscriptionProduct) {
+      const plan = SUBSCRIPTION_PLANS.find(p => p.iapProductId === subscriptionProduct.productId);
+      if (plan) {
+        const premiumState = {
+          tier: plan.tier,
+          expiresAt: subscriptionProduct.expirationDate
+            ? new Date(subscriptionProduct.expirationDate).toISOString()
+            : null,
+          purchasedAt: new Date(subscriptionProduct.purchaseDate).toISOString(),
+          planId: plan.id,
+          environment: subscriptionProduct.environment,
+        };
+        try {
+          localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+        } catch { /* storage full */ }
 
-          // Also validate with server if we have the signed transaction
-          // This ensures server has the latest subscription state
-          if (activeSub.signedTransaction) {
-            // Fire and forget - don't block the UI
-            serverValidatePurchase(activeSub).catch(err => {
-              logger.warn('Background server validation failed:', err);
-            });
-          }
+        // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
+        dispatchSubscriptionChange(plan.tier);
+
+        // Also validate with server if we have the signed transaction
+        // This ensures server has the latest subscription state
+        if (subscriptionProduct.signedTransaction) {
+          // Fire and forget - don't block the UI
+          serverValidatePurchase(subscriptionProduct).catch(err => {
+            logger.warn('Background server validation failed:', err);
+          });
         }
       }
     } else {
-      // No active subscription - clear local storage
+      // No active subscription or lifetime purchase - clear local storage
       try { localStorage.removeItem(PREMIUM_STORAGE_KEY); } catch { /* ignore */ }
       dispatchSubscriptionChange('free');
     }
