@@ -7,10 +7,10 @@ Copy-paste ready content for App Store Connect.
 ## Promotional Text (170 characters max)
 
 ```
-Earn adorable pixel pets by putting your phone down! 50+ pets, 7 worlds, focus timers, daily quests & boss battles. New: Battle Pass with exclusive seasonal rewards!
+The only pet game with FREE app blocking! Earn 50+ adorable pixel pets by putting your phone down. Focus timers, daily quests, boss battles & 7 worlds to explore!
 ```
 
-Character count: 164/170
+Character count: 162/170
 
 ---
 
