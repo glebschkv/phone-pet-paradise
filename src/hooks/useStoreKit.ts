@@ -382,6 +382,23 @@ export const useStoreKit = (): UseStoreKitReturn => {
       return { ...failedResult, message: 'Plugin unavailable' };
     }
 
+    // SECURITY: Require authentication before starting the purchase flow.
+    // Without a session, server validation will fail anyway — but checking
+    // here avoids showing the Apple Pay sheet for nothing.
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Sign In Required', {
+          description: 'Please sign in to make purchases. Your progress is saved.',
+          duration: 5000,
+        });
+        return { ...failedResult, message: 'Not authenticated' };
+      }
+    } catch {
+      // If we can't check auth, still let the purchase proceed —
+      // serverValidatePurchase will catch it.
+    }
+
     // Check if the product was in the initial bulk load. If not, log a
     // warning but still attempt the purchase — the native StoreKit layer
     // will try to fetch the product individually and may succeed even when

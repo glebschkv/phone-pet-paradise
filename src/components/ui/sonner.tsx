@@ -8,11 +8,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme="dark"
       position="top-center"
       className="toaster group"
-      style={{
-        // Use max() to ensure toasts clear the Dynamic Island even when
-        // env(safe-area-inset-top) returns 0 inside WKWebView.
-        '--offset': 'max(calc(env(safe-area-inset-top, 0px) + 8px), calc(var(--sat, 0px) + 8px), 54px)',
-      } as React.CSSProperties}
+      // Toast offset is handled via CSS rule in index.css targeting
+      // [data-sonner-toaster][data-y-position='top'] to clear the Dynamic Island.
       toastOptions={{
         duration: 3000,
         classNames: {

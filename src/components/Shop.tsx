@@ -99,7 +99,11 @@ export const Shop = () => {
         setShowPurchaseConfirm(false);
         // Show unlock celebration for character purchases
         if ('biome' in selectedItem) {
-          setUnlockedAnimal(selectedItem as AnimalData);
+          // Delay unlock modal so PurchaseConfirmDialog's close animation
+          // finishes and its portal unmounts — opening two Radix Dialogs
+          // simultaneously causes the second dialog's content to not render.
+          const animal = selectedItem as AnimalData;
+          setTimeout(() => setUnlockedAnimal(animal), 350);
         } else {
           toast.success(result.message);
         }

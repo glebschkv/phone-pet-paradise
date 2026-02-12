@@ -230,6 +230,24 @@ input, textarea, [contenteditable="true"] {
   .touch-manipulation {
     touch-action: manipulation;
   }
+}
+
+/* Sonner toast: clear the Dynamic Island / notch on iOS.
+   Sonner uses --offset-top / --mobile-offset-top CSS vars for the
+   toaster container position.  We override them with safe-area-aware
+   values so toasts always sit below the Dynamic Island even when
+   env(safe-area-inset-top) returns 0 in WKWebView. */
+[data-sonner-toaster][data-y-position='top'] {
+  top: max(env(safe-area-inset-top, 0px), var(--sat, 0px), 54px) !important;
+}
+
+@media (max-width: 600px) {
+  [data-sonner-toaster][data-y-position='top'] {
+    top: max(env(safe-area-inset-top, 0px), var(--sat, 0px), 54px) !important;
+  }
+}
+
+@layer utilities {
 
   /* Mobile scroll improvements for dialogs and modals */
   [data-radix-scroll-area-viewport] {
