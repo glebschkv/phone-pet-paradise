@@ -10,6 +10,7 @@ import { useComboSystem } from '@/hooks/useComboSystem';
 import { useSpecialEvents } from '@/hooks/useSpecialEvents';
 import { useAchievementSystem } from '@/hooks/useAchievementSystem';
 import { useCoinBooster } from '@/hooks/useCoinBooster';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useStreakStore } from '@/stores/streakStore';
 import { resolveMysteryBox } from '@/data/GamificationData';
 
@@ -54,7 +55,9 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
   // Hooks
   const { getProgress, currentSeason, getUnclaimedRewards } = useBattlePass();
   const { getActiveChallenge, allChallenges } = useBossChallenges();
-  const { canSpinToday, getStats } = useLuckyWheel();
+  const { canSpinToday, getStats, spinsRemainingToday } = useLuckyWheel();
+  const { getDailySpinLimit } = usePremiumStatus();
+  const dailySpinLimit = getDailySpinLimit();
   const { state: comboState, currentTier } = useComboSystem();
   const { activeEvents, isDoubleXPActive, isDoubleCoinsActive } = useSpecialEvents();
   const {
@@ -199,7 +202,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           <button
             className={cn(
               "w-full retro-game-card p-4 cursor-pointer transition-all text-left touch-manipulation select-none active:scale-[0.98]",
-              canSpinToday() && "retro-active-challenge"
+              canSpinToday(dailySpinLimit) && "retro-active-challenge"
             )}
             onClick={() => setShowLuckyWheel(true)}
           >
@@ -209,21 +212,21 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
                 "bg-gradient-to-br from-pink-500 to-purple-600",
                 "border-2 border-pink-400",
                 "shadow-[0_0_15px_rgba(236,72,153,0.5)]",
-                canSpinToday() && "animate-pulse"
+                canSpinToday(dailySpinLimit) && "animate-pulse"
               )}>
                 <Sparkles className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-white retro-pixel-text">LUCKY SPIN</h3>
                 <p className="text-sm text-purple-300/80">
-                  {canSpinToday() ? (
+                  {canSpinToday(dailySpinLimit) ? (
                     <span className="retro-neon-green">FREE SPIN READY!</span>
                   ) : (
                     `${wheelStats.totalSpins} total spins`
                   )}
                 </p>
               </div>
-              {canSpinToday() && (
+              {canSpinToday(dailySpinLimit) && (
                 <div className="retro-arcade-btn retro-arcade-btn-yellow px-3 py-1.5 text-xs">
                   FREE
                 </div>

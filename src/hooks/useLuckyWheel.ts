@@ -21,6 +21,7 @@ export interface SpinResult {
 }
 
 const MAX_HISTORY = 20;
+const LUCKY_WHEEL_SYNC_EVENT = 'luckyWheel_stateSync';
 
 export const useLuckyWheel = () => {
   const [state, setState] = useState<LuckyWheelState>({
@@ -36,11 +37,10 @@ export const useLuckyWheel = () => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentPrize, setCurrentPrize] = useState<LuckyWheelPrize | null>(null);
 
-  // Load saved state
-  useEffect(() => {
+  // Load saved state (also used to reload on cross-instance sync)
+  const reloadFromStorage = useCallback(() => {
     const saved = storage.get<LuckyWheelState>(STORAGE_KEYS.LUCKY_WHEEL);
     if (saved) {
-      // Migrate from old format: if spinsUsedToday is missing, infer from lastSpinDate
       const migrated: LuckyWheelState = {
         ...saved,
         spinsUsedToday: saved.spinsUsedToday ?? (
@@ -51,10 +51,24 @@ export const useLuckyWheel = () => {
     }
   }, []);
 
+  // Initial load
+  useEffect(() => {
+    reloadFromStorage();
+  }, [reloadFromStorage]);
+
+  // Sync across instances: when another useLuckyWheel saves, reload here
+  useEffect(() => {
+    const handleSync = () => reloadFromStorage();
+    window.addEventListener(LUCKY_WHEEL_SYNC_EVENT, handleSync);
+    return () => window.removeEventListener(LUCKY_WHEEL_SYNC_EVENT, handleSync);
+  }, [reloadFromStorage]);
+
   const saveState = useCallback((newState: LuckyWheelState): boolean => {
     setState(newState);
     try {
       storage.set(STORAGE_KEYS.LUCKY_WHEEL, newState);
+      // Notify other useLuckyWheel instances (e.g. GamificationHub) to reload
+      window.dispatchEvent(new CustomEvent(LUCKY_WHEEL_SYNC_EVENT));
       return true;
     } catch (error) {
       storageLogger.error('[LuckyWheel] Failed to save state:', error);

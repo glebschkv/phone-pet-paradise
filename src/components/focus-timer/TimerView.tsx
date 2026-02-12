@@ -18,6 +18,7 @@
  * UnifiedFocusTimer to keep them in a fixed position across view switches.
  */
 
+import { Settings } from "lucide-react";
 import { TimerDisplay } from "./TimerDisplay";
 import { TimerControls } from "./TimerControls";
 import { TimerPresetGrid } from "./TimerPresetGrid";
@@ -90,8 +91,15 @@ export const TimerView = ({
 
       {/* Focus Shield setup nudge — one-time, hidden while running */}
       {!timerState.isRunning && (
-        <div className="mt-4 w-full flex justify-center">
+        <div className="mt-4 w-full flex flex-col items-center gap-2">
           <FocusShieldNudge />
+          <p
+            className="flex items-center gap-1.5 text-[11px] font-medium"
+            style={{ color: 'rgba(200,210,240,0.4)' }}
+          >
+            <Settings className="w-3 h-3" />
+            Select blocked apps in Settings
+          </p>
         </div>
       )}
 

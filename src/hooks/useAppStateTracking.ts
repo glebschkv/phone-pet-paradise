@@ -21,7 +21,9 @@ export const useAppStateTracking = () => {
   const coinSystem = useCoinSystem();
   const streakSystem = useStreakSystem();
   const notifications = useNotifications();
-  const dailyLoginRewards = useDailyLoginRewards();
+  // Delay daily reward modal until notification init completes so the Radix
+  // overlay doesn't render behind the native permission dialog (black screen).
+  const dailyLoginRewards = useDailyLoginRewards(notifications.isInitialized);
   const { getLoginCoinMultiplier } = usePremiumStatus();
   
   const [appState, setAppState] = useState<AppStateData>({

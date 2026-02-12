@@ -510,7 +510,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
               {!isPremium && (
                 <p className="text-[10px] flex items-center justify-center gap-1" style={{ color: 'hsl(35 80% 60%)' }}>
                   <Crown className="w-3 h-3" />
-                  <span>Premium members get up to 3 spins/day</span>
+                  <span>Premium members get up to 5 spins/day</span>
                 </p>
               )}
             </div>
