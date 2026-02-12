@@ -126,7 +126,6 @@ const VALID_EARN_SOURCES = [
   'subscription_bonus',
   'lucky_wheel',
   'referral',
-  'admin_grant',
   'iap_purchase', // In-app purchase (coin packs, bundles) - validated by StoreKit client-side
 ] as const;
 
@@ -248,7 +247,7 @@ serve(async (req) => {
     if (!isEarnExempt) {
       const rateLimit = checkRateLimit(user.id, body.operation);
       if (!rateLimit.allowed) {
-        console.log(`[RATE_LIMIT] User ${user.id} exceeded ${body.operation} limit. Source: ${body.operation === 'earn' ? (body as EarnRequest).source : (body as SpendRequest).purpose}`);
+        console.log(`[RATE_LIMIT] Exceeded ${body.operation} limit. Source: ${body.operation === 'earn' ? (body as EarnRequest).source : (body as SpendRequest).purpose}`);
         return new Response(JSON.stringify({
           success: false,
           error: 'Rate limit exceeded. Please try again later.',
@@ -258,7 +257,7 @@ serve(async (req) => {
         });
       }
     } else {
-      console.log(`[RATE_EXEMPT] User ${user.id} earn operation exempt from rate limit. Source: ${(body as EarnRequest).source}`);
+      console.log(`[RATE_EXEMPT] Earn operation exempt from rate limit. Source: ${(body as EarnRequest).source}`);
     }
 
     // Validate amount
@@ -271,8 +270,7 @@ serve(async (req) => {
 
     if (body.operation === 'earn') {
       // SECURITY: Validate earn request
-      // Allow admin_grant to bypass the limit for debug/testing purposes
-      if (amount > MAX_EARN_AMOUNT && body.source !== 'admin_grant') {
+      if (amount > MAX_EARN_AMOUNT) {
         throw new Error(`Invalid earn amount: cannot exceed ${MAX_EARN_AMOUNT}`);
       }
 
@@ -381,8 +379,7 @@ serve(async (req) => {
         metadata: body.metadata || null,
       });
 
-      // PHASE 5: Add detailed logging for debugging
-      console.log(`[COIN_EARN] User: ${user.id}, Amount: ${amount}, Source: ${body.source}, New Balance: ${newBalance}`);
+      console.log(`[COIN_EARN] Amount: ${amount}, Source: ${body.source}`);
 
       return new Response(JSON.stringify({
         success: true,
@@ -478,8 +475,7 @@ serve(async (req) => {
         metadata: body.metadata || null,
       });
 
-      // PHASE 5: Add detailed logging for debugging
-      console.log(`[COIN_SPEND] User: ${user.id}, Amount: ${amount}, Purpose: ${body.purpose}, Item: ${body.itemId || 'N/A'}, New Balance: ${newBalance}`);
+      console.log(`[COIN_SPEND] Amount: ${amount}, Purpose: ${body.purpose}`);
 
       return new Response(JSON.stringify({
         success: true,
