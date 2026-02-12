@@ -170,7 +170,7 @@ export const useAppStateTracking = () => {
               showRewardModal: true,
               currentReward: capturedReward,
             });
-          }, 350);
+          }, 600); // Increased from 350 for iOS Dialog unmount
         }
       }
 

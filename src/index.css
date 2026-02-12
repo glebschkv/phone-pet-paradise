@@ -28,6 +28,17 @@
   background-color: transparent !important;
 }
 
+/*
+ * Safety net: if a Dialog portal's content has transitioned to closed state,
+ * hide the overlay entirely. Covers cases where Radix fails to unmount the
+ * portal on iOS/Capacitor even after the close animation completes.
+ */
+[data-radix-portal]:has([data-state="closed"]) > [data-dialog-overlay] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0s !important;
+}
+
 /* iOS app hardening: prevent zoom, text selection, and tap delay */
 html, body {
   touch-action: manipulation;

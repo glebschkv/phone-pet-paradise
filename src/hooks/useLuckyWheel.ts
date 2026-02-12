@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { LUCKY_WHEEL_PRIZES, LuckyWheelPrize, spinWheel } from '@/data/GamificationData';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { storageLogger } from '@/lib/logger';
 
@@ -22,8 +23,22 @@ export interface SpinResult {
 
 const MAX_HISTORY = 20;
 const LUCKY_WHEEL_SYNC_EVENT = 'luckyWheel_stateSync';
+const LEGACY_LUCKY_WHEEL_KEY = STORAGE_KEYS.LUCKY_WHEEL; // 'nomo_lucky_wheel'
+
+/**
+ * Build a per-user storage key so that switching accounts doesn't share
+ * spin state. Falls back to the global key for guest mode.
+ */
+function getLuckyWheelStorageKey(userId: string | undefined): string {
+  if (userId) return `${LEGACY_LUCKY_WHEEL_KEY}_${userId}`;
+  return LEGACY_LUCKY_WHEEL_KEY;
+}
 
 export const useLuckyWheel = () => {
+  const { user, isGuestMode } = useAuth();
+  const userId = user?.id;
+  const storageKey = getLuckyWheelStorageKey(userId);
+
   const [state, setState] = useState<LuckyWheelState>({
     lastSpinDate: null,
     spinsUsedToday: 0,
@@ -37,24 +52,61 @@ export const useLuckyWheel = () => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentPrize, setCurrentPrize] = useState<LuckyWheelPrize | null>(null);
 
+  // Track which userId we last loaded for, so we reload on user change
+  const loadedForRef = useRef<string | undefined>(undefined);
+
   // Load saved state (also used to reload on cross-instance sync)
   const reloadFromStorage = useCallback(() => {
-    const saved = storage.get<LuckyWheelState>(STORAGE_KEYS.LUCKY_WHEEL);
-    if (saved) {
-      const migrated: LuckyWheelState = {
-        ...saved,
-        spinsUsedToday: saved.spinsUsedToday ?? (
-          saved.lastSpinDate && new Date(saved.lastSpinDate).toDateString() === new Date().toDateString() ? 1 : 0
-        ),
-      };
-      setState(migrated);
-    }
-  }, []);
+    // Try user-specific key first
+    let raw = localStorage.getItem(storageKey);
 
-  // Initial load
+    // Fall back to legacy global key for migration
+    if (!raw && storageKey !== LEGACY_LUCKY_WHEEL_KEY) {
+      raw = localStorage.getItem(LEGACY_LUCKY_WHEEL_KEY);
+      if (raw) {
+        try {
+          localStorage.setItem(storageKey, raw);
+          localStorage.removeItem(LEGACY_LUCKY_WHEEL_KEY);
+        } catch {
+          // Storage full — continue with what we have
+        }
+      }
+    }
+
+    if (raw) {
+      try {
+        const saved = JSON.parse(raw) as LuckyWheelState;
+        const migrated: LuckyWheelState = {
+          ...saved,
+          spinsUsedToday: saved.spinsUsedToday ?? (
+            saved.lastSpinDate && new Date(saved.lastSpinDate).toDateString() === new Date().toDateString() ? 1 : 0
+          ),
+        };
+        setState(migrated);
+      } catch {
+        // Corrupted data — reset to defaults
+      }
+    } else {
+      // No saved state — reset to defaults
+      setState({
+        lastSpinDate: null,
+        spinsUsedToday: 0,
+        totalSpins: 0,
+        jackpotsWon: 0,
+        totalCoinsWon: 0,
+        totalXPWon: 0,
+        spinHistory: [],
+      });
+    }
+  }, [storageKey]);
+
+  // Reload when user changes (sign-in / sign-out) or on initial mount
   useEffect(() => {
+    if (!userId && !isGuestMode) return; // Auth still loading
+    if (loadedForRef.current === userId) return;
+    loadedForRef.current = userId;
     reloadFromStorage();
-  }, [reloadFromStorage]);
+  }, [userId, isGuestMode, reloadFromStorage]);
 
   // Sync across instances: when another useLuckyWheel saves, reload here
   useEffect(() => {
@@ -66,7 +118,7 @@ export const useLuckyWheel = () => {
   const saveState = useCallback((newState: LuckyWheelState): boolean => {
     setState(newState);
     try {
-      storage.set(STORAGE_KEYS.LUCKY_WHEEL, newState);
+      localStorage.setItem(storageKey, JSON.stringify(newState));
       // Notify other useLuckyWheel instances (e.g. GamificationHub) to reload
       window.dispatchEvent(new CustomEvent(LUCKY_WHEEL_SYNC_EVENT));
       return true;
@@ -78,7 +130,7 @@ export const useLuckyWheel = () => {
       });
       return false;
     }
-  }, []);
+  }, [storageKey]);
 
   // Get number of spins used today (resets on new day)
   const getSpinsUsedToday = useCallback((): number => {
@@ -132,28 +184,31 @@ export const useLuckyWheel = () => {
       const prize = spinWheel();
       setCurrentPrize(prize);
 
-      // Simulate spin animation time (will be handled by component)
+      // Save state IMMEDIATELY so spin count is persisted before any
+      // modal close/reopen could reload stale data from storage
+      const now = new Date().toISOString();
+      const usedToday = getSpinsUsedToday();
+
+      const newHistory: SpinResult[] = [
+        { prize, timestamp: now },
+        ...state.spinHistory.slice(0, MAX_HISTORY - 1),
+      ];
+
+      const coinPrizeTypes = ['coins', 'jackpot'];
+      const newState: LuckyWheelState = {
+        lastSpinDate: now,
+        spinsUsedToday: usedToday + 1,
+        totalSpins: state.totalSpins + 1,
+        jackpotsWon: prize.type === 'jackpot' ? state.jackpotsWon + 1 : state.jackpotsWon,
+        totalCoinsWon: coinPrizeTypes.includes(prize.type) ? state.totalCoinsWon + (prize.amount || 0) : state.totalCoinsWon,
+        totalXPWon: prize.type === 'xp' ? state.totalXPWon + (prize.amount || 0) : state.totalXPWon,
+        spinHistory: newHistory,
+      };
+
+      saveState(newState);
+
+      // Defer only UI animation state — actual data is already persisted
       setTimeout(() => {
-        const now = new Date().toISOString();
-        const usedToday = getSpinsUsedToday();
-
-        const newHistory: SpinResult[] = [
-          { prize, timestamp: now },
-          ...state.spinHistory.slice(0, MAX_HISTORY - 1),
-        ];
-
-        const coinPrizeTypes = ['coins', 'jackpot'];
-        const newState: LuckyWheelState = {
-          lastSpinDate: now,
-          spinsUsedToday: usedToday + 1,
-          totalSpins: state.totalSpins + 1,
-          jackpotsWon: prize.type === 'jackpot' ? state.jackpotsWon + 1 : state.jackpotsWon,
-          totalCoinsWon: coinPrizeTypes.includes(prize.type) ? state.totalCoinsWon + (prize.amount || 0) : state.totalCoinsWon,
-          totalXPWon: prize.type === 'xp' ? state.totalXPWon + (prize.amount || 0) : state.totalXPWon,
-          spinHistory: newHistory,
-        };
-
-        saveState(newState);
         setIsSpinning(false);
 
         // Track wheel spin for achievements
