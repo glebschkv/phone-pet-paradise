@@ -472,13 +472,13 @@ export default function Auth() {
               disabled={isLoading}
               className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50"
               style={{
-                background: 'linear-gradient(180deg, hsl(280 50% 40%) 0%, hsl(280 55% 30%) 100%)',
-                border: '2px solid hsl(280 60% 50%)',
-                boxShadow: '0 4px 0 hsl(280 60% 20%), 0 0 15px hsl(280 80% 40% / 0.2)',
+                background: 'linear-gradient(180deg, hsl(0 0% 12%) 0%, hsl(0 0% 5%) 100%)',
+                border: '2px solid hsl(0 0% 22%)',
+                boxShadow: '0 4px 0 hsl(0 0% 3%)',
               }}
             >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: 'hsl(280 40% 25%)', border: '2px solid hsl(280 50% 40%)' }}
+                style={{ background: 'hsl(0 0% 18%)', border: '2px solid hsl(0 0% 28%)' }}
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin text-white" />
@@ -488,9 +488,8 @@ export default function Auth() {
               </div>
               <div className="text-left flex-1">
                 <p className="font-bold text-sm text-white">Continue with Apple</p>
-                <p className="text-xs text-purple-200/60">Fast & private sign in</p>
+                <p className="text-xs text-white/50">Fast & private sign in</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-purple-300/50" />
             </button>
 
             <button
@@ -535,13 +534,10 @@ export default function Auth() {
               <ArrowRight className="w-4 h-4 text-purple-400/50" />
             </button>
 
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-purple-700/50"></div>
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-transparent px-3 text-purple-400" style={{ backgroundColor: 'hsl(275 27% 10%)' }}>or</span>
-              </div>
+            <div className="flex items-center gap-3 py-4">
+              <div className="flex-1 h-px bg-purple-700/50" />
+              <span className="text-xs text-purple-500 uppercase tracking-widest">or</span>
+              <div className="flex-1 h-px bg-purple-700/50" />
             </div>
 
             <button
@@ -590,7 +586,7 @@ export default function Auth() {
             /* Inline email confirmation */
             <div className="text-center space-y-4">
               <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-                style={{ background: 'hsl(120 30% 18%)', border: '2px solid hsl(120 50% 35%)', boxShadow: '0 0 12px hsl(120 80% 40% / 0.2)' }}
+                style={{ background: 'hsl(120 30% 18%)', border: '2px solid hsl(120 50% 35%)' }}
               >
                 <PixelIcon name="sparkles" size={36} />
               </div>
@@ -623,11 +619,11 @@ export default function Auth() {
             <>
               <div className="text-center space-y-2">
                 <div className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center"
-                  style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)', boxShadow: '0 0 12px hsl(260 80% 50% / 0.2)' }}
+                  style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)' }}
                 >
                   <PixelIcon name="sparkles" size={32} />
                 </div>
-                <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Magic Link</h2>
+                <h2 className="text-xl font-bold text-white">Magic Link</h2>
                 <p className="text-sm text-purple-300/70">
                   We'll email you a link to sign in instantly
                 </p>
@@ -651,7 +647,7 @@ export default function Auth() {
 
                 <button
                   type="submit"
-                  className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
+                  className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider disabled:opacity-60"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -698,11 +694,11 @@ export default function Auth() {
 
           <div className="text-center space-y-2">
             <div className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center"
-              style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)', boxShadow: '0 0 12px hsl(260 80% 50% / 0.2)' }}
+              style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)' }}
             >
               <PixelIcon name="sword" size={32} />
             </div>
-            <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Sign In</h2>
+            <h2 className="text-xl font-bold text-white">Sign In</h2>
             <p className="text-sm text-purple-300/70">
               Welcome back! Enter your credentials
             </p>
@@ -759,7 +755,7 @@ export default function Auth() {
 
             <button
               type="submit"
-              className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
+              className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider disabled:opacity-60"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -814,7 +810,7 @@ export default function Auth() {
             /* Inline email verification confirmation */
             <div className="text-center space-y-4">
               <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-                style={{ background: 'hsl(120 30% 18%)', border: '2px solid hsl(120 50% 35%)', boxShadow: '0 0 12px hsl(120 80% 40% / 0.2)' }}
+                style={{ background: 'hsl(120 30% 18%)', border: '2px solid hsl(120 50% 35%)' }}
               >
                 <CheckCircle2 className="w-8 h-8 text-green-400" />
               </div>
@@ -861,7 +857,7 @@ export default function Auth() {
                     }}
                   />
                 </div>
-                <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Create Account</h2>
+                <h2 className="text-xl font-bold text-white">Create Account</h2>
                 <p className="text-sm text-purple-300/70">
                   Join NoMo and sync your progress
                 </p>
@@ -932,7 +928,7 @@ export default function Auth() {
 
                 <button
                   type="submit"
-                  className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
+                  className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider disabled:opacity-60"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -979,11 +975,11 @@ export default function Auth() {
 
           <div className="text-center space-y-2">
             <div className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center"
-              style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)', boxShadow: '0 0 12px hsl(260 80% 50% / 0.2)' }}
+              style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)' }}
             >
               <PixelIcon name="ice-cube" size={32} />
             </div>
-            <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Reset Password</h2>
+            <h2 className="text-xl font-bold text-white">Reset Password</h2>
             <p className="text-sm text-purple-300/70">
               Enter your email and we'll send you a link to reset your password
             </p>
@@ -1007,7 +1003,7 @@ export default function Auth() {
 
             <button
               type="submit"
-              className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
+              className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider disabled:opacity-60"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -1052,11 +1048,11 @@ export default function Auth() {
 
           <div className="text-center space-y-2">
             <div className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center"
-              style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)', boxShadow: '0 0 12px hsl(260 80% 50% / 0.2)' }}
+              style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)' }}
             >
               <PixelIcon name="sword" size={32} />
             </div>
-            <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Set New Password</h2>
+            <h2 className="text-xl font-bold text-white">Set New Password</h2>
             <p className="text-sm text-purple-300/70">
               Enter your new password below
             </p>
@@ -1106,7 +1102,7 @@ export default function Auth() {
 
             <button
               type="submit"
-              className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
+              className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider disabled:opacity-60"
               disabled={isLoading}
             >
               {isLoading ? (
