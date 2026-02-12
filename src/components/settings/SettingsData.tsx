@@ -53,7 +53,7 @@ export const SettingsData = ({ settings, onUpdate, onReset, onExport, onImport }
           <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50">
             <div>
               <Label className="text-xs font-semibold">Usage Analytics</Label>
-              <p className="text-[10px] text-muted-foreground">Help improve the app</p>
+              <p className="text-[11px] text-muted-foreground">Anonymous usage data to improve the app</p>
             </div>
             <Switch
               checked={settings.dataCollection}
@@ -66,7 +66,7 @@ export const SettingsData = ({ settings, onUpdate, onReset, onExport, onImport }
               <AlertTriangle className="w-3.5 h-3.5 text-warning" />
               <div>
                 <Label className="text-xs font-semibold">Crash Reports</Label>
-                <p className="text-[10px] text-muted-foreground">Send error logs</p>
+                <p className="text-[11px] text-muted-foreground">Send error logs</p>
               </div>
             </div>
             <Switch

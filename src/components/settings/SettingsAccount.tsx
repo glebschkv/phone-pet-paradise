@@ -139,7 +139,7 @@ export const SettingsAccount = () => {
               <p className="text-sm font-semibold">
                 {isPremium ? currentPlan?.name || 'Premium' : 'Free Plan'}
               </p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 {isPremium
                   ? currentPlan?.period === 'lifetime'
                     ? 'Lifetime access'
@@ -148,7 +148,7 @@ export const SettingsAccount = () => {
               </p>
             </div>
             {isPremium && (
-              <span className="px-2 py-1 text-[10px] font-medium bg-amber-100 text-amber-700 rounded-full">
+              <span className="px-2 py-1 text-[11px] font-medium bg-amber-100 text-amber-700 rounded-full">
                 Active
               </span>
             )}
@@ -185,7 +185,7 @@ export const SettingsAccount = () => {
             </span>
           </button>
 
-          <p className="text-[10px] text-muted-foreground text-center">
+          <p className="text-[11px] text-muted-foreground text-center">
             Made a purchase on another device? Tap restore to recover it.
           </p>
         </div>
@@ -214,12 +214,12 @@ export const SettingsAccount = () => {
               <p className="text-sm font-semibold truncate">
                 {isGuestMode ? 'Guest Account' : user?.email}
               </p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 {isGuestMode ? 'Data saved locally only' : 'Synced to cloud'}
               </p>
             </div>
             {isGuestMode && (
-              <span className="px-2 py-1 text-[10px] font-medium bg-amber-100 text-amber-700 rounded-full">
+              <span className="px-2 py-1 text-[11px] font-medium bg-amber-100 text-amber-700 rounded-full">
                 Guest
               </span>
             )}
@@ -234,7 +234,7 @@ export const SettingsAccount = () => {
                   <p className="text-xs font-medium text-amber-800">
                     Your progress is only saved on this device
                   </p>
-                  <p className="text-[10px] text-amber-600 mt-1">
+                  <p className="text-[11px] text-amber-600 mt-1">
                     Sign in to sync your pets and progress across devices
                   </p>
                 </div>
@@ -363,7 +363,7 @@ export const SettingsAccount = () => {
             </AlertDialogContent>
           </AlertDialog>
 
-          <p className="text-[10px] text-muted-foreground mt-2 text-center">
+          <p className="text-[11px] text-muted-foreground mt-2 text-center">
             Required by Apple App Store guidelines
           </p>
         </div>

@@ -86,33 +86,6 @@ export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
         </div>
       </div>
 
-      {/* Long Break Interval */}
-      <div className="retro-card p-4">
-        <div className="flex items-center justify-between mb-3">
-          <Label className="text-sm font-bold">Long Break After</Label>
-          <span className="text-xs text-muted-foreground">{settings.longBreakInterval} sessions</span>
-        </div>
-        <div className="flex gap-1.5">
-          {[2, 3, 4, 5, 6].map((num) => (
-            <button
-              key={num}
-              onClick={() => onUpdate({ longBreakInterval: num })}
-              className={cn(
-                "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all active:scale-95",
-                settings.longBreakInterval === num
-                  ? "bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900"
-                  : "retro-stat-pill"
-              )}
-              style={settings.longBreakInterval === num ? {
-                boxShadow: '0 2px 0 hsl(35 80% 35%)'
-              } : {}}
-            >
-              {num}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Notifications */}
       <div className="retro-card p-4">
         <div className="flex items-center justify-between">
@@ -125,7 +98,7 @@ export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
             </div>
             <div>
               <Label className="text-sm font-bold">Notifications</Label>
-              <p className="text-[10px] text-muted-foreground">Alert when timer ends</p>
+              <p className="text-[11px] text-muted-foreground">Alert when timer ends</p>
             </div>
           </div>
           <Switch

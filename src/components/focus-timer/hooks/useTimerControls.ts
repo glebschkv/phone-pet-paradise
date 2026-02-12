@@ -79,6 +79,7 @@ export const useTimerControls = ({
 
   const startTimerWithIntent = useCallback(async (category: FocusCategory, taskLabel?: string) => {
     setShowIntentionModal(false);
+    triggerHaptic('medium');
 
     const now = Date.now();
 
@@ -142,6 +143,7 @@ export const useTimerControls = ({
   }, [saveTimerState, timerState.timeLeft, timerState.isCountup, selectedPreset.type, startAppBlocking, triggerHaptic, setDisplayTime, setShowIntentionModal, scheduleTimerCompletionNotification]);
 
   const pauseTimer = useCallback(() => {
+    triggerHaptic('light');
     const now = Date.now();
     let widgetTimeRemaining = 0;
 
@@ -193,9 +195,10 @@ export const useTimerControls = ({
 
     // Cancel the scheduled completion notification
     cancelTimerCompletionNotification();
-  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, selectedPreset.duration, setDisplayTime, cancelTimerCompletionNotification]);
+  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, selectedPreset.duration, setDisplayTime, cancelTimerCompletionNotification, triggerHaptic]);
 
   const stopTimer = useCallback(async () => {
+    triggerHaptic('light');
     let elapsedSeconds = 0;
     if (timerState.startTime) {
       const now = Date.now();
@@ -299,9 +302,10 @@ export const useTimerControls = ({
         timerLogger.error('Failed to record abandoned session:', e);
       }
     }
-  }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime, cancelTimerCompletionNotification]);
+  }, [clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, timerState, recordSession, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime, cancelTimerCompletionNotification, triggerHaptic]);
 
   const skipTimer = useCallback(async () => {
+    triggerHaptic('light');
     let elapsedSeconds = 0;
     if (timerState.startTime) {
       const now = Date.now();
@@ -442,7 +446,7 @@ export const useTimerControls = ({
         }
       }
     }
-  }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, recordStreakSession, scheduleStreakNotification, scheduleRewardNotification, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime, cancelTimerCompletionNotification]);
+  }, [timerState, awardXP, clearPersistence, saveTimerState, selectedPreset.duration, selectedPreset.isCountup, recordSession, recordStreakSession, scheduleStreakNotification, scheduleRewardNotification, hasAppsConfigured, stopAppBlocking, intervalRef, setDisplayTime, cancelTimerCompletionNotification, triggerHaptic]);
 
   const toggleSound = useCallback(() => {
     saveTimerState({ soundEnabled: !timerState.soundEnabled });

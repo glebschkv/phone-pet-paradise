@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FOCUS_CATEGORIES, FocusCategory } from "@/types/analytics";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { formatTime } from "@/lib/utils";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface FocusLockScreenProps {
   isVisible: boolean;
@@ -24,6 +25,7 @@ export const FocusLockScreen = ({
   onAbandonSession,
 }: FocusLockScreenProps) => {
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   const categoryInfo = category
     ? FOCUS_CATEGORIES.find(c => c.id === category)
@@ -59,9 +61,9 @@ export const FocusLockScreen = ({
           <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 pt-safe pb-safe">
             {/* Shield Icon */}
             <motion.div
-              initial={{ scale: 0 }}
+              initial={prefersReducedMotion ? false : { scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", delay: 0.2 }}
               className="mb-8"
             >
               <div className="relative">
@@ -74,18 +76,18 @@ export const FocusLockScreen = ({
 
             {/* Title */}
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.3 }}
               className="text-2xl font-bold text-white text-center mb-2"
             >
               Focus Mode Active
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.4 }}
               className="text-white/60 text-center mb-8 max-w-xs"
             >
               Stay focused! You're in a focus session.
@@ -93,9 +95,9 @@ export const FocusLockScreen = ({
 
             {/* Time Remaining */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.5 }}
               className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 text-center"
             >
               <div className="text-5xl font-mono font-bold text-white mb-2">
@@ -107,9 +109,9 @@ export const FocusLockScreen = ({
             {/* Current Task */}
             {(categoryInfo || taskLabel) && (
               <motion.div
-                initial={{ opacity: 0 }}
+                initial={prefersReducedMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.6 }}
                 className="bg-white/5 rounded-xl px-4 py-3 mb-8 max-w-xs w-full"
               >
                 <div className="flex items-center gap-2 justify-center">
@@ -125,9 +127,9 @@ export const FocusLockScreen = ({
 
             {/* Return Button */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.7 }}
               className="w-full max-w-xs space-y-3"
             >
               <Button
@@ -181,9 +183,9 @@ export const FocusLockScreen = ({
 
             {/* Motivational Quote */}
             <motion.p
-              initial={{ opacity: 0 }}
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { delay: 1 }}
               className="absolute bottom-safe left-0 right-0 text-center text-white/30 text-xs px-8 pb-4"
             >
               "The secret of getting ahead is getting started."

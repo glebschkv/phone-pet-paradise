@@ -23,6 +23,7 @@ export interface AppSettings {
   animationSpeed: 'slow' | 'normal' | 'fast';
   showTutorialHints: boolean;
   autoSaveProgress: boolean;
+  hapticFeedback: boolean;
   
   // Privacy
   dataCollection: boolean;
@@ -42,6 +43,7 @@ const defaultSettings: AppSettings = {
   animationSpeed: 'normal',
   showTutorialHints: true,
   autoSaveProgress: true,
+  hapticFeedback: true,
   dataCollection: true,
   crashReporting: true,
 };

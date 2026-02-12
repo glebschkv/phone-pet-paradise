@@ -48,7 +48,7 @@ export const SettingsAnalytics = () => {
               onValueChange={([value]) => updateSettings({ dailyGoalMinutes: value })}
               className="w-full"
             />
-            <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+            <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
               <span>30m</span>
               <span>8h</span>
             </div>
@@ -75,7 +75,7 @@ export const SettingsAnalytics = () => {
               onValueChange={([value]) => updateSettings({ weeklyGoalMinutes: value })}
               className="w-full"
             />
-            <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+            <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
               <span>1h</span>
               <span>40h</span>
             </div>
@@ -102,7 +102,7 @@ export const SettingsAnalytics = () => {
               </div>
               <div>
                 <Label className="text-sm font-bold">Show Insights</Label>
-                <p className="text-[10px] text-muted-foreground">Display productivity insights</p>
+                <p className="text-[11px] text-muted-foreground">Display productivity insights</p>
               </div>
             </div>
             <Switch
@@ -122,7 +122,7 @@ export const SettingsAnalytics = () => {
               </div>
               <div>
                 <Label className="text-sm font-bold">Session History</Label>
-                <p className="text-[10px] text-muted-foreground">Keep detailed session logs</p>
+                <p className="text-[11px] text-muted-foreground">Keep detailed session logs</p>
               </div>
             </div>
             <Switch
@@ -142,7 +142,7 @@ export const SettingsAnalytics = () => {
             </div>
             <div>
               <Label className="text-sm font-bold">Reset Analytics</Label>
-              <p className="text-[10px] text-muted-foreground">Clear all tracked data</p>
+              <p className="text-[11px] text-muted-foreground">Clear all tracked data</p>
             </div>
           </div>
           <Button

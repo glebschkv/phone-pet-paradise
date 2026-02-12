@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Shield, Lock, Settings, Sparkles } from 'lucide-react';
 import { useOnboardingStore } from '@/stores/onboardingStore';
+import { useDeviceActivity } from '@/hooks/useDeviceActivity';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { Capacitor } from '@capacitor/core';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -264,13 +267,16 @@ const PixelIcon = ({
 
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   usePreloadImages(PRELOAD_SRCS);
+  const prefersReducedMotion = useReducedMotion();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
 
   const skipOnboarding = useOnboardingStore((s) => s.skipOnboarding);
 
-  const totalSteps = 3;
+  const isNativePlatform = Capacitor.isNativePlatform();
+  // Show Focus Shield step only on native iOS/Android
+  const totalSteps = isNativePlatform ? 4 : 3;
 
   const nextStep = useCallback(() => {
     if (currentStep < totalSteps - 1) {
@@ -307,11 +313,17 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     }
   };
 
-  const slideVariants = {
-    enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
-  };
+  const slideVariants = prefersReducedMotion
+    ? {
+        enter: { opacity: 0 },
+        center: { opacity: 1 },
+        exit: { opacity: 0 },
+      }
+    : {
+        enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
+        center: { x: 0, opacity: 1 },
+        exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
+      };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -320,6 +332,8 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       case 1:
         return <StepHowItWorks />;
       case 2:
+        return isNativePlatform ? <StepFocusShield /> : <StepMeetCompanion />;
+      case 3:
         return <StepMeetCompanion />;
       default:
         return null;
@@ -392,8 +406,8 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              drag="x"
+              transition={prefersReducedMotion ? { duration: 0.15 } : { type: 'spring', stiffness: 300, damping: 30 }}
+              drag={prefersReducedMotion ? false : "x"}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.2}
               onDragEnd={handleDragEnd}
@@ -806,7 +820,7 @@ const StepMeetCompanion = () => (
           Star Wizard
         </p>
         <span
-          className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+          className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
           style={{
             background: 'rgba(160,120,255,0.2)',
             color: 'rgba(200,180,255,0.9)',
@@ -828,7 +842,7 @@ const StepMeetCompanion = () => (
         {['Magic Focus', 'Star Spell', 'Wizard Wisdom'].map((ability) => (
           <span
             key={ability}
-            className="text-[10px] px-2 py-0.5 rounded-full"
+            className="text-[11px] px-2 py-0.5 rounded-full"
             style={{
               background: 'rgba(255,255,255,0.06)',
               color: 'rgba(200,210,240,0.6)',
@@ -842,3 +856,233 @@ const StepMeetCompanion = () => (
     </motion.div>
   </div>
 );
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Step: Focus Shield — Set up app blocking
+// ═════════════════════════════════════════════════════════════════════════════
+
+const shieldBenefits = [
+  {
+    icon: Shield,
+    label: 'Auto-block distracting apps',
+    sub: 'Activated when you start a focus session',
+    color: 'rgba(160,120,255,0.15)',
+    borderColor: 'rgba(160,120,255,0.25)',
+  },
+  {
+    icon: Lock,
+    label: 'Automatically unblocked',
+    sub: 'Apps return when your session ends',
+    color: 'rgba(120,100,220,0.12)',
+    borderColor: 'rgba(120,100,220,0.2)',
+  },
+  {
+    icon: Sparkles,
+    label: 'Earn +25% bonus XP',
+    sub: 'Extra rewards for distraction-free focus',
+    color: 'rgba(200,120,255,0.12)',
+    borderColor: 'rgba(200,120,255,0.2)',
+  },
+];
+
+const StepFocusShield = () => {
+  const {
+    isPermissionGranted,
+    isLoading,
+    requestPermissions,
+    openSettings,
+    openAppPicker,
+  } = useDeviceActivity();
+  const [hasAttempted, setHasAttempted] = useState(false);
+
+  const handleEnable = async () => {
+    setHasAttempted(true);
+    await requestPermissions();
+  };
+
+  return (
+    <div className="text-center space-y-6">
+      {/* Title — same pattern as all other steps */}
+      <motion.div
+        className="space-y-2"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+      >
+        <h1
+          className="text-4xl font-extrabold tracking-tight"
+          style={{
+            color: 'rgba(255,255,255,0.95)',
+            textShadow:
+              '0 0 30px rgba(160,120,255,0.3), 0 2px 4px rgba(0,0,0,0.3)',
+          }}
+        >
+          Focus Shield
+        </h1>
+        <p className="text-sm" style={{ color: 'rgba(200,210,240,0.6)' }}>
+          Block distracting apps while you focus
+        </p>
+      </motion.div>
+
+      {/* Shield icon with cosmic glow — matches sprite glow in Welcome/MeetCompanion */}
+      <motion.div
+        className="py-4 relative flex justify-center"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.25, duration: 0.6, type: 'spring' }}
+      >
+        {/* Radial glow behind shield */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+          style={{
+            width: 180,
+            height: 180,
+            borderRadius: '50%',
+            background: isPermissionGranted
+              ? 'radial-gradient(circle, rgba(140,180,255,0.2) 0%, transparent 65%)'
+              : 'radial-gradient(circle, rgba(160,120,255,0.18) 0%, transparent 65%)',
+          }}
+        />
+        <div
+          className="relative w-24 h-24 rounded-3xl flex items-center justify-center"
+          style={{
+            background: isPermissionGranted
+              ? 'linear-gradient(180deg, rgba(140,180,255,0.25) 0%, rgba(120,100,220,0.15) 100%)'
+              : 'linear-gradient(180deg, rgba(160,120,255,0.25) 0%, rgba(120,80,220,0.1) 100%)',
+            border: `2px solid ${isPermissionGranted ? 'rgba(140,180,255,0.35)' : 'rgba(160,120,255,0.3)'}`,
+            boxShadow: `0 4px 20px ${isPermissionGranted ? 'rgba(140,180,255,0.2)' : 'rgba(160,120,255,0.15)'}, inset 0 1px 0 rgba(255,255,255,0.05)`,
+          }}
+        >
+          <Shield
+            className="w-12 h-12"
+            style={{ color: isPermissionGranted ? 'rgba(180,200,255,0.9)' : 'rgba(200,180,255,0.8)' }}
+          />
+        </div>
+      </motion.div>
+
+      {/* Benefits — staggered glass cards matching StepHowItWorks pattern */}
+      <div className="space-y-3 px-1">
+        {shieldBenefits.map((step, i) => {
+          const Icon = step.icon;
+          return (
+            <motion.div
+              key={step.label}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.2 + i * 0.12,
+                type: 'spring',
+                stiffness: 200,
+                damping: 20,
+              }}
+            >
+              <div
+                className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl backdrop-blur-sm"
+                style={{
+                  background: step.color,
+                  border: `1px solid ${step.borderColor}`,
+                  boxShadow:
+                    '0 2px 12px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
+                }}
+              >
+                <div
+                  className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{
+                    background: step.borderColor,
+                  }}
+                >
+                  <Icon className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.9)' }} />
+                </div>
+                <div className="text-left min-w-0 flex-1">
+                  <p
+                    className="text-sm font-semibold leading-snug"
+                    style={{ color: 'rgba(255,255,255,0.9)' }}
+                  >
+                    {step.label}
+                  </p>
+                  <p
+                    className="text-xs leading-snug mt-0.5"
+                    style={{ color: 'rgba(200,210,240,0.55)' }}
+                  >
+                    {step.sub}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Action area */}
+      <motion.div
+        className="px-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.55 }}
+      >
+        {!isPermissionGranted ? (
+          <div className="space-y-2.5">
+            <button
+              onClick={handleEnable}
+              disabled={isLoading}
+              className="w-full py-3.5 px-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.97]"
+              style={{
+                background: 'linear-gradient(180deg, hsl(260 65% 62%) 0%, hsl(265 55% 48%) 100%)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 16px rgba(120,60,220,0.35)',
+                color: 'white',
+                opacity: isLoading ? 0.6 : 1,
+              }}
+            >
+              <Lock className="w-4 h-4 inline mr-2" />
+              {isLoading ? 'Requesting...' : 'Enable Focus Shield'}
+            </button>
+            {hasAttempted && (
+              <button
+                onClick={() => openSettings()}
+                className="w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all active:scale-[0.97]"
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'rgba(200,210,240,0.7)',
+                }}
+              >
+                <Settings className="w-4 h-4 inline mr-2" />
+                Open Settings
+              </button>
+            )}
+            <p className="text-xs" style={{ color: 'rgba(200,210,240,0.4)' }}>
+              You can set this up later in Settings
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div
+              className="py-3 px-4 rounded-2xl text-sm font-semibold backdrop-blur-sm"
+              style={{
+                background: 'rgba(140,180,255,0.12)',
+                border: '1px solid rgba(140,180,255,0.25)',
+                color: 'rgba(180,200,255,0.9)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+              }}
+            >
+              Focus Shield enabled
+            </div>
+            <button
+              onClick={() => openAppPicker()}
+              className="w-full py-3 px-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.97]"
+              style={{
+                background: 'linear-gradient(180deg, hsl(260 65% 62%) 0%, hsl(265 55% 48%) 100%)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 16px rgba(120,60,220,0.35)',
+                color: 'white',
+              }}
+            >
+              Select Apps to Block
+            </button>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+};
