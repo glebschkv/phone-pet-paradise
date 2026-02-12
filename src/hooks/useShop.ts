@@ -126,12 +126,19 @@ export const useShop = () => {
           characterId?: string;
           boosterId?: string;
           streakFreezes: number;
+          alreadyOwned?: boolean;
         }>;
-        const { productId, characterId, boosterId, streakFreezes } = customEvent.detail;
+        const { productId, characterId, boosterId, streakFreezes, alreadyOwned } = customEvent.detail;
 
-        // Record this bundle as purchased (prevents re-purchase in UI)
+        // Always record the bundle as purchased (shows OWNED badge in UI)
         if (productId) {
           addPurchasedStarterBundleId(productId);
+        }
+
+        // Only grant actual rewards for NEW purchases, not re-purchases
+        if (alreadyOwned) {
+          shopLogger.debug('Bundle already owned, recorded but skipping grants:', productId);
+          return;
         }
 
         // Grant character if included

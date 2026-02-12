@@ -448,13 +448,15 @@ export const useStoreKit = (): UseStoreKitReturn => {
             dispatchCoinsGranted(validationResult.coinPack.coinsGranted);
             logger.debug('Coins granted:', validationResult.coinPack.coinsGranted);
           } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
-            // Only dispatch grant events for NEW purchases, not already-owned bundles
+            // Always dispatch bundleGranted so the productId is recorded in the
+            // shop store (shows OWNED badge). The alreadyOwned flag tells useShop
+            // to skip re-granting coins/characters/boosters/freezes.
+            dispatchBundleGranted(validationResult.bundle);
             if (!validationResult.bundle.alreadyOwned) {
               dispatchCoinsGranted(validationResult.bundle.coinsGranted);
-              dispatchBundleGranted(validationResult.bundle);
               logger.debug('Bundle granted:', validationResult.bundle);
             } else {
-              logger.debug('Bundle already owned, skipping grant:', validationResult.bundle);
+              logger.debug('Bundle already owned, recorded but skipped grants:', validationResult.bundle);
             }
           }
 
