@@ -218,8 +218,11 @@ struct SubscriptionStatus {
     let activeSubscriptions: [[String: Any]]
     let purchasedProducts: [[String: Any]]
 
+    /// True only when there is a real subscription OR a lifetime purchase
+    /// (non-consumable bundles are in purchasedProducts but should NOT
+    /// count as an active subscription)
     var hasActiveSubscription: Bool {
-        !activeSubscriptions.isEmpty || !purchasedProducts.isEmpty
+        !activeSubscriptions.isEmpty
     }
 
     var asDictionary: [String: Any] {

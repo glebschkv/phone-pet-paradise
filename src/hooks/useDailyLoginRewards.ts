@@ -47,7 +47,12 @@ function getStorageKey(userId: string | undefined): string {
   return LEGACY_STORAGE_KEY;
 }
 
-export const useDailyLoginRewards = () => {
+/**
+ * @param ready - When false, delays showing the reward modal. Used to wait for
+ *   notification permission dialogs to close before rendering the Radix overlay,
+ *   which otherwise appears as a black screen behind the native dialog.
+ */
+export const useDailyLoginRewards = (ready: boolean = true) => {
   const { user, isGuestMode } = useAuth();
   const userId = user?.id;
 
@@ -135,8 +140,12 @@ export const useDailyLoginRewards = () => {
     }
   }, [storageKey]);
 
-  // Reload when user changes (sign-in / sign-out) or on initial mount
+  // Reload when user changes (sign-in / sign-out) or on initial mount.
+  // Waits for `ready` so the reward modal doesn't render behind a native
+  // permission dialog (notification prompt), which causes a black overlay.
   useEffect(() => {
+    if (!ready) return;
+
     // Skip if auth is still loading (userId will be undefined for guest too,
     // but isGuestMode tells us the choice was made)
     if (!userId && !isGuestMode) return;
@@ -146,7 +155,7 @@ export const useDailyLoginRewards = () => {
     loadedForRef.current = userId;
 
     loadLoginState();
-  }, [userId, isGuestMode, loadLoginState]);
+  }, [ready, userId, isGuestMode, loadLoginState]);
 
   const saveLoginState = useCallback((data: DailyLoginState) => {
     try {

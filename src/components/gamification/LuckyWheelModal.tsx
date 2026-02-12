@@ -137,14 +137,16 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
     try {
       const prize = await spin(dailySpinLimit);
 
-      // Calculate target rotation
+      // Calculate target rotation — account for current wheel position
+      // so subsequent spins land on the correct segment visually.
       const prizeIndex = prizes.findIndex(p => p.id === prize.id);
       const segmentAngle = 360 / prizes.length;
       const targetAngle = 360 - (prizeIndex * segmentAngle) - (segmentAngle / 2);
 
-      // Fewer rotations + longer duration = readable, satisfying spin
+      const currentAngle = rotation % 360;
+      const additionalAngle = (targetAngle - currentAngle + 360) % 360;
       const fullRotations = SPIN_FULL_ROTATIONS * 360;
-      const newRotation = rotation + fullRotations + targetAngle;
+      const newRotation = rotation + fullRotations + additionalAngle;
 
       setRotation(newRotation);
       setCurrentPrize(prize);
@@ -510,7 +512,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
               {!isPremium && (
                 <p className="text-[10px] flex items-center justify-center gap-1" style={{ color: 'hsl(35 80% 60%)' }}>
                   <Crown className="w-3 h-3" />
-                  <span>Premium members get up to 3 spins/day</span>
+                  <span>Premium members get up to 5 spins/day</span>
                 </p>
               )}
             </div>

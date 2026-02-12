@@ -67,7 +67,8 @@ export const UnifiedFocusTimer = () => {
   const handleCloseIntentionModal = useCallback(() => setShowIntentionModal(false), [setShowIntentionModal]);
   const handleCloseSessionNotes = useCallback(() => {
     setShowSessionNotesModal(false);
-    setShowBreakTransitionModal(true);
+    // Delay break modal to prevent Radix Dialog portal collision
+    setTimeout(() => setShowBreakTransitionModal(true), 350);
   }, [setShowSessionNotesModal, setShowBreakTransitionModal]);
   const handleReturnToApp = useCallback(() => setShowLockScreen(false), [setShowLockScreen]);
   const handleAbandonSession = useCallback(() => {

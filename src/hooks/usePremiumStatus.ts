@@ -34,7 +34,7 @@ export const TIER_BENEFITS = {
     battlePassIncluded: false,
     soundMixingSlots: 1,
     focusPresetSlots: 1,
-    dailySpinLimit: 1,
+    dailySpinLimit: 2,
     loginCoinMultiplier: 1,
     analyticsAccess: 'basic' as AnalyticsAccess,
   },
@@ -47,7 +47,7 @@ export const TIER_BENEFITS = {
     battlePassIncluded: false,
     soundMixingSlots: 2,
     focusPresetSlots: 3,
-    dailySpinLimit: 2,
+    dailySpinLimit: 3,
     loginCoinMultiplier: 1.5,
     analyticsAccess: 'full' as AnalyticsAccess,
   },
@@ -60,7 +60,7 @@ export const TIER_BENEFITS = {
     battlePassIncluded: true,
     soundMixingSlots: 3,
     focusPresetSlots: 5,
-    dailySpinLimit: 3,
+    dailySpinLimit: 5,
     loginCoinMultiplier: 2,
     analyticsAccess: 'full' as AnalyticsAccess,
   },
@@ -74,7 +74,7 @@ export const TIER_BENEFITS = {
     battlePassIncluded: true,
     soundMixingSlots: 3,
     focusPresetSlots: 10,
-    dailySpinLimit: 3,
+    dailySpinLimit: 5,
     loginCoinMultiplier: 2,
     analyticsAccess: 'full' as AnalyticsAccess,
   },
@@ -106,7 +106,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'monthly',
     features: [
       '1.5x Coin & XP multiplier',
-      '2 Lucky Wheel spins/day',
+      '3 Lucky Wheel spins/day',
       '1.5x Daily login coins',
       'Full analytics dashboard',
       'All 13 ambient sounds',
@@ -127,7 +127,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'yearly',
     features: [
       '1.5x Coin & XP multiplier',
-      '2 Lucky Wheel spins/day',
+      '3 Lucky Wheel spins/day',
       '1.5x Daily login coins',
       'Full analytics dashboard',
       'All 13 ambient sounds',
@@ -150,7 +150,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'monthly',
     features: [
       '2x Coin & XP multiplier',
-      '3 Lucky Wheel spins/day',
+      '5 Lucky Wheel spins/day',
       '2x Daily login coins',
       'Everything in Premium',
       'Battle Pass Premium included',
@@ -171,7 +171,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'yearly',
     features: [
       '2x Coin & XP multiplier',
-      '3 Lucky Wheel spins/day',
+      '5 Lucky Wheel spins/day',
       '2x Daily login coins',
       'Everything in Premium',
       'Battle Pass Premium included',
@@ -193,7 +193,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'lifetime',
     features: [
       '2.5x Coin & XP multiplier',
-      '3 Lucky Wheel spins/day',
+      '5 Lucky Wheel spins/day',
       '2x Daily login coins',
       'Everything in Premium+',
       'No recurring fees ever',
@@ -342,7 +342,7 @@ export const usePremiumStatus = () => {
         };
 
         setState(newState);
-        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+        try { localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState)); } catch { /* quota */ }
         dispatchSubscriptionChange(serverTier);
       } else if (serverSub.expires_at && localState.expiresAt !== serverSub.expires_at) {
         // Update expiration if different
@@ -351,10 +351,10 @@ export const usePremiumStatus = () => {
           expiresAt: serverSub.expires_at,
         };
         setState(newState);
-        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+        try { localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState)); } catch { /* quota */ }
       }
 
-      localStorage.setItem(LAST_VERIFICATION_KEY, Date.now().toString());
+      try { localStorage.setItem(LAST_VERIFICATION_KEY, Date.now().toString()); } catch { /* quota */ }
       logger.debug('Server verification complete, tier:', serverTier);
       return true;
 
@@ -522,7 +522,7 @@ export const usePremiumStatus = () => {
         lastStreakFreezeGrant: now.toISOString(),
       };
       setState(newState);
-      localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+      try { localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState)); } catch { /* quota */ }
 
       // Dispatch event for streak system to listen to
       window.dispatchEvent(new CustomEvent('petIsland_grantStreakFreezes', {
@@ -555,7 +555,7 @@ export const usePremiumStatus = () => {
         bonusCoinsGrantedForPlan: planId,
       };
       setState(newState);
-      localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+      try { localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState)); } catch { /* quota */ }
 
       // Dispatch event for coin system to listen to
       window.dispatchEvent(new CustomEvent('petIsland_grantBonusCoins', {

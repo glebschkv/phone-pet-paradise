@@ -61,13 +61,20 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
     diamond: 'diamond'
   };
 
+  // Delay opening so any closing Dialog portal can fully unmount before this
+  // one opens (prevents orphaned bg-black/60 overlay on iOS/Capacitor).
+  const [delayedOpen, setDelayedOpen] = useState(false);
+
   useEffect(() => {
     if (pendingUnlock) {
       setDisplayData(pendingUnlock);
       setIsAnimating(true);
       setClaimed(false);
-      const timer = setTimeout(() => setIsAnimating(false), 1000);
-      return () => clearTimeout(timer);
+      const animTimer = setTimeout(() => setIsAnimating(false), 1000);
+      const openTimer = setTimeout(() => setDelayedOpen(true), 400);
+      return () => { clearTimeout(animTimer); clearTimeout(openTimer); };
+    } else {
+      setDelayedOpen(false);
     }
   }, [pendingUnlock]);
 
@@ -97,7 +104,7 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
   const style = tierStyles[achievement.tier];
 
   return (
-    <Dialog open={!!pendingUnlock} onOpenChange={(open) => { if (!open) handleDismiss(); }}>
+    <Dialog open={delayedOpen && !!pendingUnlock} onOpenChange={(open) => { if (!open) handleDismiss(); }}>
       <DialogContent
         className={cn(
           "max-w-[340px] p-0 overflow-hidden border-0 rounded-xl",

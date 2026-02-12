@@ -21,7 +21,9 @@ export const useAppStateTracking = () => {
   const coinSystem = useCoinSystem();
   const streakSystem = useStreakSystem();
   const notifications = useNotifications();
-  const dailyLoginRewards = useDailyLoginRewards();
+  // Delay daily reward modal until notification init completes so the Radix
+  // overlay doesn't render behind the native permission dialog (black screen).
+  const dailyLoginRewards = useDailyLoginRewards(notifications.isInitialized);
   const { getLoginCoinMultiplier } = usePremiumStatus();
   
   const [appState, setAppState] = useState<AppStateData>({
@@ -159,12 +161,16 @@ export const useAppStateTracking = () => {
         // Use addDirectXP which properly handles level-ups
         xpReward = xpSystem.addDirectXP(reward.xp);
 
-        // If leveled up, show the XP reward modal
+        // If leveled up, show the XP reward modal — delay to prevent Radix
+        // Dialog portal collision with the closing daily reward modal.
         if (xpReward.leveledUp) {
-          saveState({
-            showRewardModal: true,
-            currentReward: xpReward,
-          });
+          const capturedReward = xpReward;
+          setTimeout(() => {
+            saveState({
+              showRewardModal: true,
+              currentReward: capturedReward,
+            });
+          }, 350);
         }
       }
 

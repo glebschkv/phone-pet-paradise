@@ -3,6 +3,7 @@ import { Play, X, Timer, Sparkles, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { useSettings } from '@/hooks/useSettings';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +38,11 @@ export const BreakTransitionModal = ({
   autoStartEnabled,
   onToggleAutoStart,
 }: BreakTransitionModalProps) => {
-  const [selectedDuration, setSelectedDuration] = useState(isLongBreak ? 15 : 5);
+  const { settings: appSettings } = useSettings();
+  const shortBreak = appSettings.shortBreakTime || 5;
+  const longBreak = appSettings.longBreakTime || 15;
+  const longBreakInterval = appSettings.longBreakInterval || 4;
+  const [selectedDuration, setSelectedDuration] = useState(isLongBreak ? longBreak : shortBreak);
   const [autoStartCountdown, setAutoStartCountdown] = useState(10);
   const { isPremium } = usePremiumStatus();
 
@@ -66,10 +71,10 @@ export const BreakTransitionModal = ({
     setAutoStartCountdown(10);
   }, [selectedDuration]);
 
-  // Set recommended break duration
+  // Set recommended break duration from settings
   useEffect(() => {
-    setSelectedDuration(isLongBreak ? 15 : 5);
-  }, [isLongBreak]);
+    setSelectedDuration(isLongBreak ? longBreak : shortBreak);
+  }, [isLongBreak, longBreak, shortBreak]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onSkipBreak()}>
@@ -99,19 +104,19 @@ export const BreakTransitionModal = ({
 
           {/* Sessions indicator */}
           <div className="flex gap-1.5 mt-3">
-            {[1, 2, 3, 4].map((n) => (
+            {Array.from({ length: longBreakInterval }, (_, i) => i + 1).map((n) => (
               <div
                 key={n}
                 className={cn(
                   "w-3 h-3 rounded-full",
-                  n <= (completedSessions % 4 || 4)
+                  n <= (completedSessions % longBreakInterval || longBreakInterval)
                     ? "bg-white"
                     : "bg-white/30"
                 )}
               />
             ))}
             <span className="text-xs text-white/80 ml-2">
-              {completedSessions % 4 || 4}/4 until long break
+              {completedSessions % longBreakInterval || longBreakInterval}/{longBreakInterval} until long break
             </span>
           </div>
         </div>

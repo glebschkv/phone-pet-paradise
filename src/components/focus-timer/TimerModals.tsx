@@ -13,6 +13,7 @@ import { TaskIntentionModal } from "./TaskIntentionModal";
 import { SessionNotesModal } from "./SessionNotesModal";
 import { BreakTransitionModal } from "./BreakTransitionModal";
 import { FocusLockScreen } from "./FocusLockScreen";
+import { useSettings } from "@/hooks/useSettings";
 import type { TimerPreset } from "./constants";
 import type { FocusCategory } from "@/types/analytics";
 
@@ -81,6 +82,9 @@ export const TimerModals = memo(({
   onReturnToApp,
   onAbandonSession,
 }: TimerModalsProps) => {
+  const { settings: appSettings } = useSettings();
+  const longBreakInterval = appSettings.longBreakInterval || 4;
+
   return (
     <>
       {/* Task Intention Modal */}
@@ -107,7 +111,7 @@ export const TimerModals = memo(({
         onClose={onSkipBreak}
         onStartBreak={onStartBreak}
         onSkipBreak={onSkipBreak}
-        isLongBreak={completedSessions % 4 === 0}
+        isLongBreak={completedSessions % longBreakInterval === 0}
         completedSessions={completedSessions}
         autoStartEnabled={autoBreakEnabled}
         onToggleAutoStart={onToggleAutoBreak}

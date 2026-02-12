@@ -460,7 +460,10 @@ export const useTimerLogic = () => {
     });
 
     setShowSessionNotesModal(false);
-    openBreakModal();
+    // Delay break modal to prevent Radix Dialog portal collision —
+    // closing one dialog and opening another in the same render batch
+    // causes a black overlay with no content on iOS/Capacitor.
+    setTimeout(() => openBreakModal(), 350);
   }, [saveSessionNote, lastSessionXP, openBreakModal]);
 
   // ============================================================================

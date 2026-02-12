@@ -318,39 +318,45 @@ export const useStoreKit = (): UseStoreKitReturn => {
     setSubscriptionStatus(status);
 
     // Sync with local storage for offline access
-    if (status.hasActiveSubscription) {
-      const activeSub = status.activeSubscriptions[0] || status.purchasedProducts[0];
-      if (activeSub) {
-        const plan = SUBSCRIPTION_PLANS.find(p => p.iapProductId === activeSub.productId);
-        if (plan) {
-          const premiumState = {
-            tier: plan.tier,
-            expiresAt: activeSub.expirationDate
-              ? new Date(activeSub.expirationDate).toISOString()
-              : null,
-            purchasedAt: new Date(activeSub.purchaseDate).toISOString(),
-            planId: plan.id,
-            environment: activeSub.environment,
-          };
-          try {
-            localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
-          } catch { /* storage full */ }
+    // Check active subscriptions first, then look for lifetime purchase
+    // in purchasedProducts (non-consumable bundles are also in purchasedProducts
+    // but should NOT count as subscriptions)
+    const activeSub = status.activeSubscriptions?.[0];
+    const lifetimePurchase = status.purchasedProducts?.find(
+      (p: { productId: string }) => SUBSCRIPTION_PLANS.some(plan => plan.iapProductId === p.productId)
+    );
+    const subscriptionProduct = activeSub || lifetimePurchase;
 
-          // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
-          dispatchSubscriptionChange(plan.tier);
+    if (subscriptionProduct) {
+      const plan = SUBSCRIPTION_PLANS.find(p => p.iapProductId === subscriptionProduct.productId);
+      if (plan) {
+        const premiumState = {
+          tier: plan.tier,
+          expiresAt: subscriptionProduct.expirationDate
+            ? new Date(subscriptionProduct.expirationDate).toISOString()
+            : null,
+          purchasedAt: new Date(subscriptionProduct.purchaseDate).toISOString(),
+          planId: plan.id,
+          environment: subscriptionProduct.environment,
+        };
+        try {
+          localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(premiumState));
+        } catch { /* storage full */ }
 
-          // Also validate with server if we have the signed transaction
-          // This ensures server has the latest subscription state
-          if (activeSub.signedTransaction) {
-            // Fire and forget - don't block the UI
-            serverValidatePurchase(activeSub).catch(err => {
-              logger.warn('Background server validation failed:', err);
-            });
-          }
+        // Dispatch subscription change event for other hooks (Battle Pass, streak freezes, etc.)
+        dispatchSubscriptionChange(plan.tier);
+
+        // Also validate with server if we have the signed transaction
+        // This ensures server has the latest subscription state
+        if (subscriptionProduct.signedTransaction) {
+          // Fire and forget - don't block the UI
+          serverValidatePurchase(subscriptionProduct).catch(err => {
+            logger.warn('Background server validation failed:', err);
+          });
         }
       }
     } else {
-      // No active subscription - clear local storage
+      // No active subscription or lifetime purchase - clear local storage
       try { localStorage.removeItem(PREMIUM_STORAGE_KEY); } catch { /* ignore */ }
       dispatchSubscriptionChange('free');
     }
@@ -376,17 +382,30 @@ export const useStoreKit = (): UseStoreKitReturn => {
       return { ...failedResult, message: 'Plugin unavailable' };
     }
 
-    // Pre-flight check: is the product in our loaded products list?
-    // If not, it's likely not configured in App Store Connect.
+    // SECURITY: Require authentication before starting the purchase flow.
+    // Without a session, server validation will fail anyway — but checking
+    // here avoids showing the Apple Pay sheet for nothing.
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Sign In Required', {
+          description: 'Please sign in to make purchases. Your progress is saved.',
+          duration: 5000,
+        });
+        return { ...failedResult, message: 'Not authenticated' };
+      }
+    } catch {
+      // If we can't check auth, still let the purchase proceed —
+      // serverValidatePurchase will catch it.
+    }
+
+    // Check if the product was in the initial bulk load. If not, log a
+    // warning but still attempt the purchase — the native StoreKit layer
+    // will try to fetch the product individually and may succeed even when
+    // the bulk getProducts() call didn't return it (Apple sandbox quirk).
     const loadedProduct = productsRef.current.find(p => p.id === productId);
-    if (!loadedProduct && productsRef.current.length > 0) {
-      const shortId = productId.split('.').slice(-1)[0] || productId;
-      logger.error(`Product "${productId}" not found in loaded products. It may not be configured in App Store Connect.`);
-      toast.error('Product Not Available', {
-        description: `"${shortId}" is not available for purchase yet. This product may still be in review.`,
-        duration: 5000,
-      });
-      return { ...failedResult, message: `Product not available: ${productId}` };
+    if (!loadedProduct) {
+      logger.warn(`Product "${productId}" not in pre-loaded list — attempting direct purchase via native StoreKit`);
     }
 
     setIsPurchasing(true);
@@ -446,10 +465,16 @@ export const useStoreKit = (): UseStoreKitReturn => {
             dispatchCoinsGranted(validationResult.coinPack.coinsGranted);
             logger.debug('Coins granted:', validationResult.coinPack.coinsGranted);
           } else if (validationResult.productType === 'starter_bundle' && validationResult.bundle) {
-            // Dispatch event for bundle fulfillment (coins already granted server-side)
-            dispatchCoinsGranted(validationResult.bundle.coinsGranted);
+            // Always dispatch bundleGranted so the productId is recorded in the
+            // shop store (shows OWNED badge). The alreadyOwned flag tells useShop
+            // to skip re-granting coins/characters/boosters/freezes.
             dispatchBundleGranted(validationResult.bundle);
-            logger.debug('Bundle granted:', validationResult.bundle);
+            if (!validationResult.bundle.alreadyOwned) {
+              dispatchCoinsGranted(validationResult.bundle.coinsGranted);
+              logger.debug('Bundle granted:', validationResult.bundle);
+            } else {
+              logger.debug('Bundle already owned, recorded but skipped grants:', validationResult.bundle);
+            }
           }
 
           // Return success with validation data for caller to use
@@ -587,7 +612,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
     }
   }, [checkSubscriptionStatus]);
 
-  // Open subscription management
+  // Open subscription management — re-check status when user returns
   const manageSubscriptions = useCallback(async () => {
     if (!pluginAvailableRef.current) {
       toast.error('Feature Unavailable', {
@@ -607,7 +632,11 @@ export const useStoreKit = (): UseStoreKitReturn => {
         description: 'Failed to open subscription management.',
       });
     }
-  }, []);
+
+    // After returning from subscription management, re-check status
+    // (user may have cancelled, upgraded, or downgraded)
+    await checkSubscriptionStatus();
+  }, [checkSubscriptionStatus]);
 
   // Get product by ID
   const getProductById = useCallback((productId: string): StoreKitProduct | undefined => {
@@ -635,7 +664,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
     if (Capacitor.isNativePlatform()) {
       StoreKit.addListener('transactionUpdated', (data) => {
         logger.debug('Transaction updated:', data);
-        checkSubscriptionStatus();
+        checkSubscriptionStatus().catch((err) => {
+          logger.warn('Subscription status check failed after transaction update:', err);
+        });
       }).then((handle) => {
         if (cancelled) {
           // Effect already cleaned up before listener registered — remove immediately
@@ -649,9 +680,29 @@ export const useStoreKit = (): UseStoreKitReturn => {
       });
     }
 
+    // Periodically re-check subscription status so expired subscriptions
+    // are detected without requiring an app restart or transactionUpdated event.
+    const SUB_CHECK_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+    const subCheckInterval = setInterval(() => {
+      if (!document.hidden) {
+        checkSubscriptionStatus().catch(() => { /* non-critical */ });
+      }
+    }, SUB_CHECK_INTERVAL_MS);
+
+    // Re-check when app returns from background (e.g., after user visits
+    // Settings > Subscriptions to cancel/upgrade)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkSubscriptionStatus().catch(() => { /* non-critical */ });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       cancelled = true;
       listenerHandle?.remove();
+      clearInterval(subCheckInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

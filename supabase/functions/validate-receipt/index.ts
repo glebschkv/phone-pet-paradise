@@ -112,12 +112,12 @@ at+qIxUCMG1mihDK1A3UT82NQz60imOlM27jbdoXt2QfyFMm+YhidDkLF1vLUagM
 -----END CERTIFICATE-----`;
 
 // Subscription tier mapping
-const SUBSCRIPTION_PRODUCTS: Record<string, { tier: 'premium' | 'premium_plus'; period: 'monthly' | 'yearly' | 'lifetime' }> = {
+const SUBSCRIPTION_PRODUCTS: Record<string, { tier: 'premium' | 'premium_plus' | 'lifetime'; period: 'monthly' | 'yearly' | 'lifetime' }> = {
   'co.nomoinc.nomo.premium.monthly': { tier: 'premium', period: 'monthly' },
   'co.nomoinc.nomo.premium.yearly': { tier: 'premium', period: 'yearly' },
   'co.nomoinc.nomo.premiumplus.monthly': { tier: 'premium_plus', period: 'monthly' },
   'co.nomoinc.nomo.premiumplus.yearly': { tier: 'premium_plus', period: 'yearly' },
-  'co.nomoinc.nomo.lifetime': { tier: 'premium_plus', period: 'lifetime' },
+  'co.nomoinc.nomo.lifetime': { tier: 'lifetime', period: 'lifetime' },
 };
 
 // Coin pack definitions (consumables)

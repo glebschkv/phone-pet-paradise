@@ -144,7 +144,8 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
       const result = await storeKit.purchaseProduct(plan.iapProductId);
       setIsProcessing(false);
 
-      if (result.success) {
+      // Only grant bonus coins AFTER server validation succeeds
+      if (result.success && result.validationResult?.success) {
         const bonusResult = grantBonusCoins(plan.id);
         if (bonusResult.granted) {
           toast.success(`Purchase successful! +${bonusResult.amount.toLocaleString()} bonus coins!`);
@@ -152,6 +153,9 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
           toast.success('Purchase successful!');
         }
         onClose();
+      } else if (result.success && !result.validationResult?.success) {
+        // Native purchase succeeded but server validation failed —
+        // don't grant bonus coins; user should restore purchases later
       } else if (!result.cancelled) {
         toast.error(result.message || 'Purchase failed');
       }
@@ -381,7 +385,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isProcessing && !isRestoring && onClose()}>
       <DialogContent className="retro-modal max-w-[340px] p-0 overflow-hidden border-0 max-h-[90vh] overflow-y-auto">
         <VisuallyHidden>
           <DialogTitle>Go Premium</DialogTitle>

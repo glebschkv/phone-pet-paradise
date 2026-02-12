@@ -17,6 +17,18 @@ export const MilestoneCelebration = ({ onClaimReward, suppress }: MilestoneCeleb
   const { showCelebration, pendingCelebration, dismissCelebration, getCelebrationType } = useMilestoneCelebrations();
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: string; delay: number }[]>([]);
   const lastCelebrationRef = useRef<Milestone | null>(null);
+
+  // Delay unsuppression so a closing higher-priority Dialog portal can fully
+  // unmount before this one opens (prevents orphaned bg-black/60 overlay on iOS).
+  const [delayedSuppress, setDelayedSuppress] = useState(!!suppress);
+  useEffect(() => {
+    if (suppress) {
+      setDelayedSuppress(true);
+    } else {
+      const timer = setTimeout(() => setDelayedSuppress(false), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [suppress]);
   if (pendingCelebration) lastCelebrationRef.current = pendingCelebration;
 
   const celebrationType = getCelebrationType();
@@ -65,7 +77,7 @@ export const MilestoneCelebration = ({ onClaimReward, suppress }: MilestoneCeleb
   if (!displayCelebration) return null;
 
   return (
-    <Dialog open={!suppress && showCelebration && !!pendingCelebration} onOpenChange={(open) => { if (!open) handleClaim(); }}>
+    <Dialog open={!delayedSuppress && showCelebration && !!pendingCelebration} onOpenChange={(open) => { if (!open) handleClaim(); }}>
       <DialogContent className="retro-modal max-w-[320px] p-0 overflow-hidden border-0">
         <VisuallyHidden>
           <DialogTitle>Milestone Celebration</DialogTitle>
