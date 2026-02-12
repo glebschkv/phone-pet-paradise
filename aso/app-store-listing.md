@@ -39,9 +39,6 @@ Build daily streaks up to 365 days with milestone rewards at 7, 30, and 100 days
 9 BOSS CHALLENGES
 Take on Focus Warrior, Deep Focus Master, Marathon Runner, Ultra Endurance, and more across 4 difficulty tiers — Normal, Hard, Extreme, and Legendary. Earn up to 3,000 coins and exclusive badges per challenge.
 
-BATTLE PASS
-Progress through 30 tiers of seasonal rewards. Four themed seasons — Winter Wonderland, Spring Bloom, Summer Splash, and Autumn Harvest — each with an exclusive Legendary pet at Tier 30.
-
 DAILY LUCKY WHEEL
 Spin free every day for coins, XP, streak freezes, coin boosters, mystery boxes, and a 2,500-coin Jackpot.
 
@@ -50,9 +47,6 @@ Layer up to 3 sounds at once. White noise, rain, ocean waves, fireplace, coffee 
 
 50 LEVELS & ACHIEVEMENTS
 Advance through 50 levels across 6 achievement categories. Hit milestones celebrated with confetti, fireworks, and rainbow effects — plus generous coin and XP rewards at every milestone.
-
-GUILDS
-Join or create guilds with up to 50 members. Set weekly focus goals together and climb the guild leaderboard.
 
 SHOP
 Exclusive pets, premium backgrounds, coin boosters, themed bundles, and background collections. Everything earnable through focus time.
@@ -65,7 +59,7 @@ No ads. No account required. Works completely offline.
 Whether you're studying for exams, doing deep work, or just trying to scroll less — NoMo Phone turns screen-free time into something you actually look forward to.
 ```
 
-Character count: ~2,850/4,000
+Character count: ~2,500/4,000
 
 ---
 
