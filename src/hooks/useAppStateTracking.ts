@@ -161,12 +161,16 @@ export const useAppStateTracking = () => {
         // Use addDirectXP which properly handles level-ups
         xpReward = xpSystem.addDirectXP(reward.xp);
 
-        // If leveled up, show the XP reward modal
+        // If leveled up, show the XP reward modal — delay to prevent Radix
+        // Dialog portal collision with the closing daily reward modal.
         if (xpReward.leveledUp) {
-          saveState({
-            showRewardModal: true,
-            currentReward: xpReward,
-          });
+          const capturedReward = xpReward;
+          setTimeout(() => {
+            saveState({
+              showRewardModal: true,
+              currentReward: capturedReward,
+            });
+          }, 350);
         }
       }
 
