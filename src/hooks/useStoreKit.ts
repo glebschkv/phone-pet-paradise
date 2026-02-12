@@ -664,7 +664,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
     if (Capacitor.isNativePlatform()) {
       StoreKit.addListener('transactionUpdated', (data) => {
         logger.debug('Transaction updated:', data);
-        checkSubscriptionStatus();
+        checkSubscriptionStatus().catch((err) => {
+          logger.warn('Subscription status check failed after transaction update:', err);
+        });
       }).then((handle) => {
         if (cancelled) {
           // Effect already cleaned up before listener registered — remove immediately
@@ -683,7 +685,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
     const SUB_CHECK_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
     const subCheckInterval = setInterval(() => {
       if (!document.hidden) {
-        checkSubscriptionStatus();
+        checkSubscriptionStatus().catch(() => { /* non-critical */ });
       }
     }, SUB_CHECK_INTERVAL_MS);
 
@@ -691,7 +693,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
     // Settings > Subscriptions to cancel/upgrade)
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        checkSubscriptionStatus();
+        checkSubscriptionStatus().catch(() => { /* non-critical */ });
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);

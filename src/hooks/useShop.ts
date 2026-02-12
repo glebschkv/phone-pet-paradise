@@ -16,6 +16,7 @@ import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { useShopStore } from '@/stores';
 import { IAP_EVENTS } from './useStoreKit';
+import { shopLogger } from '@/lib/logger';
 
 export interface PurchaseResult {
   success: boolean;
@@ -117,10 +118,22 @@ export const useShop = () => {
     }
   }, [ownedCharacters.length, ownedBackgrounds.length]);
 
+  // Refs for the bundle grant handler — keeps the event listener stable so it
+  // is never removed/re-registered during a purchase (which could miss events).
+  const bundleGrantDepsRef = useRef({
+    ownedCharacters, addOwnedCharacter, addPurchasedStarterBundleId,
+    boosterSystem, streakSystem,
+  });
+  bundleGrantDepsRef.current = {
+    ownedCharacters, addOwnedCharacter, addPurchasedStarterBundleId,
+    boosterSystem, streakSystem,
+  };
+
   // Listen for IAP bundle grants to fulfill non-coin contents
   useEffect(() => {
     const handleBundleGranted = (event: Event) => {
       try {
+        const deps = bundleGrantDepsRef.current;
         const customEvent = event as CustomEvent<{
           productId?: string;
           characterId?: string;
@@ -132,7 +145,7 @@ export const useShop = () => {
 
         // Always record the bundle as purchased (shows OWNED badge in UI)
         if (productId) {
-          addPurchasedStarterBundleId(productId);
+          deps.addPurchasedStarterBundleId(productId);
         }
 
         // Only grant actual rewards for NEW purchases, not re-purchases
@@ -144,20 +157,20 @@ export const useShop = () => {
         // Grant character if included
         if (characterId) {
           const animal = getAnimalById(characterId);
-          if (animal && !ownedCharacters.includes(characterId)) {
-            addOwnedCharacter(characterId);
+          if (animal && !deps.ownedCharacters.includes(characterId)) {
+            deps.addOwnedCharacter(characterId);
           }
         }
 
         // Activate booster if included (and no active booster)
-        if (boosterId && !boosterSystem.isBoosterActive()) {
-          boosterSystem.activateBooster(boosterId);
+        if (boosterId && !deps.boosterSystem.isBoosterActive()) {
+          deps.boosterSystem.activateBooster(boosterId);
         }
 
         // Grant streak freezes if included
         if (streakFreezes && streakFreezes > 0) {
           for (let i = 0; i < streakFreezes; i++) {
-            streakSystem.earnStreakFreeze();
+            deps.streakSystem.earnStreakFreeze();
           }
         }
       } catch (e) {
@@ -169,7 +182,7 @@ export const useShop = () => {
     return () => {
       window.removeEventListener(IAP_EVENTS.BUNDLE_GRANTED, handleBundleGranted);
     };
-  }, [ownedCharacters, addOwnedCharacter, addPurchasedStarterBundleId, boosterSystem, streakSystem]);
+  }, []); // Stable — deps accessed via ref
 
   // Check if item is owned
   const isOwned = useCallback((itemId: string, category: ShopCategory): boolean => {

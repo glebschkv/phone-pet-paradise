@@ -342,7 +342,7 @@ export const usePremiumStatus = () => {
         };
 
         setState(newState);
-        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+        try { localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState)); } catch { /* quota */ }
         dispatchSubscriptionChange(serverTier);
       } else if (serverSub.expires_at && localState.expiresAt !== serverSub.expires_at) {
         // Update expiration if different
@@ -351,10 +351,10 @@ export const usePremiumStatus = () => {
           expiresAt: serverSub.expires_at,
         };
         setState(newState);
-        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+        try { localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState)); } catch { /* quota */ }
       }
 
-      localStorage.setItem(LAST_VERIFICATION_KEY, Date.now().toString());
+      try { localStorage.setItem(LAST_VERIFICATION_KEY, Date.now().toString()); } catch { /* quota */ }
       logger.debug('Server verification complete, tier:', serverTier);
       return true;
 
@@ -522,7 +522,7 @@ export const usePremiumStatus = () => {
         lastStreakFreezeGrant: now.toISOString(),
       };
       setState(newState);
-      localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+      try { localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState)); } catch { /* quota */ }
 
       // Dispatch event for streak system to listen to
       window.dispatchEvent(new CustomEvent('petIsland_grantStreakFreezes', {
@@ -555,7 +555,7 @@ export const usePremiumStatus = () => {
         bonusCoinsGrantedForPlan: planId,
       };
       setState(newState);
-      localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState));
+      try { localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newState)); } catch { /* quota */ }
 
       // Dispatch event for coin system to listen to
       window.dispatchEvent(new CustomEvent('petIsland_grantBonusCoins', {

@@ -385,7 +385,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isProcessing && !isRestoring && onClose()}>
       <DialogContent className="retro-modal max-w-[340px] p-0 overflow-hidden border-0 max-h-[90vh] overflow-y-auto">
         <VisuallyHidden>
           <DialogTitle>Go Premium</DialogTitle>
