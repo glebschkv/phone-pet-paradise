@@ -17,51 +17,55 @@ Character count: 162/170
 ## Description (4,000 characters max)
 
 ```
-Turn screen-free time into an adventure. NoMo Phone rewards you with coins, pets, and progression every minute you stay focused. Set a timer, put your phone down, and watch your collection grow.
+What if putting your phone down was the most rewarding part of your day?
 
-COLLECT 50+ UNIQUE PIXEL PETS
-Discover and bond with over 50 hand-crafted pixel-art companions across 4 rarity tiers — Common, Rare, Epic, and Legendary. Each pet has unique animations, personality, and unlock requirements. From the Dewdrop Frog to the legendary Baby Dragon, your paradise is waiting to be filled.
+NoMo Phone is the only focus app with FREE app blocking and 40+ collectible pixel pets. Set a timer. Lock your apps. Earn coins for every minute you stay focused — then spend them on adorable pets, new worlds, and exclusive rewards.
 
-EXPLORE 7 STUNNING WORLDS
-Journey through beautifully designed biomes — Snow, Meadow, Sunset, Night, Forest, City, and Deep Ocean. Each world has its own exclusive pets, atmosphere, and visual style. Unlock new worlds as you level up and expand your paradise.
+COLLECT 40+ PIXEL PETS
+From the cheerful Dewdrop Frog to the legendary Baby Dragon, every pet is a hand-crafted companion with unique animations, abilities, and personality. Unlock them through focus time, coins, or study milestones across 4 rarity tiers — Common, Rare, Epic, and Legendary. Bond with your favorites through play, feeding, and focus sessions to reach Bond Level 10.
 
-FOCUS TIMER WITH APP BLOCKING
-Set customizable focus sessions and activate Focus Shield to block distracting apps. Earn coins for every minute you stay focused. Create timer presets for study sessions, work sprints, or deep focus blocks.
+EXPLORE 6 WORLDS
+Discover Snow, Meadow, Night, Forest, Sunset, and City — each with exclusive pets and a hand-painted backdrop. Watch your pets roam their world while you focus.
 
-DAILY QUESTS & CHALLENGES
-Complete 3 daily quests and weekly challenges to earn bonus rewards. Quest types include focus goals, pet interactions, streak milestones, and collection targets. Something new to accomplish every day.
+FREE APP BLOCKING
+Activate Focus Shield to block distracting apps during sessions. No subscription required. Score a 25% XP bonus and 50 extra coins for Perfect Focus sessions with zero blocked app attempts.
 
-STREAKS, COMBOS & BOSS BATTLES
-Build daily streaks and protect them with Streak Freeze tokens. Chain multiple focus sessions to activate combo multipliers up to 1.75x. Take on epic Boss Challenges like Focus Warrior and Marathon Runner for exclusive rewards and badges.
+FOCUS TIMER
+Choose from 25-minute sprints to 3-hour deep work marathons. Create custom presets for study, work, or deep focus. Earn 2 coins per minute plus completion bonuses up to 300 coins per session.
 
-LUCKY WHEEL & BATTLE PASS
-Spin the daily Lucky Wheel for coins, XP, boosters, and mystery prizes. Progress through 30 tiers of seasonal Battle Pass rewards including exclusive legendary pets, backgrounds, and coin boosters.
+STREAKS & COMBOS
+Build daily streaks up to 365 days with milestone rewards at 7, 30, and 100 days. Chain sessions for combo multipliers up to 1.75x. Protect your streak with Streak Freeze tokens.
 
-AMBIENT SOUND MIXING
-Layer up to 3 focus sounds from 25+ options — rain, ocean waves, cafe ambiance, binaural beats, lo-fi, and more. Create your perfect focus environment.
+9 BOSS CHALLENGES
+Take on Focus Warrior, Deep Focus Master, Marathon Runner, Ultra Endurance, and more across 4 difficulty tiers — Normal, Hard, Extreme, and Legendary. Earn up to 3,000 coins and exclusive badges per challenge.
 
-40+ LEVELS OF PROGRESSION
-Advance through 40+ levels, unlocking new pets, worlds, and features. Earn achievement badges across 6 categories and 5 tiers from Bronze to Diamond. Celebrate milestones with confetti, fireworks, and rainbow effects.
+BATTLE PASS
+Progress through 30 tiers of seasonal rewards. Four themed seasons — Winter Wonderland, Spring Bloom, Summer Splash, and Autumn Harvest — each with an exclusive Legendary pet at Tier 30.
 
-GUILDS & SOCIAL
-Join or create guilds with up to 50 members. Collaborate on weekly focus goals, level up your guild together, and compete on leaderboards.
+DAILY LUCKY WHEEL
+Spin free every day for coins, XP, streak freezes, coin boosters, mystery boxes, and a 2,500-coin Jackpot.
 
-PREMIUM FEATURES
-• Focus Shield app blocking
-• Sound mixing with 25+ ambient tracks
-• Battle Pass premium track
-• Enhanced coin multipliers
-• Extra Lucky Wheel spins
-• Streak Freeze tokens
+25 AMBIENT SOUNDS
+Layer up to 3 sounds at once. White noise, rain, ocean waves, fireplace, coffee shop, binaural beats, and more. 8 sounds free, no subscription needed.
 
-Works completely offline. Your progress syncs automatically when you reconnect.
+50 LEVELS & ACHIEVEMENTS
+Advance through 50 levels across 6 achievement categories. Hit milestones celebrated with confetti, fireworks, and rainbow effects — plus generous coin and XP rewards at every milestone.
 
-Whether you're a student cramming for exams, a professional seeking deep work, or anyone looking to build healthier phone habits — NoMo Phone turns your willpower into a rewarding adventure.
+GUILDS
+Join or create guilds with up to 50 members. Set weekly focus goals together and climb the guild leaderboard.
 
-Download now and start building your paradise.
+SHOP
+Exclusive pets, premium backgrounds, coin boosters, themed bundles, and background collections. Everything earnable through focus time.
+
+3 DAILY QUESTS
+Fresh quests every day — focus goals, pet interactions, streak targets, and collection challenges. Complete all 3 for bonus rewards.
+
+No ads. No account required. Works completely offline.
+
+Whether you're studying for exams, doing deep work, or just trying to scroll less — NoMo Phone turns screen-free time into something you actually look forward to.
 ```
 
-Character count: ~2,900/4,000
+Character count: ~2,850/4,000
 
 ---
 
