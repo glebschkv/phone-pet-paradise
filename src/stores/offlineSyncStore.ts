@@ -245,8 +245,18 @@ export const useOfflineSyncStore = create<OfflineSyncStore>()(
         totalSynced: state.totalSynced,
         totalFailed: state.totalFailed,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
+      onRehydrateStorage: () => (state, error) => {
+        if (state && !error) {
+          // Purge operations that exceeded the retry limit
+          const before = state.pendingOperations.length;
+          const alive = state.pendingOperations.filter(
+            (op) => op.retryCount < MAX_RETRY_COUNT
+          );
+          if (alive.length < before) {
+            state.pendingOperations = alive;
+            state.totalFailed += before - alive.length;
+            syncLogger.debug(`[OfflineSync] Purged ${before - alive.length} failed operations on rehydrate`);
+          }
           syncLogger.debug('[OfflineSync] Store rehydrated', {
             pendingCount: state.pendingOperations.length,
           });

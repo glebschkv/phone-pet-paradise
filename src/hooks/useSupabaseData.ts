@@ -422,7 +422,9 @@ export const useSupabaseData = () => {
     if (isGuestMode) {
       const savedSessions = loadFromLocalStorage<FocusSession[]>(STORAGE_KEYS.focusSessions, 'focusSessions') || [];
       savedSessions.push(newSession);
-      saveToLocalStorage(STORAGE_KEYS.focusSessions, savedSessions);
+      // Prune to last 200 sessions to prevent unbounded localStorage growth
+      const pruned = savedSessions.length > 200 ? savedSessions.slice(-200) : savedSessions;
+      saveToLocalStorage(STORAGE_KEYS.focusSessions, pruned);
 
       if (progress) {
         await updateProgress({
