@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DailyReward } from "@/hooks/useDailyLoginRewards";
@@ -37,6 +37,18 @@ export const DailyLoginRewardModal = ({
   const lastRewardRef = useRef<DailyReward | null>(null);
   if (reward) lastRewardRef.current = reward;
   const displayReward = reward || lastRewardRef.current;
+
+  // Separate dismiss from claim: close the dialog first, then fire the claim
+  // after a microtask so Radix can begin its close animation before any new
+  // modal state changes propagate (prevents black overlay on iOS/Capacitor).
+  const handleClaim = useCallback(() => {
+    onDismiss();
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        onClaim();
+      }, 50);
+    });
+  }, [onClaim, onDismiss]);
 
   if (!displayReward) return null;
 
@@ -260,7 +272,7 @@ export const DailyLoginRewardModal = ({
 
           {/* Claim Button */}
           <button
-            onClick={onClaim}
+            onClick={handleClaim}
             className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm tracking-wider touch-manipulation flex items-center justify-center gap-2"
           >
             <Gift className="w-5 h-5" />

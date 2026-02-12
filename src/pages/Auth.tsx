@@ -2,15 +2,17 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2, Circle, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Loader2, Eye, EyeOff, CheckCircle2, Circle, AlertTriangle } from 'lucide-react';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 import { getAppBaseUrl, isValidEmail, validatePassword, sanitizeErrorMessage } from '@/lib/apiUtils';
 import { PageErrorBoundary } from '@/components/PageErrorBoundary';
 import { checkRateLimit, recordRateLimitAttempt, clearRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/security';
 import { Capacitor } from '@capacitor/core';
+
+const AUTH_BG = 'linear-gradient(180deg, hsl(260 30% 15%) 0%, hsl(280 25% 10%) 50%, hsl(220 25% 8%) 100%)';
+const INPUT_CLASS = 'h-12 rounded-xl bg-[hsl(260_25%_18%/0.8)] border-[hsl(260_35%_35%)] text-white placeholder:text-purple-500 focus:border-[hsl(280_50%_55%)] focus:ring-[hsl(280_50%_55%)]';
 
 // Apple logo SVG component
 const AppleIcon = ({ className }: { className?: string }) => (
@@ -67,12 +69,12 @@ export default function Auth() {
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isSupabaseConfigured) {
       toast.error('Authentication is not available. Please try again later.');
       return;
     }
-    
+
     if (!email) {
       toast.error('Please enter your email');
       return;
@@ -119,12 +121,12 @@ export default function Auth() {
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isSupabaseConfigured) {
       toast.error('Authentication is not available. Please try again later.');
       return;
     }
-    
+
     if (!email || !password) {
       toast.error('Please fill in all fields');
       return;
@@ -169,12 +171,12 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isSupabaseConfigured) {
       toast.error('Authentication is not available. Please try again later.');
       return;
     }
-    
+
     if (!email || !password) {
       toast.error('Please fill in all fields');
       return;
@@ -238,12 +240,12 @@ export default function Auth() {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isSupabaseConfigured) {
       toast.error('Authentication is not available. Please try again later.');
       return;
     }
-    
+
     if (!email) {
       toast.error('Please enter your email');
       return;
@@ -289,12 +291,12 @@ export default function Auth() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isSupabaseConfigured) {
       toast.error('Authentication is not available. Please try again later.');
       return;
     }
-    
+
     if (!password || !confirmPassword) {
       toast.error('Please fill in all fields');
       return;
@@ -408,12 +410,10 @@ export default function Auth() {
   if (authLoading) {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex items-center justify-center pt-safe pb-safe" style={{
-          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-        }}>
+        <div className="min-h-screen flex items-center justify-center pt-safe pb-safe" style={{ background: AUTH_BG }}>
           <div className="text-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary/20 border-t-primary mx-auto mb-4"></div>
-            <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-purple-700 border-t-purple-400 mx-auto mb-4"></div>
+            <p className="text-sm text-purple-400 animate-pulse">Loading...</p>
           </div>
         </div>
       </PageErrorBoundary>
@@ -433,19 +433,35 @@ export default function Auth() {
   if (mode === 'welcome') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
-          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-        }}>
-          <div className="w-full max-w-sm space-y-8">
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe relative" style={{ background: AUTH_BG }}>
+          {/* Scanlines overlay */}
+          <div className="absolute inset-0 retro-scanlines opacity-[0.03] pointer-events-none" />
+
+          <div className="w-full max-w-sm space-y-8 relative z-[1]">
           {/* Logo/Title */}
-          <div className="text-center space-y-2">
-            <img
-              src="/app-icon.png"
-              alt="NoMo"
-              className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg"
-            />
-            <h1 className="text-2xl font-bold text-foreground">NoMo</h1>
-            <p className="text-sm text-muted-foreground">Focus, grow, and collect pets!</p>
+          <div className="text-center space-y-2 relative">
+            <div className="relative inline-block mb-3">
+              <div
+                className="absolute inset-0 rounded-full blur-xl scale-[2.5]"
+                style={{ background: 'hsl(280 80% 50% / 0.15)' }}
+              />
+              <img
+                src="/app-icon.png"
+                alt="NoMo"
+                className="relative w-20 h-20 mx-auto rounded-2xl"
+                style={{
+                  border: '3px solid hsl(280 50% 45%)',
+                  boxShadow: '0 0 20px hsl(280 80% 40% / 0.3), 0 4px 12px rgba(0,0,0,0.4)',
+                }}
+              />
+            </div>
+            <h1
+              className="text-3xl font-black uppercase tracking-tight text-white"
+              style={{ textShadow: '0 0 20px hsl(280 80% 60% / 0.5), 0 0 40px hsl(280 80% 60% / 0.2)' }}
+            >
+              NoMo
+            </h1>
+            <p className="text-sm text-purple-300/70">Focus, grow, and collect pets!</p>
           </div>
 
           {/* Auth Options */}
@@ -454,76 +470,99 @@ export default function Auth() {
             <button
               onClick={handleAppleSignIn}
               disabled={isLoading}
-              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] hover:shadow-lg bg-black text-white disabled:opacity-50"
+              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(180deg, hsl(280 50% 40%) 0%, hsl(280 55% 30%) 100%)',
+                border: '2px solid hsl(280 60% 50%)',
+                boxShadow: '0 4px 0 hsl(280 60% 20%), 0 0 15px hsl(280 80% 40% / 0.2)',
+              }}
             >
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'hsl(280 40% 25%)', border: '2px solid hsl(280 50% 40%)' }}
+              >
                 {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin text-white" />
                 ) : (
-                  <AppleIcon className="w-5 h-5" />
+                  <AppleIcon className="w-5 h-5 text-white" />
                 )}
               </div>
               <div className="text-left flex-1">
-                <p className="font-semibold text-sm">Continue with Apple</p>
-                <p className="text-xs text-white/70">Fast & private sign in</p>
+                <p className="font-bold text-sm text-white">Continue with Apple</p>
+                <p className="text-xs text-purple-200/60">Fast & private sign in</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-white/50" />
+              <ArrowRight className="w-4 h-4 text-purple-300/50" />
             </button>
 
             <button
               onClick={() => { resetForm(); setMode('magic-link'); }}
-              className="w-full p-4 retro-card rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] hover:shadow-lg"
+              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98]"
+              style={{
+                background: 'linear-gradient(180deg, hsl(260 25% 22%) 0%, hsl(260 30% 16%) 100%)',
+                border: '2px solid hsl(260 35% 35%)',
+                boxShadow: '0 2px 0 hsl(260 30% 12%)',
+              }}
             >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Mail className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)' }}
+              >
+                <PixelIcon name="sparkles" size={24} />
               </div>
               <div className="text-left flex-1">
-                <p className="font-semibold text-sm">Continue with Email</p>
-                <p className="text-xs text-muted-foreground">Passwordless magic link</p>
+                <p className="font-bold text-sm text-white">Continue with Email</p>
+                <p className="text-xs text-purple-300/60">Passwordless magic link</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-muted-foreground" />
+              <ArrowRight className="w-4 h-4 text-purple-400/50" />
             </button>
 
             <button
               onClick={() => { resetForm(); setMode('email-password'); }}
-              className="w-full p-4 retro-card rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] hover:shadow-lg"
+              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98]"
+              style={{
+                background: 'linear-gradient(180deg, hsl(260 25% 22%) 0%, hsl(260 30% 16%) 100%)',
+                border: '2px solid hsl(260 35% 35%)',
+                boxShadow: '0 2px 0 hsl(260 30% 12%)',
+              }}
             >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Lock className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)' }}
+              >
+                <PixelIcon name="sword" size={24} />
               </div>
               <div className="text-left flex-1">
-                <p className="font-semibold text-sm">Sign in with Password</p>
-                <p className="text-xs text-muted-foreground">Use email and password</p>
+                <p className="font-bold text-sm text-white">Sign in with Password</p>
+                <p className="text-xs text-purple-300/60">Use email and password</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-muted-foreground" />
+              <ArrowRight className="w-4 h-4 text-purple-400/50" />
             </button>
 
             <div className="relative py-4">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/50"></div>
+                <div className="w-full border-t border-purple-700/50"></div>
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-[hsl(200_40%_92%)] px-3 text-muted-foreground">or</span>
+                <span className="bg-transparent px-3 text-purple-400" style={{ backgroundColor: 'hsl(275 27% 10%)' }}>or</span>
               </div>
             </div>
 
             <button
               onClick={handleGuestMode}
-              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] border-2 border-dashed border-border/50 hover:border-primary/30"
+              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] border-2 border-dashed border-purple-700/50 hover:border-purple-500/40"
             >
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                <User className="w-5 h-5 text-muted-foreground" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'hsl(260 20% 18%)', border: '2px solid hsl(260 25% 30%)' }}
+              >
+                <PixelIcon name="ghost" size={24} />
               </div>
               <div className="text-left flex-1">
-                <p className="font-semibold text-sm text-muted-foreground">Continue as Guest</p>
-                <p className="text-xs text-muted-foreground">No account needed</p>
+                <p className="font-bold text-sm text-purple-300">Continue as Guest</p>
+                <p className="text-xs text-purple-400/60">No account needed</p>
               </div>
             </button>
           </div>
 
-          <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-amber-50 border border-amber-200">
+          <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-amber-900/20 border border-amber-600/30">
             <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <p className="text-xs text-amber-700">
+            <p className="text-xs text-amber-400/80">
               Guest progress is saved on this device only and won't sync across devices
             </p>
           </div>
@@ -537,13 +576,12 @@ export default function Auth() {
   if (mode === 'magic-link') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
-          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-        }}>
-          <div className="w-full max-w-sm space-y-6" ref={formRef}>
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe relative" style={{ background: AUTH_BG }}>
+          <div className="absolute inset-0 retro-scanlines opacity-[0.03] pointer-events-none" />
+          <div className="w-full max-w-sm space-y-6 relative z-[1]" ref={formRef}>
           <button
             onClick={() => { resetForm(); setMode('welcome'); }}
-            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-purple-400 hover:text-white transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
@@ -551,30 +589,31 @@ export default function Auth() {
           {emailSent ? (
             /* Inline email confirmation */
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center">
-                <Mail className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
+                style={{ background: 'hsl(120 30% 18%)', border: '2px solid hsl(120 50% 35%)', boxShadow: '0 0 12px hsl(120 80% 40% / 0.2)' }}
+              >
+                <PixelIcon name="sparkles" size={36} />
               </div>
               <div className="space-y-2">
-                <h2 className="text-xl font-bold">Check your email</h2>
-                <p className="text-sm text-muted-foreground">
+                <h2 className="text-xl font-bold text-white">Check your email</h2>
+                <p className="text-sm text-purple-300/70">
                   We sent a magic link to
                 </p>
-                <p className="text-sm font-semibold text-foreground">{emailSentTo}</p>
+                <p className="text-sm font-semibold text-cyan-400">{emailSentTo}</p>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-purple-400/70">
                 Click the link in the email to sign in. It may take a minute to arrive.
               </p>
               <div className="pt-2 space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full h-12 rounded-xl"
+                <button
+                  className="retro-arcade-btn retro-arcade-btn-purple w-full py-3 text-sm"
                   onClick={() => { setEmailSent(false); }}
                 >
                   Didn't receive it? Try again
-                </Button>
+                </button>
                 <button
                   onClick={() => { resetForm(); setMode('welcome'); }}
-                  className="text-sm text-muted-foreground hover:text-foreground"
+                  className="text-sm text-purple-400 hover:text-white transition-colors"
                 >
                   Back to sign in options
                 </button>
@@ -583,18 +622,20 @@ export default function Auth() {
           ) : (
             <>
               <div className="text-center space-y-2">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Mail className="w-7 h-7 text-primary" />
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center"
+                  style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)', boxShadow: '0 0 12px hsl(260 80% 50% / 0.2)' }}
+                >
+                  <PixelIcon name="sparkles" size={32} />
                 </div>
-                <h2 className="text-xl font-bold">Magic Link</h2>
-                <p className="text-sm text-muted-foreground">
+                <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Magic Link</h2>
+                <p className="text-sm text-purple-300/70">
                   We'll email you a link to sign in instantly
                 </p>
               </div>
 
               <form onSubmit={handleMagicLink} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                  <label htmlFor="email" className="text-sm font-medium text-purple-200">Email</label>
                   <Input
                     id="email"
                     type="email"
@@ -603,32 +644,32 @@ export default function Auth() {
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-12 rounded-xl"
+                    className={INPUT_CLASS}
                     disabled={isLoading}
                   />
                 </div>
 
-                <Button
+                <button
                   type="submit"
-                  className="w-full h-12 rounded-xl font-semibold"
+                  className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       Sending...
-                    </>
+                    </span>
                   ) : (
                     'Send Magic Link'
                   )}
-                </Button>
+                </button>
               </form>
 
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-xs text-purple-300/70">
                 Don't have an account?{' '}
                 <button
                   onClick={() => { resetForm(); setMode('signup'); }}
-                  className="text-primary hover:underline font-medium"
+                  className="text-cyan-400 hover:underline font-medium"
                 >
                   Sign up
                 </button>
@@ -645,30 +686,31 @@ export default function Auth() {
   if (mode === 'email-password') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
-          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-        }}>
-          <div className="w-full max-w-sm space-y-6">
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe relative" style={{ background: AUTH_BG }}>
+          <div className="absolute inset-0 retro-scanlines opacity-[0.03] pointer-events-none" />
+          <div className="w-full max-w-sm space-y-6 relative z-[1]">
           <button
             onClick={() => { resetForm(); setMode('welcome'); }}
-            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-purple-400 hover:text-white transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
 
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Lock className="w-7 h-7 text-primary" />
+            <div className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center"
+              style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)', boxShadow: '0 0 12px hsl(260 80% 50% / 0.2)' }}
+            >
+              <PixelIcon name="sword" size={32} />
             </div>
-            <h2 className="text-xl font-bold">Sign In</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Sign In</h2>
+            <p className="text-sm text-purple-300/70">
               Welcome back! Enter your credentials
             </p>
           </div>
 
           <form onSubmit={handleEmailSignIn} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <label htmlFor="email" className="text-sm font-medium text-purple-200">Email</label>
               <Input
                 id="email"
                 type="email"
@@ -677,18 +719,18 @@ export default function Auth() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 rounded-xl"
+                className={INPUT_CLASS}
                 disabled={isLoading}
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <label htmlFor="password" className="text-sm font-medium text-purple-200">Password</label>
                 <button
                   type="button"
                   onClick={() => { setMode('forgot-password'); }}
-                  className="text-xs text-primary hover:underline min-h-[44px] flex items-center"
+                  className="text-xs text-cyan-400 hover:underline min-h-[44px] flex items-center"
                 >
                   Forgot password?
                 </button>
@@ -701,13 +743,13 @@ export default function Auth() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 rounded-xl pr-12"
+                  className={`${INPUT_CLASS} pr-12`}
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-purple-400 hover:text-white"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -715,27 +757,27 @@ export default function Auth() {
               </div>
             </div>
 
-            <Button
+            <button
               type="submit"
-              className="w-full h-12 rounded-xl font-semibold"
+              className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
               disabled={isLoading}
             >
               {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Signing in...
-                </>
+                </span>
               ) : (
                 'Sign In'
               )}
-            </Button>
+            </button>
           </form>
 
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="text-center text-xs text-purple-300/70">
             Don't have an account?{' '}
             <button
               onClick={() => { resetForm(); setMode('signup'); }}
-              className="text-primary hover:underline font-medium"
+              className="text-cyan-400 hover:underline font-medium"
             >
               Sign up
             </button>
@@ -758,13 +800,12 @@ export default function Auth() {
 
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
-          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-        }}>
-          <div className="w-full max-w-sm space-y-6" ref={formRef}>
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe relative" style={{ background: AUTH_BG }}>
+          <div className="absolute inset-0 retro-scanlines opacity-[0.03] pointer-events-none" />
+          <div className="w-full max-w-sm space-y-6 relative z-[1]" ref={formRef}>
           <button
             onClick={() => { resetForm(); setMode('welcome'); }}
-            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-purple-400 hover:text-white transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
@@ -772,30 +813,31 @@ export default function Auth() {
           {emailSent ? (
             /* Inline email verification confirmation */
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
+                style={{ background: 'hsl(120 30% 18%)', border: '2px solid hsl(120 50% 35%)', boxShadow: '0 0 12px hsl(120 80% 40% / 0.2)' }}
+              >
+                <CheckCircle2 className="w-8 h-8 text-green-400" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-xl font-bold">Verify your email</h2>
-                <p className="text-sm text-muted-foreground">
+                <h2 className="text-xl font-bold text-white">Verify your email</h2>
+                <p className="text-sm text-purple-300/70">
                   We sent a confirmation link to
                 </p>
-                <p className="text-sm font-semibold text-foreground">{emailSentTo}</p>
+                <p className="text-sm font-semibold text-cyan-400">{emailSentTo}</p>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-purple-400/70">
                 Click the link in the email to activate your account. Check your spam folder if you don't see it.
               </p>
               <div className="pt-2 space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full h-12 rounded-xl"
+                <button
+                  className="retro-arcade-btn retro-arcade-btn-green w-full py-3 text-sm"
                   onClick={() => { resetForm(); setMode('email-password'); }}
                 >
                   I've verified — Sign in
-                </Button>
+                </button>
                 <button
                   onClick={() => { setEmailSent(false); }}
-                  className="text-sm text-muted-foreground hover:text-foreground"
+                  className="text-sm text-purple-400 hover:text-white transition-colors"
                 >
                   Didn't receive it? Try again
                 </button>
@@ -804,20 +846,30 @@ export default function Auth() {
           ) : (
             <>
               <div className="text-center space-y-2">
-                <img
-                  src="/app-icon.png"
-                  alt="NoMo"
-                  className="w-14 h-14 mx-auto mb-4 rounded-xl shadow-md"
-                />
-                <h2 className="text-xl font-bold">Create Account</h2>
-                <p className="text-sm text-muted-foreground">
+                <div className="relative inline-block mb-3">
+                  <div
+                    className="absolute inset-0 rounded-full blur-xl scale-[2]"
+                    style={{ background: 'hsl(280 80% 50% / 0.1)' }}
+                  />
+                  <img
+                    src="/app-icon.png"
+                    alt="NoMo"
+                    className="relative w-14 h-14 mx-auto rounded-xl"
+                    style={{
+                      border: '2px solid hsl(280 50% 45%)',
+                      boxShadow: '0 0 12px hsl(280 80% 40% / 0.3)',
+                    }}
+                  />
+                </div>
+                <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Create Account</h2>
+                <p className="text-sm text-purple-300/70">
                   Join NoMo and sync your progress
                 </p>
               </div>
 
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                  <label htmlFor="email" className="text-sm font-medium text-purple-200">Email</label>
                   <Input
                     id="email"
                     type="email"
@@ -826,13 +878,13 @@ export default function Auth() {
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-12 rounded-xl"
+                    className={INPUT_CLASS}
                     disabled={isLoading}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                  <label htmlFor="password" className="text-sm font-medium text-purple-200">Password</label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -841,13 +893,13 @@ export default function Auth() {
                       placeholder="Create a strong password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-12 rounded-xl pr-12"
+                      className={`${INPUT_CLASS} pr-12`}
                       disabled={isLoading}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-purple-400 hover:text-white"
                       tabIndex={-1}
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -865,11 +917,11 @@ export default function Auth() {
                       ].map(({ met, label }) => (
                         <div key={label} className="flex items-center gap-1.5">
                           {met ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
                           ) : (
-                            <Circle className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
+                            <Circle className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
                           )}
-                          <span className={`text-[11px] ${met ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          <span className={`text-[11px] ${met ? 'text-green-400' : 'text-purple-500'}`}>
                             {label}
                           </span>
                         </div>
@@ -878,27 +930,27 @@ export default function Auth() {
                   )}
                 </div>
 
-                <Button
+                <button
                   type="submit"
-                  className="w-full h-12 rounded-xl font-semibold"
+                  className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       Creating account...
-                    </>
+                    </span>
                   ) : (
                     'Create Account'
                   )}
-                </Button>
+                </button>
               </form>
 
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-xs text-purple-300/70">
                 Already have an account?{' '}
                 <button
                   onClick={() => { resetForm(); setMode('email-password'); }}
-                  className="text-primary hover:underline font-medium"
+                  className="text-cyan-400 hover:underline font-medium"
                 >
                   Sign in
                 </button>
@@ -915,30 +967,31 @@ export default function Auth() {
   if (mode === 'forgot-password') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
-          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-        }}>
-          <div className="w-full max-w-sm space-y-6">
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe relative" style={{ background: AUTH_BG }}>
+          <div className="absolute inset-0 retro-scanlines opacity-[0.03] pointer-events-none" />
+          <div className="w-full max-w-sm space-y-6 relative z-[1]">
           <button
             onClick={() => setMode('email-password')}
-            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-purple-400 hover:text-white transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
 
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Lock className="w-7 h-7 text-primary" />
+            <div className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center"
+              style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)', boxShadow: '0 0 12px hsl(260 80% 50% / 0.2)' }}
+            >
+              <PixelIcon name="ice-cube" size={32} />
             </div>
-            <h2 className="text-xl font-bold">Reset Password</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Reset Password</h2>
+            <p className="text-sm text-purple-300/70">
               Enter your email and we'll send you a link to reset your password
             </p>
           </div>
 
           <form onSubmit={handleForgotPassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <label htmlFor="email" className="text-sm font-medium text-purple-200">Email</label>
               <Input
                 id="email"
                 type="email"
@@ -947,32 +1000,32 @@ export default function Auth() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 rounded-xl"
+                className={INPUT_CLASS}
                 disabled={isLoading}
               />
             </div>
 
-            <Button
+            <button
               type="submit"
-              className="w-full h-12 rounded-xl font-semibold"
+              className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
               disabled={isLoading}
             >
               {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Sending...
-                </>
+                </span>
               ) : (
                 'Send Reset Link'
               )}
-            </Button>
+            </button>
           </form>
 
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="text-center text-xs text-purple-300/70">
             Remember your password?{' '}
             <button
               onClick={() => { resetForm(); setMode('email-password'); }}
-              className="text-primary hover:underline font-medium"
+              className="text-cyan-400 hover:underline font-medium"
             >
               Sign in
             </button>
@@ -987,30 +1040,31 @@ export default function Auth() {
   if (mode === 'reset-password') {
     return (
       <PageErrorBoundary pageName="authentication page">
-        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe" style={{
-          background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)'
-        }}>
-          <div className="w-full max-w-sm space-y-6">
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-safe pb-safe relative" style={{ background: AUTH_BG }}>
+          <div className="absolute inset-0 retro-scanlines opacity-[0.03] pointer-events-none" />
+          <div className="w-full max-w-sm space-y-6 relative z-[1]">
           <button
             onClick={() => { resetForm(); setMode('welcome'); navigate('/auth', { replace: true }); }}
-            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2"
+            className="min-h-[44px] min-w-[44px] flex items-center text-sm text-purple-400 hover:text-white transition-colors -ml-2 px-2"
           >
             ← Back
           </button>
 
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Lock className="w-7 h-7 text-primary" />
+            <div className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center"
+              style={{ background: 'hsl(260 30% 18%)', border: '2px solid hsl(260 40% 35%)', boxShadow: '0 0 12px hsl(260 80% 50% / 0.2)' }}
+            >
+              <PixelIcon name="sword" size={32} />
             </div>
-            <h2 className="text-xl font-bold">Set New Password</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-xl font-bold text-white" style={{ textShadow: '0 0 10px hsl(260 80% 70% / 0.3)' }}>Set New Password</h2>
+            <p className="text-sm text-purple-300/70">
               Enter your new password below
             </p>
           </div>
 
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">New Password</Label>
+              <label htmlFor="password" className="text-sm font-medium text-purple-200">New Password</label>
               <div className="relative">
                 <Input
                   id="password"
@@ -1019,13 +1073,13 @@ export default function Auth() {
                   placeholder="Create a strong password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 rounded-xl pr-12"
+                  className={`${INPUT_CLASS} pr-12`}
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-purple-400 hover:text-white"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -1034,7 +1088,7 @@ export default function Auth() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
+              <label htmlFor="confirmPassword" className="text-sm font-medium text-purple-200">Confirm Password</label>
               <Input
                 id="confirmPassword"
                 type={showPassword ? 'text' : 'password'}
@@ -1042,28 +1096,28 @@ export default function Auth() {
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="h-12 rounded-xl"
+                className={INPUT_CLASS}
                 disabled={isLoading}
               />
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-xs text-red-500">Passwords don't match</p>
+                <p className="text-xs text-red-400">Passwords don't match</p>
               )}
             </div>
 
-            <Button
+            <button
               type="submit"
-              className="w-full h-12 rounded-xl font-semibold"
+              className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider"
               disabled={isLoading}
             >
               {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Updating...
-                </>
+                </span>
               ) : (
                 'Update Password'
               )}
-            </Button>
+            </button>
           </form>
         </div>
         </div>
