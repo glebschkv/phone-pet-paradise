@@ -11,7 +11,6 @@ import {
   Image,
   Check,
   Palette,
-  Clock,
 } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
@@ -31,7 +30,6 @@ export const BackgroundGrid = memo(({
   onSelectBackground,
 }: BackgroundGridProps) => {
   const handleClick = useCallback((bg: PremiumBackground, owned: boolean) => {
-    if (bg.comingSoon && !owned) return;
     if (owned) {
       onEquipBackground(bg.id);
     } else {
@@ -89,21 +87,16 @@ const BackgroundCard = memo(({
   isEquipped,
   onClick,
 }: BackgroundCardProps) => {
-  const isComingSoon = bg.comingSoon && !owned;
-
   return (
     <button
       onClick={onClick}
       className={cn(
-        "relative rounded-lg overflow-hidden transition-all border",
-        isComingSoon
-          ? "border-[hsl(260,15%,22%)] opacity-60"
-          : "active:scale-[0.97]",
-        !isComingSoon && isEquipped
+        "relative rounded-lg overflow-hidden transition-all border active:scale-[0.97]",
+        isEquipped
           ? "border-[hsl(280,50%,55%)] ring-1 ring-[hsl(280,50%,55%)]"
-          : !isComingSoon && owned
+          : owned
           ? "border-[hsl(180,40%,40%)]"
-          : !isComingSoon ? "border-[hsl(260,25%,25%)]" : ""
+          : "border-[hsl(260,25%,25%)]"
       )}
     >
       {/* Background Preview */}
@@ -123,14 +116,7 @@ const BackgroundCard = memo(({
         )}
 
         {/* Status overlay */}
-        {isComingSoon && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <div className="bg-[hsl(260,25%,25%)] border border-[hsl(260,20%,35%)] rounded-lg px-3 py-1 shadow-lg transform -rotate-3">
-              <span className="text-[10px] font-black text-[hsl(260,15%,55%)] uppercase tracking-wide">Coming Soon</span>
-            </div>
-          </div>
-        )}
-        {isEquipped && !isComingSoon && (
+        {isEquipped && (
           <div className="absolute inset-0 bg-[hsl(280,50%,40%)]/30 flex items-center justify-center">
             <div className="bg-[hsl(280,50%,45%)] rounded-full px-2 py-0.5 flex items-center gap-1">
               <Palette className="w-3 h-3 text-white" />
@@ -138,14 +124,14 @@ const BackgroundCard = memo(({
             </div>
           </div>
         )}
-        {owned && !isEquipped && !isComingSoon && (
+        {owned && !isEquipped && (
           <div className="absolute top-1 right-1">
             <div className="bg-[hsl(180,50%,40%)] rounded-full p-0.5">
               <Check className="w-3 h-3 text-white" />
             </div>
           </div>
         )}
-        {!owned && !isComingSoon && (
+        {!owned && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <div className="bg-gradient-to-r from-[hsl(35,70%,45%)] to-[hsl(25,65%,40%)] text-white px-2 py-0.5 rounded-full flex items-center gap-1 border border-[hsl(35,60%,55%)]">
               <ShoppingBag className="w-3 h-3" />
@@ -166,19 +152,13 @@ const BackgroundCard = memo(({
       {/* Info */}
       <div className={cn(
         "p-2 text-left",
-        isComingSoon ? "bg-[hsl(260,15%,12%)]" :
         isEquipped ? "bg-[hsl(280,20%,15%)]" :
         owned ? "bg-[hsl(260,20%,15%)]" : "bg-[hsl(260,20%,14%)]"
       )}>
         <span className="text-[11px] font-bold block leading-tight truncate text-[hsl(45,20%,80%)]">
           {bg.name}
         </span>
-        {isComingSoon ? (
-          <div className="flex items-center gap-1 text-[9px] font-bold text-[hsl(260,10%,40%)]">
-            <Clock className="w-2.5 h-2.5" />
-            Coming Soon
-          </div>
-        ) : owned ? (
+        {owned ? (
           <span className="text-[9px] text-[hsl(280,50%,65%)] font-medium">
             {isEquipped ? "Tap to unequip" : "Tap to equip"}
           </span>
