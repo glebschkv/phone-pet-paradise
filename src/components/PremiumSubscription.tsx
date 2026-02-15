@@ -293,7 +293,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
             </div>
             <div className="text-right flex-shrink-0 ml-3">
               <span className={cn("text-2xl font-black retro-pixel-text", config.neonClass)}>
-                {plan.price}
+                {storeKit.getLocalizedPrice(plan.iapProductId, plan.price)}
               </span>
               <span className="text-[10px] block" style={{ color: 'hsl(260 20% 50%)' }}>
                 {plan.period === 'monthly' ? '/month' : plan.period === 'yearly' ? '/year' : 'one-time'}

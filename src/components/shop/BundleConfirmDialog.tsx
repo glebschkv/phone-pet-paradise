@@ -7,6 +7,7 @@ import { getAnimalById } from "@/data/AnimalDatabase";
 import { BOOSTER_TYPES } from "@/hooks/useCoinBooster";
 import { SpritePreview } from "./ShopPreviewComponents";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { useStoreKit } from "@/hooks/useStoreKit";
 
 interface BundleConfirmDialogProps {
   open: boolean;
@@ -23,10 +24,13 @@ export const BundleConfirmDialog = ({
   onPurchase,
   isPurchasing = false,
 }: BundleConfirmDialogProps) => {
+  const storeKit = useStoreKit();
+
   if (!bundle) return null;
 
   const isStarterBundle = 'contents' in bundle;
   const isCoinPack = 'coinAmount' in bundle;
+  const localizedPrice = storeKit.getLocalizedPrice(bundle.iapProductId, bundle.iapPrice);
 
   // Build contents list for starter bundles
   const contentItems: { icon: React.ReactNode; label: string; sublabel?: string; highlight?: boolean; variant?: 'legendary' | 'epic' }[] = [];
@@ -249,7 +253,7 @@ export const BundleConfirmDialog = ({
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>Buy for {bundle.iapPrice}</span>
+                  <span>Buy for {localizedPrice}</span>
                 </>
               )}
             </button>

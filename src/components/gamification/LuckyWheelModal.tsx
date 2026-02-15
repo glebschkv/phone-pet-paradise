@@ -217,8 +217,13 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
     }
   };
 
+  // Guard: don't open the Dialog until wheel data is ready.
+  // On iOS/Capacitor, opening a Dialog whose content crashes leaves an
+  // orphaned bg-black/60 overlay that blocks the entire screen.
+  const hasWheelData = wheelConfig && wheelConfig.segments.length > 0 && prizes.length > 0;
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open={isOpen && hasWheelData} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-sm p-0 overflow-hidden retro-modal">
         {/* Retro Header */}
         <div className="retro-modal-header">

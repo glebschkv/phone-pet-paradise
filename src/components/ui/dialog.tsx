@@ -15,23 +15,63 @@ const DialogClose = DialogPrimitive.Close
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    data-dialog-overlay=""
-    className={cn(
-      "fixed inset-0 z-50 bg-black/60  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      className
-    )}
-    onAnimationEnd={(e) => {
-      const el = e.currentTarget;
+>(({ className, ...props }, ref) => {
+  const innerRef = React.useRef<HTMLDivElement | null>(null);
+  const fallbackTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
+
+  // Merge forwarded ref with our internal ref
+  const setRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      innerRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+    },
+    [ref],
+  );
+
+  const hideOverlay = React.useCallback((el: HTMLElement) => {
+    if (el.getAttribute('data-state') === 'closed') {
+      el.style.display = 'none';
+    }
+    clearTimeout(fallbackTimerRef.current);
+  }, []);
+
+  // Fallback: when the overlay switches to data-state=closed, start a
+  // timer that hides it even if onAnimationEnd never fires (common on
+  // iOS/Capacitor when CSS animations are interrupted or suppressed).
+  React.useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+
+    const observer = new MutationObserver(() => {
       if (el.getAttribute('data-state') === 'closed') {
-        el.style.display = 'none';
+        clearTimeout(fallbackTimerRef.current);
+        fallbackTimerRef.current = setTimeout(() => hideOverlay(el), 350);
       }
-    }}
-    {...props}
-  />
-))
+    });
+
+    observer.observe(el, { attributes: true, attributeFilter: ['data-state'] });
+    return () => {
+      observer.disconnect();
+      clearTimeout(fallbackTimerRef.current);
+    };
+  }, [hideOverlay]);
+
+  return (
+    <DialogPrimitive.Overlay
+      ref={setRef}
+      data-dialog-overlay=""
+      className={cn(
+        "fixed inset-0 z-50 bg-black/60  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        className
+      )}
+      onAnimationEnd={(e) => {
+        hideOverlay(e.currentTarget);
+      }}
+      {...props}
+    />
+  );
+})
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const DialogContent = React.forwardRef<
