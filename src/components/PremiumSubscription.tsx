@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useNavigate } from 'react-router-dom';
 
 interface PremiumSubscriptionProps {
   isOpen: boolean;
@@ -131,6 +132,7 @@ const TIER_CONFIG = {
 export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProps) => {
   const { isPremium, currentPlan, purchaseSubscription, restorePurchases, tier, grantBonusCoins, isLifetime } = usePremiumStatus();
   const storeKit = useStoreKit();
+  const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -521,6 +523,23 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
             <p className="text-[9px] text-center leading-relaxed pb-1" style={{ color: 'hsl(260 15% 40%)' }}>
               Subscriptions auto-renew unless cancelled 24h before period ends. Manage in Apple ID settings.
             </p>
+            <div className="flex items-center justify-center gap-3 pb-2">
+              <button
+                onClick={() => { onClose(); navigate('/privacy'); }}
+                className="text-[9px] underline"
+                style={{ color: 'hsl(260 20% 50%)' }}
+              >
+                Privacy Policy
+              </button>
+              <span className="text-[9px]" style={{ color: 'hsl(260 15% 30%)' }}>|</span>
+              <button
+                onClick={() => { onClose(); navigate('/terms'); }}
+                className="text-[9px] underline"
+                style={{ color: 'hsl(260 20% 50%)' }}
+              >
+                Terms of Service
+              </button>
+            </div>
           </div>
         </>
       </DialogContent>

@@ -364,7 +364,7 @@ export const SettingsAccount = () => {
           </AlertDialog>
 
           <p className="text-[11px] text-muted-foreground mt-2 text-center">
-            Required by Apple App Store guidelines
+            This will permanently remove your account and all data
           </p>
         </div>
       )}
