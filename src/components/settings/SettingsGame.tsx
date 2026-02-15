@@ -11,12 +11,12 @@ interface SettingsGameProps {
 
 export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Toggles - Combined */}
-      <div className="retro-card p-4">
+      <div className="retro-game-card p-4">
         <div className="flex items-center gap-2 mb-4">
-          <Gamepad2 className="w-4 h-4 text-primary" />
-          <Label className="text-sm font-bold">Gameplay Options</Label>
+          <Gamepad2 className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-bold retro-pixel-text text-white">GAMEPLAY</span>
         </div>
 
         <div className="space-y-4">
@@ -30,8 +30,8 @@ export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
                 <HelpCircle className="w-4 h-4" />
               </div>
               <div>
-                <Label className="text-xs font-bold">Tutorial Hints</Label>
-                <p className="text-[11px] text-muted-foreground">Tips for new features and controls</p>
+                <Label className="text-xs font-bold text-white">Tutorial Hints</Label>
+                <p className="text-[11px] text-purple-300/80">Tips for new features and controls</p>
               </div>
             </div>
             <Switch
@@ -40,7 +40,7 @@ export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
             />
           </div>
 
-          <div className="border-t border-border/30" />
+          <div className="border-t border-purple-600/30" />
 
           {/* Auto-Save */}
           <div className="flex items-center justify-between">
@@ -52,8 +52,8 @@ export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
                 <Save className="w-4 h-4" />
               </div>
               <div>
-                <Label className="text-xs font-bold">Auto-Save</Label>
-                <p className="text-[11px] text-muted-foreground">Save progress automatically</p>
+                <Label className="text-xs font-bold text-white">Auto-Save</Label>
+                <p className="text-[11px] text-purple-300/80">Save progress automatically</p>
               </div>
             </div>
             <Switch
@@ -62,7 +62,7 @@ export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
             />
           </div>
 
-          <div className="border-t border-border/30" />
+          <div className="border-t border-purple-600/30" />
 
           {/* Haptic Feedback */}
           <div className="flex items-center justify-between">
@@ -74,8 +74,8 @@ export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
                 <Smartphone className="w-4 h-4" />
               </div>
               <div>
-                <Label className="text-xs font-bold">Haptic Feedback</Label>
-                <p className="text-[11px] text-muted-foreground">Vibration on interactions</p>
+                <Label className="text-xs font-bold text-white">Haptic Feedback</Label>
+                <p className="text-[11px] text-purple-300/80">Vibration on interactions</p>
               </div>
             </div>
             <Switch

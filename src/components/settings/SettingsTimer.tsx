@@ -12,12 +12,12 @@ interface SettingsTimerProps {
 
 export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Focus & Break Times - Combined Card */}
-      <div className="retro-card p-4">
+      <div className="retro-game-card p-4">
         <div className="flex items-center gap-2 mb-4">
-          <Timer className="w-4 h-4 text-primary" />
-          <Label className="text-sm font-bold">Session Durations</Label>
+          <Timer className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-bold retro-pixel-text text-white">SESSION DURATIONS</span>
         </div>
 
         <div className="space-y-5">
@@ -28,9 +28,9 @@ export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
                 <div className="w-7 h-7 retro-level-badge rounded-md flex items-center justify-center">
                   <Clock className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-xs font-semibold">Focus</span>
+                <span className="text-xs font-semibold text-white">Focus</span>
               </div>
-              <span className="text-sm font-bold text-primary">{settings.defaultFocusTime}m</span>
+              <span className="text-sm font-bold retro-pixel-text retro-neon-text">{settings.defaultFocusTime}m</span>
             </div>
             <Slider
               min={15}
@@ -49,9 +49,9 @@ export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
                 <div className="w-7 h-7 retro-stat-pill rounded-md flex items-center justify-center">
                   <Coffee className="w-3.5 h-3.5 text-muted-foreground" />
                 </div>
-                <span className="text-xs font-semibold">Short Break</span>
+                <span className="text-xs font-semibold text-white">Short Break</span>
               </div>
-              <span className="text-sm font-bold">{settings.shortBreakTime}m</span>
+              <span className="text-sm font-bold retro-pixel-text text-purple-300">{settings.shortBreakTime}m</span>
             </div>
             <Slider
               min={3}
@@ -70,9 +70,9 @@ export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
                 <div className="w-7 h-7 retro-stat-pill rounded-md flex items-center justify-center">
                   <Zap className="w-3.5 h-3.5 text-muted-foreground" />
                 </div>
-                <span className="text-xs font-semibold">Long Break</span>
+                <span className="text-xs font-semibold text-white">Long Break</span>
               </div>
-              <span className="text-sm font-bold">{settings.longBreakTime}m</span>
+              <span className="text-sm font-bold retro-pixel-text text-purple-300">{settings.longBreakTime}m</span>
             </div>
             <Slider
               min={10}
@@ -87,7 +87,7 @@ export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
       </div>
 
       {/* Notifications */}
-      <div className="retro-card p-4">
+      <div className="retro-game-card p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={cn(
@@ -97,8 +97,8 @@ export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
               <Bell className="w-4 h-4" />
             </div>
             <div>
-              <Label className="text-sm font-bold">Notifications</Label>
-              <p className="text-[11px] text-muted-foreground">Alert when timer ends</p>
+              <Label className="text-sm font-bold text-white">Notifications</Label>
+              <p className="text-[11px] text-purple-300/80">Alert when timer ends</p>
             </div>
           </div>
           <Switch
