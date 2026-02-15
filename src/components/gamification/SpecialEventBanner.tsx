@@ -76,7 +76,7 @@ export const SpecialEventBanner = ({ onClaimReward }: SpecialEventBannerProps) =
         {/* Compact view */}
         <div className="relative flex items-center justify-between p-3">
           <div className="flex items-center gap-3">
-            <PixelIcon name={activeEvent.emoji} size={28} />
+            <PixelIcon name={activeEvent.icon} size={28} />
             <div>
               <h3 className="text-white font-bold text-sm">{activeEvent.name}</h3>
               <div className="flex items-center gap-2 text-white/80 text-xs">

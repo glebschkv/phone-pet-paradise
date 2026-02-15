@@ -36,6 +36,7 @@ import {
   Trophy,
   Clock,
 } from 'lucide-react';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 // Feature flag - set to false when ready to launch Battle Pass
 const BATTLE_PASS_COMING_SOON = false;
@@ -128,7 +129,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
             <div className="retro-game-card p-4 retro-active-challenge">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 retro-icon-badge flex items-center justify-center">
-                  <span className="text-3xl">{activeEvents[0].emoji}</span>
+                  <PixelIcon name={activeEvents[0].icon} size={32} />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-white retro-pixel-text">
