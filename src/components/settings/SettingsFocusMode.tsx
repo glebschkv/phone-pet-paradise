@@ -225,99 +225,10 @@ export const SettingsFocusMode = () => {
             </div>
           )}
 
-          {/* Blocked Websites */}
-          <div className="retro-card p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-primary" />
-                <Label className="text-sm font-bold">Blocked Websites</Label>
-              </div>
-              {!isPremium && (
-                <div className="flex items-center gap-1 text-amber-500">
-                  <Crown className="w-3 h-3" />
-                  <span className="text-[11px] font-semibold">Premium</span>
-                </div>
-              )}
-            </div>
-
-            {isPremium ? (
-              <>
-                {/* Add website input */}
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="text"
-                    value={newWebsite}
-                    onChange={(e) => setNewWebsite(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddWebsite()}
-                    placeholder="Add website (e.g. reddit.com)"
-                    className="flex-1 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <button
-                    onClick={handleAddWebsite}
-                    className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Blocked websites list */}
-                <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                  {settings.blockedWebsites.map((website) => (
-                    <div
-                      key={website}
-                      className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800"
-                    >
-                      <span className="text-sm">{website}</span>
-                      <button
-                        onClick={() => removeBlockedWebsite(website)}
-                        className="w-6 h-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center"
-                      >
-                        <X className="w-3 h-3 text-muted-foreground" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Suggested websites */}
-                {settings.blockedWebsites.length < SUGGESTED_WEBSITES.length && (
-                  <div className="mt-3">
-                    <p className="text-[11px] text-muted-foreground mb-2">Suggested:</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {SUGGESTED_WEBSITES.filter(w => !settings.blockedWebsites.includes(w)).slice(0, 5).map((website) => (
-                        <button
-                          key={website}
-                          onClick={() => addBlockedWebsite(website)}
-                          className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-[11px] font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          + {website}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-4">
-                <Globe className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm font-medium mb-1">Website Blocking</p>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Block distracting websites during focus sessions
-                </p>
-                <button
-                  onClick={() => setShowPremiumModal(true)}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-500 text-white text-sm font-bold"
-                >
-                  Upgrade to Premium
-                </button>
-              </div>
-            )}
-          </div>
-
           {/* Info Card */}
           <div className="retro-stat-pill p-3">
             <p className="text-[11px] text-muted-foreground text-center">
               Focus Mode activates when you start a focus timer and deactivates when the session ends.
-              {!isPremium && " Upgrade to Premium to unlock website blocking."}
             </p>
           </div>
         </>

@@ -244,77 +244,7 @@ export const PetsTab = ({
         </div>
       )}
 
-      {/* Other Backgrounds Section */}
-      {backgroundsWithoutPreviews.length > 0 && (
-        <div>
-          <div className="shop-section-header">
-            <span className="shop-section-title">Backgrounds</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {backgroundsWithoutPreviews.map((bg) => {
-              const owned = isOwned(bg.id, 'customize');
-              const affordable = canAfford(bg.coinPrice || 0);
-              const isEquipped = inventory.equippedBackground === bg.id;
-              const isComingSoon = bg.comingSoon && !owned;
-              return (
-                <button
-                  key={bg.id}
-                  onClick={() => {
-                    if (isComingSoon) return;
-                    if (owned) {
-                      handleEquipBackground(bg.id, { stopPropagation: () => {} } as React.MouseEvent);
-                    } else {
-                      setSelectedItem(bg);
-                      setShowPurchaseConfirm(true);
-                    }
-                  }}
-                  className={cn(
-                    "shop-grid-card relative",
-                    isComingSoon && "opacity-60",
-                    isEquipped && "equipped",
-                    !isEquipped && owned && "owned"
-                  )}
-                >
-                  {bg.isLimited && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                      <Clock className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                  {isEquipped ? (
-                    <div className="absolute top-1 right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
-                      <Palette className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  ) : owned && (
-                    <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                  <PixelIcon name={bg.icon} size={24} className="block mb-1" />
-                  <span className="text-[10px] font-bold block leading-tight">{bg.name}</span>
-                  {isComingSoon ? (
-                    <div className="flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold text-gray-400 dark:text-gray-500">
-                      <Clock className="w-2.5 h-2.5" />
-                      Soon
-                    </div>
-                  ) : owned ? (
-                    <div className="text-[8px] font-medium mt-1 text-purple-600 dark:text-purple-400">
-                      {isEquipped ? "Unequip" : "Equip"}
-                    </div>
-                  ) : (
-                    <div className={cn(
-                      "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
-                      affordable ? "text-amber-600" : "text-red-500"
-                    )}>
-                      <PixelIcon name="coin" size={10} />
-                      {bg.coinPrice?.toLocaleString()}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Other Backgrounds Section - hidden until real background assets are available */}
     </div>
   );
 };

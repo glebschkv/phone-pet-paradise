@@ -39,6 +39,9 @@ export const BackgroundGrid = memo(({
     }
   }, [onEquipBackground, onSelectBackground]);
 
+  // Only show backgrounds that have real preview images
+  const visibleBackgrounds = PREMIUM_BACKGROUNDS.filter(bg => bg.previewImage);
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-1">
@@ -48,7 +51,7 @@ export const BackgroundGrid = memo(({
         </span>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {PREMIUM_BACKGROUNDS.map((bg) => {
+        {visibleBackgrounds.map((bg) => {
           const owned = ownedBackgrounds.includes(bg.id);
           const isEquipped = equippedBackground === bg.id;
 

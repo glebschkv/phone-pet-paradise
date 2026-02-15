@@ -61,10 +61,10 @@ const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string; coming
   '10 Focus presets': { icon: <Settings className="w-3.5 h-3.5" />, label: '10 Presets' },
   'Everything in Premium': { icon: <Check className="w-3.5 h-3.5" />, label: 'All Premium' },
   'Everything in Premium+': { icon: <Check className="w-3.5 h-3.5" />, label: 'All Premium+' },
-  'Battle Pass Premium included': { icon: <Award className="w-3.5 h-3.5" />, label: 'Battle Pass', comingSoon: true },
-  'Early access to features': { icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Early Access' },
+  'Battle Pass Premium included': { icon: <Award className="w-3.5 h-3.5" />, label: 'Battle Pass' },
+  'Early access to features': { icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Priority Updates' },
   'All timer backgrounds': { icon: <Palette className="w-3.5 h-3.5" />, label: 'All Backgrounds' },
-  'Exclusive profile frames': { icon: <Star className="w-3.5 h-3.5" />, label: 'Profile Frames', comingSoon: true },
+  'Exclusive profile frames': { icon: <Star className="w-3.5 h-3.5" />, label: 'Profile Frames' },
   'No recurring fees ever': { icon: <InfinityIcon className="w-3.5 h-3.5" />, label: 'Pay Once' },
   'All future updates included': { icon: <RefreshCw className="w-3.5 h-3.5" />, label: 'All Updates' },
   'Exclusive Founder badge': { icon: <PixelIcon name="founder-badge" size={14} />, label: 'Founder Badge' },
@@ -324,19 +324,6 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                   >
                     {mapped?.label || feature}
                   </span>
-                  {mapped?.comingSoon && (
-                    <span
-                      className="absolute -top-1.5 -right-1 px-1 py-0.5 rounded text-[6px] font-black uppercase"
-                      style={{
-                        background: 'linear-gradient(180deg, hsl(200 70% 50%), hsl(200 75% 40%))',
-                        color: 'white',
-                        border: '1px solid hsl(200 60% 60%)',
-                        boxShadow: '0 0 4px hsl(200 100% 50% / 0.4)',
-                      }}
-                    >
-                      Soon
-                    </span>
-                  )}
                 </div>
               );
             })}
