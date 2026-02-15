@@ -1025,13 +1025,14 @@ const StepFocusShield = () => {
             <button
               onClick={handleEnable}
               disabled={isLoading}
-              className="w-full py-3.5 px-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.97]"
+              className="w-full py-4 px-5 rounded-2xl font-black text-base tracking-wide transition-all active:scale-[0.97]"
               style={{
                 background: 'linear-gradient(180deg, hsl(260 65% 62%) 0%, hsl(265 55% 48%) 100%)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 16px rgba(120,60,220,0.35)',
+                border: '2px solid rgba(255,255,255,0.2)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 20px rgba(120,60,220,0.45), 0 2px 4px rgba(0,0,0,0.2)',
                 color: 'white',
                 opacity: isLoading ? 0.6 : 1,
+                letterSpacing: '0.02em',
               }}
             >
               <Lock className="w-4 h-4 inline mr-2" />
