@@ -57,25 +57,56 @@ export const useTimerControls = ({
 
   const requestStartTimer = useCallback(() => {
     if (selectedPreset.type === 'break') {
+      // Breaks resume immediately without intention modal
       const now = Date.now();
       setDisplayTime(timerState.timeLeft);
       saveTimerState({
         isRunning: true,
         startTime: now,
-        // Use timeLeft as new sessionDuration so countdown math works from
-        // the remaining time, but preserve the original sessionDuration for
-        // analytics if this is a resume from pause.
         sessionDuration: timerState.timeLeft,
         category: undefined,
         taskLabel: undefined,
       });
+    } else if (timerState.category && !timerState.isRunning) {
+      // Resuming a paused session — skip the intention modal
+      // and reuse the saved category / taskLabel
+      const now = Date.now();
+      if (timerState.isCountup) {
+        setDisplayTime(timerState.elapsedTime || 0);
+        saveTimerState({
+          isRunning: true,
+          startTime: now,
+          sessionDuration: MAX_COUNTUP_DURATION,
+          isCountup: true,
+        });
+      } else {
+        setDisplayTime(timerState.timeLeft);
+        saveTimerState({
+          isRunning: true,
+          startTime: now,
+          sessionDuration: timerState.timeLeft,
+        });
+      }
+
+      // Re-block apps on resume
+      if (selectedPreset.type !== 'break') {
+        markBlockingActive();
+        startAppBlocking().catch((e) => {
+          timerLogger.error('Failed to restart app blocking on resume:', e);
+        });
+      }
+
+      // Re-schedule completion notification for remaining time
+      const durationSec = timerState.isCountup
+        ? MAX_COUNTUP_DURATION - (timerState.elapsedTime || 0)
+        : timerState.timeLeft;
+      scheduleTimerCompletionNotification(durationSec);
     } else if (selectedPreset.isCountup) {
-      // Countup mode also requires intention
       setShowIntentionModal(true);
     } else {
       setShowIntentionModal(true);
     }
-  }, [saveTimerState, timerState.timeLeft, selectedPreset.type, selectedPreset.isCountup, setDisplayTime, setShowIntentionModal]);
+  }, [saveTimerState, timerState.timeLeft, timerState.category, timerState.isRunning, timerState.isCountup, timerState.elapsedTime, selectedPreset.type, selectedPreset.isCountup, setDisplayTime, setShowIntentionModal, startAppBlocking, scheduleTimerCompletionNotification]);
 
   const startTimerWithIntent = useCallback(async (category: FocusCategory, taskLabel?: string) => {
     setShowIntentionModal(false);
@@ -97,14 +128,19 @@ export const useTimerControls = ({
         isCountup: true,
       });
     } else {
-      // Countdown mode: start from timeLeft
+      // Countdown mode: start/resume from timeLeft
       setDisplayTime(timerState.timeLeft);
       saveTimerState({
         isRunning: true,
         startTime: now,
+        // Use timeLeft as sessionDuration so the countdown math
+        // (sessionDuration - elapsed) counts down from the remaining time.
+        // Preserve the original sessionDuration for analytics via a
+        // separate field if needed, but the countdown engine needs
+        // sessionDuration = timeLeft for correct tick behavior.
         sessionDuration: timerState.timeLeft,
-        category,
-        taskLabel,
+        category: category ?? timerState.category,
+        taskLabel: taskLabel ?? timerState.taskLabel,
       });
     }
 
@@ -195,7 +231,15 @@ export const useTimerControls = ({
 
     // Cancel the scheduled completion notification
     cancelTimerCompletionNotification();
-  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, selectedPreset.duration, setDisplayTime, cancelTimerCompletionNotification, triggerHaptic]);
+
+    // Unblock apps while paused — they will be re-blocked on resume
+    const isWorkSession = timerState.sessionType !== 'break';
+    if (isWorkSession && hasAppsConfigured) {
+      stopAppBlocking().catch((e) => {
+        timerLogger.error('Failed to pause app blocking:', e);
+      });
+    }
+  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, timerState.sessionType, selectedPreset.duration, setDisplayTime, cancelTimerCompletionNotification, triggerHaptic, hasAppsConfigured, stopAppBlocking]);
 
   const stopTimer = useCallback(async () => {
     triggerHaptic('light');

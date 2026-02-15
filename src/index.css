@@ -452,6 +452,15 @@ input, textarea, [contenteditable="true"] {
       inset 0 1px 0 hsl(0 0% 100% / 0.1);
   }
 
+  /* Dark override for stat pills inside arcade containers (settings page etc.) */
+  .retro-arcade-container .retro-stat-pill {
+    background: linear-gradient(180deg, hsl(260 30% 18%) 0%, hsl(260 25% 14%) 100%);
+    border-color: hsl(260 25% 25%);
+    box-shadow:
+      0 2px 0 hsl(260 25% 12%),
+      inset 0 1px 0 hsl(260 40% 30% / 0.2);
+  }
+
   /* Animated shine effect for XP bar */
   @keyframes xp-shine {
     0% { transform: translateX(-100%); }

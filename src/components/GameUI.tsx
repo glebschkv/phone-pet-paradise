@@ -52,9 +52,9 @@ export const GameUI = () => {
 
     const themeColors: Record<string, string> = {
       home: 'hsl(200, 60%, 85%)',
-      timer: 'hsl(200, 60%, 85%)',
+      timer: 'hsl(252, 40%, 16%)',
       collection: 'hsl(252, 40%, 16%)',
-      settings: 'hsl(200, 60%, 85%)',
+      settings: 'hsl(260, 30%, 12%)',
       shop: 'hsl(45, 50%, 92%)',
       challenges: 'hsl(280, 25%, 8%)',
     };
@@ -114,10 +114,9 @@ export const GameUI = () => {
                 currentTab === "shop" ? "bg-[hsl(45,50%,92%)]" :
                 currentTab === "collection" ? "collection-page-bg" :
                 currentTab === "timer" ? "" :
-                currentTab === "settings" ? "" :
+                currentTab === "settings" ? "bg-[hsl(260,30%,12%)]" :
                 "bg-background"
               }`}
-              style={currentTab === "settings" ? { background: 'linear-gradient(180deg, hsl(200 60% 85%) 0%, hsl(200 40% 92%) 50%, hsl(40 50% 93%) 100%)' } : undefined}
             >
               <TabContent
                 currentTab={currentTab}

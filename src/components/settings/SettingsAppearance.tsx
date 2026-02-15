@@ -33,8 +33,8 @@ export const SettingsAppearance = ({ settings, onUpdate }: SettingsAppearancePro
                 className={cn(
                   "relative p-3 rounded-lg flex flex-col items-center gap-2 transition-all active:scale-95",
                   isSelected
-                    ? "retro-game-card retro-active-challenge"
-                    : "retro-game-card"
+                    ? "bg-purple-500/20 border-2 border-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.3)]"
+                    : "bg-purple-900/30 border-2 border-purple-600/30"
                 )}
               >
                 {isSelected && (

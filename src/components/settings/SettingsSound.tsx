@@ -104,12 +104,12 @@ export const SettingsSound = ({ settings, onUpdate }: SettingsSoundProps) => {
                       className={cn(
                         "flex-1 p-2.5 rounded-lg flex flex-col items-center gap-1 transition-all active:scale-95",
                         isSelected
-                          ? "retro-game-card retro-active-challenge"
-                          : "retro-game-card"
+                          ? "retro-level-badge"
+                          : "bg-purple-900/30 border-2 border-purple-600/30"
                       )}
                     >
-                      <Icon className={cn("w-4 h-4", isSelected ? "text-cyan-400" : "text-purple-300/60")} />
-                      <span className="text-[11px] font-bold text-white">{theme.label}</span>
+                      <Icon className={cn("w-4 h-4", isSelected ? "" : "text-purple-300/60")} />
+                      <span className={cn("text-[11px] font-bold", isSelected ? "" : "text-purple-300/80")}>{theme.label}</span>
                     </button>
                   );
                 })}
