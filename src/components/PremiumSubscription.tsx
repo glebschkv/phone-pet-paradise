@@ -39,7 +39,7 @@ interface PremiumSubscriptionProps {
 }
 
 // Compact feature display
-const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string; comingSoon?: boolean }> = {
+const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string }> = {
   '1.5x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '1.5x Coins & XP' },
   '2x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '2x Coins & XP' },
   '2.5x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '2.5x Coins & XP' },
@@ -311,7 +311,6 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                   className={cn(
                     "flex items-center gap-1.5 px-2 py-1.5 rounded border relative",
                     config.featureBorder,
-                    mapped?.comingSoon && "opacity-75",
                   )}
                   style={{
                     background: 'linear-gradient(180deg, hsl(260 25% 22%) 0%, hsl(260 30% 17%) 100%)',
