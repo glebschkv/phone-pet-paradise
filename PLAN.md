@@ -1,150 +1,248 @@
-# App Store Review Rejection Fix Plan
+# Settings Rebrand Plan — From "AI Web App" to Native Game Feel
 
-> **Submission ID:** 16f77c25-7992-4867-b251-4a99292d192d
-> **Review Date:** February 15, 2026
-> **App:** NoMo Phone v1.0
+## Problem
 
-Apple rejected the app for 4 guidelines. This plan addresses each one with root-cause analysis, exact file locations, and specific code changes.
+The Settings page uses generic shadcn/Radix UI components (`retro-card`, plain `Switch`, `Label`, `Slider`, `AlertDialog`) with minimal game theming. Compared to the Gamification Hub (which uses `retro-arcade-container`, `retro-game-card`, `retro-neon-text`, `retro-pixel-text`, `retro-arcade-btn`, neon glows, and scanline overlays), Settings looks like a different app entirely — a generic web admin panel rather than part of a retro pixel game.
 
----
+## Design Principles
 
-## Issue 1: Guideline 2.2 — Beta Testing (App appears to be pre-release)
+1. **Match the Arcade/Retro identity** — Use the same visual language as GamificationHub, Shop, and Collection
+2. **Stay usable** — Settings still needs to be scannable, logical, and easy to tap. No sacrificing clarity for aesthetics
+3. **Don't go overboard** — Settings is a utility page, not a game screen. Use the retro DNA subtly — themed header, card borders, button styles — without making it look like a game level
+4. **No AI slop** — Avoid overly polished gradients, glass morphism, perfect shadows. Lean into the pixel/retro personality that makes the rest of the app distinctive
 
-### Root Cause
-
-Apple's reviewer saw multiple signals that the app is incomplete/beta:
-
-**Signal A — VersionNotice.tsx modal on first launch**
-- File: `src/components/VersionNotice.tsx`
-- Lines 54-57 display: *"This app is built by a solo indie developer. Sorry if you run into any bugs or rough edges — it's still early days and things are actively being improved."*
-- The phrase "still early days" and "bugs or rough edges" directly tells Apple this is a beta.
-
-**Signal B — Battle Pass is visible but greyed out with "COMING SOON"**
-- File: `src/components/gamification/GamificationHub.tsx:41`
-- `BATTLE_PASS_COMING_SOON = true` — the feature is fully built (4 seasons, 50-tier progression, reward claiming, modal UI, hooks) but disabled behind a feature flag.
-- The Battle Pass card is visible in the Gamification Hub but greyed out with a "COMING SOON" overlay.
-
-**Signal C — 14 premium backgrounds displayed with "Coming Soon" overlays**
-- File: `src/data/ShopData.ts` (lines 101-193)
-- All 14 premium backgrounds have `comingSoon: true` — they show in the shop with prices but cannot be purchased.
-- Backgrounds: Sakura, Cyberpunk, Aurora, Crystal Cave, Volcano, Space, Underwater, Halloween, Winter Wonderland + 5 Sky Bundle items.
-
-**Signal D — All special events and battle pass seasons have expired dates**
-- File: `src/data/GamificationData.ts`
-- All 4 special events have dates in Dec 2024 / Jan 2025 (over a year ago).
-- All 4 battle pass seasons ended before Feb 2026.
-- `getActiveEvents()` returns an empty array — event banners never show.
-
-### Fix Plan
-
-| # | Change | File(s) | Details |
-|---|--------|---------|---------|
-| 1A | **Rewrite VersionNotice copy** | `src/components/VersionNotice.tsx:54-57` | Remove "bugs or rough edges" and "still early days". Replace with confident, neutral language like: *"This app is built by a solo indie developer. Your feedback helps make it better — reach out anytime."* Keep the bug report email but frame it as feedback, not an expectation of bugs. |
-| 1B | **Enable Battle Pass** | `src/components/gamification/GamificationHub.tsx:41` | Set `BATTLE_PASS_COMING_SOON = false`. |
-| 1C | **Update Battle Pass season dates** | `src/data/GamificationData.ts` | Update all 4 season start/end dates to current/future dates (e.g., Winter 2026: Feb-Apr, Spring 2026: Apr-Jun, Summer 2026: Jun-Aug, Fall 2026: Aug-Oct). |
-| 1D | **Enable premium backgrounds OR hide them** | `src/data/ShopData.ts` | **Option A (recommended):** Remove `comingSoon: true` from all backgrounds that have working theme assets. **Option B:** Remove `comingSoon` backgrounds from the shop listing entirely so they don't appear as unfinished features. |
-| 1E | **Update special event dates** | `src/data/GamificationData.ts` | Update the 4 event dates to upcoming dates in 2026, or remove them if not ready. |
+## Changes (by file)
 
 ---
 
-## Issue 2: Guideline 4.0 — Sign in with Apple Button Design
+### 1. `Settings.tsx` — Main Container & Tabs
 
-### Root Cause
+**Header:**
+- Replace `retro-card` wrapper with `retro-arcade-container` background on the whole page (adds CRT scanline effect, matching GamificationHub)
+- Replace the plain header with the same pattern as GamificationHub: gradient bar with `border-b-4 border-purple-600/50`, purple/pink gradient background overlay, and `retro-icon-badge` for the settings icon
+- Make "SETTINGS" title use `retro-pixel-text retro-neon-text` (uppercase pixel font with cyan glow, like "ARCADE" header)
+- Subtitle stays muted purple (`text-purple-300/80`)
 
-The Sign in with Apple button is a fully custom-styled `<button>` element that doesn't follow Apple's Human Interface Guidelines. The issue is specifically about the button not looking clearly like a button — lacking sufficient border contrast or background.
+**Tab Navigation:**
+- Replace inline `style={}` gradient tabs with `retro-arcade-btn` variants
+- Active tab: `retro-arcade-btn retro-arcade-btn-yellow` (gold retro button, matching the game's active states)
+- Inactive tab: `retro-game-card` background with muted text
+- Keep horizontal scroll behavior, keep icons + labels
+- Add `retro-pixel-text` to tab labels for consistency
 
-- File: `src/pages/Auth.tsx:469-493`
-- Current styling: Dark gradient background (`hsl(0 0% 12%)` to `hsl(0 0% 5%)`) with a `2px solid hsl(0 0% 22%)` border.
-- On a dark-themed app, this creates very low contrast between the button and the surrounding background, making it hard to tell what is and isn't a button.
-- Apple's HIG requires Sign in with Apple buttons to be clearly recognizable and use one of the standard Apple button styles (black, white, or outlined).
-
-### Fix Plan
-
-| # | Change | File(s) | Details |
-|---|--------|---------|---------|
-| 2A | **Replace custom button with Apple's standard ASAuthorizationAppleIDButton** | `src/pages/Auth.tsx:469-493` | The safest approach is to use Apple's official `ASAuthorizationAppleIDButton` component rendered natively, or closely replicate Apple's standard button style. Two options: |
-| | **Option A (recommended): Use Apple's official button style** | `src/pages/Auth.tsx` | Style the button to exactly match Apple's Sign in with Apple button specification: solid black or white background, full-width, minimum 44pt height, Apple logo + "Sign in with Apple" text using SF Pro or system font, and rounded corners per HIG spec. Apple provides exact CSS/design specs. The button should have a clearly visible, opaque background (solid black `#000000` with white text and Apple logo, or solid white `#FFFFFF` with black text). |
-| | **Option B: Native ASAuthorizationAppleIDButton** | `ios/App/App/Sources/` + `src/pages/Auth.tsx` | Create a native Capacitor plugin that renders the real `ASAuthorizationAppleIDButton` from AuthenticationServices framework. This guarantees compliance but requires more work. |
-
-**Key requirements from Apple HIG:**
-- Button must have a solid, opaque background (black, white, or outlined)
-- Must use Apple's SF Symbol for the Apple logo or the official Apple logo asset
-- Text must be "Sign in with Apple" or "Continue with Apple"
-- Minimum height of 44pt
-- Border radius should match Apple's specs
-- No additional decorative elements inside the button that obscure its identity as a button
+**Content Area:**
+- Keep `ScrollArea` with `flex-1 min-h-0`
+- Change wrapper padding to match GamificationHub (`p-4 space-y-4 pb-6`)
 
 ---
 
-## Issue 3: Guideline 5.1.1 — Screen Time Permission Request
+### 2. `SettingsProfile.tsx` — Avatar & Display Name
 
-### Root Cause
+**Card wrapper:**
+- Replace `retro-card` with `retro-game-card`
+- Section header: Replace plain `<Label>` with styled row using `retro-pixel-text` + colored icon (like how GamificationHub does "HOW TO PLAY")
 
-Apple's objection is about the custom button text **"Enable Focus Shield"** that appears before the system permission dialog. Apple considers this to be an inappropriate word on a button preceding a permission request — the button should use neutral words like "Continue" or "Next" rather than directive/persuasive language like "Enable".
+**Avatar circle:**
+- Replace `bg-gradient-to-b from-primary/20` with a more game-like border: `border-2 border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]` (neon glow like the GamificationHub icon badges)
 
-Three locations in the codebase use "Enable Focus Shield":
+**Avatar picker buttons:**
+- Replace `bg-muted hover:bg-muted/80` with `retro-stat-pill` for unselected, `retro-level-badge` for selected (already used elsewhere in settings, just not here)
 
-1. **`src/components/focus-timer/AppBlockingSection.tsx:99`** — Main focus timer page
-2. **`src/components/settings/SettingsFocusMode.tsx:190`** — Settings page
-3. **`src/components/onboarding/OnboardingFlow.tsx:1038`** — Onboarding flow
-
-Additionally, `src/components/focus-timer/FocusShieldNudge.tsx:64` uses "Enable" as the button label (shorter form of the same issue).
-
-### Fix Plan
-
-| # | Change | File(s) | Details |
-|---|--------|---------|---------|
-| 3A | **Change button text in AppBlockingSection** | `src/components/focus-timer/AppBlockingSection.tsx:99` | Change `'Enable Focus Shield'` to `'Continue'`. Keep `'Requesting...'` and `'Try Again'` as-is (those are fine). |
-| 3B | **Change button text in Settings** | `src/components/settings/SettingsFocusMode.tsx:190` | Change `'Enable Focus Shield'` to `'Continue'`. |
-| 3C | **Change button text in Onboarding** | `src/components/onboarding/OnboardingFlow.tsx:1038` | Change `'Enable Focus Shield'` to `'Continue'`. |
-| 3D | **Change button text in FocusShieldNudge** | `src/components/focus-timer/FocusShieldNudge.tsx:64` | Change `'Enable'` to `'Set Up'` or `'Continue'` — Apple's objection is about the word "Enable" specifically before a permission request. Since the nudge also has a "Set up" path (when permission is already granted), consider using `'Continue'` for both states. |
-
-**Note:** The informational text *before* the button (e.g., "Enable Screen Time access to automatically block apps...") is acceptable — Apple only objects to the button label itself. However, it may be prudent to soften this text slightly too, e.g., "Screen Time access allows the app to block distracting apps during focus sessions."
+**Edit/Save buttons:**
+- Replace shadcn `<Button>` with `retro-arcade-btn retro-arcade-btn-green` (Save) and `retro-arcade-btn` default (Cancel)
 
 ---
 
-## Issue 4: Guideline 2.1 — "Upgrade to Premium" Button Bug
+### 3. `SettingsAccount.tsx` — Subscription, Auth, Sign Out, Delete
 
-### Root Cause
+**All cards:** `retro-card` → `retro-game-card`
 
-There is a **dead button** in the Settings > Focus Mode page. When a non-premium user views the Website Blocking section, they see an "Upgrade to Premium" button that has **no `onClick` handler** — tapping it does nothing.
+**Section headers:**
+- Replace `<Label className="text-sm font-bold">` with `retro-pixel-text` + neon-colored icon (e.g., Crown in `retro-neon-yellow`, UserCircle in `retro-neon-text`)
 
-- File: `src/components/settings/SettingsFocusMode.tsx:304-306`
-- The button is a plain `<button>` with no click handler, no event binding:
-  ```tsx
-  <button className="px-4 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-500 text-white text-sm font-bold">
-    Upgrade to Premium
-  </button>
-  ```
-- This is the exact button Apple's reviewer tapped and reported as "no action occurs."
+**Subscription status row:**
+- Keep the icon-badge approach, but wrap the Crown icon in a proper `retro-icon-badge` container (the 14x14 bordered circle used in GamificationHub)
+- "Active" badge: Replace `bg-amber-100 text-amber-700 rounded-full` with `retro-difficulty-badge retro-difficulty-legendary` (matches the game's rarity system)
 
-**Additional context:** The main "Go Premium" button in the Shop (`src/components/shop/tabs/FeaturedTab.tsx:119-156`) works correctly — it calls `setShowPremiumModal(true)`. The Settings button is simply missing this handler.
+**Manage Subscription button:**
+- Replace inline gradient style with `retro-arcade-btn retro-arcade-btn-yellow`
 
-### Fix Plan
+**Restore Purchases button:**
+- Keep `retro-stat-pill` (correct — secondary action)
 
-| # | Change | File(s) | Details |
-|---|--------|---------|---------|
-| 4A | **Wire "Upgrade to Premium" button to open the Premium modal** | `src/components/settings/SettingsFocusMode.tsx:304` | Add an `onClick` handler that opens the Premium subscription modal. The component needs to: (1) import or receive the `setShowPremiumModal` callback, and (2) add `onClick={() => setShowPremiumModal(true)}` to the button. If the Premium modal isn't available in this component's scope, pass it down as a prop or use a global state/event to trigger it. |
+**Sign Out button:**
+- Keep `retro-stat-pill` (correct — it's not destructive, just an action)
+
+**Delete Account button:**
+- Replace `bg-destructive/10 text-destructive border border-destructive/30` with `retro-arcade-btn` styled with red: a custom destructive retro button matching the app's visual language
+
+**AlertDialogs:**
+- Replace `retro-card border-2` on dialog content with `retro-game-card` + darker overlay
+- Style dialog buttons: Cancel → `retro-arcade-btn` default, destructive action → `retro-arcade-btn` with red styling
 
 ---
 
-## Summary of All Changes
+### 4. `SettingsAppearance.tsx` — Theme Selection
 
-| Priority | Guideline | Fix | Risk if not fixed |
-|----------|-----------|-----|-------------------|
-| **P0** | 2.1 (Bug) | Wire the "Upgrade to Premium" button onClick handler | Automatic rejection — broken functionality |
-| **P0** | 5.1.1 (Privacy) | Change "Enable Focus Shield" → "Continue" on 4 buttons | Automatic rejection — privacy guideline violation |
-| **P0** | 4.0 (Design) | Restyle Sign in with Apple button to match Apple's HIG specs | Automatic rejection — SIWA design requirement |
-| **P0** | 2.2 (Beta) | Rewrite VersionNotice copy, enable Battle Pass, fix Coming Soon items, update expired dates | Automatic rejection — app appears incomplete |
+**Card:** `retro-card` → `retro-game-card`
 
-### Files to modify (complete list):
+**Theme option buttons:**
+- Replace inline `style={}` with proper class-based approach:
+  - Selected: `retro-game-card retro-active-challenge` (the glowing active card used in GamificationHub for active events)
+  - Unselected: `retro-game-card` with muted state
+- Selected check badge: Replace `bg-primary` circle with the small retro difficulty badge style
 
-1. `src/components/settings/SettingsFocusMode.tsx` — Wire premium button + fix "Enable Focus Shield" text
-2. `src/components/focus-timer/AppBlockingSection.tsx` — Fix "Enable Focus Shield" text
-3. `src/components/onboarding/OnboardingFlow.tsx` — Fix "Enable Focus Shield" text
-4. `src/components/focus-timer/FocusShieldNudge.tsx` — Fix "Enable" button text
-5. `src/pages/Auth.tsx` — Restyle Sign in with Apple button
-6. `src/components/VersionNotice.tsx` — Rewrite "early days" copy
-7. `src/components/gamification/GamificationHub.tsx` — Enable Battle Pass (`BATTLE_PASS_COMING_SOON = false`)
-8. `src/data/GamificationData.ts` — Update season + event dates
-9. `src/data/ShopData.ts` — Enable or hide Coming Soon backgrounds
+---
+
+### 5. `SettingsSound.tsx` — Sound Effects & Volume
+
+**Cards:** `retro-card` → `retro-game-card`
+
+**Sound theme selector:**
+- Replace inline `style={}` gradient buttons with class-based `retro-game-card` / `retro-active-challenge` approach (same as Appearance)
+
+**Test sound button:**
+- Replace `retro-stat-pill p-1.5` with small `retro-arcade-btn retro-arcade-btn-green` for better visual feedback
+
+**Volume slider:**
+- The slider itself stays functional (shadcn Slider is fine), but the display value could use `retro-pixel-text` for the percentage
+
+---
+
+### 6. `SettingsGame.tsx` — Gameplay Options
+
+**Card:** `retro-card` → `retro-game-card`
+
+**Section header:**
+- Add `retro-pixel-text` to "Gameplay Options" and use Gamepad2 icon in `text-cyan-400` (matching GamificationHub "HOW TO PLAY")
+
+**Dividers:**
+- Replace `border-t border-border/30` with `border-t border-purple-600/30` (matches the arcade theme's purple borders)
+
+---
+
+### 7. `SettingsTimer.tsx` — Focus & Break Durations
+
+**Card:** `retro-card` → `retro-game-card`
+
+**Duration display values:**
+- Wrap the `{settings.defaultFocusTime}m` values in `retro-pixel-text` styling for the game feel
+
+**Notifications card:** `retro-card` → `retro-game-card`
+
+---
+
+### 8. `SettingsFocusMode.tsx` — Focus Mode & App Blocking
+
+**Cards:** `retro-card` → `retro-game-card`
+
+**Permission request button:**
+- Already styled well with purple gradient + box-shadow. Keep as-is (it effectively matches `retro-arcade-btn`)
+
+**Info pill:**
+- Replace `retro-stat-pill p-3` info card with a styled hint box using the `retro-game-card` pattern + `text-purple-300/80` text (matching GamificationHub "HOW TO PLAY" section)
+
+**Strict mode warning:**
+- Replace `bg-red-50 dark:bg-red-900/20` with a more game-themed warning box (red neon border glow)
+
+---
+
+### 9. `SettingsData.tsx` — Privacy & Backup
+
+**Cards:** `retro-card` → `retro-game-card`
+
+**Privacy toggle rows:**
+- Replace `bg-card/50 border border-border/50` with the game card's inner row style: subtle `bg-purple-900/20` with `border-purple-600/30`
+
+**Export button:**
+- Keep `retro-stat-pill` (secondary action)
+
+**Import button (when file selected):**
+- Replace inline gradient with `retro-arcade-btn retro-arcade-btn-yellow`
+
+**File input:**
+- Style to match the game theme (this is the most "web app" looking element in settings)
+
+**Reset Settings button:**
+- Same treatment as Delete Account — red-tinted retro arcade button
+
+---
+
+### 10. `SettingsAnalytics.tsx` — Goals & Tracking
+
+**Cards:** `retro-card` → `retro-game-card`
+
+**Goal value displays:**
+- Use `retro-pixel-text` for the formatted duration values
+
+**Reset Analytics button:**
+- Replace shadcn `<Button variant="destructive">` with styled `retro-arcade-btn` in red
+
+**Replace `confirm()` with AlertDialog** — using `confirm()` is a browser-native dialog that breaks the mobile experience and could cause App Store rejection. Replace with a proper `AlertDialog` matching other destructive confirmations in settings.
+
+---
+
+### 11. `SettingsAbout.tsx` — App Info & Legal
+
+**Hero section:**
+- Replace inline light-mode-only gradient (`hsl(260 50% 95%)` etc.) with the purple arcade gradient that works in both themes: `bg-gradient-to-r from-purple-900/50 via-transparent to-pink-900/50` (matching GamificationHub header)
+- App icon box shadow: keep the existing retro 3D effect (it's already game-like)
+- Version badge: Replace `bg-white/70` (light-mode only) with `retro-stat-pill` that works in both themes
+
+**App name:**
+- Use `retro-pixel-text` for "NoMo Phone"
+
+**Tagline:**
+- Remove emoji from `"🎮 Focus. Collect. Grow. 🌴"` — the rest of the app doesn't use emoji in UI text, they use PixelIcons. Replace with plain text styled with `text-purple-300/80`.
+
+**Legal links card:**
+- `retro-card` → `retro-game-card`
+
+**Link rows:**
+- Keep `retro-stat-pill` (it works well for list-style navigation items)
+
+**Visit NoMo button:**
+- Replace inline gradient with `retro-arcade-btn retro-arcade-btn-green`
+
+**Footer:**
+- Keep `retro-stat-pill` copyright footer
+
+---
+
+## Summary of Class Migrations
+
+| Before | After | Where |
+|--------|-------|-------|
+| `retro-card` (all settings cards) | `retro-game-card` | Every sub-component |
+| Settings page `<div className="h-full flex flex-col">` | `<div className="h-full flex flex-col retro-arcade-container">` | `Settings.tsx` |
+| Plain text headers | `retro-pixel-text` + themed colors | All section headers |
+| Inline `style={}` gradient buttons | `retro-arcade-btn` variants | Tab nav, action buttons |
+| `bg-card/50 border border-border/50` inner rows | `bg-purple-900/20 border-purple-600/30` | Data privacy rows, account info rows |
+| `bg-destructive/10` danger buttons | Red-themed `retro-arcade-btn` | Delete, Reset |
+| `confirm()` native dialog | `AlertDialog` with retro styling | SettingsAnalytics reset |
+| Light-mode-only gradients in About | Theme-agnostic arcade gradients | SettingsAbout hero |
+
+## What Stays the Same
+
+- All hooks, state management, and business logic — zero functional changes
+- `Switch` component (small, doesn't need restyling — toggle state is clear)
+- `Slider` component (functional, accessible, hard to improve without custom work)
+- `ScrollArea` (works well as-is)
+- Information architecture (5 tabs, same groupings)
+- All modals and their content structure (just restyle wrappers)
+- Profile editing flow
+- File import/export flow
+
+## Files Modified (11 files)
+
+1. `src/components/Settings.tsx`
+2. `src/components/settings/SettingsProfile.tsx`
+3. `src/components/settings/SettingsAccount.tsx`
+4. `src/components/settings/SettingsAppearance.tsx`
+5. `src/components/settings/SettingsSound.tsx`
+6. `src/components/settings/SettingsGame.tsx`
+7. `src/components/settings/SettingsTimer.tsx`
+8. `src/components/settings/SettingsFocusMode.tsx`
+9. `src/components/settings/SettingsData.tsx`
+10. `src/components/settings/SettingsAnalytics.tsx`
+11. `src/components/settings/SettingsAbout.tsx`
