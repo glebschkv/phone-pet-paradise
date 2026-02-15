@@ -3,10 +3,10 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { User, Pencil, Check, X, Camera } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
+import { cn } from "@/lib/utils";
 
 const AVATAR_OPTIONS = [
   { id: 'default', icon: 'panda', label: 'Panda' },
@@ -64,26 +64,26 @@ export const SettingsProfile = () => {
   const currentAvatar = AVATAR_OPTIONS.find(a => a.id === selectedAvatar) || AVATAR_OPTIONS[0];
 
   if (isGuestMode) {
-    return null; // Don't show profile editing for guests
+    return null;
   }
 
   return (
-    <div className="retro-card p-4">
+    <div className="retro-game-card p-4">
       <div className="flex items-center gap-2 mb-4">
-        <User className="w-4 h-4 text-primary" />
-        <Label className="text-sm font-bold">Profile</Label>
+        <User className="w-4 h-4 text-cyan-400" />
+        <span className="text-sm font-bold retro-pixel-text text-white">PROFILE</span>
       </div>
 
       <div className="space-y-4">
         {/* Avatar Selection */}
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-b from-primary/20 to-primary/10 flex items-center justify-center border-2 border-primary/20">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/20 flex items-center justify-center border-2 border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
               <PixelIcon name={currentAvatar.icon} size={48} />
             </div>
             {isEditing && (
-              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-                <Camera className="w-4 h-4 text-primary-foreground" />
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center border-2 border-purple-300">
+                <Camera className="w-4 h-4 text-white" />
               </div>
             )}
           </div>
@@ -94,11 +94,12 @@ export const SettingsProfile = () => {
                 <button
                   key={avatar.id}
                   onClick={() => setSelectedAvatar(avatar.id)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center transition-all",
                     selectedAvatar === avatar.id
-                      ? 'bg-primary/20 ring-2 ring-primary scale-110'
-                      : 'bg-muted hover:bg-muted/80'
-                  }`}
+                      ? 'retro-level-badge scale-110'
+                      : 'retro-stat-pill'
+                  )}
                   title={avatar.label}
                 >
                   <PixelIcon name={avatar.icon} size={24} />
@@ -110,7 +111,7 @@ export const SettingsProfile = () => {
 
         {/* Display Name */}
         <div className="space-y-2">
-          <Label htmlFor="displayName" className="text-xs text-muted-foreground">
+          <Label htmlFor="displayName" className="text-xs text-purple-300/80">
             Display Name
           </Label>
           {isEditing ? (
@@ -124,15 +125,15 @@ export const SettingsProfile = () => {
               maxLength={30}
             />
           ) : (
-            <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50">
-              <span className="text-sm font-medium">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-purple-900/20 border border-purple-600/30">
+              <span className="text-sm font-medium text-white">
                 {profile?.display_name || 'Not set'}
               </span>
               <button
                 onClick={() => setIsEditing(true)}
-                className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                className="p-1.5 rounded-md retro-stat-pill transition-all active:scale-95"
               >
-                <Pencil className="w-4 h-4 text-muted-foreground" />
+                <Pencil className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -141,25 +142,22 @@ export const SettingsProfile = () => {
         {/* Action Buttons */}
         {isEditing && (
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               onClick={handleCancel}
               disabled={isSaving}
-              className="flex-1"
+              className="flex-1 retro-arcade-btn px-3 py-2 text-xs flex items-center justify-center gap-1"
             >
-              <X className="w-4 h-4 mr-1" />
+              <X className="w-4 h-4" />
               Cancel
-            </Button>
-            <Button
-              size="sm"
+            </button>
+            <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex-1"
+              className="flex-1 retro-arcade-btn retro-arcade-btn-green px-3 py-2 text-xs flex items-center justify-center gap-1"
             >
-              <Check className="w-4 h-4 mr-1" />
+              <Check className="w-4 h-4" />
               {isSaving ? 'Saving...' : 'Save'}
-            </Button>
+            </button>
           </div>
         )}
       </div>

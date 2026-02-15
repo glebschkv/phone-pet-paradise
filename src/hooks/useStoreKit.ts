@@ -209,6 +209,8 @@ interface UseStoreKitReturn {
   checkSubscriptionStatus: () => Promise<void>;
   manageSubscriptions: () => Promise<void>;
   getProductById: (productId: string) => StoreKitProduct | undefined;
+  /** Return the App Store localized price for a product, falling back to the provided hardcoded price on web / when products haven't loaded. */
+  getLocalizedPrice: (iapProductId: string, fallbackPrice: string) => string;
 }
 
 export const useStoreKit = (): UseStoreKitReturn => {
@@ -643,6 +645,12 @@ export const useStoreKit = (): UseStoreKitReturn => {
     return products.find(p => p.id === productId);
   }, [products]);
 
+  // Get localized price from App Store, falling back to hardcoded price
+  const getLocalizedPrice = useCallback((iapProductId: string, fallbackPrice: string): string => {
+    const product = products.find(p => p.id === iapProductId);
+    return product?.displayPrice || fallbackPrice;
+  }, [products]);
+
   // Initialize on mount — runs exactly once per hook instance.
   // Dependencies intentionally omitted to prevent the re-initialization loop
   // caused by pluginAvailable → checkSubscriptionStatus → useEffect cascade.
@@ -721,5 +729,6 @@ export const useStoreKit = (): UseStoreKitReturn => {
     checkSubscriptionStatus,
     manageSubscriptions,
     getProductById,
+    getLocalizedPrice,
   };
 };

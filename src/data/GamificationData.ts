@@ -277,27 +277,59 @@ export const getBossChallengesByDifficulty = (difficulty: BossChallenge['difficu
 // SPECIAL EVENTS
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Recurring weekend events — compute dates dynamically so events never expire.
+function getNextSaturday(): { start: string; end: string } {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun..6=Sat
+  // If currently Sat or Sun, use this weekend; otherwise advance to next Sat.
+  const daysUntilSat = day === 6 ? 0 : day === 0 ? -1 : 6 - day;
+  const sat = new Date(now);
+  sat.setDate(sat.getDate() + daysUntilSat);
+  sat.setHours(0, 0, 0, 0);
+  const sun = new Date(sat);
+  sun.setDate(sun.getDate() + 1);
+  sun.setHours(23, 59, 59, 999);
+  return { start: sat.toISOString(), end: sun.toISOString() };
+}
+
+function getNextFridayEvening(): { start: string; end: string } {
+  const now = new Date();
+  const day = now.getDay();
+  // If currently Fri 18:00+ or before Mon, use this window; otherwise next Fri.
+  let daysUntilFri = (5 - day + 7) % 7;
+  if (daysUntilFri === 0 && now.getHours() >= 21) daysUntilFri = 7;
+  const fri = new Date(now);
+  fri.setDate(fri.getDate() + daysUntilFri);
+  fri.setHours(18, 0, 0, 0);
+  const friEnd = new Date(fri);
+  friEnd.setHours(21, 0, 0, 0);
+  return { start: fri.toISOString(), end: friEnd.toISOString() };
+}
+
+const weekendDates = getNextSaturday();
+const fridayDates = getNextFridayEvening();
+
 export const SPECIAL_EVENTS: SpecialEvent[] = [
   {
     id: 'double-xp-weekend',
     name: 'Double XP Weekend',
-    description: 'Earn double XP on all focus sessions!',
+    description: 'Earn double XP on all focus sessions this weekend!',
     icon: 'lightning',
     type: 'double_xp',
     multiplier: 2,
-    startDate: '2026-02-14',
-    endDate: '2026-02-15',
+    startDate: weekendDates.start,
+    endDate: weekendDates.end,
     backgroundGradient: 'from-purple-600 to-pink-600',
   },
   {
     id: 'coin-rush',
     name: 'Coin Rush Hour',
-    description: '2x coins for the next 3 hours!',
+    description: '2x coins for 3 hours every Friday evening!',
     icon: 'money-bag',
     type: 'double_coins',
     multiplier: 2,
-    startDate: '2026-03-15T18:00:00',
-    endDate: '2026-03-15T21:00:00',
+    startDate: fridayDates.start,
+    endDate: fridayDates.end,
     backgroundGradient: 'from-yellow-500 to-orange-500',
   },
   {

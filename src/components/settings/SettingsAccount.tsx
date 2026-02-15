@@ -3,7 +3,6 @@ import { settingsLogger } from "@/lib/logger";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { User, Mail, LogOut, Trash2, Shield, UserCircle, Loader2, Crown, RefreshCw, ExternalLink } from "lucide-react";
@@ -45,7 +44,6 @@ export const SettingsAccount = () => {
       if (isNative) {
         await storeKit.manageSubscriptions();
       } else {
-        // On web, open Apple's subscription management page
         // SECURITY: Use noopener,noreferrer to prevent reverse tabnabbing attacks
         window.open('https://apps.apple.com/account/subscriptions', '_blank', 'noopener,noreferrer');
       }
@@ -101,45 +99,40 @@ export const SettingsAccount = () => {
       toast.success('Account deleted successfully');
       setDeleteDialogOpen(false);
 
-      // Clear local storage and redirect with full page reload
-      // This ensures all state is properly reset after account deletion
       localStorage.clear();
       window.location.href = '/auth';
-      // Note: Don't reset isDeleting here - the page is reloading anyway
-      // and trying to update state during navigation can cause crashes
     } catch (error: unknown) {
       settingsLogger.error('Error deleting account:', error);
       const message = error instanceof Error ? error.message : 'Failed to delete account. Please try again.';
       toast.error(message);
-      // Only reset loading state on error, not on success (page is reloading)
       setIsDeleting(false);
     }
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Subscription Management */}
-      <div className="retro-card p-4">
+      <div className="retro-game-card p-4">
         <div className="flex items-center gap-2 mb-4">
-          <Crown className="w-4 h-4 text-amber-500" />
-          <Label className="text-sm font-bold">Subscription</Label>
+          <Crown className="w-4 h-4 retro-neon-yellow" />
+          <span className="text-sm font-bold retro-pixel-text text-white">SUBSCRIPTION</span>
         </div>
 
         <div className="space-y-3">
           {/* Current Status */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border/50">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-900/20 border border-purple-600/30">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
               isPremium
-                ? 'bg-gradient-to-br from-amber-400 to-orange-400'
-                : 'bg-muted'
+                ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
+                : 'retro-stat-pill'
             }`}>
               <Crown className={`w-5 h-5 ${isPremium ? 'text-white' : 'text-muted-foreground'}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">
+              <p className="text-sm font-semibold text-white">
                 {isPremium ? currentPlan?.name || 'Premium' : 'Free Plan'}
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-[11px] text-purple-300/80">
                 {isPremium
                   ? currentPlan?.period === 'lifetime'
                     ? 'Lifetime access'
@@ -148,28 +141,25 @@ export const SettingsAccount = () => {
               </p>
             </div>
             {isPremium && (
-              <span className="px-2 py-1 text-[11px] font-medium bg-amber-100 text-amber-700 rounded-full">
+              <span className="retro-difficulty-badge retro-difficulty-legendary text-[11px]">
                 Active
               </span>
             )}
           </div>
 
-          {/* Manage Subscription Button - for premium users */}
+          {/* Manage Subscription Button */}
           {isPremium && (
             <button
               onClick={handleManageSubscriptions}
               disabled={isManaging}
-              className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 font-semibold"
-              style={{ boxShadow: '0 2px 0 hsl(35 80% 35%)' }}
+              className="w-full retro-arcade-btn retro-arcade-btn-yellow px-3 py-2.5 text-sm flex items-center justify-center gap-2"
             >
               {isManaging ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <ExternalLink className="w-4 h-4" />
               )}
-              <span className="text-sm">
-                {isManaging ? 'Opening...' : 'Manage Subscription'}
-              </span>
+              <span>{isManaging ? 'Opening...' : 'Manage Subscription'}</span>
             </button>
           )}
 
@@ -185,41 +175,41 @@ export const SettingsAccount = () => {
             </span>
           </button>
 
-          <p className="text-[11px] text-muted-foreground text-center">
+          <p className="text-[11px] text-purple-300/60 text-center">
             Made a purchase on another device? Tap restore to recover it.
           </p>
         </div>
       </div>
 
       {/* Account Info */}
-      <div className="retro-card p-4">
+      <div className="retro-game-card p-4">
         <div className="flex items-center gap-2 mb-4">
-          <UserCircle className="w-4 h-4 text-primary" />
-          <Label className="text-sm font-bold">Account</Label>
+          <UserCircle className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-bold retro-pixel-text text-white">ACCOUNT</span>
         </div>
 
         <div className="space-y-3">
           {/* Account Status */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border/50">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-900/20 border border-purple-600/30">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              isGuestMode ? 'bg-muted' : 'bg-primary/10'
+              isGuestMode ? 'retro-stat-pill' : 'bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-purple-300'
             }`}>
               {isGuestMode ? (
                 <User className="w-5 h-5 text-muted-foreground" />
               ) : (
-                <Mail className="w-5 h-5 text-primary" />
+                <Mail className="w-5 h-5 text-white" />
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">
+              <p className="text-sm font-semibold text-white truncate">
                 {isGuestMode ? 'Guest Account' : user?.email}
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-[11px] text-purple-300/80">
                 {isGuestMode ? 'Data saved locally only' : 'Synced to cloud'}
               </p>
             </div>
             {isGuestMode && (
-              <span className="px-2 py-1 text-[11px] font-medium bg-amber-100 text-amber-700 rounded-full">
+              <span className="retro-difficulty-badge retro-difficulty-hard text-[11px]">
                 Guest
               </span>
             )}
@@ -227,14 +217,14 @@ export const SettingsAccount = () => {
 
           {/* Guest Mode Warning */}
           {isGuestMode && (
-            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
               <div className="flex items-start gap-2">
-                <Shield className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <Shield className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-xs font-medium text-amber-800">
+                  <p className="text-xs font-medium text-amber-300">
                     Your progress is only saved on this device
                   </p>
-                  <p className="text-[11px] text-amber-600 mt-1">
+                  <p className="text-[11px] text-amber-400/70 mt-1">
                     Sign in to sync your pets and progress across devices
                   </p>
                 </div>
@@ -246,21 +236,20 @@ export const SettingsAccount = () => {
           {isGuestMode && (
             <button
               onClick={handleSignIn}
-              className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-gradient-to-b from-amber-300 to-amber-400 text-amber-900 font-semibold"
-              style={{ boxShadow: '0 2px 0 hsl(35 80% 35%)' }}
+              className="w-full retro-arcade-btn retro-arcade-btn-yellow px-3 py-2.5 text-sm flex items-center justify-center gap-2"
             >
               <Mail className="w-4 h-4" />
-              <span className="text-sm">Sign In or Create Account</span>
+              <span>Sign In or Create Account</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Sign Out Section */}
-      <div className="retro-card p-4">
+      <div className="retro-game-card p-4">
         <div className="flex items-center gap-2 mb-4">
-          <LogOut className="w-4 h-4 text-primary" />
-          <Label className="text-sm font-bold">Session</Label>
+          <LogOut className="w-4 h-4 text-purple-400" />
+          <span className="text-sm font-bold retro-pixel-text text-white">SESSION</span>
         </div>
 
         <AlertDialog>
@@ -275,12 +264,12 @@ export const SettingsAccount = () => {
               </span>
             </button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="retro-card border-2 max-w-xs mx-4">
+          <AlertDialogContent className="retro-game-card border-2 border-purple-600/50 max-w-xs mx-4">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-base font-bold">
+              <AlertDialogTitle className="text-base font-bold text-white">
                 {isGuestMode ? 'Exit Guest Mode?' : 'Sign Out?'}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-xs">
+              <AlertDialogDescription className="text-xs text-purple-300/80">
                 {isGuestMode
                   ? 'Your local progress will be cleared. You can sign in or start fresh as a new guest.'
                   : 'You can sign back in anytime to access your synced progress.'
@@ -293,7 +282,7 @@ export const SettingsAccount = () => {
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleSignOut}
-                className="bg-primary text-primary-foreground px-3 py-2 text-xs font-bold rounded-lg"
+                className="retro-arcade-btn retro-arcade-btn-purple px-3 py-2 text-xs"
               >
                 {isGuestMode ? 'Exit' : 'Sign Out'}
               </AlertDialogAction>
@@ -304,16 +293,17 @@ export const SettingsAccount = () => {
 
       {/* Danger Zone - Delete Account (only for logged in users) */}
       {!isGuestMode && (
-        <div className="retro-card p-4" style={{ borderColor: 'hsl(var(--destructive) / 0.3)' }}>
+        <div className="retro-game-card p-4 border-red-500/30">
           <div className="flex items-center gap-2 mb-3">
-            <Trash2 className="w-4 h-4 text-destructive" />
-            <Label className="text-sm font-bold text-destructive">Danger Zone</Label>
+            <Trash2 className="w-4 h-4 text-red-400" />
+            <span className="text-sm font-bold retro-pixel-text text-red-400">DANGER ZONE</span>
           </div>
 
           <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <AlertDialogTrigger asChild>
               <button
-                className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-destructive/10 text-destructive border border-destructive/30"
+                className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-red-500/10 text-red-400 border-2 border-red-500/30 font-semibold text-sm"
+                style={{ boxShadow: '0 2px 0 rgba(239,68,68,0.2)' }}
                 disabled={isDeleting}
               >
                 {isDeleting ? (
@@ -321,17 +311,15 @@ export const SettingsAccount = () => {
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
-                <span className="text-sm font-semibold">
-                  {isDeleting ? 'Deleting...' : 'Delete Account'}
-                </span>
+                <span>{isDeleting ? 'Deleting...' : 'Delete Account'}</span>
               </button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="retro-card border-2 max-w-xs mx-4">
+            <AlertDialogContent className="retro-game-card border-2 border-red-500/50 max-w-xs mx-4">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-base font-bold text-destructive">
+                <AlertDialogTitle className="text-base font-bold text-red-400">
                   Delete Account?
                 </AlertDialogTitle>
-                <AlertDialogDescription className="text-xs">
+                <AlertDialogDescription className="text-xs text-purple-300/80">
                   This will permanently delete your account and all your data including pets, progress, and achievements. This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -348,7 +336,8 @@ export const SettingsAccount = () => {
                     handleDeleteAccount();
                   }}
                   disabled={isDeleting}
-                  className="bg-destructive text-destructive-foreground px-3 py-2 text-xs font-bold rounded-lg"
+                  className="bg-red-500 text-white px-3 py-2 text-xs font-bold rounded-lg"
+                  style={{ boxShadow: '0 2px 0 rgba(185,28,28,0.8)' }}
                 >
                   {isDeleting ? (
                     <>
@@ -363,8 +352,8 @@ export const SettingsAccount = () => {
             </AlertDialogContent>
           </AlertDialog>
 
-          <p className="text-[11px] text-muted-foreground mt-2 text-center">
-            Required by Apple App Store guidelines
+          <p className="text-[11px] text-purple-300/60 mt-2 text-center">
+            This will permanently remove your account and all data
           </p>
         </div>
       )}

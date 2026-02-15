@@ -99,7 +99,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: 'sakura',
     rarity: 'rare',
     theme: 'sakura',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'bg-cyberpunk',
@@ -110,7 +110,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: 'neon-city',
     rarity: 'epic',
     theme: 'cyberpunk',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'bg-aurora',
@@ -121,7 +121,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: 'aurora',
     rarity: 'epic',
     theme: 'aurora',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'bg-crystal-cave',
@@ -132,7 +132,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: 'diamond',
     rarity: 'rare',
     theme: 'crystal',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'bg-volcano',
@@ -143,7 +143,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: 'volcano',
     rarity: 'legendary',
     theme: 'volcano',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'bg-space',
@@ -154,7 +154,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: 'rocket',
     rarity: 'legendary',
     theme: 'space',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'bg-underwater',
@@ -165,7 +165,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     icon: 'fish',
     rarity: 'rare',
     theme: 'underwater',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'bg-halloween',
@@ -177,7 +177,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     rarity: 'epic',
     isLimited: true,
     theme: 'halloween',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'bg-winter-wonderland',
@@ -189,7 +189,7 @@ export const PREMIUM_BACKGROUNDS: PremiumBackground[] = [
     rarity: 'epic',
     isLimited: true,
     theme: 'winter',
-    comingSoon: true,
+    comingSoon: false,
   },
 ];
 

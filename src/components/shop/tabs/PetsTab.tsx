@@ -1,4 +1,4 @@
-import { Check, Palette, Clock, Star } from "lucide-react";
+import { Check, Palette, Star } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { ShopItem, PREMIUM_BACKGROUNDS, ShopCategory } from "@/data/ShopData";
@@ -30,9 +30,8 @@ export const PetsTab = ({
   const characters = getCoinExclusiveAnimals();
   const setHomeBackground = useThemeStore((state) => state.setHomeBackground);
 
-  // Separate backgrounds with previews from those without
+  // Only show backgrounds that have real preview images
   const backgroundsWithPreviews = PREMIUM_BACKGROUNDS.filter(bg => bg.previewImage);
-  const backgroundsWithoutPreviews = PREMIUM_BACKGROUNDS.filter(bg => !bg.previewImage);
 
   const handleEquipBackground = useCallback((bgId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -153,12 +152,10 @@ export const PetsTab = ({
               const owned = isOwned(bg.id, 'customize');
               const affordable = canAfford(bg.coinPrice || 0);
               const isEquipped = inventory.equippedBackground === bg.id;
-              const isComingSoon = bg.comingSoon && !owned;
               return (
                 <button
                   key={bg.id}
                   onClick={() => {
-                    if (isComingSoon) return;
                     if (owned) {
                       handleEquipBackground(bg.id, { stopPropagation: () => {} } as React.MouseEvent);
                     } else {
@@ -168,22 +165,14 @@ export const PetsTab = ({
                   }}
                   className={cn(
                     "shop-bg-card",
-                    isComingSoon && "coming-soon",
-                    !isComingSoon && isEquipped && "equipped",
-                    !isComingSoon && owned && !isEquipped && "owned"
+                    isEquipped && "equipped",
+                    owned && !isEquipped && "owned"
                   )}
                 >
                   {/* Background Preview Image */}
                   <div className="relative h-20 overflow-hidden">
                     <BackgroundPreview imagePath={bg.previewImage!} size="large" className="border-0 rounded-none" />
-                    {isComingSoon && (
-                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                        <div className="bg-amber-500 border-2 border-amber-600 rounded-lg px-3 py-1 shadow-lg transform -rotate-3">
-                          <span className="text-[10px] font-black text-white uppercase tracking-wide drop-shadow-sm">Coming Soon</span>
-                        </div>
-                      </div>
-                    )}
-                    {isEquipped && !isComingSoon && (
+                    {isEquipped && (
                       <div className="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
                         <div className="bg-purple-500 rounded-full px-2 py-0.5 flex items-center gap-1">
                           <Palette className="w-3 h-3 text-white" />
@@ -191,14 +180,14 @@ export const PetsTab = ({
                         </div>
                       </div>
                     )}
-                    {owned && !isEquipped && !isComingSoon && (
+                    {owned && !isEquipped && (
                       <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
                         <div className="bg-green-500 rounded-full p-1">
                           <Check className="w-4 h-4 text-white" />
                         </div>
                       </div>
                     )}
-                    {bg.bundleId && !owned && !isComingSoon && (
+                    {bg.bundleId && !owned && (
                       <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-sky-500 text-white text-[8px] font-bold rounded">
                         BUNDLE
                       </div>
@@ -213,17 +202,11 @@ export const PetsTab = ({
                   {/* Info */}
                   <div className={cn(
                     "p-2",
-                    isComingSoon ? "bg-gray-100 dark:bg-gray-800/40" :
                     isEquipped ? "bg-purple-50 dark:bg-purple-900/20" :
                     owned ? "bg-green-50 dark:bg-green-900/20" : RARITY_BG[bg.rarity || 'common']
                   )}>
                     <span className="text-[10px] font-bold block leading-tight truncate">{bg.name}</span>
-                    {isComingSoon ? (
-                      <div className="flex items-center justify-center gap-1 mt-1 text-[9px] font-bold text-gray-400 dark:text-gray-500">
-                        <Clock className="w-2.5 h-2.5" />
-                        Coming Soon
-                      </div>
-                    ) : owned ? (
+                    {owned ? (
                       <div className="text-[9px] font-medium text-center mt-1 text-purple-600 dark:text-purple-400">
                         {isEquipped ? "Tap to unequip" : "Tap to equip"}
                       </div>
@@ -244,77 +227,7 @@ export const PetsTab = ({
         </div>
       )}
 
-      {/* Other Backgrounds Section */}
-      {backgroundsWithoutPreviews.length > 0 && (
-        <div>
-          <div className="shop-section-header">
-            <span className="shop-section-title">Backgrounds</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {backgroundsWithoutPreviews.map((bg) => {
-              const owned = isOwned(bg.id, 'customize');
-              const affordable = canAfford(bg.coinPrice || 0);
-              const isEquipped = inventory.equippedBackground === bg.id;
-              const isComingSoon = bg.comingSoon && !owned;
-              return (
-                <button
-                  key={bg.id}
-                  onClick={() => {
-                    if (isComingSoon) return;
-                    if (owned) {
-                      handleEquipBackground(bg.id, { stopPropagation: () => {} } as React.MouseEvent);
-                    } else {
-                      setSelectedItem(bg);
-                      setShowPurchaseConfirm(true);
-                    }
-                  }}
-                  className={cn(
-                    "shop-grid-card relative",
-                    isComingSoon && "opacity-60",
-                    isEquipped && "equipped",
-                    !isEquipped && owned && "owned"
-                  )}
-                >
-                  {bg.isLimited && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                      <Clock className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                  {isEquipped ? (
-                    <div className="absolute top-1 right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
-                      <Palette className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  ) : owned && (
-                    <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                  <PixelIcon name={bg.icon} size={24} className="block mb-1" />
-                  <span className="text-[10px] font-bold block leading-tight">{bg.name}</span>
-                  {isComingSoon ? (
-                    <div className="flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold text-gray-400 dark:text-gray-500">
-                      <Clock className="w-2.5 h-2.5" />
-                      Soon
-                    </div>
-                  ) : owned ? (
-                    <div className="text-[8px] font-medium mt-1 text-purple-600 dark:text-purple-400">
-                      {isEquipped ? "Unequip" : "Equip"}
-                    </div>
-                  ) : (
-                    <div className={cn(
-                      "flex items-center justify-center gap-0.5 mt-1 text-[9px] font-bold",
-                      affordable ? "text-amber-600" : "text-red-500"
-                    )}>
-                      <PixelIcon name="coin" size={10} />
-                      {bg.coinPrice?.toLocaleString()}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Other Backgrounds Section - hidden until real background assets are available */}
     </div>
   );
 };

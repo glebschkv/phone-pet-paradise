@@ -53,7 +53,7 @@ export const VersionNotice = () => {
               <span className="text-xl flex-shrink-0">💜</span>
               <p className="text-sm text-muted-foreground">
                 This app is built by a <span className="font-bold text-foreground">solo indie developer</span>.
-                Sorry if you run into any bugs or rough edges — it's still early days and things are actively being improved.
+                Your feedback helps shape the app — feel free to reach out anytime with suggestions or ideas.
               </p>
             </div>
           </div>

@@ -334,7 +334,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
   {
     id: 'deep-focus',
     name: 'Deep Focus',
-    description: '18Hz beta waves for intense work',
+    description: '18Hz brainwaves for intense work',
     category: 'lofi',
     icon: 'diamond',
     audioType: 'generated',

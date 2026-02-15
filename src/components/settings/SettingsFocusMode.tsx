@@ -7,8 +7,10 @@ import { useFocusMode, SUGGESTED_WEBSITES } from '@/hooks/useFocusMode';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useDeviceActivity } from '@/hooks/useDeviceActivity';
 import { Capacitor } from '@capacitor/core';
+import { PremiumSubscription } from '@/components/PremiumSubscription';
 
 export const SettingsFocusMode = () => {
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const {
     settings,
     updateSettings,
@@ -51,9 +53,9 @@ export const SettingsFocusMode = () => {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Main Focus Mode Card */}
-      <div className="retro-card p-4">
+      <div className="retro-game-card p-4">
         {/* Enable Focus Mode */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -64,8 +66,8 @@ export const SettingsFocusMode = () => {
               <Shield className={cn("w-4 h-4", settings.enabled ? "" : "text-muted-foreground")} />
             </div>
             <div>
-              <Label className="text-sm font-bold">Focus Mode</Label>
-              <p className="text-[11px] text-muted-foreground">Block distractions during focus</p>
+              <Label className="text-sm font-bold text-white">Focus Mode</Label>
+              <p className="text-[11px] text-purple-300/80">Block distractions during focus</p>
             </div>
           </div>
           <Switch
@@ -76,19 +78,19 @@ export const SettingsFocusMode = () => {
 
         {settings.enabled && (
           <>
-            <div className="border-t border-border/30 my-4" />
+            <div className="border-t border-purple-600/30 my-4" />
 
             {/* Block Notifications */}
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
                 {settings.blockNotifications ? (
-                  <BellOff className="w-4 h-4 text-primary" />
+                  <BellOff className="w-4 h-4 text-cyan-400" />
                 ) : (
-                  <Bell className="w-4 h-4 text-muted-foreground" />
+                  <Bell className="w-4 h-4 text-purple-300/60" />
                 )}
                 <div>
-                  <p className="text-sm font-semibold">Block Notifications</p>
-                  <p className="text-[11px] text-muted-foreground">Enable Do Not Disturb</p>
+                  <p className="text-sm font-semibold text-white">Block Notifications</p>
+                  <p className="text-[11px] text-purple-300/80">Enable Do Not Disturb</p>
                 </div>
               </div>
               <Switch
@@ -101,13 +103,13 @@ export const SettingsFocusMode = () => {
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
                 {settings.strictMode ? (
-                  <Lock className="w-4 h-4 text-red-500" />
+                  <Lock className="w-4 h-4 text-red-400" />
                 ) : (
-                  <Unlock className="w-4 h-4 text-muted-foreground" />
+                  <Unlock className="w-4 h-4 text-purple-300/60" />
                 )}
                 <div>
-                  <p className="text-sm font-semibold">Strict Mode</p>
-                  <p className="text-[11px] text-muted-foreground">Can't quit until timer ends</p>
+                  <p className="text-sm font-semibold text-white">Strict Mode</p>
+                  <p className="text-[11px] text-purple-300/80">Can't quit until timer ends</p>
                 </div>
               </div>
               <Switch
@@ -117,8 +119,8 @@ export const SettingsFocusMode = () => {
             </div>
 
             {settings.strictMode && (
-              <div className="mt-2 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <div className="mt-2 p-2 rounded-lg bg-red-500/10 border border-red-500/30">
+                <div className="flex items-center gap-2 text-red-400">
                   <AlertTriangle className="w-3 h-3" />
                   <p className="text-[11px] font-medium">
                     You won't be able to exit focus mode until the timer completes
@@ -134,7 +136,7 @@ export const SettingsFocusMode = () => {
         <>
           {/* Focus Shield — Native App Blocking (iOS) */}
           {isNativePlatform && (
-            <div className="retro-card p-4">
+            <div className="retro-game-card p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn(
                   "w-9 h-9 rounded-lg flex items-center justify-center",
@@ -147,8 +149,8 @@ export const SettingsFocusMode = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <Label className="text-sm font-bold">Focus Shield</Label>
-                  <p className="text-[11px] text-muted-foreground">
+                  <Label className="text-sm font-bold text-white">Focus Shield</Label>
+                  <p className="text-[11px] text-purple-300/80">
                     {shieldPermissionGranted
                       ? shieldAppsConfigured
                         ? `${shieldLabel} will be blocked during focus`
@@ -158,19 +160,19 @@ export const SettingsFocusMode = () => {
                   </p>
                 </div>
                 {shieldPermissionGranted && shieldAppsConfigured && (
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-100 dark:bg-green-900/30">
-                    <Sparkles className="w-3 h-3 text-green-600 dark:text-green-400" />
-                    <span className="text-[11px] font-bold text-green-700 dark:text-green-400">Active</span>
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/20 border border-green-500/30">
+                    <Sparkles className="w-3 h-3 text-green-400" />
+                    <span className="text-[11px] font-bold text-green-400">Active</span>
                   </div>
                 )}
               </div>
 
               {!shieldPermissionGranted ? (
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-purple-300/80">
                     {hasAttemptedShieldPermission
-                      ? "Screen Time permission is needed. Open Settings to enable it."
-                      : "Enable Screen Time access to block apps during focus sessions and earn bonus rewards!"
+                      ? "Screen Time permission is needed. You can update this in Settings."
+                      : "Screen Time access lets the app block distracting apps during focus sessions and earn bonus rewards."
                     }
                   </p>
                   <button
@@ -180,14 +182,12 @@ export const SettingsFocusMode = () => {
                     }}
                     disabled={shieldLoading}
                     className={cn(
-                      "w-full py-2.5 px-4 rounded-lg font-bold text-sm transition-all active:scale-95",
-                      "bg-gradient-to-b from-purple-500 to-purple-600 text-white",
+                      "w-full retro-arcade-btn retro-arcade-btn-purple py-2.5 px-4 text-sm",
                       shieldLoading && "opacity-50"
                     )}
-                    style={{ boxShadow: '0 2px 0 hsl(260 50% 35%)' }}
                   >
                     <Lock className="w-3.5 h-3.5 inline mr-1.5" />
-                    {shieldLoading ? 'Requesting...' : hasAttemptedShieldPermission ? 'Try Again' : 'Enable Focus Shield'}
+                    {shieldLoading ? 'Requesting...' : hasAttemptedShieldPermission ? 'Try Again' : 'Continue'}
                   </button>
                   {hasAttemptedShieldPermission && (
                     <button
@@ -203,18 +203,14 @@ export const SettingsFocusMode = () => {
                 <div className="space-y-3">
                   <button
                     onClick={() => shieldOpenAppPicker()}
-                    className={cn(
-                      "w-full py-2.5 px-4 rounded-lg font-bold text-sm transition-all active:scale-95",
-                      "bg-gradient-to-b from-purple-500 to-purple-600 text-white"
-                    )}
-                    style={{ boxShadow: '0 2px 0 hsl(260 50% 35%)' }}
+                    className="w-full retro-arcade-btn retro-arcade-btn-purple py-2.5 px-4 text-sm"
                   >
                     <Plus className="w-3.5 h-3.5 inline mr-1.5" />
                     {shieldAppsConfigured ? 'Change Blocked Apps' : 'Select Apps to Block'}
                   </button>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
-                    <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-                    <p className="text-[11px] text-purple-700 dark:text-purple-300">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-500/10 border border-purple-500/30">
+                    <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                    <p className="text-[11px] text-purple-300">
                       Perfect focus = +25% XP & +50 coins bonus
                     </p>
                   </div>
@@ -223,100 +219,18 @@ export const SettingsFocusMode = () => {
             </div>
           )}
 
-          {/* Blocked Websites */}
-          <div className="retro-card p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-primary" />
-                <Label className="text-sm font-bold">Blocked Websites</Label>
-              </div>
-              {!isPremium && (
-                <div className="flex items-center gap-1 text-amber-500">
-                  <Crown className="w-3 h-3" />
-                  <span className="text-[11px] font-semibold">Premium</span>
-                </div>
-              )}
-            </div>
-
-            {isPremium ? (
-              <>
-                {/* Add website input */}
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="text"
-                    value={newWebsite}
-                    onChange={(e) => setNewWebsite(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddWebsite()}
-                    placeholder="Add website (e.g. reddit.com)"
-                    className="flex-1 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <button
-                    onClick={handleAddWebsite}
-                    className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Blocked websites list */}
-                <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                  {settings.blockedWebsites.map((website) => (
-                    <div
-                      key={website}
-                      className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800"
-                    >
-                      <span className="text-sm">{website}</span>
-                      <button
-                        onClick={() => removeBlockedWebsite(website)}
-                        className="w-6 h-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center"
-                      >
-                        <X className="w-3 h-3 text-muted-foreground" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Suggested websites */}
-                {settings.blockedWebsites.length < SUGGESTED_WEBSITES.length && (
-                  <div className="mt-3">
-                    <p className="text-[11px] text-muted-foreground mb-2">Suggested:</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {SUGGESTED_WEBSITES.filter(w => !settings.blockedWebsites.includes(w)).slice(0, 5).map((website) => (
-                        <button
-                          key={website}
-                          onClick={() => addBlockedWebsite(website)}
-                          className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-[11px] font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          + {website}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-4">
-                <Globe className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm font-medium mb-1">Website Blocking</p>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Block distracting websites during focus sessions
-                </p>
-                <button className="px-4 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-500 text-white text-sm font-bold">
-                  Upgrade to Premium
-                </button>
-              </div>
-            )}
-          </div>
-
           {/* Info Card */}
-          <div className="retro-stat-pill p-3">
-            <p className="text-[11px] text-muted-foreground text-center">
+          <div className="retro-game-card p-3">
+            <p className="text-[11px] text-purple-300/70 text-center">
               Focus Mode activates when you start a focus timer and deactivates when the session ends.
-              {!isPremium && " Upgrade to Premium to unlock website blocking."}
             </p>
           </div>
         </>
       )}
+      <PremiumSubscription
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+      />
     </div>
   );
 };

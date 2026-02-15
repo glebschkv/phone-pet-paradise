@@ -41,38 +41,37 @@ export const Settings = () => {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="retro-card p-6 flex items-center gap-3">
-          <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          <span className="text-sm font-medium">Loading settings...</span>
+      <div className="h-full flex items-center justify-center retro-arcade-container">
+        <div className="retro-game-card p-6 flex items-center gap-3">
+          <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
+          <span className="text-sm font-medium text-purple-300">Loading settings...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col retro-arcade-container">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="retro-card p-3 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{
-              background: 'linear-gradient(145deg, hsl(260 55% 58%) 0%, hsl(260 50% 45%) 100%)',
-              border: '2px solid hsl(260 45% 38%)',
-              boxShadow: '0 2px 0 hsl(260 45% 30%), inset 0 1px 0 hsl(260 60% 75% / 0.4)',
-            }}
-          >
-            <SettingsIcon className="w-5 h-5 text-white" />
+      <div className="relative p-4 border-b-4 border-purple-600/50">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-transparent to-pink-900/50" />
+        <div className="relative flex items-center gap-3">
+          <div className="w-12 h-12 retro-icon-badge">
+            <SettingsIcon className="w-6 h-6 text-cyan-400" />
           </div>
           <div>
-            <h1 className="text-base font-black uppercase tracking-tight">Settings</h1>
-            <p className="text-[11px] text-muted-foreground">Customize your experience</p>
+            <h1 className="text-xl font-bold retro-pixel-text retro-neon-text">
+              SETTINGS
+            </h1>
+            <p className="text-xs text-purple-300/80 uppercase tracking-wider">
+              Customize Your Experience
+            </p>
           </div>
         </div>
       </div>
 
       {/* Scrollable Tab Navigation */}
-      <div className="px-3 pb-2">
+      <div className="px-3 py-2">
         <div
           ref={tabsRef}
           className="flex gap-1.5 overflow-x-auto py-1 -mx-1 px-1"
@@ -89,22 +88,12 @@ export const Settings = () => {
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-2 rounded-lg whitespace-nowrap transition-all active:scale-95 flex-shrink-0",
                   isActive
-                    ? "font-bold"
-                    : "font-semibold text-muted-foreground"
+                    ? "retro-arcade-btn retro-arcade-btn-yellow text-xs retro-pixel-text"
+                    : "retro-game-card text-xs text-purple-300/70 retro-pixel-text"
                 )}
-                style={isActive ? {
-                  background: 'linear-gradient(180deg, hsl(45 90% 65%) 0%, hsl(35 85% 52%) 100%)',
-                  border: '2px solid hsl(30 80% 45%)',
-                  color: 'hsl(30 60% 15%)',
-                  boxShadow: '0 2px 0 hsl(30 80% 38%), inset 0 1px 0 hsl(50 100% 85% / 0.5)',
-                } : {
-                  background: 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.8) 100%)',
-                  border: '2px solid hsl(var(--border) / 0.6)',
-                  boxShadow: '0 1px 0 hsl(var(--border) / 0.3)',
-                }}
               >
                 <Icon className={cn("w-3.5 h-3.5", isActive ? "opacity-100" : "opacity-50")} />
-                <span className="text-xs">{tab.label}</span>
+                <span>{tab.label}</span>
               </button>
             );
           })}
@@ -113,16 +102,16 @@ export const Settings = () => {
 
       {/* Content */}
       <ScrollArea className="flex-1 min-h-0">
-        <div className="px-3 pt-1 pb-6">
+        <div className="px-4 pt-1 pb-6 space-y-4">
           {activeTab === "account" && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <SettingsProfile />
               <SettingsAccount />
             </div>
           )}
 
           {activeTab === "general" && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <SettingsAppearance
                 settings={settings}
                 onUpdate={updateSettings}
@@ -139,7 +128,7 @@ export const Settings = () => {
           )}
 
           {activeTab === "timer" && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <SettingsTimer
                 settings={settings}
                 onUpdate={updateSettings}
@@ -149,7 +138,7 @@ export const Settings = () => {
           )}
 
           {activeTab === "data" && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <SettingsAnalytics />
               <SettingsData
                 settings={settings}

@@ -61,7 +61,7 @@ export const FocusShieldNudge = () => {
   // Don't render: web, dismissed, or already set up
   if (!isNative || !visible || hasAppsConfigured) return null;
 
-  const actionLabel = !isPermissionGranted ? 'Enable' : 'Set up';
+  const actionLabel = !isPermissionGranted ? 'Continue' : 'Set up';
 
   return (
     <AnimatePresence>

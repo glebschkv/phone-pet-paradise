@@ -12,6 +12,12 @@ const DialogPortal = DialogPrimitive.Portal
 
 const DialogClose = DialogPrimitive.Close
 
+// No fade animation on the overlay — it appears/disappears instantly with
+// Radix's mount/unmount.  The previous animate-in/animate-out approach
+// relied on onAnimationEnd to hide the element, which frequently didn't
+// fire on iOS/Capacitor, leaving an orphaned bg-black/60 blocking the
+// entire screen.  The modal *content* still animates; only the backdrop
+// is instant.
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
@@ -19,16 +25,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     data-dialog-overlay=""
-    className={cn(
-      "fixed inset-0 z-50 bg-black/60  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      className
-    )}
-    onAnimationEnd={(e) => {
-      const el = e.currentTarget;
-      if (el.getAttribute('data-state') === 'closed') {
-        el.style.display = 'none';
-      }
-    }}
+    className={cn("fixed inset-0 z-50 bg-black/60", className)}
     {...props}
   />
 ))

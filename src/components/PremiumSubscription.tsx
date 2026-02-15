@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useNavigate } from 'react-router-dom';
 
 interface PremiumSubscriptionProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ interface PremiumSubscriptionProps {
 }
 
 // Compact feature display
-const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string; comingSoon?: boolean }> = {
+const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string }> = {
   '1.5x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '1.5x Coins & XP' },
   '2x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '2x Coins & XP' },
   '2.5x Coin & XP multiplier': { icon: <Zap className="w-3.5 h-3.5" />, label: '2.5x Coins & XP' },
@@ -61,10 +62,10 @@ const FEATURE_MAP: Record<string, { icon: React.ReactNode; label: string; coming
   '10 Focus presets': { icon: <Settings className="w-3.5 h-3.5" />, label: '10 Presets' },
   'Everything in Premium': { icon: <Check className="w-3.5 h-3.5" />, label: 'All Premium' },
   'Everything in Premium+': { icon: <Check className="w-3.5 h-3.5" />, label: 'All Premium+' },
-  'Battle Pass Premium included': { icon: <Award className="w-3.5 h-3.5" />, label: 'Battle Pass', comingSoon: true },
-  'Early access to features': { icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Early Access' },
+  'Battle Pass Premium included': { icon: <Award className="w-3.5 h-3.5" />, label: 'Battle Pass' },
+  'Early access to features': { icon: <Sparkles className="w-3.5 h-3.5" />, label: 'Priority Updates' },
   'All timer backgrounds': { icon: <Palette className="w-3.5 h-3.5" />, label: 'All Backgrounds' },
-  'Exclusive profile frames': { icon: <Star className="w-3.5 h-3.5" />, label: 'Profile Frames', comingSoon: true },
+  'Exclusive profile frames': { icon: <Star className="w-3.5 h-3.5" />, label: 'Profile Frames' },
   'No recurring fees ever': { icon: <InfinityIcon className="w-3.5 h-3.5" />, label: 'Pay Once' },
   'All future updates included': { icon: <RefreshCw className="w-3.5 h-3.5" />, label: 'All Updates' },
   'Exclusive Founder badge': { icon: <PixelIcon name="founder-badge" size={14} />, label: 'Founder Badge' },
@@ -131,6 +132,7 @@ const TIER_CONFIG = {
 export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProps) => {
   const { isPremium, currentPlan, purchaseSubscription, restorePurchases, tier, grantBonusCoins, isLifetime } = usePremiumStatus();
   const storeKit = useStoreKit();
+  const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -291,7 +293,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
             </div>
             <div className="text-right flex-shrink-0 ml-3">
               <span className={cn("text-2xl font-black retro-pixel-text", config.neonClass)}>
-                {plan.price}
+                {storeKit.getLocalizedPrice(plan.iapProductId, plan.price)}
               </span>
               <span className="text-[10px] block" style={{ color: 'hsl(260 20% 50%)' }}>
                 {plan.period === 'monthly' ? '/month' : plan.period === 'yearly' ? '/year' : 'one-time'}
@@ -309,7 +311,6 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                   className={cn(
                     "flex items-center gap-1.5 px-2 py-1.5 rounded border relative",
                     config.featureBorder,
-                    mapped?.comingSoon && "opacity-75",
                   )}
                   style={{
                     background: 'linear-gradient(180deg, hsl(260 25% 22%) 0%, hsl(260 30% 17%) 100%)',
@@ -324,19 +325,6 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                   >
                     {mapped?.label || feature}
                   </span>
-                  {mapped?.comingSoon && (
-                    <span
-                      className="absolute -top-1.5 -right-1 px-1 py-0.5 rounded text-[6px] font-black uppercase"
-                      style={{
-                        background: 'linear-gradient(180deg, hsl(200 70% 50%), hsl(200 75% 40%))',
-                        color: 'white',
-                        border: '1px solid hsl(200 60% 60%)',
-                        boxShadow: '0 0 4px hsl(200 100% 50% / 0.4)',
-                      }}
-                    >
-                      Soon
-                    </span>
-                  )}
                 </div>
               );
             })}
@@ -534,6 +522,23 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
             <p className="text-[9px] text-center leading-relaxed pb-1" style={{ color: 'hsl(260 15% 40%)' }}>
               Subscriptions auto-renew unless cancelled 24h before period ends. Manage in Apple ID settings.
             </p>
+            <div className="flex items-center justify-center gap-3 pb-2">
+              <button
+                onClick={() => { onClose(); navigate('/privacy'); }}
+                className="text-[9px] underline"
+                style={{ color: 'hsl(260 20% 50%)' }}
+              >
+                Privacy Policy
+              </button>
+              <span className="text-[9px]" style={{ color: 'hsl(260 15% 30%)' }}>|</span>
+              <button
+                onClick={() => { onClose(); navigate('/terms'); }}
+                className="text-[9px] underline"
+                style={{ color: 'hsl(260 20% 50%)' }}
+              >
+                Terms of Service
+              </button>
+            </div>
           </div>
         </>
       </DialogContent>

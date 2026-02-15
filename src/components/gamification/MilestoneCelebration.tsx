@@ -117,7 +117,7 @@ export const MilestoneCelebration = ({ onClaimReward, suppress }: MilestoneCeleb
                 style={{ background: 'hsl(45 100% 50% / 0.2)' }}
               />
               <div className="relative animate-bounce" style={{ animationDuration: '2s' }}>
-                <PixelIcon name={displayCelebration.emoji} size={80} />
+                <PixelIcon name={displayCelebration.icon} size={80} />
               </div>
               <div className="absolute -top-1 -right-1">
                 <Sparkles className="w-6 h-6 text-amber-300 animate-ping" style={{ animationDuration: '2s' }} />

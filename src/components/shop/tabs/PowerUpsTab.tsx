@@ -195,7 +195,7 @@ export const PowerUpsTab = ({
                   "iap-price-button",
                   pack.isBestValue && "best-value"
                 )}>
-                  {pack.iapPrice}
+                  {storeKit.getLocalizedPrice(pack.iapProductId, pack.iapPrice)}
                 </div>
               </div>
             </button>
