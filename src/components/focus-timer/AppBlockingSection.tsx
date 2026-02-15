@@ -78,8 +78,8 @@ export const AppBlockingSection = ({
 
           <p className="text-sm text-white/70 mb-4">
             {hasAttemptedPermission
-              ? "Screen Time permission is needed. If you previously denied it, open Settings to enable it for this app."
-              : "Enable Screen Time access to automatically block apps during focus sessions and earn bonus rewards!"
+              ? "Screen Time permission is needed. If you previously denied it, you can update this in Settings."
+              : "Screen Time access lets the app block distracting apps during focus sessions and earn bonus rewards."
             }
           </p>
 

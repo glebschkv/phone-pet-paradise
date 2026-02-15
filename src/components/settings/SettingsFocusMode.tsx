@@ -171,8 +171,8 @@ export const SettingsFocusMode = () => {
                 <div className="space-y-2">
                   <p className="text-xs text-muted-foreground">
                     {hasAttemptedShieldPermission
-                      ? "Screen Time permission is needed. Open Settings to enable it."
-                      : "Enable Screen Time access to block apps during focus sessions and earn bonus rewards!"
+                      ? "Screen Time permission is needed. You can update this in Settings."
+                      : "Screen Time access lets the app block distracting apps during focus sessions and earn bonus rewards."
                     }
                   </p>
                   <button
