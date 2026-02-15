@@ -96,7 +96,7 @@ export const AppBlockingSection = ({
             )}
           >
             <Lock className="w-4 h-4" />
-            {isLoading ? 'Requesting...' : hasAttemptedPermission ? 'Try Again' : 'Enable Focus Shield'}
+            {isLoading ? 'Requesting...' : hasAttemptedPermission ? 'Try Again' : 'Continue'}
           </button>
 
           {hasAttemptedPermission && (

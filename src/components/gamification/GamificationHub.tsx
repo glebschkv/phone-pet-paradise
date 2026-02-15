@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 
 // Feature flag - set to false when ready to launch Battle Pass
-const BATTLE_PASS_COMING_SOON = true;
+const BATTLE_PASS_COMING_SOON = false;
 
 interface GamificationHubProps {
   onXPReward?: (amount: number) => void;

@@ -1035,7 +1035,7 @@ const StepFocusShield = () => {
               }}
             >
               <Lock className="w-4 h-4 inline mr-2" />
-              {isLoading ? 'Requesting...' : 'Enable Focus Shield'}
+              {isLoading ? 'Requesting...' : 'Continue'}
             </button>
             {hasAttempted && (
               <button

@@ -7,8 +7,10 @@ import { useFocusMode, SUGGESTED_WEBSITES } from '@/hooks/useFocusMode';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useDeviceActivity } from '@/hooks/useDeviceActivity';
 import { Capacitor } from '@capacitor/core';
+import { PremiumSubscription } from '@/components/PremiumSubscription';
 
 export const SettingsFocusMode = () => {
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const {
     settings,
     updateSettings,
@@ -187,7 +189,7 @@ export const SettingsFocusMode = () => {
                     style={{ boxShadow: '0 2px 0 hsl(260 50% 35%)' }}
                   >
                     <Lock className="w-3.5 h-3.5 inline mr-1.5" />
-                    {shieldLoading ? 'Requesting...' : hasAttemptedShieldPermission ? 'Try Again' : 'Enable Focus Shield'}
+                    {shieldLoading ? 'Requesting...' : hasAttemptedShieldPermission ? 'Try Again' : 'Continue'}
                   </button>
                   {hasAttemptedShieldPermission && (
                     <button
@@ -301,7 +303,10 @@ export const SettingsFocusMode = () => {
                 <p className="text-xs text-muted-foreground mb-3">
                   Block distracting websites during focus sessions
                 </p>
-                <button className="px-4 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-500 text-white text-sm font-bold">
+                <button
+                  onClick={() => setShowPremiumModal(true)}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-500 text-white text-sm font-bold"
+                >
                   Upgrade to Premium
                 </button>
               </div>
@@ -317,6 +322,10 @@ export const SettingsFocusMode = () => {
           </div>
         </>
       )}
+      <PremiumSubscription
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+      />
     </div>
   );
 };
