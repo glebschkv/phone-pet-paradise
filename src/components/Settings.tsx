@@ -11,7 +11,8 @@ import { SettingsProfile } from "@/components/settings/SettingsProfile";
 import { SettingsAnalytics } from "@/components/settings/SettingsAnalytics";
 import { SettingsFocusMode } from "@/components/settings/SettingsFocusMode";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Clock, Database, Heart, Settings as SettingsIcon, UserCircle, SlidersHorizontal } from "lucide-react";
+import { Loader2, Clock, Database, Heart, UserCircle, SlidersHorizontal } from "lucide-react";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -56,8 +57,8 @@ export const Settings = () => {
       <div className="relative p-4 border-b-4 border-purple-600/50">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-transparent to-pink-900/50" />
         <div className="relative flex items-center gap-3">
-          <div className="w-12 h-12 retro-icon-badge">
-            <SettingsIcon className="w-6 h-6 text-cyan-400" />
+          <div className="w-12 h-12 retro-icon-badge flex items-center justify-center">
+            <PixelIcon name="app-logo" size={32} />
           </div>
           <div>
             <h1 className="text-xl font-bold retro-pixel-text retro-neon-text">

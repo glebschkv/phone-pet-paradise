@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useClickSound } from "@/hooks/useClickSound";
 import { useHaptics } from "@/hooks/useHaptics";
 
-const DARK_TABS = new Set(["collection", "challenges"]);
+const DARK_TABS = new Set(["collection", "challenges", "settings"]);
 
 interface TabBarProps {
   activeTab: string;
