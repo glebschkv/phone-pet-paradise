@@ -66,7 +66,7 @@ export interface XPReward {
   bonusXP: number;
   bonusMultiplier: number;
   hasBonusXP: boolean;
-  bonusType: 'none' | 'lucky' | 'super_lucky' | 'jackpot';
+  bonusType: 'none' | 'lucky' | 'super_lucky' | 'mega_bonus';
   oldLevel: number;
   newLevel: number;
   leveledUp: boolean;

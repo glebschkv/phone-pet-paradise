@@ -177,20 +177,20 @@ export const COIN_CONFIG = {
   /**
    * Random bonus coin probabilities (percentages)
    * The thresholds define cumulative probability ranges:
-   * - 0-5: Jackpot (5% chance)
+   * - 0-5: Mega Bonus (5% chance)
    * - 5-15: Super Lucky (10% chance)
    * - 15-35: Lucky (20% chance)
    * - 35-100: No bonus (65% chance)
    */
   BONUS_THRESHOLDS: {
-    JACKPOT: 5,
+    MEGA_BONUS: 5,
     SUPER_LUCKY: 15,
     LUCKY: 35,
   },
 
   /** Bonus multipliers for each tier */
   BONUS_MULTIPLIERS: {
-    JACKPOT: 2.5,
+    MEGA_BONUS: 2.5,
     SUPER_LUCKY: 1.75,
     LUCKY: 1.5,
     NONE: 1.0,

@@ -14,7 +14,7 @@ interface TrackingStats {
   nightSessions: number;
   morningSessions: number;
   weekendSessions: number;
-  jackpotWins: number;
+  megaBonusWins: number;
   wheelSpins: number;
   shares: number;
 }
@@ -28,14 +28,14 @@ const DEFAULT_STATS: TrackingStats = {
   nightSessions: 0,
   morningSessions: 0,
   weekendSessions: 0,
-  jackpotWins: 0,
+  megaBonusWins: 0,
   wheelSpins: 0,
   shares: 0,
 };
 
 export interface AchievementTrackingHook {
   // Track focus session completion
-  trackFocusSession: (minutes: number, wasJackpot?: boolean) => void;
+  trackFocusSession: (minutes: number, wasMegaBonus?: boolean) => void;
   // Track pet unlocks
   trackPetUnlock: (totalPets: number, rarePets: number, epicPets: number, legendaryPets: number) => void;
   // Track biome unlocks
@@ -84,7 +84,7 @@ export const useAchievementTracking = (): AchievementTrackingHook => {
   }, []);
 
   // Track focus session completion
-  const trackFocusSession = useCallback((minutes: number, wasJackpot = false) => {
+  const trackFocusSession = useCallback((minutes: number, wasMegaBonus = false) => {
     const hour = new Date().getHours();
     const dayOfWeek = new Date().getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
@@ -99,7 +99,7 @@ export const useAchievementTracking = (): AchievementTrackingHook => {
     if (isNight) statsRef.current.nightSessions += 1;
     if (isMorning) statsRef.current.morningSessions += 1;
     if (isWeekend) statsRef.current.weekendSessions += 1;
-    if (wasJackpot) statsRef.current.jackpotWins += 1;
+    if (wasMegaBonus) statsRef.current.megaBonusWins += 1;
 
     saveStats();
 
@@ -122,8 +122,8 @@ export const useAchievementTracking = (): AchievementTrackingHook => {
     if (isWeekend) {
       checkAndUnlockAchievements('weekend_sessions', statsRef.current.weekendSessions);
     }
-    if (wasJackpot) {
-      checkAndUnlockAchievements('jackpots', statsRef.current.jackpotWins);
+    if (wasMegaBonus) {
+      checkAndUnlockAchievements('mega_bonuses', statsRef.current.megaBonusWins);
     }
   }, [checkAndUnlockAchievements, saveStats]);
 

@@ -14,7 +14,7 @@ const EMOJI_TO_ICON: Record<string, string> = {
   '🧊': 'ice-cube',
   '💪': 'muscle',
   '🔥': 'fire',
-  '🎰': 'slot-machine',
+  '🎰': 'treasure-chest',
 };
 
 interface DailyLoginRewardModalProps {

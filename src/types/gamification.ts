@@ -101,7 +101,7 @@ export interface SpecialEvent {
 // LUCKY WHEEL / GACHA
 // ═══════════════════════════════════════════════════════════════════════════
 
-export type LuckyWheelPrizeType = 'xp' | 'coins' | 'streak_freeze' | 'booster' | 'mystery_box' | 'jackpot';
+export type LuckyWheelPrizeType = 'xp' | 'coins' | 'streak_freeze' | 'booster' | 'mystery_box' | 'mega_bonus';
 
 export interface LuckyWheelPrize {
   id: string;

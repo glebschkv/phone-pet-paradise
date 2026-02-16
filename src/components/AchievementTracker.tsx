@@ -47,8 +47,8 @@ export const AchievementTracker: React.FC<AchievementTrackerProps> = ({ children
   // Track focus session events
   useEffect(() => {
     const handleFocusSession = (event: CustomEvent) => {
-      const { minutes, wasJackpot } = event.detail;
-      trackFocusSession(minutes, wasJackpot);
+      const { minutes, wasMegaBonus } = event.detail;
+      trackFocusSession(minutes, wasMegaBonus);
     };
 
     window.addEventListener(

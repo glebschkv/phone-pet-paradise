@@ -520,7 +520,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
 
             {/* Terms */}
             <p className="text-[9px] text-center leading-relaxed pb-1" style={{ color: 'hsl(260 15% 40%)' }}>
-              Subscriptions auto-renew unless cancelled 24h before period ends. Manage in Apple ID settings.
+              Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Account will be charged for renewal within 24 hours prior to the end of the current period. Subscriptions may be managed and auto-renewal may be turned off in your Account Settings after purchase.
             </p>
             <div className="flex items-center justify-center gap-3 pb-2">
               <button

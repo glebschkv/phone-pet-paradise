@@ -994,9 +994,9 @@ describe('achievementService', () => {
       expect(result.newProgress).toBe(15);
     });
 
-    it('should update jackpots achievements', () => {
+    it('should update mega bonus achievements', () => {
       const achievement = createTestAchievement('lucky-winner', 5);
-      const result = checkAchievementProgress(achievement, 'jackpots', 3);
+      const result = checkAchievementProgress(achievement, 'mega_bonuses', 3);
 
       expect(result.shouldUpdate).toBe(true);
       expect(result.newProgress).toBe(3);

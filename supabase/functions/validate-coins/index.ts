@@ -112,7 +112,7 @@ const getCorsHeaders = (origin: string | null) => {
 };
 
 // Maximum coins that can be earned in a single operation
-// Based on max session (5 hours = 750 base * 4x lifetime * 2.5x jackpot = 7500)
+// Based on max session (5 hours = 750 base * 4x lifetime * 2.5x mega bonus = 7500)
 const MAX_EARN_AMOUNT = 10000;
 // Maximum coins that can be spent in a single operation
 const MAX_SPEND_AMOUNT = 100000;

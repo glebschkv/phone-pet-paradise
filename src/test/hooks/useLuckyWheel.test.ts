@@ -27,7 +27,7 @@ const mockPrizes = [
   { id: 'coins-200', name: '200 Coins', icon: 'money-bag', type: 'coins', amount: 200, probability: 25, rarity: 'common', color: '#71717a' },
   { id: 'xp-50', name: '50 XP', icon: 'star', type: 'xp', amount: 50, probability: 20, rarity: 'common', color: '#6366f1' },
   { id: 'xp-100', name: '100 XP', icon: 'sparkles', type: 'xp', amount: 100, probability: 15, rarity: 'rare', color: '#8b5cf6' },
-  { id: 'jackpot', name: 'JACKPOT!', icon: 'slot-machine', type: 'jackpot', amount: 2500, probability: 10, rarity: 'legendary', color: '#ef4444' },
+  { id: 'mega-bonus', name: 'MEGA BONUS!', icon: 'treasure-chest', type: 'mega_bonus', amount: 2500, probability: 10, rarity: 'legendary', color: '#ef4444' },
 ];
 
 vi.mock('@/data/GamificationData', () => ({
@@ -36,7 +36,7 @@ vi.mock('@/data/GamificationData', () => ({
     { id: 'coins-200', name: '200 Coins', icon: 'money-bag', type: 'coins', amount: 200, probability: 25, rarity: 'common', color: '#71717a' },
     { id: 'xp-50', name: '50 XP', icon: 'star', type: 'xp', amount: 50, probability: 20, rarity: 'common', color: '#6366f1' },
     { id: 'xp-100', name: '100 XP', icon: 'sparkles', type: 'xp', amount: 100, probability: 15, rarity: 'rare', color: '#8b5cf6' },
-    { id: 'jackpot', name: 'JACKPOT!', icon: 'slot-machine', type: 'jackpot', amount: 2500, probability: 10, rarity: 'legendary', color: '#ef4444' },
+    { id: 'mega-bonus', name: 'MEGA BONUS!', icon: 'treasure-chest', type: 'mega_bonus', amount: 2500, probability: 10, rarity: 'legendary', color: '#ef4444' },
   ],
   spinWheel: vi.fn(() => mockPrizes[0]), // Default to first prize
 }));
@@ -72,7 +72,7 @@ describe('useLuckyWheel', () => {
 
       expect(result.current.state.lastSpinDate).toBeNull();
       expect(result.current.state.totalSpins).toBe(0);
-      expect(result.current.state.jackpotsWon).toBe(0);
+      expect(result.current.state.megaBonusesWon).toBe(0);
       expect(result.current.state.totalCoinsWon).toBe(0);
       expect(result.current.state.totalXPWon).toBe(0);
       expect(result.current.state.spinHistory).toEqual([]);
@@ -82,7 +82,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: '2024-01-01T00:00:00.000Z',
         totalSpins: 10,
-        jackpotsWon: 2,
+        megaBonusesWon: 2,
         totalCoinsWon: 5000,
         totalXPWon: 1000,
         spinHistory: [],
@@ -91,7 +91,7 @@ describe('useLuckyWheel', () => {
       const { result } = renderHook(() => useLuckyWheel());
 
       expect(result.current.state.totalSpins).toBe(10);
-      expect(result.current.state.jackpotsWon).toBe(2);
+      expect(result.current.state.megaBonusesWon).toBe(2);
     });
 
     it('should not be spinning initially', () => {
@@ -127,7 +127,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: today,
         totalSpins: 1,
-        jackpotsWon: 0,
+        megaBonusesWon: 0,
         totalCoinsWon: 100,
         totalXPWon: 0,
         spinHistory: [],
@@ -145,7 +145,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: yesterday.toISOString(),
         totalSpins: 1,
-        jackpotsWon: 0,
+        megaBonusesWon: 0,
         totalCoinsWon: 100,
         totalXPWon: 0,
         spinHistory: [],
@@ -172,7 +172,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: today,
         totalSpins: 1,
-        jackpotsWon: 0,
+        megaBonusesWon: 0,
         totalCoinsWon: 100,
         totalXPWon: 0,
         spinHistory: [],
@@ -219,8 +219,8 @@ describe('useLuckyWheel', () => {
       expect(result.current.state.lastSpinDate).toBeTruthy();
     });
 
-    it('should track jackpot wins', async () => {
-      mockSpinWheel.mockReturnValue(mockPrizes[4]); // jackpot
+    it('should track mega bonus wins', async () => {
+      mockSpinWheel.mockReturnValue(mockPrizes[4]); // mega bonus
       const { result } = renderHook(() => useLuckyWheel());
 
       await act(async () => {
@@ -229,7 +229,7 @@ describe('useLuckyWheel', () => {
         await spinPromise;
       });
 
-      expect(result.current.state.jackpotsWon).toBe(1);
+      expect(result.current.state.megaBonusesWon).toBe(1);
     });
 
     it('should track XP wins', async () => {
@@ -250,7 +250,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: today,
         totalSpins: 1,
-        jackpotsWon: 0,
+        megaBonusesWon: 0,
         totalCoinsWon: 100,
         totalXPWon: 0,
         spinHistory: [],
@@ -309,7 +309,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: null, // Reset to allow spinning
         totalSpins: 20,
-        jackpotsWon: 0,
+        megaBonusesWon: 0,
         totalCoinsWon: 2000,
         totalXPWon: 0,
         spinHistory: Array(20).fill({ prize: mockPrizes[0], timestamp: new Date().toISOString() }),
@@ -369,7 +369,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: '2024-01-01T00:00:00.000Z',
         totalSpins: 10,
-        jackpotsWon: 2,
+        megaBonusesWon: 2,
         totalCoinsWon: 5000,
         totalXPWon: 1000,
         spinHistory: [],
@@ -380,7 +380,7 @@ describe('useLuckyWheel', () => {
       const stats = result.current.getStats();
 
       expect(stats.totalSpins).toBe(10);
-      expect(stats.jackpotsWon).toBe(2);
+      expect(stats.megaBonusesWon).toBe(2);
       expect(stats.totalCoinsWon).toBe(5000);
       expect(stats.totalXPWon).toBe(1000);
       expect(stats.averageCoinsPerSpin).toBe(500);
@@ -402,7 +402,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: null,
         totalSpins: 3,
-        jackpotsWon: 0,
+        megaBonusesWon: 0,
         totalCoinsWon: 300,
         totalXPWon: 0,
         spinHistory: [
@@ -424,7 +424,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: null,
         totalSpins: 10,
-        jackpotsWon: 0,
+        megaBonusesWon: 0,
         totalCoinsWon: 1000,
         totalXPWon: 0,
         spinHistory: Array(10).fill({ prize: mockPrizes[0], timestamp: new Date().toISOString() }),
@@ -443,7 +443,7 @@ describe('useLuckyWheel', () => {
       mockStorage.get.mockReturnValue({
         lastSpinDate: null,
         totalSpins: 4,
-        jackpotsWon: 1,
+        megaBonusesWon: 1,
         totalCoinsWon: 2700,
         totalXPWon: 0,
         spinHistory: [

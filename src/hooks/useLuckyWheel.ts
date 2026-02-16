@@ -10,7 +10,7 @@ export interface LuckyWheelState {
   lastSpinDate: string | null;
   spinsUsedToday: number;
   totalSpins: number;
-  jackpotsWon: number;
+  megaBonusesWon: number;
   totalCoinsWon: number;
   totalXPWon: number;
   spinHistory: SpinResult[];
@@ -43,7 +43,7 @@ export const useLuckyWheel = () => {
     lastSpinDate: null,
     spinsUsedToday: 0,
     totalSpins: 0,
-    jackpotsWon: 0,
+    megaBonusesWon: 0,
     totalCoinsWon: 0,
     totalXPWon: 0,
     spinHistory: [],
@@ -92,7 +92,7 @@ export const useLuckyWheel = () => {
         lastSpinDate: null,
         spinsUsedToday: 0,
         totalSpins: 0,
-        jackpotsWon: 0,
+        megaBonusesWon: 0,
         totalCoinsWon: 0,
         totalXPWon: 0,
         spinHistory: [],
@@ -194,12 +194,12 @@ export const useLuckyWheel = () => {
         ...state.spinHistory.slice(0, MAX_HISTORY - 1),
       ];
 
-      const coinPrizeTypes = ['coins', 'jackpot'];
+      const coinPrizeTypes = ['coins', 'mega_bonus'];
       const newState: LuckyWheelState = {
         lastSpinDate: now,
         spinsUsedToday: usedToday + 1,
         totalSpins: state.totalSpins + 1,
-        jackpotsWon: prize.type === 'jackpot' ? state.jackpotsWon + 1 : state.jackpotsWon,
+        megaBonusesWon: prize.type === 'mega_bonus' ? state.megaBonusesWon + 1 : state.megaBonusesWon,
         totalCoinsWon: coinPrizeTypes.includes(prize.type) ? state.totalCoinsWon + (prize.amount || 0) : state.totalCoinsWon,
         totalXPWon: prize.type === 'xp' ? state.totalXPWon + (prize.amount || 0) : state.totalXPWon,
         spinHistory: newHistory,
@@ -242,7 +242,7 @@ export const useLuckyWheel = () => {
   const getStats = useCallback(() => {
     return {
       totalSpins: state.totalSpins,
-      jackpotsWon: state.jackpotsWon,
+      megaBonusesWon: state.megaBonusesWon,
       totalCoinsWon: state.totalCoinsWon,
       totalXPWon: state.totalXPWon,
       averageCoinsPerSpin: state.totalSpins > 0 ? Math.round(state.totalCoinsWon / state.totalSpins) : 0,

@@ -191,7 +191,7 @@ describe('useCoinSystem', () => {
       act(() => {
         const reward = result.current.awardCoins(25);
         expect(reward.bonusType).toBeDefined();
-        expect(['none', 'lucky', 'super_lucky', 'jackpot']).toContain(reward.bonusType);
+        expect(['none', 'lucky', 'super_lucky', 'mega_bonus']).toContain(reward.bonusType);
         expect(typeof reward.hasBonusCoins).toBe('boolean');
       });
     });

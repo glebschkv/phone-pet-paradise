@@ -38,8 +38,8 @@ import {
 } from 'lucide-react';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 
-// Feature flag - set to false when ready to launch Battle Pass
-const BATTLE_PASS_COMING_SOON = false;
+// Feature flag - set to true to hide Battle Pass until fully implemented with a UI entry point
+const BATTLE_PASS_COMING_SOON = true;
 
 interface GamificationHubProps {
   onXPReward?: (amount: number) => void;
@@ -330,11 +330,13 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
       </ScrollArea>
 
       {/* Modals */}
-      <BattlePassModal
-        isOpen={showBattlePass}
-        onClose={() => setShowBattlePass(false)}
-        onClaimReward={handleRewardClaim}
-      />
+      {!BATTLE_PASS_COMING_SOON && (
+        <BattlePassModal
+          isOpen={showBattlePass}
+          onClose={() => setShowBattlePass(false)}
+          onClaimReward={handleRewardClaim}
+        />
+      )}
       <BossChallengeModal
         isOpen={showBossChallenge}
         onClose={() => setShowBossChallenge(false)}
@@ -349,7 +351,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           if (prize.type === 'coins' && prize.amount && onCoinReward) {
             onCoinReward(prize.amount);
           }
-          if (prize.type === 'jackpot' && prize.amount && onCoinReward) {
+          if (prize.type === 'mega_bonus' && prize.amount && onCoinReward) {
             onCoinReward(prize.amount);
           }
           if (prize.type === 'streak_freeze') {

@@ -30,7 +30,7 @@ const DAILY_REWARDS: DailyReward[] = [
   { day: 4, type: 'streak_freeze', xp: 125, coins: 80, streakFreeze: 1, label: 'Safety Net', description: '+1 Streak Freeze!', icon: '🧊' },
   { day: 5, type: 'xp', xp: 150, coins: 120, label: 'Halfway Hero', description: 'Over halfway there!', icon: '💪' },
   { day: 6, type: 'xp', xp: 200, coins: 160, label: 'Almost There', description: 'One more day!', icon: '🔥' },
-  { day: 7, type: 'mystery_bonus', xp: 350, coins: 300, luckyWheelSpin: 1, label: 'Weekly Jackpot!', description: 'Massive rewards + free spin!', icon: '🎰' },
+  { day: 7, type: 'mystery_bonus', xp: 350, coins: 300, luckyWheelSpin: 1, label: 'Weekly Mega Bonus!', description: 'Massive rewards + free spin!', icon: '🎁' },
 ];
 
 const STORAGE_KEY_PREFIX = 'pet_paradise_daily_login';

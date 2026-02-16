@@ -415,14 +415,14 @@ describe('useDailyLoginRewards', () => {
       }
     });
 
-    it('should have day 7 as jackpot day', () => {
+    it('should have day 7 as mega bonus day', () => {
       const { result } = renderHook(() => useDailyLoginRewards());
 
       const day7 = result.current.dailyRewards.find(r => r.day === 7);
 
       expect(day7).toBeTruthy();
       expect(day7?.type).toBe('mystery_bonus');
-      expect(day7?.label).toContain('Jackpot');
+      expect(day7?.label).toContain('Mega Bonus');
     });
   });
 

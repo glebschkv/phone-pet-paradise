@@ -11,7 +11,7 @@
  *
  * Features:
  * - Boosted XP rewards for satisfying progression
- * - Random bonus system (lucky/super_lucky/jackpot)
+ * - Random bonus system (lucky/super_lucky/mega_bonus)
  * - Subscription multipliers
  * - Cross-tab synchronization
  * - Direct XP awards (for achievements, rewards, etc.)

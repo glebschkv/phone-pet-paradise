@@ -58,8 +58,8 @@ function getIconPaths(prizeId: string) {
       return <RocketIcon />;
     case 'mystery-box':
       return <GiftBoxIcon />;
-    case 'jackpot':
-      return <JackpotIcon />;
+    case 'mega-bonus':
+      return <TreasureChestWheelIcon />;
     default:
       return <StarIcon />;
   }
@@ -280,45 +280,31 @@ function GiftBoxIcon() {
   );
 }
 
-/* ── Jackpot (Slot Machine) ── */
-function JackpotIcon() {
+/* ── Treasure Chest (Mega Bonus) ── */
+function TreasureChestWheelIcon() {
   return (
     <g>
-      {/* Machine body */}
-      <rect x="2" y="3" width="12" height="11" fill="#ef4444" />
-      <rect x="3" y="2" width="10" height="1" fill="#ef4444" />
-      <rect x="3" y="14" width="10" height="1" fill="#b91c1c" />
+      {/* Chest body */}
+      <rect x="2" y="7" width="12" height="6" fill="#92400e" />
+      <rect x="3" y="13" width="10" height="1" fill="#78350f" />
+      {/* Chest lid */}
+      <rect x="2" y="5" width="12" height="3" fill="#b45309" />
+      <rect x="3" y="4" width="10" height="1" fill="#b45309" />
       {/* Highlight */}
-      <rect x="3" y="3" width="1" height="9" fill="#f87171" />
-      <rect x="3" y="3" width="9" height="1" fill="#f87171" />
+      <rect x="3" y="5" width="1" height="2" fill="#d97706" />
+      <rect x="3" y="7" width="1" height="5" fill="#a16207" />
       {/* Shadow */}
-      <rect x="12" y="4" width="1" height="9" fill="#991b1b" />
-      {/* Screen */}
-      <rect x="4" y="5" width="8" height="5" fill="#1e1b4b" />
-      {/* Screen slots */}
-      <rect x="4" y="5" width="2" height="5" fill="#fbbf24" />
-      <rect x="7" y="5" width="2" height="5" fill="#fbbf24" />
-      <rect x="10" y="5" width="2" height="5" fill="#fbbf24" />
-      {/* 7s on slots */}
-      <rect x="4" y="6" width="2" height="1" fill="#ef4444" />
-      <rect x="5" y="7" width="1" height="1" fill="#ef4444" />
-      <rect x="4" y="8" width="2" height="1" fill="#ef4444" />
-      <rect x="7" y="6" width="2" height="1" fill="#ef4444" />
-      <rect x="8" y="7" width="1" height="1" fill="#ef4444" />
-      <rect x="7" y="8" width="2" height="1" fill="#ef4444" />
-      <rect x="10" y="6" width="2" height="1" fill="#ef4444" />
-      <rect x="11" y="7" width="1" height="1" fill="#ef4444" />
-      <rect x="10" y="8" width="2" height="1" fill="#ef4444" />
-      {/* Lever */}
-      <rect x="14" y="4" width="1" height="4" fill="#94a3b8" />
-      <rect x="14" y="3" width="2" height="2" fill="#f87171" />
-      {/* Top label */}
-      <rect x="5" y="3" width="1" height="1" fill="#fbbf24" />
-      <rect x="7" y="3" width="2" height="1" fill="#fbbf24" />
-      <rect x="10" y="3" width="1" height="1" fill="#fbbf24" />
-      {/* Bottom tray */}
-      <rect x="5" y="11" width="6" height="2" fill="#1e1b4b" />
-      <rect x="6" y="11" width="4" height="1" fill="#fbbf24" />
+      <rect x="12" y="6" width="1" height="6" fill="#78350f" />
+      {/* Lock/clasp */}
+      <rect x="7" y="6" width="2" height="3" fill="#fbbf24" />
+      <rect x="7" y="6" width="2" height="1" fill="#fde68a" />
+      {/* Coins spilling out */}
+      <rect x="5" y="3" width="2" height="2" fill="#fbbf24" />
+      <rect x="9" y="2" width="2" height="2" fill="#fbbf24" />
+      <rect x="7" y="1" width="2" height="2" fill="#fde68a" />
+      {/* Sparkle */}
+      <rect x="4" y="1" width="1" height="1" fill="#fde047" />
+      <rect x="12" y="3" width="1" height="1" fill="#fde047" />
     </g>
   );
 }

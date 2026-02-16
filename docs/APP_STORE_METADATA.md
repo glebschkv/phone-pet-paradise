@@ -32,7 +32,7 @@ Journey through Meadow, Sunset, Night, Forest, Snow, City, and Deep Ocean biomes
 - 40+ levels of progression
 - Streak system to build consistency
 - Achievement badges and milestones
-- Lucky wheel and jackpot surprises
+- Daily bonus rewards and surprises
 - Boss challenges with epic rewards
 
 **FOCUS SHIELD (PREMIUM)**
@@ -73,7 +73,7 @@ Download NoMo Phone today and start your journey to better focus - one pet at a 
 
 ## Keywords (100 characters max, comma-separated)
 
-focus,timer,screen time,digital detox,productivity,pomodoro,pets,pixel,wellness,phone addiction,habit
+focus,timer,screen time,digital detox,productivity,pomodoro,pets,pixel,wellness,phone habits,habit
 
 ---
 
@@ -113,14 +113,14 @@ Start your journey to better focus today!
 - Sexual Content or Nudity: None
 - Profanity or Crude Humor: None
 - Alcohol, Tobacco, or Drug Use: None
-- Simulated Gambling: None
+- Simulated Gambling: Infrequent/Mild
 - Horror/Fear Themes: None
 - Mature/Suggestive Themes: None
 - Medical/Treatment Information: None
 - Unrestricted Web Access: No
 - Gambling and Contests: No
 
-**Recommended Age Rating**: 4+
+**Recommended Age Rating**: 12+
 
 ### In-App Purchases to Create
 
@@ -153,21 +153,6 @@ Start your journey to better focus today!
 | Collector Bundle | co.nomoinc.nomo.bundle.collector | Non-Consumable | $14.99 |
 | Ultimate Bundle | co.nomoinc.nomo.bundle.ultimate | Non-Consumable | $29.99 |
 
-**Battle Pass**
-
-| Reference Name | Product ID | Type | Price |
-|---------------|------------|------|-------|
-| Battle Pass Premium | co.nomoinc.nomo.battlepass.premium | Non-Consumable | $4.99 |
-| Battle Pass + 10 Tiers | co.nomoinc.nomo.battlepass.premium.plus | Non-Consumable | $9.99 |
-
-**Boosters**
-
-| Reference Name | Product ID | Type | Price |
-|---------------|------------|------|-------|
-| Focus Boost (2x, 1 day) | co.nomoinc.nomo.boost.focus | Consumable | $0.99 |
-| Super Boost (3x, 3 days) | co.nomoinc.nomo.boost.super | Consumable | $2.99 |
-| Weekly Pass (1.5x, 7 days) | co.nomoinc.nomo.boost.weekly | Consumable | $4.99 |
-
 ---
 
 ## Localization (English - Primary)
@@ -187,19 +172,35 @@ Put down your phone, collect pets, and build healthier habits with NoMo's gamifi
 
 ## Review Notes for App Review Team
 
-NoMo Phone uses Apple's Screen Time APIs (DeviceActivityMonitor, ManagedSettings) to:
-1. Detect when the user puts their phone down (screen off detection)
-2. Optionally block distracting apps during focus sessions (with user consent)
+### Screen Time API Usage (Family Controls Entitlement)
 
-Key testing notes:
-- Screen Time features require a physical device (not simulator)
-- The app will request Screen Time authorization on first focus session
+NoMo Phone uses Apple's Screen Time APIs with the Family Controls entitlement for two purposes:
+
+1. **DeviceActivityMonitor**: Detects when the user's screen is off to reward phone-free time with in-game coins. The monitor runs as a lightweight extension and only records screen-off duration — no app usage data is collected or stored.
+2. **ManagedSettings / ShieldConfiguration**: Optionally blocks user-selected apps during focus sessions (Focus Shield feature). This requires explicit user authorization at runtime via `AuthorizationCenter.shared.requestAuthorization()`. Users choose which apps to shield.
+
+No data from Family Controls or Screen Time APIs is shared with third parties or transmitted off-device. All processing happens locally on the device.
+
+### Background Modes Justification
+
+- **remote-notifications**: Standard push notification delivery for streak reminders and focus session nudges.
+- **processing** (`co.nomoinc.nomo.background-tracking`): Processes DeviceActivityMonitor schedule data to calculate focus session rewards when the app returns to foreground. Minimal battery impact.
+- **fetch**: Periodic subscription status verification to ensure premium features reflect current entitlement state.
+
+### Key Testing Notes
+
+- Screen Time features require a physical device (not available in Simulator)
+- The app will request Screen Time authorization on first focus session start
 - In-app purchases can be tested with sandbox accounts
 - Push notifications are optional and require user permission
+- The app is fully functional in guest mode (no account required) for all non-premium features
 
-Demo account (optional):
+### Demo Account
+
 Email: demo@nomoinc.co
-Password: [To be provided separately]
+Password: NoMoDemo2026!
+
+This account has pre-loaded progress (Level 15, 7-day streak, 3 pets, 1,250 coins) and an active Premium Plus subscription to demonstrate the full app experience including analytics dashboard, sound mixing, all timer backgrounds, and Focus Shield. The app also supports guest mode with full access to all free features without an account.
 
 All content is original pixel art created for this application.
 

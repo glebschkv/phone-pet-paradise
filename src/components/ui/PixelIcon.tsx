@@ -27,7 +27,7 @@ const ICON_NAMES = new Set([
   'clapperboard', 'books', 'medal', 'meditation', 'fox', 'butterfly',
   'lion', 'elephant', 'owl', 'bird', 'crystal-ball', 'rainbow',
   'globe', 'heart', 'heart-ribbon', 'sun', 'sports-medal', 'shopping-cart',
-  'party', 'slot-machine', 'question-mark', 'palette',
+  'party', 'question-mark', 'palette',
   'badge-bronze', 'badge-silver', 'badge-gold', 'hundred',
   'ferris-wheel', 'fireworks', 'shopping-bag', 'dollar',
   // Pet animals
