@@ -6,7 +6,6 @@
  *
  * Extracted hooks:
  * - useTimerPersistence: State persistence to localStorage
- * - useTimerAudio: Completion sound effects
  * - useTimerRewards: XP/coin rewards for sessions
  * - useSessionNotes: Post-session reflection notes
  * - useBreakTransition: Break modal and auto-break logic
@@ -23,7 +22,6 @@ import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { useNotifications } from "@/hooks/useNotifications";
 import { TimerPreset, MAX_COUNTUP_DURATION } from "../constants";
 import { useTimerPersistence } from "./useTimerPersistence";
-import { useTimerAudio } from "./useTimerAudio";
 import { useSoundMixer } from "@/hooks/useSoundMixer";
 import { useTimerRewards } from "./useTimerRewards";
 import { useSessionNotes } from "./useSessionNotes";
@@ -38,7 +36,6 @@ import { markBlockingStopped } from "@/hooks/useTimerExpiryGuard";
 
 export const useTimerLogic = () => {
   const { awardXP, coinSystem, xpSystem } = useBackendAppState();
-  const { playCompletionSound } = useTimerAudio();
   const { recordSession, updateSessionMeta } = useAnalytics();
   const { stopAll: stopAmbientSound, isPlaying: isAmbientPlaying } = useSoundMixer();
   const { recordSession: recordStreakSession } = useStreakSystem();
@@ -391,7 +388,6 @@ export const useTimerLogic = () => {
     clearPersistence,
     stopAppBlocking,
     stopAmbientSound,
-    playCompletionSound,
     awardSessionRewards,
     showFocusBonusToast,
     recordSession,

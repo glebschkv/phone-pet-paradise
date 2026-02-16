@@ -1,5 +1,4 @@
 export * from './constants';
-export * from './hooks/useTimerAudio';
 export { useTimerPersistence } from './hooks/useTimerPersistence';
 export type { TimerState } from './hooks/useTimerPersistence';
 export * from './backgrounds';
