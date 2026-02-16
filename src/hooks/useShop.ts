@@ -15,6 +15,7 @@ import {
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
 import { useShopStore } from '@/stores';
+import { syncPurchasedBundlesFromServer } from '@/stores/shopStore';
 import { IAP_EVENTS } from './useStoreKit';
 import { shopLogger } from '@/lib/logger';
 
@@ -117,6 +118,11 @@ export const useShop = () => {
       });
     }
   }, [ownedCharacters.length, ownedBackgrounds.length]);
+
+  // Sync purchased bundle IDs from server on mount to clear stale localStorage
+  useEffect(() => {
+    syncPurchasedBundlesFromServer();
+  }, []);
 
   // Refs for the bundle grant handler — keeps the event listener stable so it
   // is never removed/re-registered during a purchase (which could miss events).
