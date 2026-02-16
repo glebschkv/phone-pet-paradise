@@ -70,12 +70,12 @@ export const XPRewardModal = ({
               <div
                 className="inline-flex items-center gap-1 px-3 py-1 rounded text-[10px] font-black uppercase tracking-wider mb-1 animate-pulse border"
                 style={{
-                  background: displayReward.bonusType === 'jackpot'
+                  background: displayReward.bonusType === 'mega_bonus'
                     ? 'linear-gradient(180deg, hsl(45 90% 55%), hsl(40 85% 45%))'
                     : displayReward.bonusType === 'super_lucky'
                     ? 'linear-gradient(180deg, hsl(280 70% 55%), hsl(280 75% 45%))'
                     : 'linear-gradient(180deg, hsl(140 65% 45%), hsl(140 70% 35%))',
-                  borderColor: displayReward.bonusType === 'jackpot'
+                  borderColor: displayReward.bonusType === 'mega_bonus'
                     ? 'hsl(35 80% 40%)'
                     : displayReward.bonusType === 'super_lucky'
                     ? 'hsl(280 60% 55%)'
@@ -85,7 +85,7 @@ export const XPRewardModal = ({
                 }}
               >
                 <Flame className="w-3 h-3" />
-                {displayReward.bonusType === 'jackpot' && 'JACKPOT! 2x XP'}
+                {displayReward.bonusType === 'mega_bonus' && 'MEGA BONUS! 2x XP'}
                 {displayReward.bonusType === 'super_lucky' && 'SUPER LUCKY! 1.5x XP'}
                 {displayReward.bonusType === 'lucky' && 'LUCKY! +25% XP'}
               </div>

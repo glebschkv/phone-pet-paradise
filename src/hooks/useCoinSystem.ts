@@ -212,7 +212,7 @@ export interface CoinReward {
   bonusCoins: number;
   bonusMultiplier: number;
   hasBonusCoins: boolean;
-  bonusType: 'none' | 'lucky' | 'super_lucky' | 'jackpot';
+  bonusType: 'none' | 'lucky' | 'super_lucky' | 'mega_bonus';
   boosterActive: boolean;
   boosterMultiplier: number;
   subscriptionMultiplier: number;
@@ -242,16 +242,16 @@ const COIN_REWARDS: Record<number, number> = {
 interface BonusResult {
   hasBonusCoins: boolean;
   bonusMultiplier: number;
-  bonusType: 'none' | 'lucky' | 'super_lucky' | 'jackpot';
+  bonusType: 'none' | 'lucky' | 'super_lucky' | 'mega_bonus';
 }
 
 const calculateRandomBonus = (): BonusResult => {
   const roll = Math.random() * 100;
   const { BONUS_THRESHOLDS, BONUS_MULTIPLIERS } = COIN_CONFIG;
 
-  // 5% chance: Jackpot (2.5x coins)
-  if (roll < BONUS_THRESHOLDS.JACKPOT) {
-    return { hasBonusCoins: true, bonusMultiplier: BONUS_MULTIPLIERS.JACKPOT, bonusType: 'jackpot' };
+  // 5% chance: Mega Bonus (2.5x coins)
+  if (roll < BONUS_THRESHOLDS.MEGA_BONUS) {
+    return { hasBonusCoins: true, bonusMultiplier: BONUS_MULTIPLIERS.MEGA_BONUS, bonusType: 'mega_bonus' };
   }
   // 10% chance: Super Lucky (1.75x coins)
   if (roll < BONUS_THRESHOLDS.SUPER_LUCKY) {

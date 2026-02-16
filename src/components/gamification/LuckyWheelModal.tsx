@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useLuckyWheel, SpinResult } from '@/hooks/useLuckyWheel';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { cn } from '@/lib/utils';
-import { Sparkles, Clock, History, Gift, Zap, X, Crown } from 'lucide-react';
+import { Sparkles, Clock, History, Gift, Zap, X, Crown, Info } from 'lucide-react';
 import { LuckyWheelPrize } from '@/data/GamificationData';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 
@@ -209,7 +209,7 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
     switch (prize.type) {
       case 'coins': return `${prize.amount} coins added to your balance`;
       case 'xp': return `${prize.amount} XP gained`;
-      case 'jackpot': return `${prize.amount} coins jackpot bonus!`;
+      case 'mega_bonus': return `${prize.amount} coins mega bonus!`;
       case 'streak_freeze': return 'Protects your streak for 1 day';
       case 'booster': return '3x coin multiplier on next session';
       case 'mystery_box': return 'A surprise reward was unlocked';
@@ -604,6 +604,28 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
             </div>
           )}
         </div>
+
+        {/* Prize Odds Disclosure */}
+        <details className="px-4 pb-4">
+          <summary className="text-[10px] text-purple-400/60 cursor-pointer flex items-center gap-1 select-none">
+            <Info className="w-3 h-3" />
+            View prize odds
+          </summary>
+          <div className="mt-2 space-y-1">
+            {prizes.map((prize) => (
+              <div key={prize.id} className="flex items-center justify-between text-[10px] text-purple-300/50">
+                <span className="flex items-center gap-1.5">
+                  <PixelIcon name={prize.icon} size={12} />
+                  {prize.name}
+                </span>
+                <span>{prize.probability}%</span>
+              </div>
+            ))}
+            <p className="text-[9px] text-purple-400/40 mt-1">
+              All prizes use in-game coins only. No real money.
+            </p>
+          </div>
+        </details>
       </DialogContent>
     </Dialog>
   );

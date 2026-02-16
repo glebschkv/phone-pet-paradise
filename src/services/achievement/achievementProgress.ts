@@ -147,7 +147,7 @@ export function checkAchievementProgress(
       }
       break;
 
-    case 'jackpots':
+    case 'mega_bonuses':
       if (achievement.id === 'lucky-winner') {
         newProgress = value;
         shouldUpdate = true;

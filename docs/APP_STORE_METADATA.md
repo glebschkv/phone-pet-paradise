@@ -113,7 +113,7 @@ Start your journey to better focus today!
 - Sexual Content or Nudity: None
 - Profanity or Crude Humor: None
 - Alcohol, Tobacco, or Drug Use: None
-- Simulated Gambling: Frequent/Intense
+- Simulated Gambling: Infrequent/Mild
 - Horror/Fear Themes: None
 - Mature/Suggestive Themes: None
 - Medical/Treatment Information: None

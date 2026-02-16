@@ -351,7 +351,7 @@ export const GamificationHub = ({ onXPReward, onCoinReward }: GamificationHubPro
           if (prize.type === 'coins' && prize.amount && onCoinReward) {
             onCoinReward(prize.amount);
           }
-          if (prize.type === 'jackpot' && prize.amount && onCoinReward) {
+          if (prize.type === 'mega_bonus' && prize.amount && onCoinReward) {
             onCoinReward(prize.amount);
           }
           if (prize.type === 'streak_freeze') {

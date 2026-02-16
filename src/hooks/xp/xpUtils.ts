@@ -7,13 +7,13 @@ import { ANIMAL_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { BonusResult } from './xpTypes';
 import { LEVEL_REQUIREMENTS, MAX_LEVEL } from './xpConstants';
 
-// Random bonus XP system - creates variable rewards (slot machine psychology)
+// Random bonus XP system - creates variable rewards for engagement
 export const calculateRandomBonus = (): BonusResult => {
   const roll = Math.random() * 100;
 
-  // 5% chance: Jackpot (2.5x XP)
+  // 5% chance: Mega Bonus (2.5x XP)
   if (roll < 5) {
-    return { hasBonusXP: true, bonusMultiplier: 2.5, bonusType: 'jackpot' };
+    return { hasBonusXP: true, bonusMultiplier: 2.5, bonusType: 'mega_bonus' };
   }
   // 10% chance: Super Lucky (1.75x XP)
   if (roll < 15) {

@@ -106,7 +106,7 @@ export interface AchievementTrackingHook {
   trackStreak: (streakDays: number) => void;
   trackSpecialSession: (type: 'night' | 'morning' | 'weekend') => void;
   trackWheelSpin: (spinCount: number) => void;
-  trackJackpot: (jackpotCount: number) => void;
+  trackMegaBonus: (megaBonusCount: number) => void;
   trackShare: (shareCount: number) => void;
   trackBiomeUnlock: (biomeCount: number) => void;
   trackAchievementsUnlocked: (count: number) => void;

@@ -713,10 +713,10 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
   {
     id: 'lucky-winner',
     title: 'Lucky Winner',
-    description: 'Win 5 jackpots from focus sessions',
+    description: 'Win 5 mega bonuses from focus sessions',
     category: 'special',
     tier: 'gold',
-    icon: 'slot-machine',
+    icon: 'treasure-chest',
     target: 5,
     rewards: [
       { type: 'xp', amount: 600, description: '+600 XP' },

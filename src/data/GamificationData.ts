@@ -386,7 +386,7 @@ export const getUpcomingEvents = (): SpecialEvent[] => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const LUCKY_WHEEL_PRIZES: LuckyWheelPrize[] = [
-  // BOOSTED prizes with better odds for jackpot!
+  // BOOSTED prizes with better odds for mega bonus!
   { id: 'coins-100', name: '100 Coins', icon: 'coin', type: 'coins', amount: 100, probability: 22, rarity: 'common', color: '#64748b' },
   { id: 'coins-200', name: '200 Coins', icon: 'money-bag', type: 'coins', amount: 200, probability: 18, rarity: 'common', color: '#71717a' },
   { id: 'xp-50', name: '50 XP', icon: 'star', type: 'xp', amount: 50, probability: 18, rarity: 'common', color: '#6366f1' },
@@ -395,7 +395,7 @@ export const LUCKY_WHEEL_PRIZES: LuckyWheelPrize[] = [
   { id: 'streak-freeze', name: 'Streak Freeze', icon: 'ice-cube', type: 'streak_freeze', amount: 1, probability: 6, rarity: 'epic', color: '#06b6d4' },
   { id: 'booster', name: '3x Coin Booster', icon: 'rocket', type: 'booster', amount: 1, probability: 5, rarity: 'epic', color: '#10b981' },
   { id: 'mystery-box', name: 'Mystery Box', icon: 'gift', type: 'mystery_box', probability: 2, rarity: 'epic', color: '#f59e0b' },
-  { id: 'jackpot', name: 'JACKPOT!', icon: 'slot-machine', type: 'jackpot', amount: 2500, probability: 3, rarity: 'legendary', color: '#ef4444' },
+  { id: 'mega-bonus', name: 'MEGA BONUS!', icon: 'treasure-chest', type: 'mega_bonus', amount: 2500, probability: 3, rarity: 'legendary', color: '#ef4444' },
 ];
 
 export const spinWheel = (): LuckyWheelPrize => {

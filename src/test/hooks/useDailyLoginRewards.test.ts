@@ -415,7 +415,7 @@ describe('useDailyLoginRewards', () => {
       }
     });
 
-    it('should have day 7 as jackpot day', () => {
+    it('should have day 7 as mega bonus day', () => {
       const { result } = renderHook(() => useDailyLoginRewards());
 
       const day7 = result.current.dailyRewards.find(r => r.day === 7);
