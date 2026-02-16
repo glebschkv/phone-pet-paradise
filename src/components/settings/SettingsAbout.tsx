@@ -1,6 +1,5 @@
 import { Heart, ExternalLink, MessageCircle, Shield, FileText, ScrollText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PixelIcon } from "@/components/ui/PixelIcon";
 
 export const SettingsAbout = () => {
   const navigate = useNavigate();
@@ -26,7 +25,7 @@ export const SettingsAbout = () => {
                 boxShadow: '0 4px 0 hsl(260 50% 35%), 0 8px 16px hsl(260 50% 30% / 0.3), inset 0 2px 0 hsl(260 70% 70% / 0.3)',
               }}
             >
-              <PixelIcon name="app-logo" size={48} />
+              <img src="/app-icon.png" alt="NoMo Phone" width={48} height={48} className="rounded-lg" draggable={false} />
             </div>
 
             {/* App Name */}
@@ -64,7 +63,7 @@ export const SettingsAbout = () => {
         <div className="space-y-2">
           <button
             onClick={() => navigate('/privacy')}
-            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
+            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95 text-purple-100"
           >
             <FileText className="w-5 h-5" />
             <span className="text-sm font-semibold flex-1 text-left">Privacy Policy</span>
@@ -73,7 +72,7 @@ export const SettingsAbout = () => {
 
           <button
             onClick={() => navigate('/terms')}
-            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
+            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95 text-purple-100"
           >
             <ScrollText className="w-5 h-5" />
             <span className="text-sm font-semibold flex-1 text-left">Terms of Service</span>
@@ -82,7 +81,7 @@ export const SettingsAbout = () => {
 
           <button
             onClick={() => openLink('mailto:support@nomoinc.co')}
-            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95"
+            className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95 text-purple-100"
           >
             <MessageCircle className="w-5 h-5" />
             <span className="text-sm font-semibold flex-1 text-left">Contact Support</span>
