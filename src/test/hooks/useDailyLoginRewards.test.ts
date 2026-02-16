@@ -422,7 +422,7 @@ describe('useDailyLoginRewards', () => {
 
       expect(day7).toBeTruthy();
       expect(day7?.type).toBe('mystery_bonus');
-      expect(day7?.label).toContain('Jackpot');
+      expect(day7?.label).toContain('Mega Bonus');
     });
   });
 
