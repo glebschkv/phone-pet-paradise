@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { questLogger } from '@/lib/logger';
 import { useXPStore } from '@/stores/xpStore';
 import { useCoinStore } from '@/stores/coinStore';
+import { playSoundEffect } from '@/hooks/useSoundEffects';
 import { QUEST_CONFIG } from '@/lib/constants';
 import type {
   Quest,
@@ -338,6 +339,7 @@ export const useQuestSystem = (): QuestSystemReturn => {
       rewardMessages.push(unlockedPets.join(', '));
     }
 
+    playSoundEffect('success');
     toast.success("Quest Complete!", {
       description: `${quest.title} completed! ${rewardMessages.join(' • ')}`,
     });

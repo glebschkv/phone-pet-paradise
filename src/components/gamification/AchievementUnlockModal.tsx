@@ -5,6 +5,7 @@ import { Trophy, Sparkles, Star } from 'lucide-react';
 import { useAchievementSystem } from '@/hooks/useAchievementSystem';
 import { cn } from '@/lib/utils';
 import { PixelIcon } from '@/components/ui/PixelIcon';
+import { playSoundEffect } from '@/hooks/useSoundEffects';
 
 interface AchievementUnlockModalProps {
   onClaimReward: (xp: number, coins: number) => void;
@@ -80,6 +81,7 @@ export const AchievementUnlockModal: React.FC<AchievementUnlockModalProps> = ({
 
   const handleClaim = () => {
     if (!pendingUnlock || claimed) return;
+    playSoundEffect('achievement');
 
     const rewards = claimRewards(pendingUnlock.achievement.id);
     if (rewards.xp > 0 || rewards.coins > 0) {

@@ -8,6 +8,7 @@
 import { useCallback } from "react";
 import { toast } from 'sonner';
 import { timerLogger } from '@/lib/logger';
+import { playSoundEffect } from '@/hooks/useSoundEffects';
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -120,6 +121,7 @@ export const useTimerControls = ({
   const startTimerWithIntent = useCallback(async (category: FocusCategory, taskLabel?: string) => {
     setShowIntentionModal(false);
     triggerHaptic('medium');
+    playSoundEffect('timerStart');
 
     const now = Date.now();
 

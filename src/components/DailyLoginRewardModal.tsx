@@ -5,6 +5,7 @@ import { DailyReward } from "@/hooks/useDailyLoginRewards";
 import { Gift, Flame, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PixelIcon } from "@/components/ui/PixelIcon";
+import { playSoundEffect } from "@/hooks/useSoundEffects";
 
 // Map reward emojis to PixelIcon names
 const EMOJI_TO_ICON: Record<string, string> = {
@@ -42,6 +43,7 @@ export const DailyLoginRewardModal = ({
   // after a microtask so Radix can begin its close animation before any new
   // modal state changes propagate (prevents black overlay on iOS/Capacitor).
   const handleClaim = useCallback(() => {
+    playSoundEffect('reward');
     onDismiss();
     requestAnimationFrame(() => {
       setTimeout(() => {

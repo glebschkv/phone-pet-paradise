@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { AppSettings } from "@/hooks/useSettings";
-import { soundLogger } from "@/lib/logger";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Volume2, VolumeX, Music, Play, Leaf, Sparkles, MousePointerClick } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setClickSoundEnabled } from "@/hooks/useClickSound";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 interface SettingsSoundProps {
   settings: AppSettings;
@@ -20,6 +20,7 @@ const soundThemes = [
 ];
 
 export const SettingsSound = ({ settings, onUpdate }: SettingsSoundProps) => {
+  const { play } = useSoundEffects();
   const [clickSoundOn, setClickSoundOn] = useState(() => {
     try {
       return localStorage.getItem('petIsland_clickSoundEnabled') !== 'false';
@@ -27,11 +28,7 @@ export const SettingsSound = ({ settings, onUpdate }: SettingsSoundProps) => {
   });
 
   const testSound = () => {
-    const audio = new Audio('/notification.mp3');
-    audio.volume = settings.soundVolume / 100;
-    audio.play().catch(() => {
-      soundLogger.debug('Test sound played');
-    });
+    play('notification');
   };
 
   return (

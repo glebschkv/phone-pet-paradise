@@ -31,6 +31,7 @@ import { useBreakTransition } from "./useBreakTransition";
 import { useTimerControls } from "./useTimerControls";
 import { useTimerCountdown } from "./useTimerCountdown";
 import { timerLogger } from "@/lib/logger";
+import { playSoundEffect } from "@/hooks/useSoundEffects";
 import { widgetDataService } from "@/plugins/widget-data";
 import { DeviceActivity } from "@/plugins/device-activity";
 import { markBlockingStopped } from "@/hooks/useTimerExpiryGuard";
@@ -243,7 +244,7 @@ export const useTimerLogic = () => {
       }
 
       if (state.timerState.soundEnabled) {
-        playCompletionSound();
+        playSoundEffect('timerComplete');
       }
 
       let xpEarned = 0;
