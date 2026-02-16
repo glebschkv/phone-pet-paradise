@@ -10,21 +10,12 @@ const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal
 
-// The overlay is intentionally INVISIBLE.  All backdrop dimming is handled by
-// a box-shadow on AlertDialogContent instead (via .dialog-backdrop-shadow).
-// This eliminates the iOS/Capacitor bug where the overlay element gets orphaned
-// in the DOM and blocks all touch input with a black screen.
+// No overlay rendered — see dialog.tsx for explanation. Overlay elements get
+// orphaned on iOS WebView and cause black screens.
 const AlertDialogOverlay = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <AlertDialogPrimitive.Overlay
-    data-dialog-overlay=""
-    className={cn("fixed inset-0 z-50", className)}
-    {...props}
-    ref={ref}
-  />
-))
+>(() => null)
 AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName
 
 const AlertDialogContent = React.forwardRef<
@@ -32,11 +23,9 @@ const AlertDialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
 >(({ className, ...props }, ref) => (
   <AlertDialogPortal>
-    <AlertDialogOverlay />
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
-        "dialog-backdrop-shadow",
         "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
         className
       )}

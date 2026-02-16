@@ -13,25 +13,16 @@ const SheetClose = SheetPrimitive.Close
 
 const SheetPortal = SheetPrimitive.Portal
 
-// The overlay is intentionally INVISIBLE.  All backdrop dimming is handled by
-// a ::before pseudo on SheetContent instead (via .sheet-backdrop-shadow).
-// This eliminates the iOS/Capacitor bug where the overlay element gets orphaned
-// in the DOM and blocks all touch input with a black screen.
+// No overlay rendered — see dialog.tsx for explanation. Overlay elements get
+// orphaned on iOS WebView and cause black screens.
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <SheetPrimitive.Overlay
-    data-dialog-overlay=""
-    className={cn("fixed inset-0 z-50", className)}
-    {...props}
-    ref={ref}
-  />
-))
+>(() => null)
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
 
 const sheetVariants = cva(
-  "sheet-backdrop-shadow fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+  "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
   {
     variants: {
       side: {
@@ -58,7 +49,6 @@ const SheetContent = React.forwardRef<
   SheetContentProps
 >(({ side = "right", className, children, ...props }, ref) => (
   <SheetPortal>
-    <SheetOverlay />
     <SheetPrimitive.Content
       ref={ref}
       className={cn(sheetVariants({ side }), className)}

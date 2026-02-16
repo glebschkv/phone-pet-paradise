@@ -2,46 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
- * ═══════════════════════════════════════════════════════════════════════════
- * DIALOG BACKDROP STRATEGY
- *
- * Radix Dialog's overlay element is notorious for getting orphaned on iOS
- * WebView / Capacitor — animations don't complete, portals don't unmount,
- * and the result is a black screen that blocks all touch input.
- *
- * SOLUTION: The overlay is rendered INVISIBLE (no bg color, no opacity).
- * Backdrop dimming is done via box-shadow on the dialog CONTENT element.
- * When content unmounts → shadow vanishes → zero chance of orphaned overlay.
- *
- * .dialog-backdrop-shadow  → for centered dialogs (Dialog, AlertDialog)
- * .sheet-backdrop-shadow   → for edge-anchored drawers (Sheet)
- * ═══════════════════════════════════════════════════════════════════════════
- */
-
-/* Centered dialogs: huge spread-radius box-shadow creates the dimming effect */
-.dialog-backdrop-shadow {
-  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.6);
-}
-
-/* Sheets: use ::before pseudo since box-shadow doesn't cover the opposite edge */
-.sheet-backdrop-shadow::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* Final safety: overlay elements are always invisible and non-blocking.
-   Even if Radix somehow adds bg via inline styles, this overrides it. */
-[data-dialog-overlay] {
-  background: transparent !important;
-  opacity: 1 !important;
-  pointer-events: auto;
-}
-
 /* iOS app hardening: prevent zoom, text selection, and tap delay */
 html, body {
   touch-action: manipulation;

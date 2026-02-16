@@ -12,22 +12,15 @@ const DialogPortal = DialogPrimitive.Portal
 
 const DialogClose = DialogPrimitive.Close
 
-// The overlay is intentionally INVISIBLE.  All backdrop dimming is handled by
-// a box-shadow on DialogContent instead.  This eliminates the iOS/Capacitor bug
-// where the overlay element gets orphaned in the DOM (due to animation timing
-// or portal unmount failures) and blocks all touch input with a black screen.
-// The overlay is still rendered so Radix's click-outside detection works.
+// No overlay is rendered. On iOS WebView / Capacitor, Radix overlay elements
+// get orphaned in the DOM (animations don't complete, portals don't unmount)
+// and block all touch input with a black screen. Removing the overlay entirely
+// is the only reliable fix. Click-outside-to-close still works via Radix's
+// built-in onInteractOutside on the Content element.
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    data-dialog-overlay=""
-    className={cn("fixed inset-0 z-50", className)}
-    {...props}
-  />
-))
+>(() => null)
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const DialogContent = React.forwardRef<
@@ -35,14 +28,10 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { variant?: "center" | "bottom-sheet" }
 >(({ className, children, variant = "center", ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       aria-describedby={props["aria-describedby"] ?? undefined}
       className={cn(
-        // Backdrop dimming via box-shadow — lives on the content element so it
-        // unmounts with it.  Never orphaned.
-        "dialog-backdrop-shadow",
         variant === "bottom-sheet"
           ? "fixed left-0 right-0 bottom-0 z-50 grid w-full border-t bg-background shadow-lg duration-300 rounded-t-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
           : "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",

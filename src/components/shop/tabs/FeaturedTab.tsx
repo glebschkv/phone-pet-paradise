@@ -242,16 +242,18 @@ export const FeaturedTab = ({
         </div>
         <div className="space-y-2">
           {STARTER_BUNDLES.map((bundle) => {
-            const hasCharacter = bundle.contents.characterId ? inventory.ownedCharacters.includes(bundle.contents.characterId) : false;
-            const bundleRecorded = inventory.purchasedStarterBundleIds.includes(bundle.iapProductId);
-            const alreadyPurchased = hasCharacter || bundleRecorded;
+            // Only mark as purchased if the IAP product was actually bought.
+            // Do NOT check character ownership — the user may have obtained
+            // the character from a coin purchase or reward, which shouldn't
+            // block them from buying the full bundle via IAP.
+            const alreadyPurchased = inventory.purchasedStarterBundleIds.includes(bundle.iapProductId);
 
             return (
               <button
                 key={bundle.id}
                 onClick={() => {
                   if (alreadyPurchased) {
-                    toast.info("You already have all items from this bundle!");
+                    toast.info("You already own this bundle!");
                     return;
                   }
                   setSelectedBundle(bundle);
