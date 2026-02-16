@@ -65,6 +65,19 @@
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
 
+	<!-- URL Scheme for deep links (Supabase auth redirects) -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>co.nomoinc.nomo</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>co.nomoinc.nomo</string>
+			</array>
+		</dict>
+	</array>
+
 	<!-- Privacy Usage Descriptions -->
 	<key>NSFamilyControlsUsageDescription</key>
 	<string>NoMo uses Screen Time to track when you're away from your phone, rewarding you for staying focused.</string>

@@ -621,9 +621,6 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
                 <span>{prize.probability}%</span>
               </div>
             ))}
-            <p className="text-[9px] text-purple-400/40 mt-1">
-              All prizes use in-game coins only. No real money.
-            </p>
           </div>
         </details>
       </DialogContent>
