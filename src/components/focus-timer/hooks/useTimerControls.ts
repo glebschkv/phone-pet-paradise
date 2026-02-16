@@ -59,11 +59,13 @@ export const useTimerControls = ({
     if (selectedPreset.type === 'break') {
       // Breaks resume immediately without intention modal
       const now = Date.now();
+      // Shift startTime backward to account for any time already elapsed
+      // before a pause (sessionDuration stays at original value)
+      const alreadyElapsed = timerState.sessionDuration - timerState.timeLeft;
       setDisplayTime(timerState.timeLeft);
       saveTimerState({
         isRunning: true,
-        startTime: now,
-        sessionDuration: timerState.timeLeft,
+        startTime: now - alreadyElapsed * 1000,
         category: undefined,
         taskLabel: undefined,
       });
@@ -72,19 +74,26 @@ export const useTimerControls = ({
       // and reuse the saved category / taskLabel
       const now = Date.now();
       if (timerState.isCountup) {
-        setDisplayTime(timerState.elapsedTime || 0);
+        const priorElapsed = timerState.elapsedTime || 0;
+        setDisplayTime(priorElapsed);
         saveTimerState({
           isRunning: true,
-          startTime: now,
+          // Shift startTime backward so elapsed calculation includes pre-pause time
+          startTime: now - priorElapsed * 1000,
           sessionDuration: MAX_COUNTUP_DURATION,
           isCountup: true,
         });
       } else {
+        // Shift startTime backward by the time already focused before pause.
+        // This keeps sessionDuration at the original planned value so the
+        // countdown engine (sessionDuration - elapsed) works correctly AND
+        // analytics records the full session duration.
+        const totalElapsedSoFar = timerState.sessionDuration - timerState.timeLeft;
         setDisplayTime(timerState.timeLeft);
         saveTimerState({
           isRunning: true,
-          startTime: now,
-          sessionDuration: timerState.timeLeft,
+          startTime: now - totalElapsedSoFar * 1000,
+          // sessionDuration intentionally NOT overwritten — stays at original
         });
       }
 
@@ -329,10 +338,12 @@ export const useTimerControls = ({
     }
 
     if (timerState.isRunning && elapsedSeconds > 10) {
+      // For countup, there's no planned duration — use actual as planned
+      const plannedDuration = timerState.isCountup ? elapsedSeconds : timerState.sessionDuration;
       try {
         recordSession(
           timerState.sessionType,
-          timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
+          plannedDuration,
           elapsedSeconds,
           'abandoned',
           0,
@@ -458,10 +469,12 @@ export const useTimerControls = ({
     }
 
     if (elapsedSeconds > 10) {
+      // For countup, there's no planned duration — use actual as planned
+      const plannedDuration = timerState.isCountup ? elapsedSeconds : timerState.sessionDuration;
       try {
         recordSession(
           timerState.sessionType,
-          timerState.isCountup ? elapsedSeconds : timerState.sessionDuration,
+          plannedDuration,
           elapsedSeconds,
           'skipped',
           xpEarned,

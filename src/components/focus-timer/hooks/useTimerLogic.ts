@@ -38,7 +38,7 @@ import { markBlockingStopped } from "@/hooks/useTimerExpiryGuard";
 export const useTimerLogic = () => {
   const { awardXP, coinSystem, xpSystem } = useBackendAppState();
   const { playCompletionSound } = useTimerAudio();
-  const { recordSession } = useAnalytics();
+  const { recordSession, updateSessionMeta } = useAnalytics();
   const { stopAll: stopAmbientSound, isPlaying: isAmbientPlaying } = useSoundMixer();
   const { recordSession: recordStreakSession } = useStreakSystem();
   const { scheduleStreakNotification, scheduleRewardNotification, cancelTimerCompletionNotification } = useNotifications();
@@ -81,9 +81,9 @@ export const useTimerLogic = () => {
   const [showLockScreen, setShowLockScreen] = useState(false);
   const [showSessionNotesModal, setShowSessionNotesModal] = useState(false);
   const [lastSessionXP, setLastSessionXP] = useState(0);
-  // Preserve category/taskLabel for session notes — handleComplete clears
+  // Preserve category/taskLabel/sessionId for session notes — handleComplete clears
   // them from timerState before the notes modal opens, so we snapshot here.
-  const lastSessionMetaRef = useRef<{ category?: string; taskLabel?: string; sessionDuration: number }>({
+  const lastSessionMetaRef = useRef<{ category?: string; taskLabel?: string; sessionDuration: number; sessionId?: string }>({
     sessionDuration: timerState.sessionDuration,
   });
 
@@ -190,10 +190,12 @@ export const useTimerLogic = () => {
     });
 
     try {
-      // For countup mode, use elapsed time; for countdown, use session duration
-      const completedMinutes = state.timerState.isCountup
-        ? (state.timerState.elapsedTime || 0) / 60
-        : state.timerState.sessionDuration / 60;
+      // For countup mode, use elapsed time; for countdown, use full session duration
+      // (sessionDuration is preserved at the original planned value across pause/resume)
+      const actualSeconds = state.timerState.isCountup
+        ? (state.timerState.elapsedTime || 0)
+        : state.timerState.sessionDuration;
+      const completedMinutes = actualSeconds / 60;
 
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -281,14 +283,15 @@ export const useTimerLogic = () => {
             : undefined)
         : undefined;
 
-      // For countup sessions, actualDuration is the elapsed time, not the max duration
-      const actualDuration = state.timerState.isCountup
-        ? (state.timerState.elapsedTime || 0)
+      // For countup, plannedDuration = actualDuration (no plan); for countdown, use full session duration
+      const actualDuration = actualSeconds;
+      const plannedDuration = state.timerState.isCountup
+        ? actualDuration
         : state.timerState.sessionDuration;
 
-      recordSession(
+      const recordedSession = recordSession(
         state.timerState.sessionType,
-        state.timerState.sessionDuration,
+        plannedDuration,
         actualDuration,
         'completed',
         xpEarned,
@@ -369,6 +372,7 @@ export const useTimerLogic = () => {
           category: state.timerState.category,
           taskLabel: state.timerState.taskLabel,
           sessionDuration: state.timerState.sessionDuration,
+          sessionId: recordedSession?.id,
         };
         setLastSessionXP(xpEarned);
         setShowSessionNotesModal(true);
@@ -459,12 +463,20 @@ export const useTimerLogic = () => {
       xpEarned: lastSessionXP,
     });
 
+    // Link rating and hasNotes back to the session record for analytics
+    if (meta.sessionId) {
+      updateSessionMeta(meta.sessionId, {
+        rating,
+        hasNotes: notes.trim().length > 0,
+      });
+    }
+
     setShowSessionNotesModal(false);
     // Delay break modal to prevent Radix Dialog portal collision —
     // closing one dialog and opening another in the same render batch
     // causes a black overlay with no content on iOS/Capacitor.
     setTimeout(() => openBreakModal(), 350);
-  }, [saveSessionNote, lastSessionXP, openBreakModal]);
+  }, [saveSessionNote, lastSessionXP, openBreakModal, updateSessionMeta]);
 
   // ============================================================================
   // BREAK HANDLING

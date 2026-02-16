@@ -296,7 +296,24 @@ export const useAnalytics = () => {
 
     const newHourlyFocus = { ...existingStats.hourlyFocus };
     if (isCountedSession) {
-      newHourlyFocus[hour] = (newHourlyFocus[hour] || 0) + safeActual;
+      // Distribute focus time across all hours spanned by the session.
+      // A 90-min session starting at 2:30 PM should attribute 30 min to hour 14
+      // and 60 min to hour 15, rather than putting all 90 min into hour 14.
+      const sessionStartDate = new Date(startTime);
+      let remaining = safeActual;
+      let curHour = sessionStartDate.getHours();
+      let curMinute = sessionStartDate.getMinutes();
+      let curSecond = sessionStartDate.getSeconds();
+
+      while (remaining > 0) {
+        const secondsLeftInHour = 3600 - (curMinute * 60 + curSecond);
+        const attributed = Math.min(remaining, secondsLeftInHour);
+        newHourlyFocus[curHour] = (newHourlyFocus[curHour] || 0) + attributed;
+        remaining -= attributed;
+        curHour = (curHour + 1) % 24;
+        curMinute = 0;
+        curSecond = 0;
+      }
     }
 
     // Update category time tracking
@@ -313,7 +330,7 @@ export const useAnalytics = () => {
       totalFocusTime: existingStats.totalFocusTime + (isWorkSession ? focusTimeIncrement : 0),
       totalBreakTime: existingStats.totalBreakTime + (!isWorkSession ? safeActual : 0),
       sessionsCompleted: existingStats.sessionsCompleted + (status === 'completed' && isWorkSession ? 1 : 0),
-      sessionsAbandoned: existingStats.sessionsAbandoned + (status === 'abandoned' ? 1 : 0),
+      sessionsAbandoned: existingStats.sessionsAbandoned + (status === 'abandoned' && isWorkSession ? 1 : 0),
       longestSession: isWorkSession && status === 'completed'
         ? Math.max(existingStats.longestSession, safeActual)
         : existingStats.longestSession,
@@ -379,6 +396,15 @@ export const useAnalytics = () => {
 
     return session;
   }, [saveSessions, saveDailyStats, saveRecords]);
+
+  // Update metadata on an existing session (e.g. after saving session notes)
+  const updateSessionMeta = useCallback((sessionId: string, updates: { rating?: number; hasNotes?: boolean }) => {
+    const currentSessions = sessionsRef.current;
+    const updatedSessions = currentSessions.map(s =>
+      s.id === sessionId ? { ...s, ...updates } : s
+    );
+    saveSessions(updatedSessions);
+  }, [saveSessions]);
 
   // Update analytics settings
   const updateSettings = useCallback((updates: Partial<AnalyticsSettings>) => {
@@ -1178,6 +1204,7 @@ export const useAnalytics = () => {
 
     // Actions
     recordSession,
+    updateSessionMeta,
     updateSettings,
     getDailyStatsRange,
     getRecentSessions,
