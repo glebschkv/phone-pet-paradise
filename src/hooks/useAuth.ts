@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { authLogger } from '@/lib/logger';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
+import { ACHIEVEMENT_STORAGE_KEY } from '@/services/achievement/achievementConstants';
 
 const GUEST_ID_KEY = 'pet_paradise_guest_id';
 const GUEST_CHOSEN_KEY = 'pet_paradise_guest_chosen';
@@ -25,8 +26,6 @@ function clearUserData() {
     'nomo_shop_inventory',
     'nomo_xp_system',
     'nomo_streak_data',
-    'nomo_achievements',
-    'nomo_achievement_system',
     'nomo_quests',
     'nomo_quest_system',
     'nomo_battle_pass',
@@ -39,6 +38,14 @@ function clearUserData() {
     'nomo_analytics_sessions',
     'nomo_analytics_daily_stats',
     'nomo_analytics_records',
+    // Achievement tracking stats (cumulative focus minutes, sessions etc.)
+    'achievement-tracking-stats',
+    // Legacy global achievement key — now per-user via achievement-system-data-<userId>,
+    // but the old global key must be removed to prevent cross-user leaks from pre-migration data.
+    ACHIEVEMENT_STORAGE_KEY,
+    // Legacy daily login key (per-user keys use pet_paradise_daily_login_<userId>
+    // and are NOT cleared — they're already isolated per-user and should persist)
+    'pet_paradise_daily_login',
     // Legacy prefix keys
     'petIsland_premium',
     'petparadise_coins',

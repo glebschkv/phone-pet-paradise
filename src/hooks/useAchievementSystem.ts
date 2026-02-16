@@ -20,7 +20,8 @@ import {
   getCompletionPercentage as getCompletionPercentageUtil,
   generateShareText,
   getClaimedAchievementIds,
-  isAchievementClaimed
+  isAchievementClaimed,
+  setAchievementUserId,
 } from '@/services/achievementService';
 
 // Re-export types for backwards compatibility
@@ -335,9 +336,16 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
     }
   }, [achievements, queueAchievementUnlock]);
 
-  // Initialize on mount and listen for storage changes (cross-component sync)
+  // Set per-user storage key and reload when the authenticated user changes.
+  // This ensures each user gets their own achievement data and prevents
+  // cross-user data leaks on shared devices.
   useEffect(() => {
+    setAchievementUserId(user?.id);
     loadAchievementData();
+  }, [user?.id, loadAchievementData]);
+
+  // Listen for storage changes (cross-component sync)
+  useEffect(() => {
 
     // Listen for storage changes from other components/tabs
     const handleStorageChange = (e: StorageEvent) => {

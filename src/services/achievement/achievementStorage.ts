@@ -1,6 +1,10 @@
 /**
  * Achievement Storage Functions
  * localStorage operations for achievement data
+ *
+ * Storage is per-user: each authenticated user gets their own key
+ * (`achievement-system-data-<userId>`). The global key is used as a
+ * fallback/migration source for data created before per-user keys existed.
  */
 
 import { achievementLogger } from '@/lib/logger';
@@ -8,12 +12,46 @@ import { Achievement } from './achievementTypes';
 import { ACHIEVEMENT_STORAGE_KEY } from './achievementConstants';
 import { mergeWithDefinitions } from './achievementUtils';
 
+// Module-level current key — set by useAchievementSystem when userId changes.
+let _currentKey = ACHIEVEMENT_STORAGE_KEY;
+
 /**
- * Load achievement data from localStorage
+ * Switch the storage key to a per-user variant.
+ * Called from useAchievementSystem whenever the authenticated user changes.
+ */
+export function setAchievementUserId(userId: string | undefined): void {
+  _currentKey = userId
+    ? `${ACHIEVEMENT_STORAGE_KEY}-${userId}`
+    : ACHIEVEMENT_STORAGE_KEY;
+}
+
+/** Return the active storage key (for clearing in clearUserData). */
+export function getAchievementStorageKey(): string {
+  return _currentKey;
+}
+
+/**
+ * Load achievement data from localStorage.
+ * Tries the per-user key first, then falls back to the global key for migration.
  */
 export function loadFromStorage(): Achievement[] | null {
   try {
-    const saved = localStorage.getItem(ACHIEVEMENT_STORAGE_KEY);
+    let saved = localStorage.getItem(_currentKey);
+
+    // Migration: if no per-user data exists, check the global key
+    if (!saved && _currentKey !== ACHIEVEMENT_STORAGE_KEY) {
+      saved = localStorage.getItem(ACHIEVEMENT_STORAGE_KEY);
+      if (saved) {
+        // Copy to per-user key and remove the global one
+        try {
+          localStorage.setItem(_currentKey, saved);
+          localStorage.removeItem(ACHIEVEMENT_STORAGE_KEY);
+        } catch {
+          // Storage full — continue with what we have
+        }
+      }
+    }
+
     if (saved) {
       const data = JSON.parse(saved);
       return mergeWithDefinitions(data.achievements || []);
@@ -31,7 +69,7 @@ export function loadFromStorage(): Achievement[] | null {
 export function saveToStorage(achievementData: Achievement[]): void {
   try {
     // Read current localStorage to preserve any claimed status set by other instances
-    const saved = localStorage.getItem(ACHIEVEMENT_STORAGE_KEY);
+    const saved = localStorage.getItem(_currentKey);
     let mergedData = achievementData;
 
     if (saved) {
@@ -50,7 +88,7 @@ export function saveToStorage(achievementData: Achievement[]): void {
       }));
     }
 
-    localStorage.setItem(ACHIEVEMENT_STORAGE_KEY, JSON.stringify({ achievements: mergedData }));
+    localStorage.setItem(_currentKey, JSON.stringify({ achievements: mergedData }));
   } catch (error) {
     achievementLogger.error('Failed to save achievement data:', error);
   }
@@ -61,7 +99,7 @@ export function saveToStorage(achievementData: Achievement[]): void {
  */
 export function getClaimedAchievementIds(): Set<string> {
   try {
-    const saved = localStorage.getItem(ACHIEVEMENT_STORAGE_KEY);
+    const saved = localStorage.getItem(_currentKey);
     if (saved) {
       const data = JSON.parse(saved);
       const achievements: Achievement[] = data.achievements || [];
@@ -79,7 +117,7 @@ export function getClaimedAchievementIds(): Set<string> {
  */
 export function isAchievementClaimed(achievementId: string): boolean {
   try {
-    const saved = localStorage.getItem(ACHIEVEMENT_STORAGE_KEY);
+    const saved = localStorage.getItem(_currentKey);
     if (saved) {
       const data = JSON.parse(saved);
       const savedAchievement = (data.achievements || []).find((a: Achievement) => a.id === achievementId);
