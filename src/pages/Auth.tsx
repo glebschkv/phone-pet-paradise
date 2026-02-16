@@ -44,7 +44,6 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [emailSentTo, setEmailSentTo] = useState('');
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   // Check for reset-password mode from URL query params
@@ -175,11 +174,6 @@ export default function Auth() {
 
     if (!isSupabaseConfigured) {
       toast.error('Authentication is not available. Please try again later.');
-      return;
-    }
-
-    if (!ageConfirmed) {
-      toast.error('You must confirm you are 13 years or older to create an account');
       return;
     }
 
@@ -433,7 +427,6 @@ export default function Auth() {
     setShowPassword(false);
     setEmailSent(false);
     setEmailSentTo('');
-    setAgeConfirmed(false);
   };
 
   // Welcome screen with options
@@ -930,22 +923,10 @@ export default function Auth() {
                   )}
                 </div>
 
-                <label className="flex items-start gap-3 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={ageConfirmed}
-                    onChange={(e) => setAgeConfirmed(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded border-purple-600 bg-purple-900/50 text-purple-500 focus:ring-purple-500 accent-purple-500"
-                  />
-                  <span className="text-xs text-purple-300/70 leading-relaxed">
-                    I confirm that I am 13 years of age or older
-                  </span>
-                </label>
-
                 <button
                   type="submit"
                   className="retro-arcade-btn retro-arcade-btn-green w-full py-3.5 text-sm font-bold tracking-wider disabled:opacity-60"
-                  disabled={isLoading || !ageConfirmed}
+                  disabled={isLoading}
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">

@@ -197,7 +197,10 @@ No data from Family Controls or Screen Time APIs is shared with third parties or
 
 ### Demo Account
 
-A demo account is not required. The app supports guest mode with full access to all free features. To test premium features, use a sandbox Apple ID to purchase a subscription via the in-app Premium screen.
+Email: demo@nomoinc.co
+Password: NoMoDemo2026!
+
+This account has pre-loaded progress (Level 15, 7-day streak, 3 pets, 1,250 coins) to demonstrate the full app experience. The app also supports guest mode with full access to all free features. To test premium features, use a sandbox Apple ID to purchase a subscription via the in-app Premium screen.
 
 All content is original pixel art created for this application.
 
