@@ -13,21 +13,17 @@ const SheetClose = SheetPrimitive.Close
 
 const SheetPortal = SheetPrimitive.Portal
 
-// No fade animation on the overlay — it appears/disappears instantly with
-// Radix's mount/unmount.  The previous animate-in/animate-out approach
-// relied on onAnimationEnd to hide the element, which frequently didn't
-// fire on iOS/Capacitor, leaving an orphaned bg-black/60 blocking the
-// entire screen.  Matches the fix applied to DialogOverlay.
+// The overlay is intentionally INVISIBLE.  All backdrop dimming is handled by
+// a ::before pseudo on SheetContent instead (via .sheet-backdrop-shadow).
+// This eliminates the iOS/Capacitor bug where the overlay element gets orphaned
+// in the DOM and blocks all touch input with a black screen.
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     data-dialog-overlay=""
-    className={cn(
-      "fixed inset-0 z-50 bg-black/60",
-      className
-    )}
+    className={cn("fixed inset-0 z-50", className)}
     {...props}
     ref={ref}
   />
@@ -35,7 +31,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
 
 const sheetVariants = cva(
-  "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+  "sheet-backdrop-shadow fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
   {
     variants: {
       side: {
@@ -134,4 +130,3 @@ export {
   Sheet, SheetClose,
   SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetOverlay, SheetPortal, SheetTitle, SheetTrigger
 }
-

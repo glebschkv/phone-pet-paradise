@@ -3,52 +3,43 @@
 @tailwind utilities;
 
 /*
- * Prevent multiple dialog overlays from stacking.
- * Radix Dialog portals render as siblings under <body>.
- * When multiple dialogs are open, each adds a bg-black/80 overlay
- * which compounds to near-total black. This rule makes subsequent
- * portal overlays transparent so only the first is visible.
- */
-[data-radix-portal] ~ [data-radix-portal] > [data-dialog-overlay] {
-  background-color: transparent !important;
-}
-
-/*
- * Fix black overlay persisting after Dialog closes.
- * When a Radix Dialog closes, its overlay transitions to data-state="closed"
- * but can remain in the DOM during the fade-out animation. On mobile (especially
- * iOS/Capacitor), the animation sometimes doesn't complete properly, leaving a
- * bg-black/80 overlay that blocks interaction until the user taps again.
+ * ═══════════════════════════════════════════════════════════════════════════
+ * DIALOG BACKDROP STRATEGY
  *
- * - pointer-events: none → clicks pass through immediately (no "tap again to dismiss")
- * - background-color: transparent → overlay is invisible even if animation stalls
+ * Radix Dialog's overlay element is notorious for getting orphaned on iOS
+ * WebView / Capacitor — animations don't complete, portals don't unmount,
+ * and the result is a black screen that blocks all touch input.
+ *
+ * SOLUTION: The overlay is rendered INVISIBLE (no bg color, no opacity).
+ * Backdrop dimming is done via box-shadow on the dialog CONTENT element.
+ * When content unmounts → shadow vanishes → zero chance of orphaned overlay.
+ *
+ * .dialog-backdrop-shadow  → for centered dialogs (Dialog, AlertDialog)
+ * .sheet-backdrop-shadow   → for edge-anchored drawers (Sheet)
+ * ═══════════════════════════════════════════════════════════════════════════
  */
-[data-dialog-overlay][data-state="closed"] {
-  pointer-events: none !important;
-  background-color: transparent !important;
+
+/* Centered dialogs: huge spread-radius box-shadow creates the dimming effect */
+.dialog-backdrop-shadow {
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.6);
 }
 
-/*
- * Safety net: if a Dialog portal's content has transitioned to closed state,
- * hide the overlay entirely. Covers cases where Radix fails to unmount the
- * portal on iOS/Capacitor even after the close animation completes.
- */
-[data-radix-portal]:has([data-state="closed"]) > [data-dialog-overlay] {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: opacity 0s !important;
+/* Sheets: use ::before pseudo since box-shadow doesn't cover the opposite edge */
+.sheet-backdrop-shadow::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: -1;
+  pointer-events: none;
 }
 
-/*
- * Nuclear safety net for iOS/Capacitor: any dialog overlay that is NOT inside
- * an open dialog should be fully transparent and non-blocking. This catches
- * edge cases where Radix portals linger in the DOM without proper state
- * attributes (e.g. after rapid open/close cycles or interrupted animations).
- */
-[data-dialog-overlay]:not([data-state="open"]) {
-  pointer-events: none !important;
-  background-color: transparent !important;
-  opacity: 0 !important;
+/* Final safety: overlay elements are always invisible and non-blocking.
+   Even if Radix somehow adds bg via inline styles, this overrides it. */
+[data-dialog-overlay] {
+  background: transparent !important;
+  opacity: 1 !important;
+  pointer-events: auto;
 }
 
 /* iOS app hardening: prevent zoom, text selection, and tap delay */
