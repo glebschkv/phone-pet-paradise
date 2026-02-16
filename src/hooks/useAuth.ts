@@ -3,6 +3,8 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { authLogger } from '@/lib/logger';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 
 const GUEST_ID_KEY = 'pet_paradise_guest_id';
 const GUEST_CHOSEN_KEY = 'pet_paradise_guest_chosen';
@@ -215,6 +217,49 @@ function _initAuth(): void {
       }
     }
   );
+
+  // Deep link handler for magic link authentication on native (Capacitor).
+  // When the user taps a magic link in their email, iOS opens the app via
+  // the co.nomoinc.nomo:// URL scheme. We need to extract the auth tokens
+  // from the URL and pass them to Supabase so onAuthStateChange fires.
+  if (Capacitor.isNativePlatform()) {
+    CapApp.addListener('appUrlOpen', async ({ url }) => {
+      authLogger.debug('Deep link received:', url);
+      try {
+        // PKCE flow: URL contains ?code=XXX
+        const urlObj = new URL(url);
+        const code = urlObj.searchParams.get('code');
+        if (code) {
+          authLogger.debug('Exchanging auth code for session');
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            authLogger.debug('Code exchange failed:', error.message);
+            toast.error('Login failed. Please try again.');
+          }
+          return;
+        }
+
+        // Implicit flow: URL contains #access_token=XXX&refresh_token=YYY
+        const hashParams = new URLSearchParams(url.split('#')[1] || '');
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        if (accessToken && refreshToken) {
+          authLogger.debug('Setting session from magic link tokens');
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (error) {
+            authLogger.debug('setSession failed:', error.message);
+            toast.error('Login failed. Please try again.');
+          }
+          return;
+        }
+      } catch (err) {
+        authLogger.debug('Deep link auth error:', err);
+      }
+    });
+  }
 }
 
 // ============================================================================
