@@ -1,5 +1,6 @@
 import { Clock, Flame, Calendar, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 
 interface StatCardsProps {
   todayFocusTime: number; // seconds
@@ -16,6 +17,12 @@ export const AnalyticsStatCards = ({
   weekOverWeekChange,
   formatDuration,
 }: StatCardsProps) => {
+  // Animate the streak number
+  const animatedStreak = useAnimatedCounter(currentStreak, 600);
+
+  // Animate the week-over-week percentage
+  const animatedChange = useAnimatedCounter(Math.abs(weekOverWeekChange), 700);
+
   const getTrendIcon = () => {
     if (weekOverWeekChange > 0) return <TrendingUp className="w-3 h-3" />;
     if (weekOverWeekChange < 0) return <TrendingDown className="w-3 h-3" />;
@@ -46,7 +53,7 @@ export const AnalyticsStatCards = ({
         <div className="w-9 h-9 mx-auto mb-2 bg-gradient-to-b from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white shadow-sm">
           <Flame className="w-4 h-4" />
         </div>
-        <div className="text-base font-extrabold leading-tight tabular-nums">{currentStreak}</div>
+        <div className="text-base font-extrabold leading-tight tabular-nums">{animatedStreak}</div>
         <div className="text-[10px] text-muted-foreground font-semibold mt-0.5 uppercase tracking-wider">Streak</div>
       </div>
 
@@ -63,7 +70,7 @@ export const AnalyticsStatCards = ({
           getTrendColor()
         )}>
           {getTrendIcon()}
-          {weekOverWeekChange > 0 ? "+" : ""}{Math.abs(weekOverWeekChange)}%
+          {weekOverWeekChange > 0 ? "+" : weekOverWeekChange < 0 ? "-" : ""}{animatedChange}%
         </div>
       </div>
     </div>
