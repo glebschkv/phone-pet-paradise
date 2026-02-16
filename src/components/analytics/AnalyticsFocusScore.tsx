@@ -23,10 +23,10 @@ const SCORE_GRADE = (score: number) => {
 };
 
 const BREAKDOWN_ITEMS = [
-  { key: 'completion' as const, label: 'Completion', max: 25, color: 'bg-green-500' },
-  { key: 'consistency' as const, label: 'Consistency', max: 25, color: 'bg-blue-500' },
-  { key: 'quality' as const, label: 'Focus Quality', max: 25, color: 'bg-purple-500' },
-  { key: 'duration' as const, label: 'Session Length', max: 25, color: 'bg-amber-500' },
+  { key: 'completion' as const, label: 'Completion', max: 25, color: 'bg-green-500', tip: 'Finish more sessions without quitting' },
+  { key: 'consistency' as const, label: 'Consistency', max: 25, color: 'bg-blue-500', tip: 'Meet your daily goal more often' },
+  { key: 'quality' as const, label: 'Focus Quality', max: 25, color: 'bg-purple-500', tip: 'Avoid opening blocked apps' },
+  { key: 'duration' as const, label: 'Session Length', max: 25, color: 'bg-amber-500', tip: 'Aim for 25+ min sessions regularly' },
 ];
 
 export const AnalyticsFocusScore = ({ score, breakdown, peerBenchmark, isPremium, onUpgrade }: FocusScoreProps) => {
@@ -104,6 +104,22 @@ export const AnalyticsFocusScore = ({ score, breakdown, peerBenchmark, isPremium
                   </div>
                 </div>
               ))}
+              {/* Actionable tip for weakest sub-score */}
+              {(() => {
+                const weakest = BREAKDOWN_ITEMS.reduce((min, item) =>
+                  (breakdown[item.key] / item.max) < (breakdown[min.key] / min.max) ? item : min
+                );
+                const weakestPct = (breakdown[weakest.key] / weakest.max) * 100;
+                if (weakestPct < 80) {
+                  return (
+                    <div className="text-[10px] text-muted-foreground/80 pt-1 border-t border-border/20">
+                      <span className="font-semibold text-foreground/70">Boost {weakest.label.toLowerCase()}:</span>{' '}
+                      {weakest.tip}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               {/* Peer Benchmark */}
               {peerBenchmark > 0 && (
                 <div className="flex items-center gap-1.5 pt-1.5 border-t border-border/30 mt-1">

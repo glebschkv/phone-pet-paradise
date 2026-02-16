@@ -89,6 +89,7 @@ export const Analytics = () => {
     completionTrend,
     milestones,
     currentMonthStats,
+    previousMonthStats,
     insights,
     premiumTeasers,
     getDailyStatsRange,
@@ -251,6 +252,7 @@ export const Analytics = () => {
             {/* Monthly Report */}
             <AnalyticsMonthlySummary
               stats={currentMonthStats}
+              previousMonth={previousMonthStats}
               formatDuration={formatDuration}
             />
 

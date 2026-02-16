@@ -1,6 +1,6 @@
-import { History, Check, SkipForward, X, Timer, Coffee, Zap, Hourglass } from "lucide-react";
+import { History, Check, SkipForward, X, Timer, Coffee, Zap, Hourglass, ShieldCheck, Shield, ShieldAlert, Star, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FocusSession, SessionType, SessionStatus } from "@/types/analytics";
+import { FocusSession, SessionType, SessionStatus, FOCUS_CATEGORIES } from "@/types/analytics";
 
 interface SessionHistoryProps {
   sessions: FocusSession[];
@@ -58,6 +58,48 @@ export const AnalyticsSessionHistory = ({ sessions, formatDuration }: SessionHis
     }
   };
 
+  const getQualityBadge = (quality?: string) => {
+    switch (quality) {
+      case 'perfect':
+        return (
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-green-500/15 text-green-500">
+            <ShieldCheck className="w-2.5 h-2.5" />
+          </span>
+        );
+      case 'good':
+        return (
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-500/15 text-blue-400">
+            <Shield className="w-2.5 h-2.5" />
+          </span>
+        );
+      case 'distracted':
+        return (
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-500/15 text-red-400">
+            <ShieldAlert className="w-2.5 h-2.5" />
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getRatingStars = (rating?: number) => {
+    if (!rating) return null;
+    return (
+      <span className="inline-flex items-center gap-px">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star
+            key={i}
+            className={cn(
+              "w-2 h-2",
+              i < rating ? "text-amber-400 fill-amber-400" : "text-muted-foreground/20"
+            )}
+          />
+        ))}
+      </span>
+    );
+  };
+
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -93,46 +135,67 @@ export const AnalyticsSessionHistory = ({ sessions, formatDuration }: SessionHis
       </div>
 
       {sessions.length > 0 ? (
-        <div className="space-y-3 max-h-64 overflow-y-auto">
+        <div className="space-y-3 max-h-80 overflow-y-auto">
           {Object.entries(groupedSessions).map(([dateLabel, dateSessions]) => (
             <div key={dateLabel}>
               <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
                 {dateLabel}
               </div>
               <div className="space-y-1.5">
-                {dateSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="flex items-center gap-2 p-2 rounded-lg bg-muted/30"
-                  >
-                    <div className={cn(
-                      "w-7 h-7 rounded-md flex items-center justify-center",
-                      getTypeColor(session.sessionType)
-                    )}>
-                      {getTypeIcon(session.sessionType)}
-                    </div>
+                {dateSessions.map((session) => {
+                  const categoryInfo = session.category
+                    ? FOCUS_CATEGORIES.find(c => c.id === session.category)
+                    : null;
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold truncate">
-                          {getTypeLabel(session.sessionType)}
-                        </span>
-                        {session.xpEarned > 0 && (
-                          <span className="text-[10px] text-primary font-medium">
-                            +{session.xpEarned} XP
+                  return (
+                    <div
+                      key={session.id}
+                      className="flex items-center gap-2 p-2 rounded-lg bg-muted/30"
+                    >
+                      <div className={cn(
+                        "w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0",
+                        getTypeColor(session.sessionType)
+                      )}>
+                        {getTypeIcon(session.sessionType)}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-semibold truncate">
+                            {session.taskLabel || getTypeLabel(session.sessionType)}
                           </span>
-                        )}
+                          {session.xpEarned > 0 && (
+                            <span className="text-[10px] text-primary font-medium">
+                              +{session.xpEarned} XP
+                            </span>
+                          )}
+                          {session.hasNotes && (
+                            <MessageSquare className="w-2.5 h-2.5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatTime(session.startTime)} · {formatDuration(session.actualDuration)}
+                          </span>
+                          {categoryInfo && (
+                            <span className={cn(
+                              "text-[9px] px-1.5 py-0.5 rounded-full font-medium",
+                              categoryInfo.color, "text-white"
+                            )}>
+                              {categoryInfo.label}
+                            </span>
+                          )}
+                          {getQualityBadge(session.focusQuality)}
+                          {getRatingStars(session.rating)}
+                        </div>
                       </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {formatTime(session.startTime)} · {formatDuration(session.actualDuration)}
-                      </div>
-                    </div>
 
-                    <div className="flex-shrink-0">
-                      {getStatusIcon(session.status)}
+                      <div className="flex-shrink-0">
+                        {getStatusIcon(session.status)}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -140,8 +203,8 @@ export const AnalyticsSessionHistory = ({ sessions, formatDuration }: SessionHis
       ) : (
         <div className="text-center py-6 text-muted-foreground">
           <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No sessions recorded yet</p>
-          <p className="text-xs mt-1">Complete a focus session to see your history</p>
+          <p className="text-sm font-medium">No sessions yet</p>
+          <p className="text-xs mt-1">Start a focus session and your history will appear here</p>
         </div>
       )}
     </div>

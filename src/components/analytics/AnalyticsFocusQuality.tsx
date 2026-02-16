@@ -158,8 +158,11 @@ export const AnalyticsFocusQuality = ({ stats }: FocusQualityProps) => {
       ) : (
         <div className="text-center py-6 text-muted-foreground">
           <Shield className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No quality data yet</p>
-          <p className="text-xs mt-1">Enable app blocking and complete sessions to track focus quality</p>
+          <p className="text-sm font-medium">No quality data yet</p>
+          <p className="text-xs mt-1 max-w-[240px] mx-auto">
+            Turn on app blocking in Settings, then complete focus sessions.
+            We'll track how well you resist distractions.
+          </p>
         </div>
       )}
     </div>
