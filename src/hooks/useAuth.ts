@@ -86,6 +86,7 @@ interface AuthState {
   session: Session | null;
   isLoading: boolean;
   isGuestMode: boolean;
+  passwordRecoveryPending: boolean;
 }
 
 let _state: AuthState = {
@@ -93,6 +94,7 @@ let _state: AuthState = {
   session: null,
   isLoading: true,
   isGuestMode: false,
+  passwordRecoveryPending: false,
 };
 
 const _listeners = new Set<() => void>();
@@ -199,7 +201,16 @@ function _initAuth(): void {
   // Single auth state change listener — shared by ALL consumers
   supabase.auth.onAuthStateChange(
     async (event, newSession) => {
-      if (newSession) {
+      if (event === 'PASSWORD_RECOVERY' && newSession) {
+        // Password reset deep link — session established, flag for Auth page
+        _setState({
+          session: newSession,
+          user: newSession.user,
+          isGuestMode: false,
+          passwordRecoveryPending: true,
+        });
+        setGuestModeChosen(false);
+      } else if (newSession) {
         _setState({
           session: newSession,
           user: newSession.user,
@@ -307,20 +318,26 @@ export const useAuth = () => {
     _enableGuestMode();
   }, []);
 
+  const clearPasswordRecovery = useCallback(() => {
+    _setState({ passwordRecoveryPending: false });
+  }, []);
+
   return {
     user: state.user,
     session: state.session,
     isLoading: state.isLoading,
     isAuthenticated: !!state.user,
     isGuestMode: state.isGuestMode,
+    passwordRecoveryPending: state.passwordRecoveryPending,
     signOut,
-    continueAsGuest
+    continueAsGuest,
+    clearPasswordRecovery,
   };
 };
 
 /** Reset auth state — for testing only */
 export function _resetAuthForTesting(): void {
-  _state = { user: null, session: null, isLoading: true, isGuestMode: false };
+  _state = { user: null, session: null, isLoading: true, isGuestMode: false, passwordRecoveryPending: false };
   _initialized = false;
   _listeners.clear();
 }
