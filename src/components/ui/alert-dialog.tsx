@@ -10,6 +10,11 @@ const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal
 
+// No fade animation on the overlay — it appears/disappears instantly with
+// Radix's mount/unmount.  The previous animate-in/animate-out approach
+// relied on onAnimationEnd to hide the element, which frequently didn't
+// fire on iOS/Capacitor, leaving an orphaned bg-black/80 blocking the
+// entire screen.  Matches the fix applied to DialogOverlay.
 const AlertDialogOverlay = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
@@ -17,7 +22,7 @@ const AlertDialogOverlay = React.forwardRef<
   <AlertDialogPrimitive.Overlay
     data-dialog-overlay=""
     className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/80",
       className
     )}
     {...props}

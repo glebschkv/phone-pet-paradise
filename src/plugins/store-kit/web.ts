@@ -9,6 +9,7 @@ import type {
   PurchaseHistoryItem
 } from './index';
 import { SUBSCRIPTION_PLANS } from '@/hooks/usePremiumStatus';
+import { COIN_PACKS, STARTER_BUNDLES } from '@/data/ShopData';
 
 // Development-only logging
 const isDev = import.meta.env.DEV;
@@ -44,13 +45,14 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
         };
       }
 
-      // Default mock product
+      // Default mock product — match price from ShopData for realistic display
+      const shopItem = [...COIN_PACKS, ...STARTER_BUNDLES].find(item => item.iapProductId === id);
       return {
         id,
-        displayName: 'Mock Product',
-        description: 'Mock product for development',
-        price: '0.99',
-        displayPrice: '$0.99',
+        displayName: shopItem?.name || 'Mock Product',
+        description: shopItem?.description || 'Mock product for development',
+        price: shopItem?.iapPrice?.replace(/[^0-9.]/g, '') || '0.99',
+        displayPrice: shopItem?.iapPrice || '$0.99',
         type: 'consumable'
       };
     });

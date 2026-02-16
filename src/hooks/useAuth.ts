@@ -7,6 +7,47 @@ import { authLogger } from '@/lib/logger';
 const GUEST_ID_KEY = 'pet_paradise_guest_id';
 const GUEST_CHOSEN_KEY = 'pet_paradise_guest_chosen';
 
+/**
+ * Clear per-user data from localStorage on sign-out.
+ * This prevents stale data (e.g. purchased bundles, coins) from persisting
+ * when a different user signs in on the same device.
+ * Device-level settings (theme, sound, onboarding) are NOT cleared.
+ */
+function clearUserData() {
+  const userDataKeys = [
+    // Zustand persisted stores (use their persist key, not STORAGE_KEYS)
+    'petIsland_shopInventory',
+    // nomo_ prefix keys for per-user progress
+    'nomo_coin_system',
+    'nomo_coin_booster',
+    'nomo_shop_inventory',
+    'nomo_xp_system',
+    'nomo_streak_data',
+    'nomo_achievements',
+    'nomo_achievement_system',
+    'nomo_quests',
+    'nomo_quest_system',
+    'nomo_battle_pass',
+    'nomo_lucky_wheel',
+    'nomo_combo_system',
+    'nomo_milestones',
+    'nomo_bond_data',
+    'nomo_favorites',
+    'nomo_premium_status',
+    'nomo_analytics_sessions',
+    'nomo_analytics_daily_stats',
+    'nomo_analytics_records',
+    // Legacy prefix keys
+    'petIsland_premium',
+    'petparadise_coins',
+    'petparadise_xp',
+    'petparadise_streak',
+  ];
+  for (const key of userDataKeys) {
+    localStorage.removeItem(key);
+  }
+}
+
 // Generate or retrieve a persistent guest ID for offline mode
 const getGuestId = (): string => {
   let guestId = localStorage.getItem(GUEST_ID_KEY);
@@ -164,6 +205,7 @@ function _initAuth(): void {
         });
         setGuestModeChosen(false);
       } else if (event === 'SIGNED_OUT') {
+        clearUserData();
         _setState({
           session: null,
           user: null,
@@ -197,6 +239,10 @@ export const useAuth = () => {
 
       setGuestModeChosen(false);
       localStorage.removeItem(GUEST_ID_KEY);
+
+      // Clear per-user data so the next sign-in starts fresh
+      // (prevents stale shop inventory, coins, etc. from leaking across accounts)
+      clearUserData();
 
       _setState({
         session: null,

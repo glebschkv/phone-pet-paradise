@@ -645,11 +645,18 @@ export const useStoreKit = (): UseStoreKitReturn => {
     return products.find(p => p.id === productId);
   }, [products]);
 
-  // Get localized price from App Store, falling back to hardcoded price
+  // Get localized price from App Store.
+  // On native devices, always prefer the StoreKit displayPrice (localized to
+  // user's App Store region/currency). Only fall back to the hardcoded price on
+  // web or if products failed to load after initialization completes.
   const getLocalizedPrice = useCallback((iapProductId: string, fallbackPrice: string): string => {
     const product = products.find(p => p.id === iapProductId);
-    return product?.displayPrice || fallbackPrice;
-  }, [products]);
+    if (product?.displayPrice) return product.displayPrice;
+    // Products still loading on first render — show placeholder so we never
+    // flash an incorrect currency symbol (e.g. "$" for EU users).
+    if (isLoading && products.length === 0) return '…';
+    return fallbackPrice;
+  }, [products, isLoading]);
 
   // Initialize on mount — runs exactly once per hook instance.
   // Dependencies intentionally omitted to prevent the re-initialization loop
