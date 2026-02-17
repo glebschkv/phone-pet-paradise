@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { COMBO_TIERS, ComboTier, getComboTier, getNextComboTier } from '@/data/GamificationData';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface ComboState {
   currentCombo: number;
@@ -15,6 +16,7 @@ const COMBO_UPDATE_EVENT = 'petIsland_comboUpdate';
 const COMBO_TIMEOUT_HOURS = 3; // Combo resets if no session within 3 hours
 
 export const useComboSystem = () => {
+  const { user } = useAuth();
   const [state, setState] = useState<ComboState>({
     currentCombo: 0,
     highestCombo: 0,
@@ -26,7 +28,7 @@ export const useComboSystem = () => {
 
   const [currentTier, setCurrentTier] = useState<ComboTier>(COMBO_TIERS[0]);
 
-  // Load saved state
+  // Load saved state — reload when user changes (sign-in/out clears data)
   useEffect(() => {
     const saved = storage.get<ComboState>(STORAGE_KEYS.COMBO_SYSTEM);
     if (saved) {
@@ -38,8 +40,19 @@ export const useComboSystem = () => {
       if (updatedState !== saved) {
         storage.set(STORAGE_KEYS.COMBO_SYSTEM, updatedState);
       }
+    } else {
+      // No saved data (cleared on sign-out) — reset to defaults
+      setState({
+        currentCombo: 0,
+        highestCombo: 0,
+        lastSessionDate: null,
+        lastSessionTime: null,
+        totalBonusXPEarned: 0,
+        totalBonusCoinsEarned: 0,
+      });
+      setCurrentTier(COMBO_TIERS[0]);
     }
-  }, []);
+  }, [user?.id]);
 
   // Check combo expiry - only based on time elapsed, not calendar day
   // This prevents unfair combo resets at midnight when user was recently active

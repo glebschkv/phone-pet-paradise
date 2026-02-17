@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { getCurrentSeason, Season, BattlePassReward } from '@/data/GamificationData';
 import { TIER_BENEFITS, isValidSubscriptionTier, BATTLE_PASS_PLANS, type SubscriptionTier } from './usePremiumStatus';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface BattlePassState {
   seasonId: string;
@@ -44,6 +45,7 @@ const checkSubscriptionBattlePass = (): boolean => {
 };
 
 export const useBattlePass = () => {
+  const { user } = useAuth();
   const [state, setState] = useState<BattlePassState>({
     seasonId: '',
     currentTier: 0,
@@ -128,7 +130,7 @@ export const useBattlePass = () => {
       setState(initial);
       storage.set(STORAGE_KEYS.BATTLE_PASS, initial);
     }
-  }, [currentSeason]);
+  }, [currentSeason, user?.id]);
 
   // Listen for XP updates from focus sessions
   useEffect(() => {

@@ -18,9 +18,14 @@ const GUEST_CHOSEN_KEY = 'pet_paradise_guest_chosen';
  */
 function clearUserData() {
   const userDataKeys = [
-    // Zustand persisted stores (use their persist key, not STORAGE_KEYS)
+    // ── Zustand persisted stores (use their persist key) ──
     'petIsland_shopInventory',
-    // nomo_ prefix keys for per-user progress
+    'petparadise-collection',  // collectionStore
+    'nomo_offline_sync',       // offlineSyncStore — CRITICAL: prevents syncing wrong user's data
+    'nomo_premium',            // premiumStore
+    'nomo_focus_mode',         // focusStore
+
+    // ── nomo_ prefix keys (centralized STORAGE_KEYS) ──
     'nomo_coin_system',
     'nomo_coin_booster',
     'nomo_shop_inventory',
@@ -38,16 +43,41 @@ function clearUserData() {
     'nomo_analytics_sessions',
     'nomo_analytics_daily_stats',
     'nomo_analytics_records',
-    // Achievement tracking stats (cumulative focus minutes, sessions etc.)
+    'nomo_boss_challenges',
+    'nomo_special_events',
+    'nomo_guild_data',
+    'nomo_timer_state',
+    'nomo_timer_persistence',
+    'nomo_collection',
+    'nomo_app_state',
+    'nomo_focus_presets',
+    'nomo_session_notes',
+    'nomo_selected_apps',
+    'nomo_device_activity',
+
+    // ── Achievement tracking ──
     'achievement-tracking-stats',
     // Legacy global achievement key — now per-user via achievement-system-data-<userId>,
     // but the old global key must be removed to prevent cross-user leaks from pre-migration data.
     ACHIEVEMENT_STORAGE_KEY,
-    // Legacy daily login key (per-user keys use pet_paradise_daily_login_<userId>
-    // and are NOT cleared — they're already isolated per-user and should persist)
+
+    // ── Legacy daily login key (per-user keys use pet_paradise_daily_login_<userId>
+    // and are NOT cleared — they're already isolated per-user and should persist) ──
     'pet_paradise_daily_login',
-    // Legacy prefix keys
+
+    // ── Hardcoded legacy keys (hooks that bypass STORAGE_KEYS) ──
+    'pet-bond-data',           // useBondSystem
+    'quest-system-data',       // useQuestSystem
+    'petIsland_boosterSystem', // useCoinBooster
+
+    // ── Legacy prefix keys ──
     'petIsland_premium',
+    'petIsland_focusMode',
+    'petIsland_focusPresets',
+    'petIsland_sessionNotes',
+    'petIsland_coinSystem',
+    'petIsland_soundMixer',
+    'petIsland_ambientSound',
     'petparadise_coins',
     'petparadise_xp',
     'petparadise_streak',
