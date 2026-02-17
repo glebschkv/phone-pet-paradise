@@ -22,6 +22,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { shopLogger } from '@/lib/logger';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 
 /**
  * Represents the user's shop inventory
@@ -141,3 +142,31 @@ export const useShopStore = create<ShopState>()(
 export const useOwnedCharacters = () => useShopStore((state) => state.ownedCharacters);
 export const useOwnedBackgrounds = () => useShopStore((state) => state.ownedBackgrounds);
 export const useEquippedBackground = () => useShopStore((state) => state.equippedBackground);
+
+/**
+ * Sync purchased bundle IDs from the Supabase `user_purchases` table.
+ * Replaces the local `purchasedStarterBundleIds` with the server truth
+ * so stale localStorage entries are cleaned up automatically.
+ */
+export const syncPurchasedBundlesFromServer = async (): Promise<void> => {
+  if (!isSupabaseConfigured()) return;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase.rpc('get_owned_bundles', {
+      p_user_id: user.id,
+    });
+
+    if (error) {
+      shopLogger.error('Failed to sync bundle ownership from server:', error);
+      return;
+    }
+
+    const serverBundleIds = (data || []).map((row: { product_id: string }) => row.product_id);
+    useShopStore.setState({ purchasedStarterBundleIds: serverBundleIds });
+    shopLogger.debug('Synced bundle ownership from server:', serverBundleIds);
+  } catch (e) {
+    shopLogger.error('Error syncing bundle ownership:', e);
+  }
+};

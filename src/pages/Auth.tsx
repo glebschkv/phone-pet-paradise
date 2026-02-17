@@ -35,7 +35,7 @@ type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { isAuthenticated, isLoading: authLoading, continueAsGuest, isGuestMode } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, continueAsGuest, isGuestMode, passwordRecoveryPending, clearPasswordRecovery } = useAuth();
   const [mode, setMode] = useState<AuthMode>('welcome');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,7 +46,7 @@ export default function Auth() {
   const [emailSentTo, setEmailSentTo] = useState('');
   const formRef = useRef<HTMLDivElement>(null);
 
-  // Check for reset-password mode from URL query params
+  // Check for reset-password mode from URL query params or PASSWORD_RECOVERY event
   useEffect(() => {
     const urlMode = searchParams.get('mode');
     if (urlMode === 'reset-password') {
@@ -54,13 +54,21 @@ export default function Auth() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (passwordRecoveryPending) {
+      setMode('reset-password');
+      clearPasswordRecovery();
+    }
+  }, [passwordRecoveryPending, clearPasswordRecovery]);
+
   // Redirect to home if already authenticated with Supabase (not guest mode)
   // Guest users should be able to access auth page to create real accounts
+  // Stay on auth page during password recovery so user can set new password
   useEffect(() => {
-    if (!authLoading && isAuthenticated && !isGuestMode) {
+    if (!authLoading && isAuthenticated && !isGuestMode && mode !== 'reset-password') {
       navigate('/');
     }
-  }, [authLoading, isAuthenticated, isGuestMode, navigate]);
+  }, [authLoading, isAuthenticated, isGuestMode, mode, navigate]);
 
   // Get the current URL for redirect (works for both web and Capacitor)
   const getRedirectUrl = () => {

@@ -8,6 +8,7 @@ import { useCoinSystem } from '@/hooks/useCoinSystem';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { PixelIcon } from '@/components/ui/PixelIcon';
+import { playSoundEffect } from '@/hooks/useSoundEffects';
 
 export interface AchievementGalleryProps {
   onClose?: () => void;
@@ -46,6 +47,7 @@ export const AchievementGallery: React.FC<AchievementGalleryProps> = ({ onClose 
     if (rewards.xp === 0 && rewards.coins === 0) {
       return; // Already claimed by another path (e.g., unlock popup)
     }
+    playSoundEffect('coinCollect');
     if (rewards.xp > 0) {
       addDirectXP(rewards.xp);
     }

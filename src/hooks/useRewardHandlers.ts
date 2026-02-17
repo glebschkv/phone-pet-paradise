@@ -16,6 +16,7 @@ import { useXPSystem, XPReward } from "@/hooks/useXPSystem";
 import { useCoinSystem } from "@/hooks/useCoinSystem";
 import { useMilestoneCelebrations } from "@/hooks/useMilestoneCelebrations";
 import { DailyReward } from "@/hooks/useDailyLoginRewards";
+import { playSoundEffect } from "@/hooks/useSoundEffects";
 
 interface DailyRewardClaimResult {
   dailyReward: DailyReward | null;
@@ -33,11 +34,13 @@ export const useRewardHandlers = (handleClaimDailyReward: ClaimDailyRewardFn) =>
     const result = addDirectXP(amount);
     toast.success(`+${amount} XP earned!`);
     if (result.leveledUp) {
+      playSoundEffect('levelUp');
       checkMilestone('level', result.newLevel);
     }
   }, [addDirectXP, checkMilestone]);
 
   const handleCoinReward = useCallback((amount: number) => {
+    playSoundEffect('coinCollect');
     addCoins(amount);
     toast.success(`+${amount} Coins earned!`);
   }, [addCoins]);
@@ -54,6 +57,7 @@ export const useRewardHandlers = (handleClaimDailyReward: ClaimDailyRewardFn) =>
   const handleDailyRewardClaim = useCallback(() => {
     const { dailyReward, xpReward } = handleClaimDailyReward();
     if (dailyReward) {
+      playSoundEffect('reward');
       // Build reward summary - all daily rewards now grant both XP and coins
       const rewards: string[] = [];
       if (dailyReward.xp > 0) rewards.push(`+${dailyReward.xp} XP`);

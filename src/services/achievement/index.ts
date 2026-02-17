@@ -44,4 +44,5 @@ export {
   saveToStorage,
   getClaimedAchievementIds,
   isAchievementClaimed,
+  setAchievementUserId,
 } from './achievementStorage';

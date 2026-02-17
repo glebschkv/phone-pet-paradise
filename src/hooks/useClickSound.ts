@@ -2,15 +2,17 @@
  * useClickSound Hook
  *
  * Provides a subtle UI click sound effect for interactive elements.
- * Uses Web Audio API to generate a short sine wave pop (~40ms).
- * Respects the user's sound settings (can be disabled in Settings > General).
+ * Delegates to the centralized sound effects system so it respects
+ * the global soundEnabled / soundVolume / soundTheme settings.
+ * Also has its own "Button Sounds" toggle (petIsland_clickSoundEnabled).
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
+import { playSoundEffect } from '@/hooks/useSoundEffects';
 
 const CLICK_SOUND_KEY = 'petIsland_clickSoundEnabled';
 
-/** Check if click sounds are enabled (defaults to true) */
+/** Check if button click sounds are enabled (defaults to true) */
 const isClickSoundEnabled = (): boolean => {
   try {
     const stored = localStorage.getItem(CLICK_SOUND_KEY);
@@ -27,40 +29,10 @@ export const setClickSoundEnabled = (enabled: boolean) => {
 };
 
 export const useClickSound = () => {
-  const audioCtxRef = useRef<AudioContext | null>(null);
-
   const playClick = useCallback(() => {
     if (!isClickSoundEnabled()) return;
-
-    try {
-      // Lazily create AudioContext on first interaction (required by browsers)
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
-
-      // Create a short sine wave pop
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.04);
-
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.05);
-    } catch {
-      // Silently fail — audio is non-critical
-    }
+    // playSoundEffect checks global soundEnabled/soundVolume/soundTheme
+    playSoundEffect('click');
   }, []);
 
   return { playClick };

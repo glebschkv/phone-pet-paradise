@@ -3,9 +3,89 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { authLogger } from '@/lib/logger';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { ACHIEVEMENT_STORAGE_KEY } from '@/services/achievement/achievementConstants';
 
 const GUEST_ID_KEY = 'pet_paradise_guest_id';
 const GUEST_CHOSEN_KEY = 'pet_paradise_guest_chosen';
+
+/**
+ * Clear per-user data from localStorage on sign-out.
+ * This prevents stale data (e.g. purchased bundles, coins) from persisting
+ * when a different user signs in on the same device.
+ * Device-level settings (theme, sound, onboarding) are NOT cleared.
+ */
+function clearUserData() {
+  const userDataKeys = [
+    // ── Zustand persisted stores (use their persist key) ──
+    'petIsland_shopInventory',
+    'petparadise-collection',  // collectionStore
+    'nomo_offline_sync',       // offlineSyncStore — CRITICAL: prevents syncing wrong user's data
+    'nomo_premium',            // premiumStore
+    'nomo_focus_mode',         // focusStore
+
+    // ── nomo_ prefix keys (centralized STORAGE_KEYS) ──
+    'nomo_coin_system',
+    'nomo_coin_booster',
+    'nomo_shop_inventory',
+    'nomo_xp_system',
+    'nomo_streak_data',
+    'nomo_quests',
+    'nomo_quest_system',
+    'nomo_battle_pass',
+    'nomo_lucky_wheel',
+    'nomo_combo_system',
+    'nomo_milestones',
+    'nomo_bond_data',
+    'nomo_favorites',
+    'nomo_premium_status',
+    'nomo_analytics_sessions',
+    'nomo_analytics_daily_stats',
+    'nomo_analytics_records',
+    'nomo_boss_challenges',
+    'nomo_special_events',
+    'nomo_guild_data',
+    'nomo_timer_state',
+    'nomo_timer_persistence',
+    'nomo_collection',
+    'nomo_app_state',
+    'nomo_focus_presets',
+    'nomo_session_notes',
+    'nomo_selected_apps',
+    'nomo_device_activity',
+
+    // ── Achievement tracking ──
+    'achievement-tracking-stats',
+    // Legacy global achievement key — now per-user via achievement-system-data-<userId>,
+    // but the old global key must be removed to prevent cross-user leaks from pre-migration data.
+    ACHIEVEMENT_STORAGE_KEY,
+
+    // ── Legacy daily login key (per-user keys use pet_paradise_daily_login_<userId>
+    // and are NOT cleared — they're already isolated per-user and should persist) ──
+    'pet_paradise_daily_login',
+
+    // ── Hardcoded legacy keys (hooks that bypass STORAGE_KEYS) ──
+    'pet-bond-data',           // useBondSystem
+    'quest-system-data',       // useQuestSystem
+    'petIsland_boosterSystem', // useCoinBooster
+
+    // ── Legacy prefix keys ──
+    'petIsland_premium',
+    'petIsland_focusMode',
+    'petIsland_focusPresets',
+    'petIsland_sessionNotes',
+    'petIsland_coinSystem',
+    'petIsland_soundMixer',
+    'petIsland_ambientSound',
+    'petparadise_coins',
+    'petparadise_xp',
+    'petparadise_streak',
+  ];
+  for (const key of userDataKeys) {
+    localStorage.removeItem(key);
+  }
+}
 
 // Generate or retrieve a persistent guest ID for offline mode
 const getGuestId = (): string => {
@@ -43,6 +123,7 @@ interface AuthState {
   session: Session | null;
   isLoading: boolean;
   isGuestMode: boolean;
+  passwordRecoveryPending: boolean;
 }
 
 let _state: AuthState = {
@@ -50,6 +131,7 @@ let _state: AuthState = {
   session: null,
   isLoading: true,
   isGuestMode: false,
+  passwordRecoveryPending: false,
 };
 
 const _listeners = new Set<() => void>();
@@ -156,7 +238,16 @@ function _initAuth(): void {
   // Single auth state change listener — shared by ALL consumers
   supabase.auth.onAuthStateChange(
     async (event, newSession) => {
-      if (newSession) {
+      if (event === 'PASSWORD_RECOVERY' && newSession) {
+        // Password reset deep link — session established, flag for Auth page
+        _setState({
+          session: newSession,
+          user: newSession.user,
+          isGuestMode: false,
+          passwordRecoveryPending: true,
+        });
+        setGuestModeChosen(false);
+      } else if (newSession) {
         _setState({
           session: newSession,
           user: newSession.user,
@@ -164,6 +255,7 @@ function _initAuth(): void {
         });
         setGuestModeChosen(false);
       } else if (event === 'SIGNED_OUT') {
+        clearUserData();
         _setState({
           session: null,
           user: null,
@@ -173,6 +265,49 @@ function _initAuth(): void {
       }
     }
   );
+
+  // Deep link handler for magic link authentication on native (Capacitor).
+  // When the user taps a magic link in their email, iOS opens the app via
+  // the co.nomoinc.nomo:// URL scheme. We need to extract the auth tokens
+  // from the URL and pass them to Supabase so onAuthStateChange fires.
+  if (Capacitor.isNativePlatform()) {
+    CapApp.addListener('appUrlOpen', async ({ url }) => {
+      authLogger.debug('Deep link received:', url);
+      try {
+        // PKCE flow: URL contains ?code=XXX
+        const urlObj = new URL(url);
+        const code = urlObj.searchParams.get('code');
+        if (code) {
+          authLogger.debug('Exchanging auth code for session');
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            authLogger.debug('Code exchange failed:', error.message);
+            toast.error('Login failed. Please try again.');
+          }
+          return;
+        }
+
+        // Implicit flow: URL contains #access_token=XXX&refresh_token=YYY
+        const hashParams = new URLSearchParams(url.split('#')[1] || '');
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        if (accessToken && refreshToken) {
+          authLogger.debug('Setting session from magic link tokens');
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (error) {
+            authLogger.debug('setSession failed:', error.message);
+            toast.error('Login failed. Please try again.');
+          }
+          return;
+        }
+      } catch (err) {
+        authLogger.debug('Deep link auth error:', err);
+      }
+    });
+  }
 }
 
 // ============================================================================
@@ -198,6 +333,10 @@ export const useAuth = () => {
       setGuestModeChosen(false);
       localStorage.removeItem(GUEST_ID_KEY);
 
+      // Clear per-user data so the next sign-in starts fresh
+      // (prevents stale shop inventory, coins, etc. from leaking across accounts)
+      clearUserData();
+
       _setState({
         session: null,
         user: null,
@@ -216,20 +355,26 @@ export const useAuth = () => {
     _enableGuestMode();
   }, []);
 
+  const clearPasswordRecovery = useCallback(() => {
+    _setState({ passwordRecoveryPending: false });
+  }, []);
+
   return {
     user: state.user,
     session: state.session,
     isLoading: state.isLoading,
     isAuthenticated: !!state.user,
     isGuestMode: state.isGuestMode,
+    passwordRecoveryPending: state.passwordRecoveryPending,
     signOut,
-    continueAsGuest
+    continueAsGuest,
+    clearPasswordRecovery,
   };
 };
 
 /** Reset auth state — for testing only */
 export function _resetAuthForTesting(): void {
-  _state = { user: null, session: null, isLoading: true, isGuestMode: false };
+  _state = { user: null, session: null, isLoading: true, isGuestMode: false, passwordRecoveryPending: false };
   _initialized = false;
   _listeners.clear();
 }

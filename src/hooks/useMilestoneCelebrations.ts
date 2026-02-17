@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { Milestone, MILESTONES, getMilestoneForValue, getNextMilestone } from '@/data/GamificationData';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface MilestoneState {
   achievedMilestones: string[];
@@ -18,6 +19,7 @@ export interface MilestoneProgress {
 const MILESTONE_EVENT = 'petIsland_milestoneAchieved';
 
 export const useMilestoneCelebrations = () => {
+  const { user } = useAuth();
   const [state, setState] = useState<MilestoneState>({
     achievedMilestones: [],
     claimedMilestones: [],
@@ -26,7 +28,8 @@ export const useMilestoneCelebrations = () => {
 
   const [showCelebration, setShowCelebration] = useState(false);
 
-  // Load saved state — but never auto-show stale celebrations from a previous session.
+  // Load saved state — reload when user changes (sign-in/out clears data).
+  // Never auto-show stale celebrations from a previous session.
   // If the user closed the app without dismissing, clear the pending state so the
   // black overlay doesn't appear on every subsequent app load.
   useEffect(() => {
@@ -43,8 +46,15 @@ export const useMilestoneCelebrations = () => {
       } else {
         setState(saved);
       }
+    } else {
+      // No saved data (cleared on sign-out) — reset to defaults
+      setState({
+        achievedMilestones: [],
+        claimedMilestones: [],
+        pendingCelebration: null,
+      });
     }
-  }, []);
+  }, [user?.id]);
 
   const saveState = useCallback((newState: MilestoneState) => {
     setState(newState);

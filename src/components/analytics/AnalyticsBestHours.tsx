@@ -32,7 +32,7 @@ export const AnalyticsBestHours = ({
 
   // Get overall best time range
   const getBestTimeRange = () => {
-    if (bestFocusHours.length === 0) return "Not enough data";
+    if (bestFocusHours.length === 0) return "Complete a few sessions to discover your peak hours";
     const hours = bestFocusHours.map(h => h.hour).sort((a, b) => a - b);
     if (hours.length === 1) return formatHour(hours[0]);
 

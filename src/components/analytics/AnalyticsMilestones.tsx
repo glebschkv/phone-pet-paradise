@@ -15,7 +15,19 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export const AnalyticsMilestones = ({ milestones }: MilestonesProps) => {
   if (milestones.length === 0) {
-    return null;
+    return (
+      <div className="retro-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Flag className="w-4 h-4 text-primary" />
+          <span className="text-sm font-bold">Next Milestones</span>
+        </div>
+        <div className="text-center py-6 text-muted-foreground">
+          <Trophy className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p className="text-sm font-medium">All milestones reached!</p>
+          <p className="text-xs mt-1">Keep going — new goals unlock as you progress</p>
+        </div>
+      </div>
+    );
   }
 
   return (

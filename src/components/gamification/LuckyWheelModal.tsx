@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Sparkles, Clock, History, Gift, Zap, X, Crown, Info } from 'lucide-react';
 import { LuckyWheelPrize } from '@/data/GamificationData';
 import { PixelIcon } from '@/components/ui/PixelIcon';
+import { playSoundEffect } from '@/hooks/useSoundEffects';
 
 // Single source of truth for animation timing
 const SPIN_DURATION_MS = 6500;
@@ -68,6 +69,9 @@ export const LuckyWheelModal = ({ isOpen, onClose, onPrizeWon }: LuckyWheelModal
 
       if (isSpecial) {
         setShowCelebration(true);
+        playSoundEffect('achievement');
+      } else {
+        playSoundEffect('success');
       }
 
       setTimeout(() => {

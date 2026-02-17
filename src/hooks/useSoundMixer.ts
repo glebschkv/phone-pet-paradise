@@ -3,6 +3,8 @@ import { getAmbientSoundById, AmbientSound } from '@/data/AmbientSoundsData';
 import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from './usePremiumStatus';
 import { soundLogger } from '@/lib/logger';
 import type { WebkitWindow, AudioNodes } from '@/types/browser-utils';
+import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
+import type { AppSettings } from '@/hooks/useSettings';
 
 const SOUND_MIXER_STORAGE_KEY = 'petIsland_soundMixer';
 
@@ -259,6 +261,12 @@ export const useSoundMixer = () => {
   // Play all active layers
   const playAll = useCallback(() => {
     if (state.layers.length === 0) return;
+
+    // Respect the global sound enabled setting
+    try {
+      const settings = storage.get<AppSettings>(STORAGE_KEYS.APP_SETTINGS);
+      if (settings && !settings.soundEnabled) return;
+    } catch { /* proceed if settings can't be read */ }
 
     // Stop any existing playback
     stopAll();

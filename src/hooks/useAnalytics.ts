@@ -296,7 +296,24 @@ export const useAnalytics = () => {
 
     const newHourlyFocus = { ...existingStats.hourlyFocus };
     if (isCountedSession) {
-      newHourlyFocus[hour] = (newHourlyFocus[hour] || 0) + safeActual;
+      // Distribute focus time across all hours spanned by the session.
+      // A 90-min session starting at 2:30 PM should attribute 30 min to hour 14
+      // and 60 min to hour 15, rather than putting all 90 min into hour 14.
+      const sessionStartDate = new Date(startTime);
+      let remaining = safeActual;
+      let curHour = sessionStartDate.getHours();
+      let curMinute = sessionStartDate.getMinutes();
+      let curSecond = sessionStartDate.getSeconds();
+
+      while (remaining > 0) {
+        const secondsLeftInHour = 3600 - (curMinute * 60 + curSecond);
+        const attributed = Math.min(remaining, secondsLeftInHour);
+        newHourlyFocus[curHour] = (newHourlyFocus[curHour] || 0) + attributed;
+        remaining -= attributed;
+        curHour = (curHour + 1) % 24;
+        curMinute = 0;
+        curSecond = 0;
+      }
     }
 
     // Update category time tracking
@@ -313,7 +330,7 @@ export const useAnalytics = () => {
       totalFocusTime: existingStats.totalFocusTime + (isWorkSession ? focusTimeIncrement : 0),
       totalBreakTime: existingStats.totalBreakTime + (!isWorkSession ? safeActual : 0),
       sessionsCompleted: existingStats.sessionsCompleted + (status === 'completed' && isWorkSession ? 1 : 0),
-      sessionsAbandoned: existingStats.sessionsAbandoned + (status === 'abandoned' ? 1 : 0),
+      sessionsAbandoned: existingStats.sessionsAbandoned + (status === 'abandoned' && isWorkSession ? 1 : 0),
       longestSession: isWorkSession && status === 'completed'
         ? Math.max(existingStats.longestSession, safeActual)
         : existingStats.longestSession,
@@ -379,6 +396,15 @@ export const useAnalytics = () => {
 
     return session;
   }, [saveSessions, saveDailyStats, saveRecords]);
+
+  // Update metadata on an existing session (e.g. after saving session notes)
+  const updateSessionMeta = useCallback((sessionId: string, updates: { rating?: number; hasNotes?: boolean }) => {
+    const currentSessions = sessionsRef.current;
+    const updatedSessions = currentSessions.map(s =>
+      s.id === sessionId ? { ...s, ...updates } : s
+    );
+    saveSessions(updatedSessions);
+  }, [saveSessions]);
 
   // Update analytics settings
   const updateSettings = useCallback((updates: Partial<AnalyticsSettings>) => {
@@ -840,6 +866,58 @@ export const useAnalytics = () => {
   }, [dailyStats]);
 
   // ============================================================================
+  // PREVIOUS MONTH SUMMARY (for month-over-month comparison)
+  // ============================================================================
+  const previousMonthStats = useMemo((): MonthlyStats | null => {
+    const now = new Date();
+    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const year = prevMonth.getFullYear();
+    const month = prevMonth.getMonth();
+    const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    let totalFocus = 0;
+    let totalSess = 0;
+    let daysActive = 0;
+    let goalsMet = 0;
+    let bestDay = { date: '', focusTime: 0 };
+    let totalCompleted = 0;
+    let totalAttempted = 0;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const stats = dailyStats[dateStr];
+      if (stats) {
+        totalFocus += stats.totalFocusTime;
+        totalSess += stats.sessionsCompleted;
+        if (stats.totalFocusTime > 0) daysActive++;
+        if (stats.goalMet) goalsMet++;
+        if (stats.totalFocusTime > bestDay.focusTime) {
+          bestDay = { date: dateStr, focusTime: stats.totalFocusTime };
+        }
+        totalCompleted += stats.sessionsCompleted;
+        totalAttempted += stats.sessionsCompleted + stats.sessionsAbandoned;
+      }
+    }
+
+    // Only return if there was any data last month
+    if (totalFocus === 0 && totalSess === 0) return null;
+
+    return {
+      month: monthStr,
+      totalFocusTime: totalFocus,
+      totalSessions: totalSess,
+      daysActive,
+      goalsMet,
+      totalDays: daysInMonth,
+      bestDay,
+      topCategory: null,
+      avgDailyFocus: daysActive > 0 ? Math.round(totalFocus / daysActive) : 0,
+      completionRate: totalAttempted > 0 ? Math.round((totalCompleted / totalAttempted) * 100) : 0,
+    };
+  }, [dailyStats]);
+
+  // ============================================================================
   // AI INSIGHTS (generated from data patterns)
   // ============================================================================
   const insights = useMemo((): AnalyticsInsight[] => {
@@ -1032,7 +1110,87 @@ export const useAnalytics = () => {
       }
     }
 
-    return generated.slice(0, 5);
+    // 11. Session rating trends — use ratings linked to sessions
+    const ratedSessions = sessions.filter(s => s.rating && s.rating > 0 && s.startTime >= Date.now() - (30 * 24 * 60 * 60 * 1000));
+    if (ratedSessions.length >= 5) {
+      const avgRating = ratedSessions.reduce((sum, s) => sum + (s.rating || 0), 0) / ratedSessions.length;
+      const recentHalf = ratedSessions.slice(Math.floor(ratedSessions.length / 2));
+      const olderHalf = ratedSessions.slice(0, Math.floor(ratedSessions.length / 2));
+      const recentAvg = recentHalf.reduce((sum, s) => sum + (s.rating || 0), 0) / recentHalf.length;
+      const olderAvg = olderHalf.length > 0 ? olderHalf.reduce((sum, s) => sum + (s.rating || 0), 0) / olderHalf.length : recentAvg;
+
+      if (recentAvg > olderAvg + 0.3) {
+        generated.push({
+          id: 'mood-improving',
+          type: 'achievement',
+          icon: 'TrendingUp',
+          title: 'Enjoying focus more',
+          description: `Your session mood is trending up (${recentAvg.toFixed(1)}/5 recently vs ${olderAvg.toFixed(1)}/5 before). You're building a positive focus habit!`,
+          color: 'text-green-500',
+        });
+      } else if (avgRating >= 4.0) {
+        generated.push({
+          id: 'mood-high',
+          type: 'achievement',
+          icon: 'CheckCircle',
+          title: 'High satisfaction',
+          description: `Your avg session rating is ${avgRating.toFixed(1)}/5. You consistently enjoy your focus sessions.`,
+          color: 'text-green-500',
+        });
+      }
+    }
+
+    // 12. Average session length growth
+    const last14 = sessions.filter(s => s.sessionType !== 'break' && s.status === 'completed' && s.startTime >= Date.now() - (14 * 24 * 60 * 60 * 1000));
+    const prev14 = sessions.filter(s => s.sessionType !== 'break' && s.status === 'completed' && s.startTime >= Date.now() - (28 * 24 * 60 * 60 * 1000) && s.startTime < Date.now() - (14 * 24 * 60 * 60 * 1000));
+    if (last14.length >= 3 && prev14.length >= 3) {
+      const recentAvgLen = last14.reduce((sum, s) => sum + s.actualDuration, 0) / last14.length;
+      const prevAvgLen = prev14.reduce((sum, s) => sum + s.actualDuration, 0) / prev14.length;
+      const changePercent = Math.round(((recentAvgLen - prevAvgLen) / prevAvgLen) * 100);
+      if (changePercent >= 15) {
+        generated.push({
+          id: 'session-growing',
+          type: 'trend',
+          icon: 'TrendingUp',
+          title: 'Sessions getting longer',
+          description: `Your avg session is ${Math.round(recentAvgLen / 60)}min now vs ${Math.round(prevAvgLen / 60)}min two weeks ago — ${changePercent}% longer focus blocks.`,
+          color: 'text-blue-500',
+        });
+      }
+    }
+
+    // 13. This month vs last month comparison
+    const now = new Date();
+    const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthStr = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+    let thisMonthFocus = 0;
+    let lastMonthFocus = 0;
+    Object.entries(dailyStats).forEach(([dateStr, stats]) => {
+      if (dateStr.startsWith(thisMonthStr)) thisMonthFocus += stats.totalFocusTime;
+      if (dateStr.startsWith(lastMonthStr)) lastMonthFocus += stats.totalFocusTime;
+    });
+    if (lastMonthFocus > 3600 && thisMonthFocus > 0) {
+      // Normalize by days elapsed this month vs full last month
+      const daysThisMonth = now.getDate();
+      const daysLastMonth = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+      const projectedThisMonth = (thisMonthFocus / daysThisMonth) * daysLastMonth;
+      const monthChangePercent = Math.round(((projectedThisMonth - lastMonthFocus) / lastMonthFocus) * 100);
+      if (Math.abs(monthChangePercent) >= 10) {
+        const direction = monthChangePercent > 0 ? 'more' : 'less';
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        generated.push({
+          id: 'month-comparison',
+          type: monthChangePercent > 0 ? 'achievement' : 'recommendation',
+          icon: monthChangePercent > 0 ? 'TrendingUp' : 'AlertCircle',
+          title: monthChangePercent > 0 ? `Strong ${monthNames[now.getMonth()]}!` : `${monthNames[now.getMonth()]} needs a push`,
+          description: `On pace for ${Math.abs(monthChangePercent)}% ${direction} focus than ${monthNames[lastMonth.getMonth()]}. ${monthChangePercent > 0 ? 'Keep it up!' : 'Schedule a few extra sessions to catch up.'}`,
+          color: monthChangePercent > 0 ? 'text-green-500' : 'text-amber-500',
+        });
+      }
+    }
+
+    return generated.slice(0, 6);
   }, [weekOverWeekChange, lastWeekStats, bestFocusHours, currentGoalStreak, completionRate, sessions, getCategoryDistribution, todayStats, records, focusQualityStats, dailyStats]);
 
   // ============================================================================
@@ -1173,11 +1331,13 @@ export const useAnalytics = () => {
     completionTrend,
     milestones,
     currentMonthStats,
+    previousMonthStats,
     insights,
     premiumTeasers,
 
     // Actions
     recordSession,
+    updateSessionMeta,
     updateSettings,
     getDailyStatsRange,
     getRecentSessions,

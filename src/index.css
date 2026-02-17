@@ -2,43 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
- * Prevent multiple dialog overlays from stacking.
- * Radix Dialog portals render as siblings under <body>.
- * When multiple dialogs are open, each adds a bg-black/80 overlay
- * which compounds to near-total black. This rule makes subsequent
- * portal overlays transparent so only the first is visible.
- */
-[data-radix-portal] ~ [data-radix-portal] > [data-dialog-overlay] {
-  background-color: transparent !important;
-}
-
-/*
- * Fix black overlay persisting after Dialog closes.
- * When a Radix Dialog closes, its overlay transitions to data-state="closed"
- * but can remain in the DOM during the fade-out animation. On mobile (especially
- * iOS/Capacitor), the animation sometimes doesn't complete properly, leaving a
- * bg-black/80 overlay that blocks interaction until the user taps again.
- *
- * - pointer-events: none → clicks pass through immediately (no "tap again to dismiss")
- * - background-color: transparent → overlay is invisible even if animation stalls
- */
-[data-dialog-overlay][data-state="closed"] {
-  pointer-events: none !important;
-  background-color: transparent !important;
-}
-
-/*
- * Safety net: if a Dialog portal's content has transitioned to closed state,
- * hide the overlay entirely. Covers cases where Radix fails to unmount the
- * portal on iOS/Capacitor even after the close animation completes.
- */
-[data-radix-portal]:has([data-state="closed"]) > [data-dialog-overlay] {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: opacity 0s !important;
-}
-
 /* iOS app hardening: prevent zoom, text selection, and tap delay */
 html, body {
   touch-action: manipulation;
@@ -459,6 +422,8 @@ input, textarea, [contenteditable="true"] {
     box-shadow:
       0 2px 0 hsl(260 25% 12%),
       inset 0 1px 0 hsl(260 40% 30% / 0.2);
+    /* Force light text since this pill is dark inside arcade containers */
+    color: hsl(45 25% 85%);
   }
 
   /* Animated shine effect for XP bar */
@@ -2317,6 +2282,14 @@ input, textarea, [contenteditable="true"] {
     );
     position: relative;
     overflow: hidden;
+    /* Force dark-theme text/semantic colors — this container is always dark
+       regardless of system light/dark mode, so Tailwind utilities like
+       text-foreground and text-muted-foreground must resolve to light values. */
+    color: hsl(45 25% 85%);
+    --foreground: 45 25% 85%;
+    --muted-foreground: 45 15% 60%;
+    --card-foreground: 45 25% 85%;
+    --border: 220 15% 25%;
   }
 
   .retro-arcade-container::before {
@@ -2598,6 +2571,12 @@ input, textarea, [contenteditable="true"] {
       0 0 0 1px hsl(260 60% 50% / 0.3);
     overflow: hidden;
     transition: all 0.2s ease;
+    /* Force dark-theme semantic colors — this card is always dark regardless
+       of system theme. Override CSS vars so Tailwind text-foreground etc. work. */
+    color: hsl(45 25% 85%);
+    --foreground: 45 25% 85%;
+    --muted-foreground: 45 15% 60%;
+    --card-foreground: 45 25% 85%;
   }
 
   .retro-game-card:hover {
@@ -2904,6 +2883,12 @@ input, textarea, [contenteditable="true"] {
       0 0 0 2px hsl(260 40% 25%),
       0 8px 0 hsl(280 60% 20%),
       0 0 40px hsl(280 80% 40% / 0.4);
+    /* Force dark-theme semantic colors — retro modals are always dark */
+    color: hsl(45 25% 85%);
+    --foreground: 45 25% 85%;
+    --muted-foreground: 45 15% 60%;
+    --card-foreground: 45 25% 85%;
+    --background: 260 30% 15%;
   }
 
   .retro-modal-header {
@@ -4206,6 +4191,12 @@ input, textarea, [contenteditable="true"] {
       hsl(248 35% 13%) 40%,
       hsl(245 30% 11%) 100%
     );
+    /* Force dark-theme semantic colors — collection page is always dark */
+    color: hsl(45 25% 85%);
+    --foreground: 45 25% 85%;
+    --muted-foreground: 45 15% 60%;
+    --card-foreground: 45 25% 85%;
+    --border: 220 15% 25%;
   }
 
   /* Collection header panel */

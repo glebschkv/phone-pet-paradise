@@ -1,16 +1,17 @@
-import { CalendarRange, Star, Clock, Target, Zap } from "lucide-react";
+import { CalendarRange, Star, Clock, Target, Zap, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MonthlyStats, FOCUS_CATEGORIES } from "@/types/analytics";
 
 interface MonthlySummaryProps {
   stats: MonthlyStats;
+  previousMonth?: MonthlyStats | null;
   formatDuration: (seconds: number, format?: 'short' | 'long') => string;
 }
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'];
 
-export const AnalyticsMonthlySummary = ({ stats, formatDuration }: MonthlySummaryProps) => {
+export const AnalyticsMonthlySummary = ({ stats, previousMonth, formatDuration }: MonthlySummaryProps) => {
   const monthIndex = parseInt(stats.month.split('-')[1]) - 1;
   const monthName = MONTH_NAMES[monthIndex] || stats.month;
 
@@ -37,8 +38,27 @@ export const AnalyticsMonthlySummary = ({ stats, formatDuration }: MonthlySummar
         <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mb-1">
           Total Focus This Month
         </div>
-        <div className="text-2xl font-extrabold text-primary tabular-nums">
-          {formatDuration(stats.totalFocusTime)}
+        <div className="flex items-center justify-center gap-2">
+          <span className="text-2xl font-extrabold text-primary tabular-nums">
+            {formatDuration(stats.totalFocusTime)}
+          </span>
+          {previousMonth && previousMonth.totalFocusTime > 0 && (() => {
+            // Normalize by days elapsed to compare fairly
+            const dayOfMonth = new Date().getDate();
+            const projectedThis = stats.totalDays > 0 ? (stats.totalFocusTime / dayOfMonth) * stats.totalDays : 0;
+            const change = Math.round(((projectedThis - previousMonth.totalFocusTime) / previousMonth.totalFocusTime) * 100);
+            if (change === 0) return null;
+            const isUp = change > 0;
+            return (
+              <span className={cn(
+                "inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold",
+                isUp ? "bg-green-500/15 text-green-500" : "bg-red-500/15 text-red-400"
+              )}>
+                {isUp ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                {Math.abs(change)}%
+              </span>
+            );
+          })()}
         </div>
         <div className="text-[10px] text-muted-foreground mt-1">
           across {stats.totalSessions} sessions
@@ -113,6 +133,18 @@ export const AnalyticsMonthlySummary = ({ stats, formatDuration }: MonthlySummar
             {stats.completionRate}%
           </span>
         </div>
+        {previousMonth && previousMonth.totalFocusTime > 0 && (() => {
+          const prevMonthIndex = parseInt(previousMonth.month.split('-')[1]) - 1;
+          const prevMonthName = MONTH_NAMES[prevMonthIndex] || previousMonth.month;
+          return (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">vs {prevMonthName}</span>
+              <span className="font-bold text-muted-foreground">
+                {formatDuration(previousMonth.totalFocusTime)} · {previousMonth.totalSessions} sessions
+              </span>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

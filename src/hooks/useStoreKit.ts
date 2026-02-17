@@ -213,10 +213,23 @@ interface UseStoreKitReturn {
   getLocalizedPrice: (iapProductId: string, fallbackPrice: string) => string;
 }
 
+// ---------------------------------------------------------------------------
+// Shared product cache — all useStoreKit() instances share the same products
+// so we only fetch from Apple once, and every component gets the localized
+// prices simultaneously.
+// ---------------------------------------------------------------------------
+let _sharedProducts: StoreKitProduct[] = [];
+const _productListeners = new Set<(products: StoreKitProduct[]) => void>();
+
+function _setSharedProducts(products: StoreKitProduct[]) {
+  _sharedProducts = products;
+  _productListeners.forEach(fn => fn(products));
+}
+
 export const useStoreKit = (): UseStoreKitReturn => {
-  const [products, setProducts] = useState<StoreKitProduct[]>([]);
+  const [products, setProducts] = useState<StoreKitProduct[]>(_sharedProducts);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(_sharedProducts.length === 0);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pluginAvailable, setPluginAvailable] = useState(true);
@@ -235,7 +248,21 @@ export const useStoreKit = (): UseStoreKitReturn => {
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    // Subscribe to shared product updates from other hook instances
+    const onUpdate = (p: StoreKitProduct[]) => {
+      if (mountedRef.current) setProducts(p);
+    };
+    _productListeners.add(onUpdate);
+    // Sync with current shared state (another instance may have loaded already)
+    if (_sharedProducts.length > 0 && products.length === 0) {
+      setProducts(_sharedProducts);
+      setIsLoading(false);
+    }
+    return () => {
+      mountedRef.current = false;
+      _productListeners.delete(onUpdate);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Guard against the initialization useEffect running more than once
@@ -285,6 +312,7 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setPluginAvailable(true);
       setPluginError(null);
       setProducts(result.products);
+      _setSharedProducts(result.products);
 
       // Log which products were loaded vs. requested so we can
       // diagnose "purchase failed" for missing products.
@@ -645,10 +673,18 @@ export const useStoreKit = (): UseStoreKitReturn => {
     return products.find(p => p.id === productId);
   }, [products]);
 
-  // Get localized price from App Store, falling back to hardcoded price
+  // Get localized price from App Store.
+  // On native devices, always prefer the StoreKit displayPrice (localized to
+  // user's App Store region/currency). On native, NEVER show the hardcoded USD
+  // fallback — show '…' until the real price loads. Only use the fallback on
+  // web where StoreKit is unavailable.
   const getLocalizedPrice = useCallback((iapProductId: string, fallbackPrice: string): string => {
     const product = products.find(p => p.id === iapProductId);
-    return product?.displayPrice || fallbackPrice;
+    if (product?.displayPrice) return product.displayPrice;
+    // On native, never show the USD fallback — it's the wrong currency for
+    // non-US users. Show placeholder until StoreKit provides the real price.
+    if (Capacitor.isNativePlatform()) return '…';
+    return fallbackPrice;
   }, [products]);
 
   // Initialize on mount — runs exactly once per hook instance.

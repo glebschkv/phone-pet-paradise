@@ -16,6 +16,7 @@ import {
 import { AnimalData } from "@/data/AnimalDatabase";
 import { PremiumSubscription } from "@/components/PremiumSubscription";
 import { toast } from "sonner";
+import { playSoundEffect } from "@/hooks/useSoundEffects";
 import { FeaturedTab } from "@/components/shop/tabs/FeaturedTab";
 import { PetsTab } from "@/components/shop/tabs/PetsTab";
 import { PowerUpsTab } from "@/components/shop/tabs/PowerUpsTab";
@@ -96,6 +97,7 @@ export const Shop = () => {
       }
 
       if (result.success) {
+        playSoundEffect('purchase');
         setShowPurchaseConfirm(false);
         // Show unlock celebration for character purchases
         if ('biome' in selectedItem) {

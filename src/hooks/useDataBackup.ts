@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { backupLogger } from '@/lib/logger';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 interface BackupData {
   version: string;
@@ -46,37 +47,24 @@ export const useDataBackup = () => {
     };
 
     try {
-      // Collect all localStorage data
-      const keys = [
-        'app-state-data',
-        'xp-system-state', 
-        'streak-system-data',
-        'app-settings',
-        'onboarding-completed',
-        'performance-settings'
-      ];
+      // Collect all localStorage data using current storage keys
+      const keyMap: Record<string, keyof BackupData> = {
+        [STORAGE_KEYS.APP_STATE]: 'appState',
+        [STORAGE_KEYS.XP_SYSTEM]: 'xpSystem',
+        [STORAGE_KEYS.STREAK_DATA]: 'streakSystem',
+        [STORAGE_KEYS.APP_SETTINGS]: 'settings',
+        [STORAGE_KEYS.ONBOARDING_COMPLETED]: 'onboarding',
+      };
 
-      keys.forEach(key => {
+      Object.entries(keyMap).forEach(([key, field]) => {
         const value = localStorage.getItem(key);
         if (value) {
           try {
             const parsed = JSON.parse(value);
-            switch (key) {
-              case 'app-state-data':
-                data.appState = parsed;
-                break;
-              case 'xp-system-state':
-                data.xpSystem = parsed;
-                break;
-              case 'streak-system-data':
-                data.streakSystem = parsed;
-                break;
-              case 'app-settings':
-                data.settings = parsed;
-                break;
-              case 'onboarding-completed':
-                data.onboarding = { completed: parsed };
-                break;
+            if (field === 'onboarding') {
+              data.onboarding = { completed: parsed };
+            } else {
+              data[field] = parsed;
             }
           } catch (error) {
             backupLogger.warn(`Failed to parse ${key}:`, error);
@@ -219,13 +207,13 @@ export const useDataBackup = () => {
       // Create current state backup before restoring
       await createBackup('auto-backup-before-restore');
       
-      // Restore data
+      // Restore data using current storage keys
       Object.entries({
-        'app-state-data': data.appState,
-        'xp-system-state': data.xpSystem,
-        'streak-system-data': data.streakSystem,
-        'app-settings': data.settings,
-        'onboarding-completed': data.onboarding?.completed,
+        [STORAGE_KEYS.APP_STATE]: data.appState,
+        [STORAGE_KEYS.XP_SYSTEM]: data.xpSystem,
+        [STORAGE_KEYS.STREAK_DATA]: data.streakSystem,
+        [STORAGE_KEYS.APP_SETTINGS]: data.settings,
+        [STORAGE_KEYS.ONBOARDING_COMPLETED]: data.onboarding?.completed,
       }).forEach(([key, value]) => {
         if (value && Object.keys(value).length > 0) {
           localStorage.setItem(key, JSON.stringify(value));

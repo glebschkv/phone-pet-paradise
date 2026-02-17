@@ -12,23 +12,15 @@ const DialogPortal = DialogPrimitive.Portal
 
 const DialogClose = DialogPrimitive.Close
 
-// No fade animation on the overlay — it appears/disappears instantly with
-// Radix's mount/unmount.  The previous animate-in/animate-out approach
-// relied on onAnimationEnd to hide the element, which frequently didn't
-// fire on iOS/Capacitor, leaving an orphaned bg-black/60 blocking the
-// entire screen.  The modal *content* still animates; only the backdrop
-// is instant.
+// No overlay is rendered. On iOS WebView / Capacitor, Radix overlay elements
+// get orphaned in the DOM (animations don't complete, portals don't unmount)
+// and block all touch input with a black screen. Removing the overlay entirely
+// is the only reliable fix. Click-outside-to-close still works via Radix's
+// built-in onInteractOutside on the Content element.
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    data-dialog-overlay=""
-    className={cn("fixed inset-0 z-50 bg-black/60", className)}
-    {...props}
-  />
-))
+>(() => null)
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const DialogContent = React.forwardRef<
@@ -36,7 +28,6 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { variant?: "center" | "bottom-sheet" }
 >(({ className, children, variant = "center", ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       aria-describedby={props["aria-describedby"] ?? undefined}

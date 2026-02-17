@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { BossChallenge, BOSS_CHALLENGES, getBossChallengesByDifficulty } from '@/data/GamificationData';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface BossChallengeProgress {
   challengeId: string;
@@ -25,6 +26,7 @@ export interface BossChallengesState {
 const BOSS_CHALLENGE_UPDATE_EVENT = 'petIsland_bossChallengeUpdate';
 
 export const useBossChallenges = () => {
+  const { user } = useAuth();
   const [state, setState] = useState<BossChallengesState>({
     challengeProgress: {},
     completedChallenges: [],
@@ -36,7 +38,7 @@ export const useBossChallenges = () => {
     lastWeekReset: getMonday(new Date()).toISOString(),
   });
 
-  // Load saved state
+  // Load saved state — reload when user changes (sign-in/out clears data)
   useEffect(() => {
     const saved = storage.get<BossChallengesState>(STORAGE_KEYS.BOSS_CHALLENGES);
     if (saved) {
@@ -64,8 +66,20 @@ export const useBossChallenges = () => {
       if (needsUpdate) {
         storage.set(STORAGE_KEYS.BOSS_CHALLENGES, updatedState);
       }
+    } else {
+      // No saved data (cleared on sign-out) — reset to defaults
+      setState({
+        challengeProgress: {},
+        completedChallenges: [],
+        activeChallengeId: null,
+        weeklyFocusMinutes: 0,
+        dailyFocusMinutes: 0,
+        dailySessions: 0,
+        lastDayReset: new Date().toDateString(),
+        lastWeekReset: getMonday(new Date()).toISOString(),
+      });
     }
-  }, []);
+  }, [user?.id]);
 
   const saveState = useCallback((newState: BossChallengesState) => {
     setState(newState);
