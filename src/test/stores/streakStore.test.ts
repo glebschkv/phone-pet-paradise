@@ -309,7 +309,7 @@ describe('streakStore', () => {
       expect(useStreakStore.getState().streakFreezeCount).toBe(3);
     });
 
-    it('should accumulate streak freezes', () => {
+    it('should accumulate streak freezes up to MAX_STREAK_FREEZES cap', () => {
       const { addStreakFreeze } = useStreakStore.getState();
 
       act(() => {
@@ -317,7 +317,8 @@ describe('streakStore', () => {
         addStreakFreeze(3);
       });
 
-      expect(useStreakStore.getState().streakFreezeCount).toBe(5);
+      // Capped at MAX_STREAK_FREEZES (3)
+      expect(useStreakStore.getState().streakFreezeCount).toBe(3);
     });
 
     it('should handle adding single freeze', () => {
@@ -405,14 +406,14 @@ describe('streakStore', () => {
       const { addStreakFreeze, updateState } = useStreakStore.getState();
 
       act(() => {
-        addStreakFreeze(5);
+        addStreakFreeze(2);
       });
 
       act(() => {
         updateState({ currentStreak: 10 });
       });
 
-      expect(useStreakStore.getState().streakFreezeCount).toBe(5);
+      expect(useStreakStore.getState().streakFreezeCount).toBe(2);
     });
   });
 
@@ -513,11 +514,11 @@ describe('streakStore', () => {
 
     it('useStreakFreezeCount should return freeze count', () => {
       act(() => {
-        useStreakStore.getState().addStreakFreeze(4);
+        useStreakStore.getState().addStreakFreeze(2);
       });
 
       const { result } = renderHook(() => useStreakFreezeCount());
-      expect(result.current).toBe(4);
+      expect(result.current).toBe(2);
     });
 
     it('useTotalSessions should return total sessions', () => {

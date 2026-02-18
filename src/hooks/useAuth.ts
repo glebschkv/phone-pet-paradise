@@ -6,6 +6,9 @@ import { authLogger } from '@/lib/logger';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { ACHIEVEMENT_STORAGE_KEY } from '@/services/achievement/achievementConstants';
+import { useShopStore } from '@/stores/shopStore';
+import { useStreakStore } from '@/stores/streakStore';
+import { usePremiumStore } from '@/stores/premiumStore';
 
 const GUEST_ID_KEY = 'pet_paradise_guest_id';
 const GUEST_CHOSEN_KEY = 'pet_paradise_guest_chosen';
@@ -85,6 +88,12 @@ function clearUserData() {
   for (const key of userDataKeys) {
     localStorage.removeItem(key);
   }
+
+  // Also reset Zustand in-memory stores so stale data (e.g. purchased bundle
+  // IDs, coin balance, premium tier) doesn't persist until the next full page reload.
+  try { useShopStore.getState().resetShop(); } catch { /* store may not be initialized */ }
+  try { useStreakStore.setState({ currentStreak: 0, longestStreak: 0, lastSessionDate: '', totalSessions: 0, streakFreezeCount: 0 }); } catch { /* store may not be initialized */ }
+  try { usePremiumStore.getState().clearPremium(); } catch { /* store may not be initialized */ }
 }
 
 // Generate or retrieve a persistent guest ID for offline mode

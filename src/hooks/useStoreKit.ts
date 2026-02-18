@@ -680,10 +680,13 @@ export const useStoreKit = (): UseStoreKitReturn => {
   // web where StoreKit is unavailable.
   const getLocalizedPrice = useCallback((iapProductId: string, fallbackPrice: string): string => {
     const product = products.find(p => p.id === iapProductId);
-    if (product?.displayPrice) return product.displayPrice;
+    if (product?.displayPrice && product.displayPrice.trim() !== '') return product.displayPrice;
     // On native, never show the USD fallback — it's the wrong currency for
     // non-US users. Show placeholder until StoreKit provides the real price.
-    if (Capacitor.isNativePlatform()) return '…';
+    if (Capacitor.isNativePlatform()) {
+      logger.debug(`[getLocalizedPrice] Product "${iapProductId}" not loaded yet (${products.length} products cached)`);
+      return '…';
+    }
     return fallbackPrice;
   }, [products]);
 

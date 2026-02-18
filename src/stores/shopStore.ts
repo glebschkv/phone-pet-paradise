@@ -149,7 +149,7 @@ export const useEquippedBackground = () => useShopStore((state) => state.equippe
  * so stale localStorage entries are cleaned up automatically.
  */
 export const syncPurchasedBundlesFromServer = async (): Promise<void> => {
-  if (!isSupabaseConfigured()) return;
+  if (!isSupabaseConfigured) return;
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;

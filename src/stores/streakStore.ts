@@ -25,6 +25,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { streakLogger } from '@/lib/logger';
+import { STREAK_CONFIG } from '@/lib/constants';
 import { streakDataSchema } from '@/lib/storage-validation';
 import { createValidatedStorage } from '@/lib/validated-zustand-storage';
 
@@ -79,7 +80,7 @@ export const useStreakStore = create<StreakStore>()(
       resetStreak: () => set({ currentStreak: 0 }),
       setLastSessionDate: (date) => set({ lastSessionDate: date }),
       incrementSessions: () => set((s) => ({ totalSessions: s.totalSessions + 1 })),
-      addStreakFreeze: (count) => set((s) => ({ streakFreezeCount: s.streakFreezeCount + count })),
+      addStreakFreeze: (count) => set((s) => ({ streakFreezeCount: Math.min(s.streakFreezeCount + count, STREAK_CONFIG.MAX_STREAK_FREEZES) })),
       useStreakFreeze: () => {
         if (get().streakFreezeCount > 0) { set((s) => ({ streakFreezeCount: s.streakFreezeCount - 1 })); return true; }
         return false;

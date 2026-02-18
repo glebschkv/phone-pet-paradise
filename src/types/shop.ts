@@ -83,10 +83,10 @@ export interface CoinPack extends ShopItem {
 // ============================================================================
 
 /**
- * Starter bundle with mixed contents
+ * Starter bundle with mixed contents (IAP only — purchased via Apple Pay)
  */
 export interface StarterBundle extends ShopItem {
-  category: 'coins';
+  category: 'bundles';
   contents: {
     coins: number;
     boosterId?: string;
@@ -97,22 +97,16 @@ export interface StarterBundle extends ShopItem {
 }
 
 /**
- * Background bundle
+ * Bundle of pets or backgrounds purchasable with coins
  */
-export interface BackgroundBundle extends ShopItem {
+export interface Bundle extends ShopItem {
   category: 'bundles';
-  backgroundIds: string[];
-  previewImages: string[];
-  totalValue: number;
-  savings: string;
-}
-
-/**
- * Pet bundle
- */
-export interface PetBundle extends ShopItem {
-  category: 'bundles';
-  petIds: string[];
+  /** IDs of items included (pet IDs or background IDs) */
+  itemIds: string[];
+  /** What kind of items this bundle contains */
+  bundleType: 'pets' | 'backgrounds';
+  /** Preview images for the bundle carousel */
+  previewImages?: string[];
   totalValue: number;
   savings: string;
 }
