@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 
 // Mock storage module
@@ -11,6 +11,31 @@ vi.mock('@/lib/storage-keys', () => ({
     get: vi.fn(),
     set: vi.fn(),
   },
+}));
+
+// Mock useAuth - provide a user id so the hook loads per-user state
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: vi.fn(() => ({
+    user: { id: 'test-user-123' },
+    isAuthenticated: true,
+    isGuestMode: false,
+  })),
+}));
+
+// Mock logger
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
+
+// Mock sonner
+vi.mock('sonner', () => ({
+  toast: Object.assign(vi.fn(), {
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warning: vi.fn(),
+  }),
 }));
 
 // Mock achievement tracking
@@ -41,24 +66,23 @@ vi.mock('@/data/GamificationData', () => ({
   spinWheel: vi.fn(() => mockPrizes[0]), // Default to first prize
 }));
 
-import { storage } from '@/lib/storage-keys';
 import { spinWheel } from '@/data/GamificationData';
 import { dispatchAchievementEvent } from '@/hooks/useAchievementTracking';
 
-const mockStorage = storage as unknown as {
-  get: ReturnType<typeof vi.fn>;
-  set: ReturnType<typeof vi.fn>;
-};
+const STORAGE_KEY = 'nomo_lucky_wheel_test-user-123';
 
 const mockSpinWheel = spinWheel as ReturnType<typeof vi.fn>;
 const mockDispatchAchievementEvent = dispatchAchievementEvent as ReturnType<typeof vi.fn>;
+
+/** Helper to seed localStorage with LuckyWheel state */
+function seedWheelState(state: Record<string, unknown>) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 
 describe('useLuckyWheel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    mockStorage.get.mockReturnValue(null);
-    vi.useFakeTimers();
   });
 
   afterEach(() => {
@@ -78,8 +102,8 @@ describe('useLuckyWheel', () => {
       expect(result.current.state.spinHistory).toEqual([]);
     });
 
-    it('should load saved state from storage', () => {
-      mockStorage.get.mockReturnValue({
+    it('should load saved state from storage', async () => {
+      seedWheelState({
         lastSpinDate: '2024-01-01T00:00:00.000Z',
         totalSpins: 10,
         megaBonusesWon: 2,
@@ -90,7 +114,9 @@ describe('useLuckyWheel', () => {
 
       const { result } = renderHook(() => useLuckyWheel());
 
-      expect(result.current.state.totalSpins).toBe(10);
+      await waitFor(() => {
+        expect(result.current.state.totalSpins).toBe(10);
+      });
       expect(result.current.state.megaBonusesWon).toBe(2);
     });
 
@@ -122,10 +148,11 @@ describe('useLuckyWheel', () => {
       expect(result.current.canSpinToday()).toBe(true);
     });
 
-    it('should return false when already spun today', () => {
+    it('should return false when already spun today', async () => {
       const today = new Date().toISOString();
-      mockStorage.get.mockReturnValue({
+      seedWheelState({
         lastSpinDate: today,
+        spinsUsedToday: 1,
         totalSpins: 1,
         megaBonusesWon: 0,
         totalCoinsWon: 100,
@@ -135,6 +162,10 @@ describe('useLuckyWheel', () => {
 
       const { result } = renderHook(() => useLuckyWheel());
 
+      await waitFor(() => {
+        expect(result.current.state.totalSpins).toBe(1);
+      });
+
       expect(result.current.canSpinToday()).toBe(false);
     });
 
@@ -142,7 +173,7 @@ describe('useLuckyWheel', () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
 
-      mockStorage.get.mockReturnValue({
+      seedWheelState({
         lastSpinDate: yesterday.toISOString(),
         totalSpins: 1,
         megaBonusesWon: 0,
@@ -169,7 +200,7 @@ describe('useLuckyWheel', () => {
 
     it('should return time until midnight when already spun', () => {
       const today = new Date().toISOString();
-      mockStorage.get.mockReturnValue({
+      seedWheelState({
         lastSpinDate: today,
         totalSpins: 1,
         megaBonusesWon: 0,
@@ -188,6 +219,10 @@ describe('useLuckyWheel', () => {
   });
 
   describe('spin', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
     it('should spin and return prize', async () => {
       mockSpinWheel.mockReturnValue(mockPrizes[0]);
       const { result } = renderHook(() => useLuckyWheel());
@@ -247,8 +282,9 @@ describe('useLuckyWheel', () => {
 
     it('should reject when already spun today', async () => {
       const today = new Date().toISOString();
-      mockStorage.get.mockReturnValue({
+      seedWheelState({
         lastSpinDate: today,
+        spinsUsedToday: 1,
         totalSpins: 1,
         megaBonusesWon: 0,
         totalCoinsWon: 100,
@@ -258,19 +294,25 @@ describe('useLuckyWheel', () => {
 
       const { result } = renderHook(() => useLuckyWheel());
 
+      // Wait for the useEffect to load state from localStorage
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+
       await expect(result.current.spin()).rejects.toThrow('No spins remaining today');
     });
 
     it('should reject when already spinning', async () => {
+      mockSpinWheel.mockReturnValue(mockPrizes[0]);
       const { result } = renderHook(() => useLuckyWheel());
 
-      // Start first spin
+      // Start first spin with higher daily limit so second call can check isSpinning
       act(() => {
-        result.current.spin();
+        result.current.spin(2);
       });
 
-      // Try second spin immediately
-      await expect(result.current.spin()).rejects.toThrow('Already spinning');
+      // Try second spin immediately -- should reject because we're still spinning
+      await expect(result.current.spin(2)).rejects.toThrow('Already spinning');
 
       // Clean up first spin
       await act(async () => {
@@ -306,8 +348,9 @@ describe('useLuckyWheel', () => {
     });
 
     it('should limit spin history to 20 entries', async () => {
-      mockStorage.get.mockReturnValue({
+      seedWheelState({
         lastSpinDate: null, // Reset to allow spinning
+        spinsUsedToday: 0,
         totalSpins: 20,
         megaBonusesWon: 0,
         totalCoinsWon: 2000,
@@ -317,6 +360,11 @@ describe('useLuckyWheel', () => {
 
       // Need to reset the date to allow spinning
       const { result, rerender: _rerender } = renderHook(() => useLuckyWheel());
+
+      // Flush useEffect to load state from localStorage
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
 
       mockSpinWheel.mockReturnValue(mockPrizes[1]);
 
@@ -365,8 +413,8 @@ describe('useLuckyWheel', () => {
   });
 
   describe('getStats', () => {
-    it('should return all stats', () => {
-      mockStorage.get.mockReturnValue({
+    it('should return all stats', async () => {
+      seedWheelState({
         lastSpinDate: '2024-01-01T00:00:00.000Z',
         totalSpins: 10,
         megaBonusesWon: 2,
@@ -376,6 +424,10 @@ describe('useLuckyWheel', () => {
       });
 
       const { result } = renderHook(() => useLuckyWheel());
+
+      await waitFor(() => {
+        expect(result.current.state.totalSpins).toBe(10);
+      });
 
       const stats = result.current.getStats();
 
@@ -398,8 +450,8 @@ describe('useLuckyWheel', () => {
   });
 
   describe('getRecentWins', () => {
-    it('should return recent wins', () => {
-      mockStorage.get.mockReturnValue({
+    it('should return recent wins', async () => {
+      seedWheelState({
         lastSpinDate: null,
         totalSpins: 3,
         megaBonusesWon: 0,
@@ -414,14 +466,18 @@ describe('useLuckyWheel', () => {
 
       const { result } = renderHook(() => useLuckyWheel());
 
+      await waitFor(() => {
+        expect(result.current.state.totalSpins).toBe(3);
+      });
+
       const recentWins = result.current.getRecentWins(2);
 
       expect(recentWins.length).toBe(2);
       expect(recentWins[0].prize.id).toBe('coins-100');
     });
 
-    it('should default to 5 recent wins', () => {
-      mockStorage.get.mockReturnValue({
+    it('should default to 5 recent wins', async () => {
+      seedWheelState({
         lastSpinDate: null,
         totalSpins: 10,
         megaBonusesWon: 0,
@@ -432,6 +488,10 @@ describe('useLuckyWheel', () => {
 
       const { result } = renderHook(() => useLuckyWheel());
 
+      await waitFor(() => {
+        expect(result.current.state.totalSpins).toBe(10);
+      });
+
       const recentWins = result.current.getRecentWins();
 
       expect(recentWins.length).toBe(5);
@@ -439,8 +499,8 @@ describe('useLuckyWheel', () => {
   });
 
   describe('getRarityDistribution', () => {
-    it('should return rarity distribution from history', () => {
-      mockStorage.get.mockReturnValue({
+    it('should return rarity distribution from history', async () => {
+      seedWheelState({
         lastSpinDate: null,
         totalSpins: 4,
         megaBonusesWon: 1,
@@ -455,6 +515,10 @@ describe('useLuckyWheel', () => {
       });
 
       const { result } = renderHook(() => useLuckyWheel());
+
+      await waitFor(() => {
+        expect(result.current.state.totalSpins).toBe(4);
+      });
 
       const distribution = result.current.getRarityDistribution();
 

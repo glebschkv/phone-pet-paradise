@@ -18,20 +18,10 @@ import { BrowserRouter } from 'react-router-dom';
 // Mocks
 // ============================================================================
 
-vi.mock('@/lib/logger', () => ({
-  createLogger: () => ({
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  }),
-  streakLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { createLogger: vi.fn(() => l()), streakLogger: l(), storageLogger: l(), logger: l() };
+});
 
 vi.mock('sonner', () => ({
   toast: {

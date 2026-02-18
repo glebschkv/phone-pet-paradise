@@ -14,14 +14,10 @@ import {
 } from '@/stores/xpStore';
 
 // Mock the logger to avoid console noise
-vi.mock('@/lib/logger', () => ({
-  xpLogger: {
-    debug: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { xpLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 // Mock the validated storage
 vi.mock('@/lib/validated-zustand-storage', () => ({

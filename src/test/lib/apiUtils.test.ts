@@ -11,14 +11,10 @@ import {
 } from '@/lib/apiUtils';
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { logger: l(), storageLogger: l(), createLogger: vi.fn(() => l()) };
+});
 
 describe('apiUtils', () => {
   beforeEach(() => {

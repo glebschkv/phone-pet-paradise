@@ -47,6 +47,16 @@ vi.mock('@/services/achievementService', () => ({
   generateShareText: vi.fn((achievement) => `I unlocked "${achievement.name}" in NoMo! 🎮`),
   getClaimedAchievementIds: vi.fn(() => new Set<string>()),
   isAchievementClaimed: vi.fn(() => false),
+  setAchievementUserId: vi.fn(),
+}));
+
+// Mock useAuth so useAchievementSystem can access user
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: vi.fn(() => ({
+    user: { id: 'test-user-123' },
+    isAuthenticated: true,
+    isGuestMode: false,
+  })),
 }));
 
 import {

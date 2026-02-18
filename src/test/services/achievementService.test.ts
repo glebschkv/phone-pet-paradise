@@ -20,14 +20,10 @@ import {
 } from '@/services/achievementService';
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  achievementLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { achievementLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 describe('achievementService', () => {
   beforeEach(() => {

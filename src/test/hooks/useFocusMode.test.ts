@@ -21,20 +21,10 @@ vi.mock('@/plugins/device-activity', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  focusModeLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-  createLogger: vi.fn(() => ({
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  })),
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { focusModeLogger: l(), createLogger: vi.fn(() => l()), storageLogger: l(), logger: l() };
+});
 
 describe('useFocusMode', () => {
   const STORAGE_KEY = 'petIsland_focusMode';

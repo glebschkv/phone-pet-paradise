@@ -3,14 +3,10 @@ import { renderHook, act } from '@testing-library/react';
 import { useBackendAppState } from '@/hooks/useBackendAppState';
 
 // Mock all the subsystem hooks
-vi.mock('@/lib/logger', () => ({
-  syncLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { syncLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 vi.mock('sonner', () => ({
   toast: {
@@ -324,14 +320,16 @@ describe('useBackendAppState', () => {
       expect(mockCoinSystem.awardCoins).toHaveBeenCalledWith(25, 1);
     });
 
-    it('should record streak progress', async () => {
+    it('should NOT record streak progress (handled by useTimerLogic)', async () => {
       const { result } = renderHook(() => useBackendAppState());
 
       await act(async () => {
         await result.current.awardXP(25);
       });
 
-      expect(mockStreaks.recordSession).toHaveBeenCalled();
+      // Streak recording is handled exclusively by useTimerLogic.handleComplete()
+      // to avoid double-counting. awardXP does NOT call recordSession.
+      expect(mockStreaks.recordSession).not.toHaveBeenCalled();
     });
 
     it('should update quest progress', async () => {
@@ -344,15 +342,16 @@ describe('useBackendAppState', () => {
       expect(mockQuests.updateQuestProgress).toHaveBeenCalledWith('focus_time', 30);
     });
 
-    it('should update bond for favorite pets', async () => {
+    it('should NOT update bond for favorite pets (phantom XP removed)', async () => {
       const { result } = renderHook(() => useBackendAppState());
 
       await act(async () => {
         await result.current.awardXP(25);
       });
 
-      // Only the favorite pet should have interaction
-      expect(mockBondSystem.interactWithPet).toHaveBeenCalledWith('panda', 'focus_session');
+      // Bond system interactions were removed from awardXP — they awarded phantom XP/bond
+      // on every timer completion for every favorite pet, causing unearned rewards.
+      expect(mockBondSystem.interactWithPet).not.toHaveBeenCalled();
     });
 
     it('should return coin reward in result', async () => {

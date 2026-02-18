@@ -3,14 +3,10 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePremiumStatus, dispatchSubscriptionChange, TIER_BENEFITS, SUBSCRIPTION_PLANS } from '@/hooks/usePremiumStatus';
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { logger: l(), storageLogger: l(), createLogger: vi.fn(() => l()) };
+});
 
 // Mock authStore
 vi.mock('@/stores/authStore', () => ({

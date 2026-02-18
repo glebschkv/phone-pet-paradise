@@ -2,14 +2,10 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 
 // Mock logger before importing store
-vi.mock('@/lib/logger', () => ({
-  shopLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { shopLogger: l(), storageLogger: l(), supabaseLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 import {
   useShopStore,

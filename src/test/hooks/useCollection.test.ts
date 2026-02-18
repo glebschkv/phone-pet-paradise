@@ -16,14 +16,10 @@ vi.mock('@/hooks/useXPSystem', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  collectionLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { collectionLogger: l(), storageLogger: l(), supabaseLogger: l(), shopLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 // Mock AnimalDatabase
 vi.mock('@/data/AnimalDatabase', () => ({

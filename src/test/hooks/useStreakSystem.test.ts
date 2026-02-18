@@ -302,14 +302,15 @@ describe('useStreakSystem', () => {
       expect(result.current.streakData.streakFreezeCount).toBe(1);
     });
 
-    it('should earn multiple streak freezes', () => {
+    it('should earn multiple streak freezes (capped at MAX_STREAK_FREEZES)', () => {
       const { result } = renderHook(() => useStreakSystem());
 
       act(() => {
         result.current.addStreakFreezes(5);
       });
 
-      expect(result.current.streakData.streakFreezeCount).toBe(5);
+      // MAX_STREAK_FREEZES is 3, so the count is capped
+      expect(result.current.streakData.streakFreezeCount).toBe(3);
     });
 
     it('should not add negative freezes', () => {

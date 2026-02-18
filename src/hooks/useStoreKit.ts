@@ -771,3 +771,9 @@ export const useStoreKit = (): UseStoreKitReturn => {
     getLocalizedPrice,
   };
 };
+
+/** Reset module-level singleton state. Test-only -- do NOT call in production. */
+export function _resetStoreKitForTesting() {
+  _sharedProducts = [];
+  _productListeners.clear();
+}

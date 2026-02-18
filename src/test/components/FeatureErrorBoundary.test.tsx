@@ -19,14 +19,10 @@ vi.mock('@/lib/errorReporting', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { logger: l(), storageLogger: l(), createLogger: vi.fn(() => l()) };
+});
 
 // Component that throws an error
 const ErrorThrowingComponent = ({ shouldThrow = true }: { shouldThrow?: boolean }) => {

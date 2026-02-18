@@ -32,9 +32,10 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock('@/lib/logger', () => ({
-  authLogger: { debug: vi.fn(), error: vi.fn(), info: vi.fn() },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { authLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 import { supabase } from '@/integrations/supabase/client';
 const mockSupabase = supabase as unknown as {

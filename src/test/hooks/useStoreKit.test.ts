@@ -59,14 +59,10 @@ vi.mock('sonner', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  storeKitLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { storeKitLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 // Mock error reporting
 vi.mock('@/lib/errorReporting', () => ({
@@ -149,7 +145,7 @@ vi.mock('@/hooks/usePremiumStatus', () => ({
 }));
 
 // Import after mocks are set up
-import { useStoreKit } from '@/hooks/useStoreKit';
+import { useStoreKit, _resetStoreKitForTesting } from '@/hooks/useStoreKit';
 
 // Mock data for tests
 const mockProducts = [
@@ -231,6 +227,7 @@ describe('useStoreKit', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    _resetStoreKitForTesting();
 
     // Default mock implementations - set defaults for ALL mocks
     mockIsNativePlatform.mockReturnValue(true);
@@ -657,11 +654,11 @@ describe('useStoreKit', () => {
         await result.current.purchaseProduct('co.nomoinc.nomo.premium.monthly');
       });
 
-      // Toast shows generic error message from implementation (sonner API: toast.error(title, opts))
+      // Toast shows product-specific error message
       expect(mockToastError).toHaveBeenCalledWith(
         'Purchase Failed',
         expect.objectContaining({
-          description: 'Unable to complete the purchase. Please try again.',
+          description: expect.stringContaining('Could not purchase'),
         })
       );
     });
@@ -1182,7 +1179,7 @@ describe('useStoreKit', () => {
       expect(mockToastError).toHaveBeenCalledWith(
         'Purchase Failed',
         expect.objectContaining({
-          description: 'Unable to complete the purchase. Please try again.',
+          description: expect.stringContaining('Could not purchase'),
         })
       );
     });

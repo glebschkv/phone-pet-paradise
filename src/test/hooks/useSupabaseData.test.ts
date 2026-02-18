@@ -27,14 +27,10 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  supabaseLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { supabaseLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 // Mock toast
 vi.mock('sonner', () => ({

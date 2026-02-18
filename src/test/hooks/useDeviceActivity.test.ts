@@ -12,14 +12,10 @@ vi.mock('sonner', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  deviceActivityLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { deviceActivityLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 // Mock error reporting
 vi.mock('@/lib/errorReporting', () => ({

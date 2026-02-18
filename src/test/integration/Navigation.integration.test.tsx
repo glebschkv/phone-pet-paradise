@@ -18,14 +18,10 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 // Mocks
 // ============================================================================
 
-vi.mock('@/lib/logger', () => ({
-  createLogger: () => ({
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  }),
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { createLogger: vi.fn(() => l()), storageLogger: l(), logger: l() };
+});
 
 // Mock native plugins
 vi.mock('@/hooks/useNativePluginStatus', () => ({

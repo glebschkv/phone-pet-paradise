@@ -4,14 +4,10 @@ import { useOfflineSyncManager } from '@/hooks/useOfflineSyncManager';
 import { useOfflineSyncStore } from '@/stores/offlineSyncStore';
 
 // Mock dependencies
-vi.mock('@/lib/logger', () => ({
-  syncLogger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { syncLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 vi.mock('sonner', () => ({
   toast: {

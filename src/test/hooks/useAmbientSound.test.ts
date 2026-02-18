@@ -52,14 +52,10 @@ vi.mock('@/data/AmbientSoundsData', () => ({
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
-  soundLogger: {
-    debug: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { soundLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 // Mock AudioContext
 const createMockAudioContext = () => {

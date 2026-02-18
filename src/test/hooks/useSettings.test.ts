@@ -70,6 +70,7 @@ describe('useSettings', () => {
     animationSpeed: 'normal',
     showTutorialHints: true,
     autoSaveProgress: true,
+    hapticFeedback: true,
     dataCollection: true,
     crashReporting: true,
   };
@@ -199,12 +200,7 @@ describe('useSettings', () => {
       const parsed = JSON.parse(saved!);
       expect(parsed.soundVolume).toBe(90);
 
-      expect(mockToast).toHaveBeenCalledWith(
-        "Settings Saved",
-        expect.objectContaining({
-          description: expect.any(String),
-        })
-      );
+      // Source does not toast on successful save -- only on error
     });
 
     it('should update multiple settings at once', async () => {

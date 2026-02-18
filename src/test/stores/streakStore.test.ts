@@ -10,14 +10,10 @@ import {
 } from '@/stores/streakStore';
 
 // Mock the logger to avoid console noise
-vi.mock('@/lib/logger', () => ({
-  streakLogger: {
-    debug: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { streakLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 // Mock the validated storage
 vi.mock('@/lib/validated-zustand-storage', () => ({

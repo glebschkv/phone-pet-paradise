@@ -35,13 +35,10 @@ vi.mock('sonner', () => ({
   },
 }));
 
-vi.mock('@/lib/logger', () => ({
-  syncLogger: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('@/lib/logger', () => {
+  const l = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+  return { syncLogger: l(), storageLogger: l(), logger: l(), createLogger: vi.fn(() => l()) };
+});
 
 import { useOfflineSyncManager } from '@/hooks/useOfflineSyncManager';
 import { useServiceWorker, useServiceWorkerSync } from '@/hooks/useServiceWorker';
