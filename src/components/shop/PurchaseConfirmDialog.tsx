@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Lock, Sparkles, Star, Loader2 } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
-import { ShopItem, BackgroundBundle, PetBundle } from "@/data/ShopData";
+import { ShopItem, Bundle } from "@/data/ShopData";
 import { AnimalData } from "@/data/AnimalDatabase";
 import { SpritePreview, BackgroundPreview, BundlePreviewCarousel, PetBundlePreviewCarousel } from "./ShopPreviewComponents";
 import { RARITY_COLORS } from "./styles";
@@ -10,7 +10,7 @@ import { RARITY_COLORS } from "./styles";
 interface PurchaseConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedItem: ShopItem | AnimalData | BackgroundBundle | PetBundle | null;
+  selectedItem: ShopItem | AnimalData | Bundle | null;
   onPurchase: () => void;
   canAfford: (price: number) => boolean;
   coinBalance: number;
@@ -48,18 +48,18 @@ export const PurchaseConfirmDialog = ({
           <div className="retro-modal-header p-4 text-center">
             <div className="retro-scanlines opacity-30" />
             <div className="h-28 mb-2 flex items-center justify-center overflow-hidden">
-              {'petIds' in selectedItem ? (
+              {'bundleType' in selectedItem && selectedItem.bundleType === 'pets' ? (
                 // Pet bundle preview carousel
-                <PetBundlePreviewCarousel petIds={(selectedItem as PetBundle).petIds} />
+                <PetBundlePreviewCarousel petIds={(selectedItem as Bundle).itemIds} />
               ) : 'spriteConfig' in selectedItem && selectedItem.spriteConfig ? (
                 <SpritePreview
                   animal={selectedItem as AnimalData}
                   scale={Math.min(2.5, 90 / Math.max((selectedItem as AnimalData).spriteConfig!.frameWidth, (selectedItem as AnimalData).spriteConfig!.frameHeight))}
                 />
-              ) : 'previewImages' in selectedItem ? (
+              ) : 'previewImages' in selectedItem && (selectedItem as Bundle).previewImages ? (
                 // Background bundle preview carousel
                 <div className="w-full">
-                  <BundlePreviewCarousel images={(selectedItem as BackgroundBundle).previewImages} />
+                  <BundlePreviewCarousel images={(selectedItem as Bundle).previewImages!} />
                 </div>
               ) : 'previewImage' in selectedItem && typeof selectedItem.previewImage === 'string' && selectedItem.previewImage ? (
                 // Single background preview
@@ -92,14 +92,9 @@ export const PurchaseConfirmDialog = ({
                 </span>
               </div>
             )}
-            {'backgroundIds' in selectedItem && (
+            {'itemIds' in selectedItem && (
               <div className="mt-1 text-xs text-muted-foreground">
-                Includes {(selectedItem as BackgroundBundle).backgroundIds.length} backgrounds
-              </div>
-            )}
-            {'petIds' in selectedItem && (
-              <div className="mt-1 text-xs text-muted-foreground">
-                Includes {(selectedItem as PetBundle).petIds.length} pets
+                Includes {(selectedItem as Bundle).itemIds.length} {(selectedItem as Bundle).bundleType}
               </div>
             )}
           </div>
@@ -112,10 +107,10 @@ export const PurchaseConfirmDialog = ({
             {'totalValue' in selectedItem && (
               <div className="flex items-center justify-center gap-2 text-sm">
                 <span className="text-muted-foreground line-through">
-                  {(selectedItem as BackgroundBundle | PetBundle).totalValue.toLocaleString()}
+                  {(selectedItem as Bundle).totalValue.toLocaleString()}
                 </span>
                 <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
-                  SAVE {(selectedItem as BackgroundBundle | PetBundle).savings}
+                  SAVE {(selectedItem as Bundle).savings}
                 </span>
               </div>
             )}

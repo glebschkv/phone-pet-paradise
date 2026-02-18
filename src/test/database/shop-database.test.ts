@@ -137,10 +137,14 @@ vi.mock('@/data/ShopData', () => ({
     { id: 'streak-freeze-3', name: 'Streak Freeze x3', quantity: 3, coinPrice: 120 },
   ],
   BACKGROUND_BUNDLES: [
-    { id: 'bundle-nature', name: 'Nature Bundle', backgroundIds: ['bg-ocean', 'bg-forest'], coinPrice: 400 },
+    { id: 'bundle-nature', name: 'Nature Bundle', bundleType: 'backgrounds', itemIds: ['bg-ocean', 'bg-forest'], coinPrice: 400 },
   ],
   PET_BUNDLES: [
-    { id: 'bundle-pets', name: 'Pet Bundle', petIds: ['dog', 'cat'], coinPrice: 200 },
+    { id: 'bundle-pets', name: 'Pet Bundle', bundleType: 'pets', itemIds: ['dog', 'cat'], coinPrice: 200 },
+  ],
+  ALL_BUNDLES: [
+    { id: 'bundle-nature', name: 'Nature Bundle', bundleType: 'backgrounds', itemIds: ['bg-ocean', 'bg-forest'], coinPrice: 400 },
+    { id: 'bundle-pets', name: 'Pet Bundle', bundleType: 'pets', itemIds: ['dog', 'cat'], coinPrice: 200 },
   ],
   STARTER_BUNDLES: [
     { id: 'starter-basic', name: 'Starter Pack', contents: { coins: 500, boosterId: 'boost-2x', characterId: 'dog' } },
@@ -275,7 +279,7 @@ describe('Shop Database – Purchase Flows', () => {
 
       let purchaseResult;
       await act(async () => {
-        purchaseResult = await result.current.purchaseBackgroundBundle('bundle-nature');
+        purchaseResult = await result.current.purchaseBundle('bundle-nature');
       });
 
       expect(purchaseResult).toMatchObject({ success: true });
@@ -290,7 +294,7 @@ describe('Shop Database – Purchase Flows', () => {
       const { result } = renderHook(() => useShop());
 
       await act(async () => {
-        await result.current.purchaseBackgroundBundle('bundle-nature');
+        await result.current.purchaseBundle('bundle-nature');
       });
 
       // Should only add bg-forest since bg-ocean already owned
@@ -306,7 +310,7 @@ describe('Shop Database – Purchase Flows', () => {
 
       let purchaseResult;
       await act(async () => {
-        purchaseResult = await result.current.purchaseBackgroundBundle('bundle-nature');
+        purchaseResult = await result.current.purchaseBundle('bundle-nature');
       });
 
       expect(purchaseResult).toMatchObject({
@@ -322,7 +326,7 @@ describe('Shop Database – Purchase Flows', () => {
       const { result } = renderHook(() => useShop());
 
       await act(async () => {
-        await result.current.purchaseBackgroundBundle('bundle-nature');
+        await result.current.purchaseBundle('bundle-nature');
       });
 
       expect(result.current.inventory.ownedBackgrounds).toEqual([]);
@@ -333,7 +337,7 @@ describe('Shop Database – Purchase Flows', () => {
 
       let purchaseResult;
       await act(async () => {
-        purchaseResult = await result.current.purchasePetBundle('bundle-pets');
+        purchaseResult = await result.current.purchaseBundle('bundle-pets');
       });
 
       expect(purchaseResult).toMatchObject({ success: true });
@@ -349,7 +353,7 @@ describe('Shop Database – Purchase Flows', () => {
 
       let purchaseResult;
       await act(async () => {
-        purchaseResult = await result.current.purchasePetBundle('bundle-pets');
+        purchaseResult = await result.current.purchaseBundle('bundle-pets');
       });
 
       expect(purchaseResult).toMatchObject({

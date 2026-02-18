@@ -7,11 +7,9 @@ import type {
   UtilityItem,
   CoinPack,
   StarterBundle,
-  BackgroundBundle,
-  PetBundle,
+  Bundle,
 } from '@/types';
 
-// Re-export types for backwards compatibility
 export type {
   ShopCategory,
   ShopItem,
@@ -19,8 +17,7 @@ export type {
   UtilityItem,
   CoinPack,
   StarterBundle,
-  BackgroundBundle,
-  PetBundle,
+  Bundle,
 } from '@/types';
 
 // Sky Bundle Backgrounds - Individual backgrounds that come with the Sky Bundle
@@ -299,7 +296,7 @@ export const COIN_PACKS: CoinPack[] = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
-// STARTER BUNDLES (Special offers combining items)
+// STARTER BUNDLES (IAP-only — purchased via Apple Pay)
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const STARTER_BUNDLES: StarterBundle[] = [
@@ -307,7 +304,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     id: 'bundle-welcome',
     name: 'Welcome Gift',
     description: 'A perfect start to your journey! Coins, protection, and a boost.',
-    category: 'coins',
+    category: 'bundles',
     iapPrice: '$2.99',
     iapProductId: 'co.nomoinc.nomo.bundle.welcome',
     icon: 'bundle-welcome',
@@ -323,7 +320,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     id: 'bundle-starter',
     name: 'Starter Bundle',
     description: 'Perfect for new players! Includes coins, a booster, and an exclusive character.',
-    category: 'coins',
+    category: 'bundles',
     iapPrice: '$4.99',
     iapProductId: 'co.nomoinc.nomo.bundle.starter',
     icon: 'bundle-starter',
@@ -339,7 +336,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     id: 'bundle-collector',
     name: 'Collector Bundle',
     description: 'For the dedicated collector - premium coins and exclusive rewards.',
-    category: 'coins',
+    category: 'bundles',
     iapPrice: '$14.99',
     iapProductId: 'co.nomoinc.nomo.bundle.collector',
     icon: 'bundle-collector',
@@ -355,7 +352,7 @@ export const STARTER_BUNDLES: StarterBundle[] = [
     id: 'bundle-ultimate',
     name: 'Ultimate Bundle',
     description: 'The ultimate collection - exclusive pets, massive coins, and premium extras.',
-    category: 'coins',
+    category: 'bundles',
     iapPrice: '$29.99',
     iapProductId: 'co.nomoinc.nomo.bundle.ultimate',
     icon: 'treasure-chest',
@@ -371,10 +368,10 @@ export const STARTER_BUNDLES: StarterBundle[] = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
-// BACKGROUND BUNDLES (Purchasable with coins)
+// BUNDLES (Purchasable with coins — pets or backgrounds)
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const BACKGROUND_BUNDLES: BackgroundBundle[] = [
+export const BACKGROUND_BUNDLES: Bundle[] = [
   {
     id: 'bundle-sky-realms',
     name: 'Sky Realms Bundle',
@@ -383,7 +380,8 @@ export const BACKGROUND_BUNDLES: BackgroundBundle[] = [
     coinPrice: 4500,
     icon: 'sun-cloud',
     rarity: 'legendary',
-    backgroundIds: [
+    bundleType: 'backgrounds',
+    itemIds: [
       'bg-sky-islands',
       'bg-calm-seas',
       'bg-twilight-clouds',
@@ -402,11 +400,7 @@ export const BACKGROUND_BUNDLES: BackgroundBundle[] = [
   },
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════
-// PET BUNDLES (Special themed pet collections)
-// ═══════════════════════════════════════════════════════════════════════════
-
-export const PET_BUNDLES: PetBundle[] = [
+export const PET_BUNDLES: Bundle[] = [
   {
     id: 'bundle-mystical-spirits',
     name: 'Mystical Spirits Bundle',
@@ -415,7 +409,8 @@ export const PET_BUNDLES: PetBundle[] = [
     coinPrice: 24800,
     icon: 'sparkles',
     rarity: 'legendary',
-    petIds: ['kitsune-spirit', 'storm-spirit'],
+    bundleType: 'pets',
+    itemIds: ['kitsune-spirit', 'storm-spirit'],
     totalValue: 31000, // 16000+15000
     savings: '20%',
   },
@@ -427,7 +422,8 @@ export const PET_BUNDLES: PetBundle[] = [
     coinPrice: 12800,
     icon: 'moon',
     rarity: 'epic',
-    petIds: ['cute-ghost', 'golden-moth'],
+    bundleType: 'pets',
+    itemIds: ['cute-ghost', 'golden-moth'],
     totalValue: 16000, // 7500+8500
     savings: '20%',
   },
@@ -439,7 +435,8 @@ export const PET_BUNDLES: PetBundle[] = [
     coinPrice: 10400,
     icon: 'masks',
     rarity: 'epic',
-    petIds: ['cat-hood', 'robot-buddy'],
+    bundleType: 'pets',
+    itemIds: ['cat-hood', 'robot-buddy'],
     totalValue: 13000, // 3500+9500
     savings: '20%',
   },
@@ -451,7 +448,8 @@ export const PET_BUNDLES: PetBundle[] = [
     coinPrice: 6800,
     icon: 'leaf',
     rarity: 'rare',
-    petIds: ['clover-cat', 'slime-king'],
+    bundleType: 'pets',
+    itemIds: ['clover-cat', 'slime-king'],
     totalValue: 8500, // 2500+6000
     savings: '20%',
   },
@@ -463,11 +461,15 @@ export const PET_BUNDLES: PetBundle[] = [
     coinPrice: 54800,
     icon: 'crown',
     rarity: 'legendary',
-    petIds: ['clover-cat', 'slime-king', 'cute-ghost', 'kitsune-spirit', 'golden-moth', 'storm-spirit', 'cat-hood', 'robot-buddy'],
+    bundleType: 'pets',
+    itemIds: ['clover-cat', 'slime-king', 'cute-ghost', 'kitsune-spirit', 'golden-moth', 'storm-spirit', 'cat-hood', 'robot-buddy'],
     totalValue: 68500, // 2500+6000+7500+16000+8500+15000+3500+9500
     savings: '20%',
   },
 ];
+
+/** All bundles (both pet and background) */
+export const ALL_BUNDLES: Bundle[] = [...PET_BUNDLES, ...BACKGROUND_BUNDLES];
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SHOP HELPER FUNCTIONS
@@ -479,17 +481,12 @@ export const getAllShopItems = (): ShopItem[] => {
     ...UTILITY_ITEMS,
     ...COIN_PACKS,
     ...STARTER_BUNDLES,
-    ...BACKGROUND_BUNDLES,
-    ...PET_BUNDLES,
+    ...ALL_BUNDLES,
   ];
 };
 
-export const getBackgroundBundleById = (bundleId: string): BackgroundBundle | undefined => {
-  return BACKGROUND_BUNDLES.find(bundle => bundle.id === bundleId);
-};
-
-export const getPetBundleById = (bundleId: string): PetBundle | undefined => {
-  return PET_BUNDLES.find(bundle => bundle.id === bundleId);
+export const getBundleById = (bundleId: string): Bundle | undefined => {
+  return ALL_BUNDLES.find(bundle => bundle.id === bundleId);
 };
 
 export const getBackgroundsInBundle = (bundleId: string): PremiumBackground[] => {
@@ -528,8 +525,7 @@ export const getShopItemsByCategory = (category: ShopCategory): ShopItem[] => {
       return [...boosters, ...UTILITY_ITEMS, ...COIN_PACKS];
     }
     case 'bundles':
-      // All pet and background bundles
-      return [...PET_BUNDLES, ...BACKGROUND_BUNDLES];
+      return [...ALL_BUNDLES];
     default:
       return [];
   }

@@ -8,9 +8,7 @@ import {
   ShopCategory,
   PREMIUM_BACKGROUNDS,
   UTILITY_ITEMS,
-  BACKGROUND_BUNDLES,
-  STARTER_BUNDLES,
-  PET_BUNDLES,
+  ALL_BUNDLES,
 } from '@/data/ShopData';
 import { getAnimalById, AnimalData } from '@/data/AnimalDatabase';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
@@ -51,6 +49,28 @@ export interface ShopInventory {
   ownedCharacters: string[];
   ownedBackgrounds: string[];
   equippedBackground: string | null;
+  purchasedStarterBundleIds: string[];
+}
+
+/**
+ * Spend coins with server validation, syncing balance on failure.
+ * Centralises the spend-then-sync-on-error pattern used by every purchase flow.
+ */
+async function spendCoinsWithSync(
+  coinSystem: ReturnType<typeof useCoinSystem>,
+  amount: number,
+  purpose: 'shop_purchase' | 'pet_unlock' | 'cosmetic' | 'booster' | 'streak_freeze',
+  referenceId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const spendSuccess = await coinSystem.spendCoins(amount, purpose, referenceId);
+  if (spendSuccess) return { ok: true };
+
+  let syncSucceeded = false;
+  try { syncSucceeded = await coinSystem.syncFromServer(); } catch { /* silent */ }
+  const message = syncSucceeded
+    ? 'Your balance has been updated. Please try again.'
+    : 'Purchase failed. Please check your connection and try again.';
+  return { ok: false, message };
 }
 
 export const useShop = () => {
@@ -239,21 +259,8 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    // SECURITY: Server-validated spending
-    const spendSuccess = await coinSystem.spendCoins(price, config.spendPurpose, itemId);
-    if (!spendSuccess) {
-      // Trigger a balance refresh so UI updates to show correct balance
-      let syncSucceeded = false;
-      try {
-        syncSucceeded = await coinSystem.syncFromServer();
-      } catch {
-        // Silent fail - syncSucceeded stays false
-      }
-      const message = syncSucceeded
-        ? 'Your balance has been updated. Please try again.'
-        : 'Purchase failed. Please check your connection and try again.';
-      return { success: false, message };
-    }
+    const spend = await spendCoinsWithSync(coinSystem, price, config.spendPurpose, itemId);
+    if (!spend.ok) return { success: false, message: spend.message };
 
     config.addOwned(itemId);
 
@@ -308,157 +315,46 @@ export const useShop = () => {
     return true;
   }, [ownedCharacters, addOwnedCharacter]);
 
-  // Purchase a starter bundle (IAP simulation - grants all contents)
-  const purchaseStarterBundle = useCallback((bundleId: string): PurchaseResult => {
-    const bundle = STARTER_BUNDLES.find(b => b.id === bundleId);
-    if (!bundle) {
-      return { success: false, message: 'Bundle not found' };
-    }
-
-    try {
-      const results: string[] = [];
-
-      // Grant coins
-      if (bundle.contents.coins > 0) {
-        coinSystem.addCoins(bundle.contents.coins);
-        results.push(`${bundle.contents.coins} coins`);
-      }
-
-      // Activate booster (if no booster is currently active)
-      if (bundle.contents.boosterId) {
-        if (!boosterSystem.isBoosterActive()) {
-          boosterSystem.activateBooster(bundle.contents.boosterId);
-          const booster = boosterSystem.getBoosterType(bundle.contents.boosterId);
-          results.push(booster?.name || 'Booster');
-        } else {
-          results.push('Booster (saved for later - one already active)');
-        }
-      }
-
-      // Unlock character
-      if (bundle.contents.characterId) {
-        const animal = getAnimalById(bundle.contents.characterId);
-        if (animal) {
-          unlockCharacter(bundle.contents.characterId);
-          results.push(animal.name);
-        }
-      }
-
-      // Grant streak freezes
-      if (bundle.contents.streakFreezes && bundle.contents.streakFreezes > 0) {
-        for (let i = 0; i < bundle.contents.streakFreezes; i++) {
-          streakSystem.earnStreakFreeze();
-        }
-        results.push(`${bundle.contents.streakFreezes} Streak Freeze${bundle.contents.streakFreezes > 1 ? 's' : ''}`);
-      }
-
-      return {
-        success: true,
-        message: `${bundle.name} purchased! Received: ${results.join(', ')}`
-      };
-    } catch (e) {
-      shopLogger.error('Failed to fulfill starter bundle:', e);
-      return { success: false, message: 'Failed to apply bundle contents. Please try again.' };
-    }
-  }, [coinSystem, boosterSystem, streakSystem, unlockCharacter]);
-
   /**
-   * SECURITY: Purchase a background bundle with server-validated coin spending
+   * SECURITY: Purchase a coin bundle (pets or backgrounds) with server-validated spending
    */
-  const purchaseBackgroundBundle = useCallback(async (bundleId: string): Promise<PurchaseResult> => {
-    const bundle = BACKGROUND_BUNDLES.find(b => b.id === bundleId);
+  const purchaseBundle = useCallback(async (bundleId: string): Promise<PurchaseResult> => {
+    const bundle = ALL_BUNDLES.find(b => b.id === bundleId);
     if (!bundle) {
       return { success: false, message: 'Bundle not found' };
     }
 
-    // Check if all backgrounds are already owned
-    const allOwned = bundle.backgroundIds.every(id => ownedBackgrounds.includes(id));
+    const ownedList = bundle.bundleType === 'pets' ? ownedCharacters : ownedBackgrounds;
+    const allOwned = bundle.itemIds.every(id => ownedList.includes(id));
     if (allOwned) {
-      return { success: false, message: 'You already own all backgrounds in this bundle' };
+      return { success: false, message: `You already own all ${bundle.bundleType} in this bundle` };
     }
 
     if (!bundle.coinPrice || !coinSystem.canAfford(bundle.coinPrice)) {
       return { success: false, message: 'Not enough coins' };
     }
 
-    // SECURITY: Server-validated spending
-    const spendSuccess = await coinSystem.spendCoins(bundle.coinPrice, 'cosmetic', bundleId);
-    if (!spendSuccess) {
-      // Trigger a balance refresh so UI updates to show correct balance
-      let syncSucceeded = false;
-      try {
-        syncSucceeded = await coinSystem.syncFromServer();
-      } catch {
-        // Silent fail - syncSucceeded stays false
-      }
-      const message = syncSucceeded
-        ? 'Your balance has been updated. Please try again.'
-        : 'Purchase failed. Please check your connection and try again.';
-      return { success: false, message };
+    const purpose = bundle.bundleType === 'pets' ? 'pet_unlock' : 'cosmetic' as const;
+    const spend = await spendCoinsWithSync(coinSystem, bundle.coinPrice, purpose, bundleId);
+    if (!spend.ok) return { success: false, message: spend.message };
+
+    const newItems = bundle.itemIds.filter(id => !ownedList.includes(id));
+    if (bundle.bundleType === 'pets') {
+      addOwnedCharacters(newItems);
+    } else {
+      addOwnedBackgrounds(newItems);
     }
 
-    // Add all backgrounds from the bundle that aren't already owned
-    const newBackgrounds = bundle.backgroundIds.filter(id => !ownedBackgrounds.includes(id));
-    addOwnedBackgrounds(newBackgrounds);
+    return { success: true, message: `${bundle.name} purchased! ${newItems.length} ${bundle.bundleType} added!` };
+  }, [ownedCharacters, ownedBackgrounds, coinSystem, addOwnedCharacters, addOwnedBackgrounds]);
 
-    return { success: true, message: `${bundle.name} purchased! ${newBackgrounds.length} backgrounds added!` };
-  }, [ownedBackgrounds, coinSystem, addOwnedBackgrounds]);
-
-  /**
-   * SECURITY: Purchase a pet bundle with server-validated coin spending
-   */
-  const purchasePetBundle = useCallback(async (bundleId: string): Promise<PurchaseResult> => {
-    const bundle = PET_BUNDLES.find(b => b.id === bundleId);
-    if (!bundle) {
-      return { success: false, message: 'Bundle not found' };
-    }
-
-    // Check if all pets are already owned
-    const allOwned = bundle.petIds.every(id => ownedCharacters.includes(id));
-    if (allOwned) {
-      return { success: false, message: 'You already own all pets in this bundle' };
-    }
-
-    if (!bundle.coinPrice || !coinSystem.canAfford(bundle.coinPrice)) {
-      return { success: false, message: 'Not enough coins' };
-    }
-
-    // SECURITY: Server-validated spending
-    const spendSuccess = await coinSystem.spendCoins(bundle.coinPrice, 'pet_unlock', bundleId);
-    if (!spendSuccess) {
-      // Trigger a balance refresh so UI updates to show correct balance
-      let syncSucceeded = false;
-      try {
-        syncSucceeded = await coinSystem.syncFromServer();
-      } catch {
-        // Silent fail - syncSucceeded stays false
-      }
-      const message = syncSucceeded
-        ? 'Your balance has been updated. Please try again.'
-        : 'Purchase failed. Please check your connection and try again.';
-      return { success: false, message };
-    }
-
-    // Add all pets from the bundle that aren't already owned
-    const newPets = bundle.petIds.filter(id => !ownedCharacters.includes(id));
-    addOwnedCharacters(newPets);
-
-    return { success: true, message: `${bundle.name} purchased! ${newPets.length} pets added!` };
-  }, [ownedCharacters, coinSystem, addOwnedCharacters]);
-
-  // Check if bundle is owned (all backgrounds in bundle are owned)
+  // Check if all items in a bundle are already owned
   const isBundleOwned = useCallback((bundleId: string): boolean => {
-    const bundle = BACKGROUND_BUNDLES.find(b => b.id === bundleId);
+    const bundle = ALL_BUNDLES.find(b => b.id === bundleId);
     if (!bundle) return false;
-    return bundle.backgroundIds.every(id => ownedBackgrounds.includes(id));
-  }, [ownedBackgrounds]);
-
-  // Check if pet bundle is owned (all pets in bundle are owned)
-  const isPetBundleOwned = useCallback((bundleId: string): boolean => {
-    const bundle = PET_BUNDLES.find(b => b.id === bundleId);
-    if (!bundle) return false;
-    return bundle.petIds.every(id => ownedCharacters.includes(id));
-  }, [ownedCharacters]);
+    const ownedList = bundle.bundleType === 'pets' ? ownedCharacters : ownedBackgrounds;
+    return bundle.itemIds.every(id => ownedList.includes(id));
+  }, [ownedCharacters, ownedBackgrounds]);
 
   /**
    * SECURITY: Purchase a booster with server-validated coin spending
@@ -477,21 +373,8 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    // SECURITY: Server-validated spending
-    const spendSuccess = await coinSystem.spendCoins(booster.coinPrice, 'booster', boosterId);
-    if (!spendSuccess) {
-      // Trigger a balance refresh so UI updates to show correct balance
-      let syncSucceeded = false;
-      try {
-        syncSucceeded = await coinSystem.syncFromServer();
-      } catch {
-        // Silent fail - syncSucceeded stays false
-      }
-      const message = syncSucceeded
-        ? 'Your balance has been updated. Please try again.'
-        : 'Purchase failed. Please check your connection and try again.';
-      return { success: false, message };
-    }
+    const spend = await spendCoinsWithSync(coinSystem, booster.coinPrice, 'booster', boosterId);
+    if (!spend.ok) return { success: false, message: spend.message };
 
     boosterSystem.activateBooster(boosterId);
 
@@ -506,21 +389,8 @@ export const useShop = () => {
       return { success: false, message: 'Not enough coins' };
     }
 
-    // SECURITY: Server-validated spending
-    const spendSuccess = await coinSystem.spendCoins(price, 'streak_freeze', `streak_freeze_x${quantity}`);
-    if (!spendSuccess) {
-      // Trigger a balance refresh so UI updates to show correct balance
-      let syncSucceeded = false;
-      try {
-        syncSucceeded = await coinSystem.syncFromServer();
-      } catch {
-        // Silent fail - syncSucceeded stays false
-      }
-      const message = syncSucceeded
-        ? 'Your balance has been updated. Please try again.'
-        : 'Purchase failed. Please check your connection and try again.';
-      return { success: false, message };
-    }
+    const spend = await spendCoinsWithSync(coinSystem, price, 'streak_freeze', `streak_freeze_x${quantity}`);
+    if (!spend.ok) return { success: false, message: spend.message };
 
     // Add streak freezes
     for (let i = 0; i < quantity; i++) {
@@ -575,13 +445,10 @@ export const useShop = () => {
     inventory,
     isOwned,
     isBundleOwned,
-    isPetBundleOwned,
     purchaseItem,
     purchaseCharacter,
     purchaseBackground,
-    purchaseBackgroundBundle,
-    purchasePetBundle,
-    purchaseStarterBundle,
+    purchaseBundle,
     purchaseBooster,
     purchaseStreakFreeze,
     unlockCharacter,

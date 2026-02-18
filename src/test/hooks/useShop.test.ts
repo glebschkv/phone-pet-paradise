@@ -163,7 +163,8 @@ vi.mock('@/data/ShopData', () => ({
     {
       id: 'bundle-nature',
       name: 'Nature Bundle',
-      backgroundIds: ['bg-ocean', 'bg-forest'],
+      bundleType: 'backgrounds',
+      itemIds: ['bg-ocean', 'bg-forest'],
       coinPrice: 400,
     },
   ],
@@ -171,7 +172,24 @@ vi.mock('@/data/ShopData', () => ({
     {
       id: 'bundle-pets',
       name: 'Pet Bundle',
-      petIds: ['dog', 'cat'],
+      bundleType: 'pets',
+      itemIds: ['dog', 'cat'],
+      coinPrice: 200,
+    },
+  ],
+  ALL_BUNDLES: [
+    {
+      id: 'bundle-nature',
+      name: 'Nature Bundle',
+      bundleType: 'backgrounds',
+      itemIds: ['bg-ocean', 'bg-forest'],
+      coinPrice: 400,
+    },
+    {
+      id: 'bundle-pets',
+      name: 'Pet Bundle',
+      bundleType: 'pets',
+      itemIds: ['dog', 'cat'],
       coinPrice: 200,
     },
   ],
@@ -219,6 +237,7 @@ describe('useShop', () => {
         ownedCharacters: [],
         ownedBackgrounds: [],
         equippedBackground: null,
+        purchasedStarterBundleIds: [],
       });
     });
 
@@ -227,6 +246,7 @@ describe('useShop', () => {
         ownedCharacters: ['dog'],
         ownedBackgrounds: ['bg-ocean'],
         equippedBackground: 'bg-ocean',
+        purchasedStarterBundleIds: [],
       };
 
       setShopState(savedInventory);
@@ -337,7 +357,7 @@ describe('useShop', () => {
 
       let purchaseResult: { success: boolean; message: string } | undefined;
       await act(async () => {
-        purchaseResult = await result.current.purchaseBackgroundBundle('bundle-nature');
+        purchaseResult = await result.current.purchaseBundle('bundle-nature');
       });
 
       expect(purchaseResult?.success).toBe(true);
@@ -352,7 +372,7 @@ describe('useShop', () => {
 
       let purchaseResult: { success: boolean; message: string } | undefined;
       await act(async () => {
-        purchaseResult = await result.current.purchasePetBundle('bundle-pets');
+        purchaseResult = await result.current.purchaseBundle('bundle-pets');
       });
 
       expect(purchaseResult?.success).toBe(true);
@@ -458,7 +478,7 @@ describe('useShop', () => {
 
       let purchaseResult;
       await act(async () => {
-        purchaseResult = await result.current.purchaseBackgroundBundle('bundle-nature');
+        purchaseResult = await result.current.purchaseBundle('bundle-nature');
       });
 
       expect(purchaseResult).toEqual({
@@ -573,7 +593,7 @@ describe('useShop', () => {
 
       const { result } = renderHook(() => useShop());
 
-      expect(result.current.isPetBundleOwned('bundle-pets')).toBe(true);
+      expect(result.current.isBundleOwned('bundle-pets')).toBe(true);
     });
   });
 
@@ -595,6 +615,7 @@ describe('useShop', () => {
         ownedCharacters: [],
         ownedBackgrounds: [],
         equippedBackground: null,
+        purchasedStarterBundleIds: [],
       });
     });
   });

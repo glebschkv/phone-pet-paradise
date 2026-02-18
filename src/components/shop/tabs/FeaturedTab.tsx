@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Crown, ChevronRight, Check, Sparkles, Zap } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
-import { BackgroundBundle, ShopItem, COIN_PACKS, StarterBundle, CoinPack } from "@/data/ShopData";
+import { ShopItem, COIN_PACKS, StarterBundle, CoinPack, Bundle } from "@/data/ShopData";
 import { BACKGROUND_BUNDLES, STARTER_BUNDLES } from "@/data/ShopData";
 import type { ShopInventory } from "@/hooks/useShop";
 import { getCoinExclusiveAnimals, AnimalData } from "@/data/AnimalDatabase";
@@ -16,10 +16,8 @@ interface FeaturedTabProps {
   inventory: ShopInventory;
   isOwned: (itemId: string, category: ShopCategory) => boolean;
   isBundleOwned: (bundleId: string) => boolean;
-  purchaseBackgroundBundle: (bundleId: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
-  purchaseStarterBundle: (bundleId: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
   setActiveCategory: (category: ShopCategory) => void;
-  setSelectedItem: (item: ShopItem | AnimalData | BackgroundBundle | null) => void;
+  setSelectedItem: (item: ShopItem | AnimalData | Bundle | null) => void;
   setShowPurchaseConfirm: (show: boolean) => void;
   setShowPremiumModal: (show: boolean) => void;
   isPremium: boolean;
@@ -31,8 +29,6 @@ interface FeaturedTabProps {
 export const FeaturedTab = ({
   inventory,
   isBundleOwned,
-  purchaseBackgroundBundle: _purchaseBackgroundBundle,
-  purchaseStarterBundle: _purchaseStarterBundle,
   setActiveCategory,
   setSelectedItem,
   setShowPurchaseConfirm,
@@ -192,7 +188,7 @@ export const FeaturedTab = ({
               >
                 {/* Hero preview */}
                 <div className="relative w-full h-32 overflow-hidden rounded-t-[10px]">
-                  <BundlePreviewCarousel images={bundle.previewImages} />
+                  {bundle.previewImages && <BundlePreviewCarousel images={bundle.previewImages} />}
                   {owned && (
                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                       <span className="px-2 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded-full flex items-center gap-1">
@@ -212,7 +208,7 @@ export const FeaturedTab = ({
                 <div className="px-3 py-2.5 flex items-center justify-between">
                   <div className="min-w-0">
                     <span className="font-bold text-sm block">{bundle.name}</span>
-                    <span className="text-[10px] text-muted-foreground">{bundle.backgroundIds.length} backgrounds</span>
+                    <span className="text-[10px] text-muted-foreground">{bundle.itemIds.length} backgrounds</span>
                   </div>
                   {!owned && (
                     <div className="flex items-center gap-3 flex-shrink-0">

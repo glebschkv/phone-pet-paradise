@@ -10,8 +10,7 @@ import {
   ShopCategory,
   SHOP_CATEGORIES,
   ShopItem,
-  BackgroundBundle,
-  PetBundle,
+  Bundle,
 } from "@/data/ShopData";
 import { AnimalData } from "@/data/AnimalDatabase";
 import { PremiumSubscription } from "@/components/PremiumSubscription";
@@ -47,9 +46,7 @@ export const Shop = () => {
     isBundleOwned,
     purchaseItem,
     purchaseCharacter,
-    purchaseBackgroundBundle,
-    purchasePetBundle,
-    purchaseStarterBundle,
+    purchaseBundle,
     equipBackground,
     coinBalance,
     canAfford,
@@ -86,12 +83,9 @@ export const Shop = () => {
       let result;
       if ('biome' in selectedItem) {
         result = await purchaseCharacter(selectedItem.id);
-      } else if ('backgroundIds' in selectedItem) {
-        // Handle background bundle purchase
-        result = await purchaseBackgroundBundle(selectedItem.id);
-      } else if ('petIds' in selectedItem) {
-        // Handle pet bundle purchase
-        result = await purchasePetBundle(selectedItem.id);
+      } else if ('itemIds' in selectedItem) {
+        // Handle pet or background bundle purchase
+        result = await purchaseBundle(selectedItem.id);
       } else {
         result = await purchaseItem(selectedItem.id, activeCategory);
       }
@@ -126,8 +120,6 @@ export const Shop = () => {
             inventory={inventory}
             isOwned={isOwned}
             isBundleOwned={isBundleOwned}
-            purchaseBackgroundBundle={purchaseBackgroundBundle}
-            purchaseStarterBundle={purchaseStarterBundle}
             setActiveCategory={setActiveCategory}
             setSelectedItem={setSelectedItem}
             setShowPurchaseConfirm={setShowPurchaseConfirm}
@@ -272,7 +264,7 @@ export const Shop = () => {
       <PurchaseConfirmDialog
         open={showPurchaseConfirm}
         onOpenChange={setShowPurchaseConfirm}
-        selectedItem={selectedItem as ShopItem | AnimalData | BackgroundBundle | PetBundle | null}
+        selectedItem={selectedItem as ShopItem | AnimalData | Bundle | null}
         onPurchase={handlePurchase}
         canAfford={canAfford}
         coinBalance={coinBalance}

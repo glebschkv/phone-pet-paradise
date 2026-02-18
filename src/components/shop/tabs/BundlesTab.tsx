@@ -11,8 +11,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   ShopItem,
-  BackgroundBundle,
-  PetBundle,
+  Bundle,
   PET_BUNDLES,
   BACKGROUND_BUNDLES,
 } from "@/data/ShopData";
@@ -23,7 +22,7 @@ import { SpritePreview, BundlePreviewCarousel } from "../ShopPreviewComponents";
 interface BundlesTabProps {
   inventory: ShopInventory;
   isBundleOwned: (bundleId: string) => boolean;
-  setSelectedItem: (item: ShopItem | AnimalData | BackgroundBundle | PetBundle | null) => void;
+  setSelectedItem: (item: ShopItem | AnimalData | Bundle | null) => void;
   setShowPurchaseConfirm: (show: boolean) => void;
   canAfford: (price: number) => boolean;
 }
@@ -62,7 +61,7 @@ export const BundlesTab = ({
 
 interface PetBundlesSectionProps {
   inventory: ShopInventory;
-  setSelectedItem: (item: ShopItem | AnimalData | BackgroundBundle | PetBundle | null) => void;
+  setSelectedItem: (item: ShopItem | AnimalData | Bundle | null) => void;
   setShowPurchaseConfirm: (show: boolean) => void;
   canAfford: (price: number) => boolean;
 }
@@ -99,9 +98,9 @@ const PetBundlesSection = ({
 // ============================================================================
 
 interface PetBundleCardProps {
-  bundle: PetBundle;
+  bundle: Bundle;
   inventory: ShopInventory;
-  setSelectedItem: (item: ShopItem | AnimalData | BackgroundBundle | PetBundle | null) => void;
+  setSelectedItem: (item: ShopItem | AnimalData | Bundle | null) => void;
   setShowPurchaseConfirm: (show: boolean) => void;
   canAfford: (price: number) => boolean;
 }
@@ -114,13 +113,13 @@ const PetBundleCard = ({
   canAfford,
 }: PetBundleCardProps) => {
   // Check if user owns all pets in bundle
-  const ownedPets = bundle.petIds.filter(id => inventory.ownedCharacters.includes(id));
-  const allOwned = ownedPets.length === bundle.petIds.length;
-  const partialOwned = ownedPets.length > 0 && ownedPets.length < bundle.petIds.length;
+  const ownedPets = bundle.itemIds.filter(id => inventory.ownedCharacters.includes(id));
+  const allOwned = ownedPets.length === bundle.itemIds.length;
+  const partialOwned = ownedPets.length > 0 && ownedPets.length < bundle.itemIds.length;
   const affordable = canAfford(bundle.coinPrice || 0);
 
   // Get preview animals for the bundle
-  const previewAnimals = bundle.petIds
+  const previewAnimals = bundle.itemIds
     .slice(0, 3)
     .map(id => getAnimalById(id))
     .filter(Boolean) as AnimalData[];
@@ -182,11 +181,11 @@ const PetBundleCard = ({
           {/* Pet count */}
           <div className="flex items-center gap-3 mt-1.5">
             <span className="text-[10px] text-muted-foreground">
-              {bundle.petIds.length} pets
+              {bundle.itemIds.length} pets
             </span>
             {partialOwned && (
               <span className="text-[10px] text-amber-600 dark:text-amber-400">
-                ({ownedPets.length}/{bundle.petIds.length} owned)
+                ({ownedPets.length}/{bundle.itemIds.length} owned)
               </span>
             )}
           </div>
@@ -218,7 +217,7 @@ const PetBundleCard = ({
 
 interface BackgroundBundlesSectionProps {
   isBundleOwned: (bundleId: string) => boolean;
-  setSelectedItem: (item: ShopItem | AnimalData | BackgroundBundle | PetBundle | null) => void;
+  setSelectedItem: (item: ShopItem | AnimalData | Bundle | null) => void;
   setShowPurchaseConfirm: (show: boolean) => void;
   canAfford: (price: number) => boolean;
 }
@@ -255,9 +254,9 @@ const BackgroundBundlesSection = ({
 // ============================================================================
 
 interface BackgroundBundleCardProps {
-  bundle: BackgroundBundle;
+  bundle: Bundle;
   isBundleOwned: (bundleId: string) => boolean;
-  setSelectedItem: (item: ShopItem | AnimalData | BackgroundBundle | PetBundle | null) => void;
+  setSelectedItem: (item: ShopItem | AnimalData | Bundle | null) => void;
   setShowPurchaseConfirm: (show: boolean) => void;
   canAfford: (price: number) => boolean;
 }
@@ -289,7 +288,7 @@ const BackgroundBundleCard = ({
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 w-20">
-          <BundlePreviewCarousel images={bundle.previewImages} />
+          {bundle.previewImages && <BundlePreviewCarousel images={bundle.previewImages} />}
         </div>
 
         <div className="flex-1 min-w-0">
