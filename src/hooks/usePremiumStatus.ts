@@ -34,7 +34,7 @@ export const TIER_BENEFITS = {
     battlePassIncluded: false,
     soundMixingSlots: 1,
     focusPresetSlots: 1,
-    dailySpinLimit: 2,
+    dailySpinLimit: 1,
     loginCoinMultiplier: 1,
     analyticsAccess: 'basic' as AnalyticsAccess,
   },

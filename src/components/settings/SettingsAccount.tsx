@@ -27,6 +27,10 @@ export const SettingsAccount = () => {
     setIsSigningOut(true);
     try {
       await signOut();
+      // Explicit navigation — do NOT rely on Index.tsx useEffect guard,
+      // because the AlertDialog close animation + component unmount cascade
+      // can prevent the guard from firing on iOS WebView.
+      navigate('/auth');
     } catch {
       // signOut() already shows a toast — just swallow the re-thrown error
     } finally {
@@ -100,7 +104,8 @@ export const SettingsAccount = () => {
       setDeleteDialogOpen(false);
 
       localStorage.clear();
-      window.location.href = '/auth';
+      // Use replace to prevent back-navigation to a deleted-account state
+      window.location.replace('/auth');
     } catch (error: unknown) {
       settingsLogger.error('Error deleting account:', error);
       const message = error instanceof Error ? error.message : 'Failed to delete account. Please try again.';
