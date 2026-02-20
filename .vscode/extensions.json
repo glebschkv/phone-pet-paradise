@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "ionic.ionic",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    "supabase.supabase-vscode",
+    "PolyMeilex.wgsl",
+    "sswg.swift-lang",
+    "christian-kohler.path-intellisense",
+    "csstools.postcss"
+  ]
+}
