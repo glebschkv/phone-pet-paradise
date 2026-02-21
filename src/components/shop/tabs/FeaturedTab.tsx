@@ -83,9 +83,12 @@ export const FeaturedTab = ({
           toast.success(`Successfully purchased ${selectedBundle.name}!`);
         }
         setShowBundleConfirm(false);
+      } else if (result.alreadyOwned) {
+        // Non-consumable already owned by this Apple ID
+        setShowBundleConfirm(false);
       } else if (result.cancelled) {
         // User cancelled - no action needed
-      } else {
+      } else if (!result.pending) {
         toast.error(result.message || "Purchase failed");
       }
     } catch (_error) {
@@ -141,7 +144,7 @@ export const FeaturedTab = ({
               </div>
             </div>
             <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-              <span className="font-black text-white text-sm">{storeKit.getLocalizedPrice('co.nomoinc.nomo.premium.monthly', '$4.99')}</span>
+              <span className="font-black text-white text-sm">{storeKit.getLocalizedPrice('co.nomoinc.nomo.premium.monthly', '€4,99')}</span>
               <span className="text-white/50 text-[10px] font-bold">/month</span>
             </div>
           </div>

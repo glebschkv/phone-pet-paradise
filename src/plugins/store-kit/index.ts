@@ -17,6 +17,7 @@ export interface PurchaseResult {
   success: boolean;
   cancelled?: boolean;
   pending?: boolean;
+  alreadyOwned?: boolean;
   message?: string;
   transactionId?: string;
   originalTransactionId?: string;

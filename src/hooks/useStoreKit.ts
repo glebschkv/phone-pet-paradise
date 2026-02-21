@@ -526,6 +526,13 @@ export const useStoreKit = (): UseStoreKitReturn => {
           });
           // Don't grant access
         }
+      } else if (result.alreadyOwned) {
+        // Non-consumable already owned by this Apple ID — do NOT grant items.
+        logger.info('Product already owned:', productId);
+        toast.info('Already Owned', {
+          description: 'You already own this item. Try "Restore Purchases" if it\'s not showing.',
+          duration: 5000,
+        });
       } else if (result.cancelled) {
         // User cancelled - no toast needed
         logger.debug('Purchase cancelled by user');

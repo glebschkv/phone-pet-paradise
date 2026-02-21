@@ -10,12 +10,23 @@ const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal
 
-// No overlay rendered — see dialog.tsx for explanation. Overlay elements get
-// orphaned on iOS WebView and cause black screens.
+// Render a simple backdrop without Radix CSS animations.
+// The original implementation returned null to work around an iOS WebView bug
+// where Radix overlay *animations* (animate-in/animate-out) could orphan the
+// overlay element and cause a black screen.  Using a plain opacity transition
+// avoids the Radix animation lifecycle entirely while still giving the user
+// visual feedback that a dialog has opened.
 const AlertDialogOverlay = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
->(() => null)
+>(({ className, ...props }, ref) => (
+  <AlertDialogPrimitive.Overlay
+    ref={ref}
+    className={cn("fixed inset-0 z-50 bg-black/60", className)}
+    style={{ WebkitBackfaceVisibility: 'hidden' }}
+    {...props}
+  />
+))
 AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName
 
 const AlertDialogContent = React.forwardRef<
@@ -23,6 +34,7 @@ const AlertDialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
 >(({ className, ...props }, ref) => (
   <AlertDialogPortal>
+    <AlertDialogOverlay />
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
