@@ -36,30 +36,10 @@ final class StoreKitPurchaseService {
     /// NOTE: The transaction is NOT finished here — the JS side must call
     /// `finishTransaction` after successful server validation. This prevents
     /// the "money taken but nothing granted" scenario when validation fails.
-    ///
-    /// For non-consumable products, StoreKit 2 silently auto-restores if the
-    /// Apple ID already owns the product (no payment sheet shown). We check
-    /// current entitlements first and return `.alreadyOwned` so the JS side
-    /// can handle it appropriately instead of granting items again for free.
     func purchase(productId: String) async throws -> PurchaseResult {
         Log.storeKit.operationStart("purchase: \(productId)")
 
         let product = try await productManager.getProduct(productId: productId)
-
-        // For non-consumable products, check if the user already owns it.
-        // StoreKit 2 returns .success immediately for already-owned non-consumables
-        // without showing a payment sheet, which looks like a "free" purchase.
-        if product.type == .nonConsumable {
-            let entitlements = await transactionManager.getCurrentEntitlements()
-            if let existing = entitlements.first(where: { $0.transaction.productID == productId }) {
-                Log.storeKit.info("Non-consumable already owned: \(productId)")
-                return .alreadyOwned(AlreadyOwnedInfo(
-                    transaction: existing.transaction,
-                    jwsRepresentation: existing.jwsRepresentation
-                ))
-            }
-        }
-
         let result = try await product.purchase()
 
         switch result {
@@ -200,7 +180,6 @@ enum PurchaseResult {
     case success(PurchaseSuccess)
     case cancelled
     case pending
-    case alreadyOwned(AlreadyOwnedInfo)
 }
 
 @available(iOS 15.0, *)
@@ -219,26 +198,6 @@ struct PurchaseSuccess {
             "signedTransaction": jwsRepresentation,
             "environment": StoreKitConverters.environmentString(transaction),
             "storefrontCountryCode": transaction.storefrontCountryCode
-        ]
-    }
-}
-
-@available(iOS 15.0, *)
-struct AlreadyOwnedInfo {
-    let transaction: Transaction
-    let jwsRepresentation: String
-
-    var asDictionary: [String: Any] {
-        [
-            "success": false,
-            "alreadyOwned": true,
-            "message": "You already own this item.",
-            "transactionId": String(transaction.id),
-            "originalTransactionId": String(transaction.originalID),
-            "productId": transaction.productID,
-            "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
-            "signedTransaction": jwsRepresentation,
-            "environment": StoreKitConverters.environmentString(transaction)
         ]
     }
 }
