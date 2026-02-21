@@ -101,7 +101,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'premium',
     name: 'Premium',
     description: 'Boost your progress',
-    price: '$4.99',
+    price: '€4,99',
     priceValue: 4.99,
     period: 'monthly',
     features: [
@@ -122,7 +122,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'premium',
     name: 'Premium',
     description: 'Boost your progress',
-    price: '$39.99',
+    price: '€39,99',
     priceValue: 39.99,
     period: 'yearly',
     features: [
@@ -145,7 +145,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'premium_plus',
     name: 'Premium+',
     description: 'Maximum rewards',
-    price: '$8.99',
+    price: '€8,99',
     priceValue: 8.99,
     period: 'monthly',
     features: [
@@ -166,7 +166,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'premium_plus',
     name: 'Premium+',
     description: 'Maximum rewards',
-    price: '$64.99',
+    price: '€64,99',
     priceValue: 64.99,
     period: 'yearly',
     features: [
@@ -188,7 +188,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'lifetime',
     name: 'Lifetime',
     description: 'Forever access + founder perks',
-    price: '$179.99',
+    price: '€179,99',
     priceValue: 179.99,
     period: 'lifetime',
     features: [
@@ -213,7 +213,7 @@ export const BATTLE_PASS_PLANS = [
     id: 'battlepass-premium',
     name: 'Battle Pass Premium',
     description: 'Unlock premium track rewards',
-    price: '$4.99',
+    price: '€4,99',
     priceValue: 4.99,
     iapProductId: 'co.nomoinc.nomo.battlepass.premium',
   },
@@ -221,7 +221,7 @@ export const BATTLE_PASS_PLANS = [
     id: 'battlepass-premium-plus',
     name: 'Battle Pass + 10 Tiers',
     description: 'Premium track + skip 10 levels',
-    price: '$9.99',
+    price: '€9,99',
     priceValue: 9.99,
     iapProductId: 'co.nomoinc.nomo.battlepass.premium.plus',
     bonusTiers: 10,

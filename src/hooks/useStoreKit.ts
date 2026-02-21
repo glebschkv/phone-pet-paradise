@@ -429,6 +429,32 @@ export const useStoreKit = (): UseStoreKitReturn => {
       // serverValidatePurchase will catch it.
     }
 
+    // Check Supabase user_purchases to see if this account already owns this
+    // non-consumable product. This is the source of truth — tied to the app
+    // account, not the Apple ID.
+    try {
+      const { data: existingPurchase } = await supabase
+        .from('user_purchases')
+        .select('id')
+        .eq('product_id', productId)
+        .eq('product_type', 'starter_bundle')
+        .limit(1)
+        .maybeSingle();
+
+      if (existingPurchase) {
+        logger.info('Product already owned by this account:', productId);
+        toast.info('Already Owned', {
+          description: 'You already own this item.',
+          duration: 4000,
+        });
+        return { ...failedResult, success: false, alreadyOwned: true, message: 'Already owned' };
+      }
+    } catch {
+      // If the check fails (network, etc.), let the purchase proceed —
+      // the server validation will catch duplicates anyway.
+      logger.warn('Could not check existing purchases, proceeding with purchase');
+    }
+
     // Check if the product was in the initial bulk load. If not, log a
     // warning but still attempt the purchase — the native StoreKit layer
     // will try to fetch the product individually and may succeed even when
@@ -526,6 +552,13 @@ export const useStoreKit = (): UseStoreKitReturn => {
           });
           // Don't grant access
         }
+      } else if (result.alreadyOwned) {
+        // Non-consumable already owned by this Apple ID — do NOT grant items.
+        logger.info('Product already owned:', productId);
+        toast.info('Already Owned', {
+          description: 'You already own this item. Try "Restore Purchases" if it\'s not showing.',
+          duration: 5000,
+        });
       } else if (result.cancelled) {
         // User cancelled - no toast needed
         logger.debug('Purchase cancelled by user');

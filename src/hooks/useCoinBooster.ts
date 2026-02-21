@@ -35,7 +35,7 @@ export const BOOSTER_TYPES: BoosterType[] = [
     multiplier: 2,
     durationDays: 1,
     coinPrice: 400,
-    iapPrice: '$0.99',
+    iapPrice: '€0,99',
   },
   {
     id: 'super_boost',
@@ -44,7 +44,7 @@ export const BOOSTER_TYPES: BoosterType[] = [
     multiplier: 3,
     durationDays: 3,
     coinPrice: 1000,
-    iapPrice: '$2.99',
+    iapPrice: '€2,99',
   },
   {
     id: 'weekly_pass',
@@ -53,7 +53,7 @@ export const BOOSTER_TYPES: BoosterType[] = [
     multiplier: 1.5,
     durationDays: 7,
     coinPrice: 1500,
-    iapPrice: '$4.99',
+    iapPrice: '€4,99',
   },
 ];
 

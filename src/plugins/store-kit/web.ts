@@ -35,7 +35,7 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
           id: plan.iapProductId,
           displayName: plan.name,
           description: plan.description,
-          price: plan.price.replace('$', ''),
+          price: plan.price.replace(/[^0-9.,]/g, ''),
           displayPrice: plan.price,
           type: plan.period === 'lifetime' ? 'nonConsumable' : 'autoRenewable',
           subscriptionPeriod: plan.period !== 'lifetime' ? {
@@ -51,8 +51,8 @@ export class StoreKitWeb extends WebPlugin implements StoreKitPlugin {
         id,
         displayName: shopItem?.name || 'Mock Product',
         description: shopItem?.description || 'Mock product for development',
-        price: shopItem?.iapPrice?.replace(/[^0-9.]/g, '') || '0.99',
-        displayPrice: shopItem?.iapPrice || '$0.99',
+        price: shopItem?.iapPrice?.replace(/[^0-9.,]/g, '') || '0.99',
+        displayPrice: shopItem?.iapPrice || '€0,99',
         type: 'consumable'
       };
     });
