@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 // SECURITY: Simple in-memory rate limiting for account deletion
 // Extra restrictive - only 3 attempts per 10 minutes
@@ -33,46 +34,6 @@ setInterval(() => {
     }
   }
 }, RATE_LIMIT_WINDOW_MS);
-
-// CORS configuration - environment-based for security
-// SECURITY: Production origins loaded from environment, localhost only in development
-const getProductionOrigins = (): string[] => {
-  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
-  if (envOrigins) {
-    return envOrigins.split(',').map(o => o.trim()).filter(Boolean);
-  }
-  return [];
-};
-
-const ALLOWED_ORIGINS = [
-  // Mobile app origins (always allowed)
-  'capacitor://localhost',
-  'ionic://localhost',
-  // Production origins from environment
-  ...getProductionOrigins(),
-];
-
-// Only allow localhost in development/test environments
-const isDevelopment = Deno.env.get('ENVIRONMENT') !== 'production';
-if (isDevelopment) {
-  ALLOWED_ORIGINS.push('http://localhost:5173', 'http://localhost:8080');
-}
-
-const getCorsHeaders = (origin: string | null) => {
-  // SECURITY: Strict origin validation - reject unknown origins
-  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
-    return {
-      'Access-Control-Allow-Origin': 'null',
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    };
-  }
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-};
 
 serve(async (req) => {
   const origin = req.headers.get('Origin');
@@ -181,6 +142,16 @@ serve(async (req) => {
 
     if (coinTxError) {
       console.error('Error deleting coin transactions:', coinTxError);
+    }
+
+    // Delete user purchases
+    const { error: purchasesError } = await supabaseAdmin
+      .from('user_purchases')
+      .delete()
+      .eq('user_id', user.id);
+
+    if (purchasesError && !purchasesError.message.includes('does not exist')) {
+      console.error('Error deleting user purchases:', purchasesError);
     }
 
     // Delete subscriptions

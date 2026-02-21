@@ -60,56 +60,7 @@ setInterval(() => {
   }
 }, RATE_LIMIT_WINDOW_MS);
 
-// CORS configuration
-const getProductionOrigins = (): string[] => {
-  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
-  if (envOrigins) {
-    return envOrigins.split(',').map(o => o.trim()).filter(Boolean);
-  }
-  return [];
-};
-
-const STATIC_ALLOWED_ORIGINS = [
-  'capacitor://localhost',
-  'ionic://localhost',
-  'http://localhost:5173',
-  'http://localhost:8080',
-  'http://localhost:3000',
-];
-
-const isAllowedOrigin = (origin: string | null): boolean => {
-  if (!origin) return false;
-  
-  // Check static origins
-  if (STATIC_ALLOWED_ORIGINS.includes(origin)) return true;
-  
-  // Check production origins from env
-  const productionOrigins = getProductionOrigins();
-  if (productionOrigins.includes(origin)) return true;
-  
-  // Allow Lovable preview domains (*.lovableproject.com)
-  if (origin.endsWith('.lovableproject.com') || origin.includes('.lovableproject.com')) return true;
-  
-  // Allow Lovable dev domains
-  if (origin.endsWith('.lovable.app') || origin.includes('.lovable.app')) return true;
-  
-  return false;
-};
-
-const getCorsHeaders = (origin: string | null) => {
-  if (isAllowedOrigin(origin)) {
-    return {
-      'Access-Control-Allow-Origin': origin!,
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    };
-  }
-  return {
-    'Access-Control-Allow-Origin': 'null',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 // Maximum coins that can be earned in a single operation
 // Based on max session (5 hours = 750 base * 4x lifetime * 2.5x mega bonus = 7500)

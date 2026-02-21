@@ -269,58 +269,115 @@ export type Database = {
         }
         Relationships: []
       }
-      user_settings: {
+      user_purchases: {
         Row: {
-          animation_speed: string | null
-          auto_save_enabled: boolean | null
-          background_music: string | null
+          booster_id: string | null
+          character_id: string | null
+          coins_granted: number
           created_at: string | null
+          environment: string
           id: string
-          language: string | null
-          notifications_enabled: boolean | null
-          sound_enabled: boolean | null
-          theme: string | null
-          timer_sound: string | null
-          updated_at: string | null
-          user_id: string | null
+          original_transaction_id: string | null
+          platform: string
+          product_id: string
+          product_type: string
+          purchase_date: string
+          signed_transaction: string | null
+          streak_freezes_granted: number
+          transaction_id: string
+          user_id: string
+          validated_at: string
         }
         Insert: {
-          animation_speed?: string | null
-          auto_save_enabled?: boolean | null
-          background_music?: string | null
+          booster_id?: string | null
+          character_id?: string | null
+          coins_granted?: number
           created_at?: string | null
+          environment: string
           id?: string
-          language?: string | null
-          notifications_enabled?: boolean | null
-          sound_enabled?: boolean | null
-          theme?: string | null
-          timer_sound?: string | null
-          updated_at?: string | null
-          user_id?: string | null
+          original_transaction_id?: string | null
+          platform: string
+          product_id: string
+          product_type: string
+          purchase_date: string
+          signed_transaction?: string | null
+          streak_freezes_granted?: number
+          transaction_id: string
+          user_id: string
+          validated_at: string
         }
         Update: {
-          animation_speed?: string | null
-          auto_save_enabled?: boolean | null
-          background_music?: string | null
+          booster_id?: string | null
+          character_id?: string | null
+          coins_granted?: number
           created_at?: string | null
+          environment?: string
           id?: string
-          language?: string | null
-          notifications_enabled?: boolean | null
-          sound_enabled?: boolean | null
-          theme?: string | null
-          timer_sound?: string | null
-          updated_at?: string | null
-          user_id?: string | null
+          original_transaction_id?: string | null
+          platform?: string
+          product_id?: string
+          product_type?: string
+          purchase_date?: string
+          signed_transaction?: string | null
+          streak_freezes_granted?: number
+          transaction_id?: string
+          user_id?: string
+          validated_at?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          animation_speed: string
+          auto_save_enabled: boolean
+          background_music: string
+          created_at: string
+          id: string
+          language: string
+          notifications_enabled: boolean
+          sound_enabled: boolean
+          theme: string
+          timer_sound: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          animation_speed?: string
+          auto_save_enabled?: boolean
+          background_music?: string
+          created_at?: string
+          id?: string
+          language?: string
+          notifications_enabled?: boolean
+          sound_enabled?: boolean
+          theme?: string
+          timer_sound?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          animation_speed?: string
+          auto_save_enabled?: boolean
+          background_music?: string
+          created_at?: string
+          id?: string
+          language?: string
+          notifications_enabled?: boolean
+          sound_enabled?: boolean
+          theme?: string
+          timer_sound?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
       user_subscriptions: {
         Row: {
-          created_at: string | null
-          environment: string | null
+          created_at: string
+          environment: string
           expires_at: string | null
           id: string
-          is_active: boolean | null
+          is_active: boolean
           original_transaction_id: string | null
           period: string
           platform: string
@@ -331,16 +388,16 @@ export type Database = {
           signed_transaction: string | null
           tier: string
           transaction_id: string
-          updated_at: string | null
-          user_id: string | null
-          validated_at: string | null
+          updated_at: string
+          user_id: string
+          validated_at: string
         }
         Insert: {
-          created_at?: string | null
-          environment?: string | null
+          created_at?: string
+          environment?: string
           expires_at?: string | null
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           original_transaction_id?: string | null
           period: string
           platform: string
@@ -351,16 +408,16 @@ export type Database = {
           signed_transaction?: string | null
           tier: string
           transaction_id: string
-          updated_at?: string | null
-          user_id?: string | null
-          validated_at?: string | null
+          updated_at?: string
+          user_id: string
+          validated_at?: string
         }
         Update: {
-          created_at?: string | null
-          environment?: string | null
+          created_at?: string
+          environment?: string
           expires_at?: string | null
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           original_transaction_id?: string | null
           period?: string
           platform?: string
@@ -371,9 +428,9 @@ export type Database = {
           signed_transaction?: string | null
           tier?: string
           transaction_id?: string
-          updated_at?: string | null
-          user_id?: string | null
-          validated_at?: string | null
+          updated_at?: string
+          user_id?: string
+          validated_at?: string
         }
         Relationships: []
       }
@@ -382,7 +439,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_user_coins: {
+        Args: {
+          p_user_id: string
+          p_amount: number
+          p_source: string
+          p_reference_id?: string
+        }
+        Returns: {
+          success: boolean
+          new_balance: number
+          error_message: string
+        }[]
+      }
+      check_bundle_ownership: {
+        Args: {
+          p_user_id: string
+          p_product_id: string
+        }
+        Returns: boolean
+      }
       deactivate_expired_subscriptions: { Args: never; Returns: number }
+      get_owned_bundles: {
+        Args: { p_user_id: string }
+        Returns: {
+          product_id: string
+          character_id: string
+          booster_id: string
+          streak_freezes_granted: number
+          purchase_date: string
+        }[]
+      }
       get_user_subscription_tier: {
         Args: { p_user_id: string }
         Returns: {

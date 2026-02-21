@@ -51,46 +51,7 @@ setInterval(() => {
  * 4. Store validated subscription in database
  */
 
-// CORS configuration - environment-based for security
-// SECURITY: Production origins loaded from environment, localhost only in development
-const getProductionOrigins = (): string[] => {
-  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
-  if (envOrigins) {
-    return envOrigins.split(',').map(o => o.trim()).filter(Boolean);
-  }
-  return [];
-};
-
-const ALLOWED_ORIGINS = [
-  // Mobile app origins (always allowed)
-  'capacitor://localhost',
-  'ionic://localhost',
-  // Production origins from environment
-  ...getProductionOrigins(),
-];
-
-// Only allow localhost in development/test environments
-const isDevelopment = Deno.env.get('ENVIRONMENT') !== 'production';
-if (isDevelopment) {
-  ALLOWED_ORIGINS.push('http://localhost:5173', 'http://localhost:8080');
-}
-
-const getCorsHeaders = (origin: string | null) => {
-  // SECURITY: Strict origin validation - reject unknown origins
-  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
-    // Return restrictive headers for unknown origins
-    return {
-      'Access-Control-Allow-Origin': 'null',
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    };
-  }
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 // Apple's root certificate for production and sandbox
 // These are Apple's root CA certificates for App Store

@@ -81,20 +81,37 @@ async function processSyncOperation(
       }
 
       case 'progress_update': {
-        // Filter payload to only include known safe fields
+        // SECURITY: Only allow whitelisted fields to prevent arbitrary overwrites.
+        // Fields like total_xp, current_level, coins, total_coins_earned are excluded
+        // because they must go through edge functions (calculate-xp, validate-coins).
+        const ALLOWED_PROGRESS_FIELDS = [
+          'current_streak',
+          'longest_streak',
+          'last_session_date',
+          'total_sessions',
+          'streak_freeze_count',
+        ] as const;
         const safePayload: Record<string, unknown> = {};
-        for (const [key, value] of Object.entries(payload)) {
-          if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            safePayload[key] = value;
+        for (const key of ALLOWED_PROGRESS_FIELDS) {
+          if (key in payload) {
+            const value = payload[key];
+            if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+              safePayload[key] = value;
+            }
           }
+        }
+        // Skip if no allowed fields to update
+        if (Object.keys(safePayload).length === 0) {
+          syncLogger.warn('[SyncManager] progress_update had no allowed fields, skipping');
+          break;
         }
         const { error } = await supabase
           .from('user_progress')
-          .upsert({
-            user_id: userId,
+          .update({
             ...safePayload,
             updated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id' });
+          })
+          .eq('user_id', userId);
         if (error) throw error;
         break;
       }
@@ -113,13 +130,26 @@ async function processSyncOperation(
       }
 
       case 'coin_update': {
-        const { error } = await supabase
-          .from('user_progress')
-          .update({
-            coins: getPositiveInt(payload, 'coins', 0),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', userId);
+        // SECURITY: Coin updates must go through the validate-coins edge function
+        // to prevent direct manipulation. Route through the edge function instead
+        // of writing directly to user_progress.
+        const amount = getPositiveInt(payload, 'coins', 0);
+        const source = getString(payload, 'source', 'focus_session');
+        const sessionId = payload.sessionId ? String(payload.sessionId) : undefined;
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('Not authenticated - cannot validate coins');
+        }
+
+        const { error } = await supabase.functions.invoke('validate-coins', {
+          body: {
+            operation: 'earn',
+            amount,
+            source,
+            sessionId,
+          },
+        });
         if (error) throw error;
         break;
       }
