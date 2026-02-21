@@ -31,3 +31,6 @@ coverage
 *.sln
 *.sw?
 test-results/
+
+# Supabase CLI temp files
+supabase/.temp/

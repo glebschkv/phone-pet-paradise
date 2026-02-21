@@ -341,22 +341,19 @@ export const useCoinSystem = () => {
       }
     }, 3000);
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          setTimeout(() => {
-            syncFromServerRef.current().catch((err: unknown) => {
-              coinLogger.debug('Auth sync failed:', err);
-            });
-          }, 0);
-        }
-      }
-    );
+    // Listen for auth state changes via custom event dispatched by useAuth
+    // instead of registering a duplicate supabase.auth.onAuthStateChange listener
+    const handleAuthSignIn = () => {
+      syncFromServerRef.current().catch((err: unknown) => {
+        coinLogger.debug('Auth sync failed:', err);
+      });
+    };
+
+    window.addEventListener('auth:signed_in', handleAuthSignIn);
 
     return () => {
       clearTimeout(timer);
-      subscription.unsubscribe();
+      window.removeEventListener('auth:signed_in', handleAuthSignIn);
     };
   }, []);
 

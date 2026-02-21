@@ -263,6 +263,11 @@ function _initAuth(): void {
           isGuestMode: false,
         });
         setGuestModeChosen(false);
+        // Dispatch custom event so other hooks (e.g. useCoinSystem) can react
+        // without registering duplicate onAuthStateChange listeners
+        if (event === 'SIGNED_IN') {
+          window.dispatchEvent(new Event('auth:signed_in'));
+        }
       } else if (event === 'SIGNED_OUT') {
         clearUserData();
         _setState({

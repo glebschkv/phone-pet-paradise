@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 // SECURITY: Simple in-memory rate limiting
 // Note: In production with multiple instances, use Redis or similar
@@ -35,46 +36,6 @@ setInterval(() => {
     }
   }
 }, RATE_LIMIT_WINDOW_MS);
-
-// CORS configuration - environment-based for security
-// SECURITY: Production origins loaded from environment, localhost only in development
-const getProductionOrigins = (): string[] => {
-  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
-  if (envOrigins) {
-    return envOrigins.split(',').map(o => o.trim()).filter(Boolean);
-  }
-  return [];
-};
-
-const ALLOWED_ORIGINS = [
-  // Mobile app origins (always allowed)
-  'capacitor://localhost',
-  'ionic://localhost',
-  // Production origins from environment
-  ...getProductionOrigins(),
-];
-
-// Only allow localhost in development/test environments
-const isDevelopment = Deno.env.get('ENVIRONMENT') !== 'production';
-if (isDevelopment) {
-  ALLOWED_ORIGINS.push('http://localhost:5173', 'http://localhost:8080');
-}
-
-const getCorsHeaders = (origin: string | null) => {
-  // SECURITY: Strict origin validation - reject unknown origins
-  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
-    return {
-      'Access-Control-Allow-Origin': 'null',
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    };
-  }
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-};
 
 // XP calculation logic - keep consistent with frontend
 const XP_REWARDS = {
@@ -142,15 +103,21 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Create supabase client
+    // Create supabase clients
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Use anon key for user authentication
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
+    // Use service role for database writes (bypasses RLS, consistent with validate-coins)
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
     // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
     if (userError || !user) {
       throw new Error('Unauthorized');
     }
@@ -197,8 +164,8 @@ serve(async (req) => {
     // Calculate XP using validated minutes
     const xpGained = calculateXPFromDuration(validatedMinutes);
     
-    // Get current user progress
-    const { data: currentProgress, error: progressError } = await supabase
+    // Get current user progress using service role
+    const { data: currentProgress, error: progressError } = await supabaseAdmin
       .from('user_progress')
       .select('*')
       .eq('user_id', user.id)
@@ -209,19 +176,21 @@ serve(async (req) => {
     }
 
     const oldLevel = currentProgress.current_level;
-    const newTotalXP = currentProgress.total_xp + xpGained;
+    const oldTotalXP = currentProgress.total_xp;
+    const newTotalXP = oldTotalXP + xpGained;
     const newLevel = calculateLevel(newTotalXP);
     const leveledUp = newLevel > oldLevel;
 
     // Calculate XP progress for new level
     const currentLevelXP = calculateLevelRequirement(newLevel);
-    const nextLevelXP = newLevel >= MAX_LEVEL 
-      ? calculateLevelRequirement(newLevel) 
+    const nextLevelXP = newLevel >= MAX_LEVEL
+      ? calculateLevelRequirement(newLevel)
       : calculateLevelRequirement(newLevel + 1);
     const xpToNextLevel = newLevel >= MAX_LEVEL ? 0 : nextLevelXP - newTotalXP;
 
-    // Update user progress in a transaction
-    const { data: updatedProgress, error: updateError } = await supabase
+    // SECURITY: Update with optimistic locking to prevent lost updates from concurrent requests.
+    // If another request changed total_xp between our read and write, this update will match 0 rows.
+    const { data: updatedRows, error: updateError } = await supabaseAdmin
       .from('user_progress')
       .update({
         total_xp: newTotalXP,
@@ -230,15 +199,29 @@ serve(async (req) => {
         last_session_date: new Date().toISOString().split('T')[0]
       })
       .eq('user_id', user.id)
-      .select()
-      .single();
+      .eq('total_xp', oldTotalXP) // Optimistic lock
+      .select();
 
     if (updateError) {
       throw new Error(`Failed to update progress: ${updateError.message}`);
     }
 
+    if (!updatedRows || updatedRows.length === 0) {
+      // XP was modified by another concurrent request — client should retry
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'XP changed during transaction - please retry',
+        retry: true,
+      }), {
+        status: 409,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const updatedProgress = updatedRows[0];
+
     // Record the focus session using validated minutes
-    const { error: sessionError } = await supabase
+    const { error: sessionError } = await supabaseAdmin
       .from('focus_sessions')
       .insert({
         user_id: user.id,
