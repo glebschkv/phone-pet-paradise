@@ -58,8 +58,6 @@ describe('useAnalytics', () => {
   const mockSettings: AnalyticsSettings = {
     dailyGoalMinutes: 120,
     weeklyGoalMinutes: 600,
-    showInsights: true,
-    trackSessionHistory: true,
   };
 
   const mockRecords: PersonalRecords = {
@@ -290,8 +288,7 @@ describe('useAnalytics', () => {
         result.current.updateSettings({ dailyGoalMinutes: 180 });
       });
 
-      expect(result.current.settings.showInsights).toBe(true);
-      expect(result.current.settings.trackSessionHistory).toBe(true);
+      expect(result.current.settings.weeklyGoalMinutes).toBe(600);
     });
 
     it('should recalculate goal streak when daily goal changes', async () => {

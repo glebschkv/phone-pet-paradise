@@ -2,10 +2,8 @@ import { useState } from "react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Target, Calendar, BarChart3, History, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Target, Calendar, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const SettingsAnalytics = () => {
@@ -80,56 +78,6 @@ export const SettingsAnalytics = () => {
               <span>1h</span>
               <span>40h</span>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tracking Options */}
-      <div className="retro-game-card p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 className="w-4 h-4 text-cyan-400" />
-          <span className="text-sm font-bold retro-pixel-text text-white">TRACKING</span>
-        </div>
-
-        <div className="space-y-4">
-          {/* Show Insights */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "w-9 h-9 rounded-lg flex items-center justify-center",
-                settings.showInsights ? "retro-level-badge" : "retro-stat-pill"
-              )}>
-                <BarChart3 className="w-4 h-4" />
-              </div>
-              <div>
-                <Label className="text-sm font-bold text-white">Show Insights</Label>
-                <p className="text-[11px] text-purple-300/80">Display productivity insights</p>
-              </div>
-            </div>
-            <Switch
-              checked={settings.showInsights}
-              onCheckedChange={(checked) => updateSettings({ showInsights: checked })}
-            />
-          </div>
-
-          {/* Track Session History */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "w-9 h-9 rounded-lg flex items-center justify-center",
-                settings.trackSessionHistory ? "retro-level-badge" : "retro-stat-pill"
-              )}>
-                <History className="w-4 h-4" />
-              </div>
-              <div>
-                <Label className="text-sm font-bold text-white">Session History</Label>
-                <p className="text-[11px] text-purple-300/80">Keep detailed session logs</p>
-              </div>
-            </div>
-            <Switch
-              checked={settings.trackSessionHistory}
-              onCheckedChange={(checked) => updateSettings({ trackSessionHistory: checked })}
-            />
           </div>
         </div>
       </div>

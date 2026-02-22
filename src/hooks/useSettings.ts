@@ -20,9 +20,8 @@ export interface AppSettings {
   soundTheme: 'default' | 'nature' | 'minimal';
   
   // Game
-  animationSpeed: 'slow' | 'normal' | 'fast';
   hapticFeedback: boolean;
-  
+
   // Privacy
   dataCollection: boolean;
   crashReporting: boolean;
@@ -38,7 +37,6 @@ const defaultSettings: AppSettings = {
   soundEnabled: true,
   soundVolume: 70,
   soundTheme: 'default',
-  animationSpeed: 'normal',
   hapticFeedback: true,
   dataCollection: true,
   crashReporting: true,

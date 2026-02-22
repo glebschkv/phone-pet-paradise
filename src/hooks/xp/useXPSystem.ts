@@ -21,7 +21,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { BIOME_DATABASE, getUnlockedAnimals } from '@/data/AnimalDatabase';
 import { xpLogger as logger } from '@/lib/logger';
 import { safeJsonParse } from '@/lib/apiUtils';
-import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from '../usePremiumStatus';
+import { usePremiumStore } from '@/stores/premiumStore';
 import { useAuth } from '../useAuth';
 import { useSupabaseData } from '../useSupabaseData';
 import { validateXPAmount, validateLevel, validateSessionMinutes } from '@/lib/validation';
@@ -375,20 +375,9 @@ export const useXPSystem = () => {
     []
   );
 
-  // Helper to get subscription multiplier
+  // Helper to get subscription multiplier from Zustand store
   const getSubscriptionMultiplier = useCallback((): number => {
-    const premiumData = localStorage.getItem('petIsland_premium');
-    if (premiumData) {
-      try {
-        const parsed = JSON.parse(premiumData);
-        if (isValidSubscriptionTier(parsed.tier)) {
-          return TIER_BENEFITS[parsed.tier as SubscriptionTier].xpMultiplier;
-        }
-      } catch {
-        // Invalid data
-      }
-    }
-    return 1;
+    return usePremiumStore.getState().getXPMultiplier();
   }, []);
 
   // Calculate XP gained from session duration

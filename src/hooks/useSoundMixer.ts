@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { getAmbientSoundById, AmbientSound } from '@/data/AmbientSoundsData';
-import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from './usePremiumStatus';
+import { usePremiumStore } from '@/stores/premiumStore';
 import { soundLogger } from '@/lib/logger';
 import type { WebkitWindow, AudioNodes } from '@/types/browser-utils';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
@@ -32,20 +32,9 @@ export const useSoundMixer = () => {
   const masterGainRef = useRef<GainNode | null>(null);
   const layerNodesRef = useRef<Map<string, AudioNodes>>(new Map());
 
-  // Get max sound layers based on subscription
+  // Get max sound layers based on subscription from Zustand store
   const getMaxLayers = useCallback((): number => {
-    const premiumData = localStorage.getItem('petIsland_premium');
-    if (premiumData) {
-      try {
-        const parsed = JSON.parse(premiumData);
-        if (isValidSubscriptionTier(parsed.tier)) {
-          return TIER_BENEFITS[parsed.tier as SubscriptionTier].soundMixingSlots;
-        }
-      } catch {
-        // Invalid data
-      }
-    }
-    return 1; // Free tier = 1 sound only
+    return usePremiumStore.getState().getTierBenefits().soundMixingSlots;
   }, []);
 
   // Clean up AudioContext on unmount to prevent resource leaks

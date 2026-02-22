@@ -67,7 +67,6 @@ describe('useSettings', () => {
     soundEnabled: true,
     soundVolume: 70,
     soundTheme: 'default',
-    animationSpeed: 'normal',
     hapticFeedback: true,
     dataCollection: true,
     crashReporting: true,
@@ -601,11 +600,11 @@ describe('useSettings', () => {
 
       act(() => {
         result.current.updateSettings({
-          animationSpeed: 'fast',
+          hapticFeedback: false,
         });
       });
 
-      expect(result.current.settings.animationSpeed).toBe('fast');
+      expect(result.current.settings.hapticFeedback).toBe(false);
     });
 
     it('should handle privacy settings', async () => {

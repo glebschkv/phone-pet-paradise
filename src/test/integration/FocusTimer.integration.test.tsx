@@ -104,21 +104,6 @@ vi.mock('@/hooks/useStreakSystem', () => ({
   useStreakSystem: () => mockStreakSystem,
 }));
 
-// Mock focus presets
-vi.mock('@/hooks/useFocusPresets', () => ({
-  useFocusPresets: () => ({
-    presets: [
-      { id: 'quick', name: 'Quick', duration: 5 },
-      { id: 'short', name: 'Short', duration: 15 },
-      { id: 'standard', name: 'Standard', duration: 25 },
-      { id: 'long', name: 'Long', duration: 45 },
-    ],
-    activePreset: 'standard',
-    setActivePreset: vi.fn(),
-    getPresetByDuration: vi.fn(),
-  }),
-}));
-
 // Mock device activity
 vi.mock('@/hooks/useDeviceActivity', () => ({
   useDeviceActivity: () => ({
