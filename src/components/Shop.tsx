@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Zap, Clock, Backpack, Star, PawPrint, Gift, Zap as ZapIcon } from "lucide-react";
+import { Zap, Clock, Backpack, Star, PawPrint, Zap as ZapIcon } from "lucide-react";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import { cn } from "@/lib/utils";
 import { useShop } from "@/hooks/useShop";
@@ -17,9 +17,8 @@ import { PremiumSubscription } from "@/components/PremiumSubscription";
 import { toast } from "sonner";
 import { playSoundEffect } from "@/hooks/useSoundEffects";
 import { FeaturedTab } from "@/components/shop/tabs/FeaturedTab";
-import { PetsTab } from "@/components/shop/tabs/PetsTab";
+import { CollectionTab } from "@/components/shop/tabs/CollectionTab";
 import { PowerUpsTab } from "@/components/shop/tabs/PowerUpsTab";
-import { BundlesTab } from "@/components/shop/tabs/BundlesTab";
 import { InventoryTab } from "@/components/shop/tabs/InventoryTab";
 import { PurchaseConfirmDialog } from "@/components/shop/PurchaseConfirmDialog";
 import { CharacterUnlockModal } from "@/components/shop/CharacterUnlockModal";
@@ -27,7 +26,6 @@ import { CharacterUnlockModal } from "@/components/shop/CharacterUnlockModal";
 const CATEGORY_ICONS: Record<string, typeof Star> = {
   featured: Star,
   pets: PawPrint,
-  bundles: Gift,
   powerups: ZapIcon,
 };
 
@@ -132,20 +130,11 @@ export const Shop = () => {
         );
       case 'pets':
         return (
-          <PetsTab
+          <CollectionTab
             inventory={inventory}
             isOwned={isOwned}
-            equipBackground={equipBackground}
-            setSelectedItem={setSelectedItem}
-            setShowPurchaseConfirm={setShowPurchaseConfirm}
-            canAfford={canAfford}
-          />
-        );
-      case 'bundles':
-        return (
-          <BundlesTab
-            inventory={inventory}
             isBundleOwned={isBundleOwned}
+            equipBackground={equipBackground}
             setSelectedItem={setSelectedItem}
             setShowPurchaseConfirm={setShowPurchaseConfirm}
             canAfford={canAfford}

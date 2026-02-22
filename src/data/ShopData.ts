@@ -551,10 +551,9 @@ export const getItemsByRarity = (rarity: 'common' | 'rare' | 'epic' | 'legendary
   return getAllShopItems().filter(item => item.rarity === rarity);
 };
 
-// Shop categories for UI - Streamlined for better UX
+// Shop categories for UI - 3 tabs: Featured highlights, Collection (pets+bundles), Power-Ups
 export const SHOP_CATEGORIES: { id: ShopCategory; name: string; icon: string }[] = [
   { id: 'featured', name: 'Featured', icon: 'star' },
   { id: 'pets', name: 'Collection', icon: 'paw' },
-  { id: 'bundles', name: 'Bundles', icon: 'gift' },
   { id: 'powerups', name: 'Power-Ups', icon: 'lightning' },
 ];

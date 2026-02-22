@@ -35,9 +35,8 @@ const MockShop: React.FC<MockShopProps> = ({
 
   const categories = [
     { id: 'featured', name: 'Featured', icon: '⭐' },
-    { id: 'pets', name: 'Pets', icon: '🐾' },
+    { id: 'pets', name: 'Collection', icon: '🐾' },
     { id: 'powerups', name: 'Power-ups', icon: '⚡' },
-    { id: 'bundles', name: 'Bundles', icon: '📦' },
   ];
 
   return (
@@ -78,9 +77,8 @@ const MockShop: React.FC<MockShopProps> = ({
       <div className="shop-content" data-testid="shop-content">
         <div data-testid={`content-${activeCategory}`}>
           {activeCategory === 'featured' && <div>Featured Items</div>}
-          {activeCategory === 'pets' && <div>Pet Items</div>}
+          {activeCategory === 'pets' && <div>Collection Items</div>}
           {activeCategory === 'powerups' && <div>Power-up Items</div>}
-          {activeCategory === 'bundles' && <div>Bundle Items</div>}
         </div>
       </div>
     </div>
@@ -140,9 +138,8 @@ describe('Shop Integration Tests', () => {
       render(<MockShop />, { wrapper: createWrapper() });
 
       expect(screen.getByText('Featured')).toBeInTheDocument();
-      expect(screen.getByText('Pets')).toBeInTheDocument();
+      expect(screen.getByText('Collection')).toBeInTheDocument();
       expect(screen.getByText('Power-ups')).toBeInTheDocument();
-      expect(screen.getByText('Bundles')).toBeInTheDocument();
     });
 
     it('should start on Featured tab by default', () => {
@@ -155,7 +152,7 @@ describe('Shop Integration Tests', () => {
   });
 
   describe('Tab Navigation', () => {
-    it('should switch to Pets tab when clicked', async () => {
+    it('should switch to Collection tab when clicked', async () => {
       render(<MockShop />, { wrapper: createWrapper() });
 
       const petsTab = screen.getByTestId('tab-pets');
@@ -173,16 +170,6 @@ describe('Shop Integration Tests', () => {
 
       expect(powerupsTab).toHaveClass('bg-amber-500');
       expect(screen.getByTestId('content-powerups')).toBeInTheDocument();
-    });
-
-    it('should switch to Bundles tab when clicked', async () => {
-      render(<MockShop />, { wrapper: createWrapper() });
-
-      const bundlesTab = screen.getByTestId('tab-bundles');
-      await user.click(bundlesTab);
-
-      expect(bundlesTab).toHaveClass('bg-amber-500');
-      expect(screen.getByTestId('content-bundles')).toBeInTheDocument();
     });
 
     it('should maintain tab state after interaction', async () => {
@@ -208,9 +195,9 @@ describe('Shop Integration Tests', () => {
       // Initially on featured
       expect(screen.getByText('Featured Items')).toBeInTheDocument();
 
-      // Switch to pets
+      // Switch to collection
       await user.click(screen.getByTestId('tab-pets'));
-      expect(screen.getByText('Pet Items')).toBeInTheDocument();
+      expect(screen.getByText('Collection Items')).toBeInTheDocument();
 
       // Switch to powerups
       await user.click(screen.getByTestId('tab-powerups'));
@@ -319,7 +306,6 @@ describe('Shop State Integration', () => {
     // Rapidly switch tabs
     await user.click(screen.getByTestId('tab-pets'));
     await user.click(screen.getByTestId('tab-powerups'));
-    await user.click(screen.getByTestId('tab-bundles'));
     await user.click(screen.getByTestId('tab-featured'));
 
     // Should end up on featured
@@ -332,7 +318,7 @@ describe('Shop State Integration', () => {
 
     // Switch tabs
     await user.click(screen.getByTestId('tab-pets'));
-    await user.click(screen.getByTestId('tab-bundles'));
+    await user.click(screen.getByTestId('tab-powerups'));
 
     // Coins should still be displayed
     expect(screen.getByTestId('coin-balance')).toHaveTextContent('5,000');
