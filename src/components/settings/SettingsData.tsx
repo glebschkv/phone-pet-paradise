@@ -4,7 +4,6 @@ import { AppSettings } from "@/hooks/useSettings";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Download, Upload, RotateCcw, Shield, AlertTriangle, HardDrive } from "lucide-react";
 import { toast } from 'sonner';
 
@@ -18,6 +17,7 @@ interface SettingsDataProps {
 
 export const SettingsData = ({ settings, onUpdate, onReset, onExport, onImport }: SettingsDataProps) => {
   const [importFile, setImportFile] = useState<File | null>(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   const handleImport = async () => {
     if (!importFile) return;
@@ -121,38 +121,48 @@ export const SettingsData = ({ settings, onUpdate, onReset, onExport, onImport }
           <span className="text-sm font-bold retro-pixel-text text-red-400">RESET</span>
         </div>
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button
-              className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-red-500/10 text-red-400 border-2 border-red-500/30 font-semibold text-sm"
-              style={{ boxShadow: '0 2px 0 rgba(239,68,68,0.2)' }}
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span>Reset All Settings</span>
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="retro-game-card border-2 border-purple-600/50 max-w-xs mx-4">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-base font-bold text-white">Reset Settings?</AlertDialogTitle>
-              <AlertDialogDescription className="text-xs text-purple-300/80">
+        <button
+          className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-red-500/10 text-red-400 border-2 border-red-500/30 font-semibold text-sm"
+          style={{ boxShadow: '0 2px 0 rgba(239,68,68,0.2)' }}
+          onClick={() => setResetDialogOpen(true)}
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span>Reset All Settings</span>
+        </button>
+      </div>
+
+      {/* Reset Confirmation */}
+      {resetDialogOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ WebkitBackfaceVisibility: 'hidden' }}
+        >
+          <div className="absolute inset-0 bg-black/60" onClick={() => setResetDialogOpen(false)} aria-hidden />
+          <div className="relative retro-game-card border-2 border-purple-600/50 max-w-xs w-full p-6 space-y-4">
+            <div className="space-y-2 text-center">
+              <h2 className="text-base font-bold text-white">Reset Settings?</h2>
+              <p className="text-xs text-purple-300/80">
                 This will restore all default settings. Consider exporting first.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="gap-2">
-              <AlertDialogCancel className="retro-stat-pill px-3 py-2 text-xs font-semibold">
+              </p>
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+              <button
+                className="retro-stat-pill px-3 py-2 text-xs font-semibold rounded-lg"
+                onClick={() => setResetDialogOpen(false)}
+              >
                 Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={onReset}
+              </button>
+              <button
                 className="bg-red-500 text-white px-3 py-2 text-xs font-bold rounded-lg"
                 style={{ boxShadow: '0 2px 0 rgba(185,28,28,0.8)' }}
+                onClick={() => { onReset(); setResetDialogOpen(false); }}
               >
                 Reset
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
