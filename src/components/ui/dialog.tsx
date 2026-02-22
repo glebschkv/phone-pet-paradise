@@ -12,23 +12,12 @@ const DialogPortal = DialogPrimitive.Portal
 
 const DialogClose = DialogPrimitive.Close
 
-// Render a simple backdrop without Radix CSS animations.
-// The original implementation returned null to work around an iOS WebView bug
-// where Radix overlay *animations* (animate-in/animate-out) could orphan the
-// overlay element and cause a black screen.  Using a plain opacity transition
-// avoids the Radix animation lifecycle entirely while still giving the user
-// visual feedback that a dialog has opened.
+// No overlay rendered — overlay elements get orphaned on iOS WebView / Capacitor
+// and cause black screens. Returning null avoids the issue entirely.
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/60", className)}
-    style={{ WebkitBackfaceVisibility: 'hidden' }}
-    {...props}
-  />
-))
+>(() => null)
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 // Remove Radix animate-in/animate-out classes — same iOS WebView bug that
