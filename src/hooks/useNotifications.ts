@@ -4,6 +4,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { toast } from 'sonner';
 import { notificationLogger as logger } from '@/lib/logger';
+import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 
 interface NotificationPermissions {
   pushEnabled: boolean;
@@ -188,6 +189,17 @@ export const useNotifications = () => {
   }, [setupNotificationListeners]);
 
   const scheduleLocalNotification = useCallback(async (options: NotificationOptions) => {
+    // Respect the user's enableNotifications setting
+    try {
+      const settings = storage.get<{ enableNotifications?: boolean }>(STORAGE_KEYS.APP_SETTINGS);
+      if (settings?.enableNotifications === false) {
+        logger.debug('Notifications disabled by user setting');
+        return;
+      }
+    } catch {
+      // If we can't read settings, default to allowing notifications
+    }
+
     if (!permissions.localEnabled) {
       logger.warn('Local notifications not permitted');
       return;

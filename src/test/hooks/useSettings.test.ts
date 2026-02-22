@@ -68,8 +68,7 @@ describe('useSettings', () => {
     soundVolume: 70,
     soundTheme: 'default',
     animationSpeed: 'normal',
-    showTutorialHints: true,
-    autoSaveProgress: true,
+    hapticFeedback: true,
     dataCollection: true,
     crashReporting: true,
   };
@@ -603,14 +602,10 @@ describe('useSettings', () => {
       act(() => {
         result.current.updateSettings({
           animationSpeed: 'fast',
-          showTutorialHints: false,
-          autoSaveProgress: false,
         });
       });
 
       expect(result.current.settings.animationSpeed).toBe('fast');
-      expect(result.current.settings.showTutorialHints).toBe(false);
-      expect(result.current.settings.autoSaveProgress).toBe(false);
     });
 
     it('should handle privacy settings', async () => {
