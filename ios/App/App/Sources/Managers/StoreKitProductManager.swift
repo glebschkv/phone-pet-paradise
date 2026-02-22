@@ -42,6 +42,11 @@ final class StoreKitProductManager {
         }
         lock.unlock()
 
+        // Log storefront info for debugging price-currency mismatches
+        if let storefront = await Storefront.current {
+            Log.storeKit.info("Storefront: \(storefront.countryCode), Device locale: \(Locale.current.identifier)")
+        }
+
         Log.storeKit.success("Fetched \(products.count) products")
         return Array(products)
     }
@@ -82,14 +87,28 @@ final class StoreKitProductManager {
 
     // MARK: - Product Data Conversion
 
-    /// Converts a product to a dictionary for JS
+    /// Converts a product to a dictionary for JS.
+    /// Uses a device-locale price formatter so that European users see "€X,XX"
+    /// even when the sandbox/TestFlight storefront is US (which would make
+    /// `product.displayPrice` return "$X.XX").  In production the storefront
+    /// matches the real user's region so both values are identical.
     func productToDictionary(_ product: Product) -> [String: Any] {
+        // Format price using the device's current locale — this matches the
+        // currency the user actually expects to see.
+        let localizedPrice: String = {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            formatter.locale = Locale.current
+            return formatter.string(from: product.price as NSDecimalNumber)
+                ?? product.displayPrice
+        }()
+
         var data: [String: Any] = [
             "id": product.id,
             "displayName": product.displayName,
             "description": product.description,
             "price": product.price.description,
-            "displayPrice": product.displayPrice,
+            "displayPrice": localizedPrice,
             "type": StoreKitConverters.productTypeString(product.type)
         ]
 
