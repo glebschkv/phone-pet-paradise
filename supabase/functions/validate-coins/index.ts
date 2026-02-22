@@ -222,7 +222,14 @@ serve(async (req) => {
 
     if (body.operation === 'earn') {
       // SECURITY: Validate earn request
-      // Allow admin_grant to bypass the limit for debug/testing purposes
+      // admin_grant is restricted to service-role callers only (no user JWT)
+      if (body.source === 'admin_grant') {
+        const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
+        const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+        if (authToken !== serviceKey) {
+          throw new Error('admin_grant source requires service role authorization');
+        }
+      }
       if (amount > MAX_EARN_AMOUNT && body.source !== 'admin_grant') {
         throw new Error(`Invalid earn amount: cannot exceed ${MAX_EARN_AMOUNT}`);
       }

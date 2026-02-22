@@ -38,11 +38,14 @@ export function isAllowedOrigin(origin: string | null): boolean {
   const productionOrigins = getProductionOrigins();
   if (productionOrigins.includes(origin)) return true;
 
-  // Allow Lovable preview domains (*.lovableproject.com)
-  if (origin.endsWith('.lovableproject.com') || origin.includes('.lovableproject.com')) return true;
-
-  // Allow Lovable dev domains
-  if (origin.endsWith('.lovable.app') || origin.includes('.lovable.app')) return true;
+  // Allow Lovable preview domains (exact subdomain match only)
+  try {
+    const url = new URL(origin);
+    const host = url.hostname;
+    if (host.endsWith('.lovableproject.com') || host.endsWith('.lovable.app')) return true;
+  } catch {
+    // Invalid URL — reject
+  }
 
   return false;
 }
