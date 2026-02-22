@@ -91,8 +91,6 @@ export interface DailyStats {
 export interface AnalyticsSettings {
   dailyGoalMinutes: number;
   weeklyGoalMinutes: number;
-  showInsights: boolean;
-  trackSessionHistory: boolean;
 }
 
 export interface PersonalRecords {
@@ -131,8 +129,6 @@ export interface AnalyticsState {
 export const DEFAULT_ANALYTICS_SETTINGS: AnalyticsSettings = {
   dailyGoalMinutes: 120, // 2 hours
   weeklyGoalMinutes: 600, // 10 hours
-  showInsights: true,
-  trackSessionHistory: true,
 };
 
 export const DEFAULT_PERSONAL_RECORDS: PersonalRecords = {

@@ -464,6 +464,38 @@ export const useStoreKit = (): UseStoreKitReturn => {
       logger.warn(`Product "${productId}" not in pre-loaded list — attempting direct purchase via native StoreKit`);
     }
 
+    // DEFENSE-IN-DEPTH: For non-consumable products (starter bundles), check
+    // Apple's entitlements on the JS side before even calling StoreKit.purchase().
+    // If the Apple ID already owns this product, StoreKit would silently return
+    // .success without showing Apple Pay — making it look like a free purchase.
+    // The native Swift code has the same check, but this JS-side guard catches
+    // the case even if the native check is somehow bypassed or not deployed yet.
+    const isNonConsumable = productId.includes('.bundle.');
+    if (isNonConsumable && Capacitor.isNativePlatform()) {
+      try {
+        const { result: entitlementStatus } = await safeStoreKitCall(
+          () => StoreKit.getSubscriptionStatus(),
+          { hasActiveSubscription: false, activeSubscriptions: [], purchasedProducts: [] },
+          'getSubscriptionStatus (pre-purchase check)'
+        );
+        const alreadyEntitled = entitlementStatus.purchasedProducts?.some(
+          (p: { productId: string }) => p.productId === productId
+        );
+        if (alreadyEntitled) {
+          logger.info('Non-consumable already entitled on Apple ID (JS check):', productId);
+          toast.info('Already Owned', {
+            description: 'You already own this item on this Apple ID.',
+            duration: 5000,
+          });
+          return { ...failedResult, alreadyOwned: true, message: 'Already owned by Apple ID' };
+        }
+      } catch {
+        // If entitlement check fails, proceed with purchase — the native
+        // check and server validation provide additional safety nets.
+        logger.warn('Entitlement pre-check failed, proceeding with purchase');
+      }
+    }
+
     setIsPurchasing(true);
     setError(null);
 

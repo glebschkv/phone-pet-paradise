@@ -108,6 +108,14 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                         "pending": true,
                         "message": Strings.StoreKitStrings.purchasePending
                     ])
+
+                case .alreadyOwned(let productId):
+                    call.resolve([
+                        "success": false,
+                        "alreadyOwned": true,
+                        "productId": productId,
+                        "message": "You already own this item."
+                    ])
                 }
             } catch {
                 Log.storeKit.failure("purchase failed", error: error)

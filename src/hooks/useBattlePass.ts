@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { STORAGE_KEYS, storage } from '@/lib/storage-keys';
 import { getCurrentSeason, Season, BattlePassReward } from '@/data/GamificationData';
-import { TIER_BENEFITS, isValidSubscriptionTier, BATTLE_PASS_PLANS, type SubscriptionTier } from './usePremiumStatus';
+import { BATTLE_PASS_PLANS } from './usePremiumStatus';
+import { usePremiumStore } from '@/stores/premiumStore';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface BattlePassState {
@@ -30,18 +31,7 @@ const BATTLE_PASS_XP_UPDATE_EVENT = 'petIsland_battlePassXPUpdate';
 
 // Helper to check if subscription includes battle pass
 const checkSubscriptionBattlePass = (): boolean => {
-  const premiumData = localStorage.getItem('petIsland_premium');
-  if (premiumData) {
-    try {
-      const parsed = JSON.parse(premiumData);
-      if (isValidSubscriptionTier(parsed.tier)) {
-        return TIER_BENEFITS[parsed.tier as SubscriptionTier].battlePassIncluded;
-      }
-    } catch {
-      // Invalid data
-    }
-  }
-  return false;
+  return usePremiumStore.getState().getTierBenefits().battlePassIncluded;
 };
 
 export const useBattlePass = () => {

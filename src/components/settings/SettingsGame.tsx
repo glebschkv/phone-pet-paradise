@@ -1,7 +1,7 @@
 import { AppSettings } from "@/hooks/useSettings";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { HelpCircle, Save, Gamepad2, Smartphone } from "lucide-react";
+import { Gamepad2, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SettingsGameProps {
@@ -20,50 +20,6 @@ export const SettingsGame = ({ settings, onUpdate }: SettingsGameProps) => {
         </div>
 
         <div className="space-y-4">
-          {/* Tutorial Hints */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center",
-                settings.showTutorialHints ? "retro-level-badge" : "retro-stat-pill"
-              )}>
-                <HelpCircle className="w-4 h-4" />
-              </div>
-              <div>
-                <Label className="text-xs font-bold text-white">Tutorial Hints</Label>
-                <p className="text-[11px] text-purple-300/80">Tips for new features and controls</p>
-              </div>
-            </div>
-            <Switch
-              checked={settings.showTutorialHints}
-              onCheckedChange={(checked) => onUpdate({ showTutorialHints: checked })}
-            />
-          </div>
-
-          <div className="border-t border-purple-600/30" />
-
-          {/* Auto-Save */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center",
-                settings.autoSaveProgress ? "retro-level-badge" : "retro-stat-pill"
-              )}>
-                <Save className="w-4 h-4" />
-              </div>
-              <div>
-                <Label className="text-xs font-bold text-white">Auto-Save</Label>
-                <p className="text-[11px] text-purple-300/80">Save progress automatically</p>
-              </div>
-            </div>
-            <Switch
-              checked={settings.autoSaveProgress}
-              onCheckedChange={(checked) => onUpdate({ autoSaveProgress: checked })}
-            />
-          </div>
-
-          <div className="border-t border-purple-600/30" />
-
           {/* Haptic Feedback */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

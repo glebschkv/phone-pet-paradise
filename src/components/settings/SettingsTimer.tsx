@@ -2,7 +2,7 @@ import { AppSettings } from "@/hooks/useSettings";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Clock, Coffee, Zap, Bell, Timer } from "lucide-react";
+import { Clock, Coffee, Zap, Bell, Timer, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SettingsTimerProps {
@@ -82,6 +82,31 @@ export const SettingsTimer = ({ settings, onUpdate }: SettingsTimerProps) => {
               onValueChange={([value]) => onUpdate({ longBreakTime: value })}
               className="w-full"
             />
+          </div>
+
+          {/* Long Break Interval */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 retro-stat-pill rounded-md flex items-center justify-center">
+                  <Repeat className="w-3.5 h-3.5 text-muted-foreground" />
+                </div>
+                <span className="text-xs font-semibold text-white">Sessions Before Long Break</span>
+              </div>
+              <span className="text-sm font-bold retro-pixel-text text-purple-300">{settings.longBreakInterval}</span>
+            </div>
+            <Slider
+              min={2}
+              max={8}
+              step={1}
+              value={[settings.longBreakInterval]}
+              onValueChange={([value]) => onUpdate({ longBreakInterval: value })}
+              className="w-full"
+            />
+            <div className="flex justify-between text-[11px] text-purple-300/60 mt-1">
+              <span>2</span>
+              <span>8</span>
+            </div>
           </div>
         </div>
       </div>

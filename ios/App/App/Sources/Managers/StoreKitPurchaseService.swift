@@ -40,6 +40,25 @@ final class StoreKitPurchaseService {
         Log.storeKit.operationStart("purchase: \(productId)")
 
         let product = try await productManager.getProduct(productId: productId)
+
+        // For non-consumable products (starter bundles), check if the Apple ID
+        // already owns this product BEFORE calling product.purchase().
+        //
+        // StoreKit 2 silently returns .success for already-owned non-consumables
+        // WITHOUT showing the Apple Pay sheet, which makes it look like the
+        // bundle was "auto-granted" for free.  By checking entitlements first
+        // we can return .alreadyOwned and let the JS side show the correct UI.
+        if product.type == .nonConsumable {
+            for await result in Transaction.currentEntitlements {
+                if case .verified(let transaction) = result,
+                   transaction.productID == productId,
+                   transaction.revocationDate == nil {
+                    Log.storeKit.info("Non-consumable already owned by Apple ID: \(productId)")
+                    return .alreadyOwned(productId: productId)
+                }
+            }
+        }
+
         let result = try await product.purchase()
 
         switch result {
@@ -180,6 +199,7 @@ enum PurchaseResult {
     case success(PurchaseSuccess)
     case cancelled
     case pending
+    case alreadyOwned(productId: String)
 }
 
 @available(iOS 15.0, *)

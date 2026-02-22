@@ -225,15 +225,23 @@ export const PetCollectionGrid = memo(() => {
       <ScrollArea className="flex-1 min-h-0">
         {activeTab === "pets" && (
           <div className="px-4 pt-2 pb-28">
-            <PetGrid
-              pets={filteredPets}
-              isAnimalUnlocked={isAnimalUnlocked}
-              isShopExclusive={isShopExclusive}
-              isStudyHoursGated={isStudyHoursGated}
-              isAnimalFavorite={isAnimalFavorite}
-              isAnimalHomeActive={isAnimalHomeActive}
-              onPetClick={handlePetClick}
-            />
+            {filteredPets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <span className="text-3xl mb-3">🔍</span>
+                <p className="text-sm font-semibold text-white mb-1">No pets found</p>
+                <p className="text-xs text-purple-300/70">Try a different search or sort option</p>
+              </div>
+            ) : (
+              <PetGrid
+                pets={filteredPets}
+                isAnimalUnlocked={isAnimalUnlocked}
+                isShopExclusive={isShopExclusive}
+                isStudyHoursGated={isStudyHoursGated}
+                isAnimalFavorite={isAnimalFavorite}
+                isAnimalHomeActive={isAnimalHomeActive}
+                onPetClick={handlePetClick}
+              />
+            )}
           </div>
         )}
 

@@ -20,6 +20,21 @@ const IS_SENTRY_ENABLED = Boolean(SENTRY_DSN) && IS_PRODUCTION;
 
 let sentryInitialized = false;
 
+/**
+ * Check if the user has opted into crash reporting via app settings.
+ * Defaults to true if no setting found (opt-out model for App Store compliance).
+ */
+const isCrashReportingEnabled = (): boolean => {
+  try {
+    const raw = localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}app_settings`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed.crashReporting === 'boolean') return parsed.crashReporting;
+    }
+  } catch { /* ignore parse errors */ }
+  return true;
+};
+
 export interface ErrorReport {
   id: string;
   message: string;
@@ -122,8 +137,8 @@ export const reportError = (
   // Store locally for debugging
   storeError(errorReport);
 
-  // Send to Sentry if configured
-  if (IS_SENTRY_ENABLED && sentryInitialized) {
+  // Send to Sentry if configured and user has opted in
+  if (IS_SENTRY_ENABLED && sentryInitialized && isCrashReportingEnabled()) {
     minimalSentry.captureException(error, {
       ...context,
       errorId,
@@ -146,7 +161,7 @@ export const reportWarning = (
     console.warn('[ErrorReporting] Warning:', message, context);
   }
 
-  if (IS_SENTRY_ENABLED && sentryInitialized) {
+  if (IS_SENTRY_ENABLED && sentryInitialized && isCrashReportingEnabled()) {
     minimalSentry.captureMessage(message, {
       level: 'warning',
       extra: context,
@@ -165,7 +180,7 @@ export const reportInfo = (
     console.info('[ErrorReporting] Info:', message, context);
   }
 
-  if (IS_SENTRY_ENABLED && sentryInitialized) {
+  if (IS_SENTRY_ENABLED && sentryInitialized && isCrashReportingEnabled()) {
     minimalSentry.captureMessage(message, {
       level: 'info',
       extra: context,

@@ -37,7 +37,7 @@
 import { useCallback, useMemo, useEffect, useRef } from 'react';
 import { useCoinStore } from '@/stores/coinStore';
 import { dispatchAchievementEvent, ACHIEVEMENT_EVENTS } from '@/hooks/useAchievementTracking';
-import { TIER_BENEFITS, isValidSubscriptionTier, type SubscriptionTier } from './usePremiumStatus';
+import { usePremiumStore } from '@/stores/premiumStore';
 import { coinLogger } from '@/lib/logger';
 import { COIN_CONFIG, RATE_LIMIT_CONFIG } from '@/lib/constants';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
@@ -428,20 +428,9 @@ export const useCoinSystem = () => {
     };
   }, [storeAddCoins]);
 
-  // Helper to get subscription multiplier
+  // Helper to get subscription multiplier from Zustand store
   const getSubscriptionMultiplier = useCallback((): number => {
-    const premiumData = localStorage.getItem('petIsland_premium');
-    if (premiumData) {
-      try {
-        const parsed = JSON.parse(premiumData);
-        if (isValidSubscriptionTier(parsed.tier)) {
-          return TIER_BENEFITS[parsed.tier as SubscriptionTier].coinMultiplier;
-        }
-      } catch {
-        // Invalid data
-      }
-    }
-    return 1;
+    return usePremiumStore.getState().getCoinMultiplier();
   }, []);
 
   // Calculate coins from session duration
