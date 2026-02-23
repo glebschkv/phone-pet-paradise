@@ -8,6 +8,17 @@ import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useDeviceActivity } from '@/hooks/useDeviceActivity';
 import { Capacitor } from '@capacitor/core';
 import { PremiumSubscription } from '@/components/PremiumSubscription';
+import { STORAGE_KEY as TIMER_STORAGE_KEY } from '@/components/focus-timer/constants';
+
+/** Check if a focus timer is currently running (reads persisted state) */
+function isTimerCurrentlyRunning(): boolean {
+  try {
+    const raw = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+    return !!state.isRunning;
+  } catch { return false; }
+}
 
 export const SettingsFocusMode = () => {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
@@ -32,6 +43,7 @@ export const SettingsFocusMode = () => {
   } = useDeviceActivity();
   const isNativePlatform = Capacitor.isNativePlatform();
   const [hasAttemptedShieldPermission, setHasAttemptedShieldPermission] = useState(false);
+  const timerRunning = isTimerCurrentlyRunning();
 
   const shieldLabel = (() => {
     const parts: string[] = [];
@@ -204,10 +216,14 @@ export const SettingsFocusMode = () => {
                 <div className="space-y-3">
                   <button
                     onClick={() => shieldOpenAppPicker()}
-                    className="w-full retro-arcade-btn retro-arcade-btn-purple py-2.5 px-4 text-sm"
+                    disabled={timerRunning}
+                    className={cn(
+                      "w-full retro-arcade-btn retro-arcade-btn-purple py-2.5 px-4 text-sm",
+                      timerRunning && "opacity-50 cursor-not-allowed"
+                    )}
                   >
                     <Plus className="w-3.5 h-3.5 inline mr-1.5" />
-                    {shieldAppsConfigured ? 'Change Blocked Apps' : 'Select Apps to Block'}
+                    {timerRunning ? 'Locked During Session' : (shieldAppsConfigured ? 'Change Blocked Apps' : 'Select Apps to Block')}
                   </button>
 
                   {/* Website Blocking Section */}
@@ -268,10 +284,14 @@ export const SettingsFocusMode = () => {
                             </p>
                             <button
                               onClick={() => shieldOpenAppPicker()}
-                              className="w-full retro-arcade-btn retro-arcade-btn-purple py-2 px-4 text-xs"
+                              disabled={timerRunning}
+                              className={cn(
+                                "w-full retro-arcade-btn retro-arcade-btn-purple py-2 px-4 text-xs",
+                                timerRunning && "opacity-50 cursor-not-allowed"
+                              )}
                             >
                               <Globe className="w-3 h-3 inline mr-1" />
-                              Change Blocked Websites
+                              {timerRunning ? 'Locked During Session' : 'Change Blocked Websites'}
                             </button>
                           </>
                         ) : (
@@ -282,10 +302,14 @@ export const SettingsFocusMode = () => {
                             </p>
                             <button
                               onClick={() => shieldOpenAppPicker()}
-                              className="w-full retro-arcade-btn retro-arcade-btn-purple py-2 px-4 text-xs"
+                              disabled={timerRunning}
+                              className={cn(
+                                "w-full retro-arcade-btn retro-arcade-btn-purple py-2 px-4 text-xs",
+                                timerRunning && "opacity-50 cursor-not-allowed"
+                              )}
                             >
                               <Plus className="w-3 h-3 inline mr-1" />
-                              Select Websites to Block
+                              {timerRunning ? 'Locked During Session' : 'Select Websites to Block'}
                             </button>
                           </>
                         )}
