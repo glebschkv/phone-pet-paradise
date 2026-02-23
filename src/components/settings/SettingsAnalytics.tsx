@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Target, Calendar, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -94,37 +93,47 @@ export const SettingsAnalytics = () => {
               <p className="text-[11px] text-purple-300/80">Clear all tracked data</p>
             </div>
           </div>
-          <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-            <AlertDialogTrigger asChild>
-              <button
-                className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 text-xs font-bold transition-all active:scale-95"
-              >
-                Reset
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="retro-game-card border-2 border-purple-600/50 max-w-xs mx-4">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-base font-bold text-white">Reset Analytics?</AlertDialogTitle>
-                <AlertDialogDescription className="text-xs text-purple-300/80">
-                  Are you sure you want to reset all analytics data? This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="gap-2">
-                <AlertDialogCancel className="retro-stat-pill px-3 py-2 text-xs font-semibold">
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleReset}
-                  className="bg-red-500 text-white px-3 py-2 text-xs font-bold rounded-lg"
-                  style={{ boxShadow: '0 2px 0 rgba(185,28,28,0.8)' }}
-                >
-                  Reset Data
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <button
+            className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 text-xs font-bold transition-all active:scale-95"
+            onClick={() => setResetDialogOpen(true)}
+          >
+            Reset
+          </button>
         </div>
       </div>
+
+      {/* Reset Confirmation */}
+      {resetDialogOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ WebkitBackfaceVisibility: 'hidden' }}
+        >
+          <div className="absolute inset-0 bg-black/60" onClick={() => setResetDialogOpen(false)} aria-hidden />
+          <div className="relative retro-game-card border-2 border-purple-600/50 max-w-xs w-full p-6 space-y-4">
+            <div className="space-y-2 text-center">
+              <h2 className="text-base font-bold text-white">Reset Analytics?</h2>
+              <p className="text-xs text-purple-300/80">
+                Are you sure you want to reset all analytics data? This cannot be undone.
+              </p>
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+              <button
+                className="retro-stat-pill px-3 py-2 text-xs font-semibold rounded-lg"
+                onClick={() => setResetDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-red-500 text-white px-3 py-2 text-xs font-bold rounded-lg"
+                style={{ boxShadow: '0 2px 0 rgba(185,28,28,0.8)' }}
+                onClick={handleReset}
+              >
+                Reset Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

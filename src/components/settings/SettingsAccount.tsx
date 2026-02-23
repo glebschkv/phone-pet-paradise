@@ -3,12 +3,93 @@ import { settingsLogger } from "@/lib/logger";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { User, Mail, LogOut, Trash2, Shield, UserCircle, Loader2, Crown, RefreshCw, ExternalLink } from "lucide-react";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useStoreKit } from "@/hooks/useStoreKit";
 import { Capacitor } from "@capacitor/core";
+
+/**
+ * Simple inline confirmation dialog — no Radix, no portals, no overlay
+ * elements.  Radix AlertDialog uses focus-trapping and CSS animation
+ * lifecycles that break on iOS WebView / Capacitor (buttons become
+ * unresponsive or the whole screen goes black).  This component renders
+ * a plain fixed-position div controlled by React state.
+ */
+const ConfirmDialog = ({
+  open,
+  onCancel,
+  onConfirm,
+  title,
+  description,
+  confirmLabel,
+  cancelLabel = "Cancel",
+  confirmClassName,
+  confirmStyle,
+  isLoading,
+  loadingLabel,
+}: {
+  open: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  title: string;
+  description: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  confirmClassName?: string;
+  confirmStyle?: React.CSSProperties;
+  isLoading?: boolean;
+  loadingLabel?: string;
+}) => {
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ WebkitBackfaceVisibility: 'hidden' }}
+    >
+      {/* Scrim — tapping it cancels */}
+      <div
+        className="absolute inset-0 bg-black/60"
+        onClick={onCancel}
+        aria-hidden
+      />
+
+      {/* Dialog card */}
+      <div className="relative retro-game-card border-2 border-purple-600/50 max-w-xs w-full p-6 space-y-4">
+        <div className="space-y-2 text-center">
+          <h2 className="text-base font-bold text-white">{title}</h2>
+          <p className="text-xs text-purple-300/80">{description}</p>
+        </div>
+
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <button
+            className="retro-stat-pill px-3 py-2 text-xs font-semibold rounded-lg"
+            onClick={onCancel}
+            disabled={isLoading}
+          >
+            {cancelLabel}
+          </button>
+          <button
+            className={confirmClassName ?? "retro-arcade-btn retro-arcade-btn-purple px-3 py-2 text-xs"}
+            style={confirmStyle}
+            onClick={onConfirm}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-3 h-3 mr-1 animate-spin inline" />
+                {loadingLabel ?? confirmLabel}
+              </>
+            ) : (
+              confirmLabel
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const SettingsAccount = () => {
   const { user, isGuestMode, signOut, session } = useAuth();
@@ -18,6 +99,7 @@ export const SettingsAccount = () => {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [isManaging, setIsManaging] = useState(false);
 
@@ -27,14 +109,12 @@ export const SettingsAccount = () => {
     setIsSigningOut(true);
     try {
       await signOut();
-      // Explicit navigation — do NOT rely on Index.tsx useEffect guard,
-      // because the AlertDialog close animation + component unmount cascade
-      // can prevent the guard from firing on iOS WebView.
       navigate('/auth');
     } catch {
-      // signOut() already shows a toast — just swallow the re-thrown error
+      // signOut() already shows a toast
     } finally {
       setIsSigningOut(false);
+      setSignOutDialogOpen(false);
     }
   };
 
@@ -48,7 +128,6 @@ export const SettingsAccount = () => {
       if (isNative) {
         await storeKit.manageSubscriptions();
       } else {
-        // SECURITY: Use noopener,noreferrer to prevent reverse tabnabbing attacks
         window.open('https://apps.apple.com/account/subscriptions', '_blank', 'noopener,noreferrer');
       }
     } catch (_error) {
@@ -104,7 +183,6 @@ export const SettingsAccount = () => {
       setDeleteDialogOpen(false);
 
       localStorage.clear();
-      // Use replace to prevent back-navigation to a deleted-account state
       window.location.replace('/auth');
     } catch (error: unknown) {
       settingsLogger.error('Error deleting account:', error);
@@ -257,44 +335,32 @@ export const SettingsAccount = () => {
           <span className="text-sm font-bold retro-pixel-text text-white">SESSION</span>
         </div>
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button
-              className="w-full p-3 retro-stat-pill rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95"
-              disabled={isSigningOut}
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="text-sm font-semibold">
-                {isGuestMode ? 'Exit Guest Mode' : 'Sign Out'}
-              </span>
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="retro-game-card border-2 border-purple-600/50 max-w-xs mx-4">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-base font-bold text-white">
-                {isGuestMode ? 'Exit Guest Mode?' : 'Sign Out?'}
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-xs text-purple-300/80">
-                {isGuestMode
-                  ? 'Your local progress will be cleared. You can sign in or start fresh as a new guest.'
-                  : 'You can sign back in anytime to access your synced progress.'
-                }
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="gap-2">
-              <AlertDialogCancel className="retro-stat-pill px-3 py-2 text-xs font-semibold">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleSignOut}
-                className="retro-arcade-btn retro-arcade-btn-purple px-3 py-2 text-xs"
-              >
-                {isGuestMode ? 'Exit' : 'Sign Out'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <button
+          className="w-full p-3 retro-stat-pill rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95"
+          disabled={isSigningOut}
+          onClick={() => setSignOutDialogOpen(true)}
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="text-sm font-semibold">
+            {isGuestMode ? 'Exit Guest Mode' : 'Sign Out'}
+          </span>
+        </button>
       </div>
+
+      {/* Sign Out Confirmation */}
+      <ConfirmDialog
+        open={signOutDialogOpen}
+        onCancel={() => setSignOutDialogOpen(false)}
+        onConfirm={handleSignOut}
+        title={isGuestMode ? 'Exit Guest Mode?' : 'Sign Out?'}
+        description={
+          isGuestMode
+            ? 'Your local progress will be cleared. You can sign in or start fresh as a new guest.'
+            : 'You can sign back in anytime to access your synced progress.'
+        }
+        confirmLabel={isGuestMode ? 'Exit' : 'Sign Out'}
+        isLoading={isSigningOut}
+      />
 
       {/* Danger Zone - Delete Account (only for logged in users) */}
       {!isGuestMode && (
@@ -304,64 +370,39 @@ export const SettingsAccount = () => {
             <span className="text-sm font-bold retro-pixel-text text-red-400">DANGER ZONE</span>
           </div>
 
-          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <AlertDialogTrigger asChild>
-              <button
-                className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-red-500/10 text-red-400 border-2 border-red-500/30 font-semibold text-sm"
-                style={{ boxShadow: '0 2px 0 rgba(239,68,68,0.2)' }}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-                <span>{isDeleting ? 'Deleting...' : 'Delete Account'}</span>
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="retro-game-card border-2 border-red-500/50 max-w-xs mx-4">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-base font-bold text-red-400">
-                  Delete Account?
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-xs text-purple-300/80">
-                  This will permanently delete your account and all your data including pets, progress, and achievements. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="gap-2">
-                <AlertDialogCancel
-                  className="retro-stat-pill px-3 py-2 text-xs font-semibold"
-                  disabled={isDeleting}
-                >
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleDeleteAccount();
-                  }}
-                  disabled={isDeleting}
-                  className="bg-red-500 text-white px-3 py-2 text-xs font-bold rounded-lg"
-                  style={{ boxShadow: '0 2px 0 rgba(185,28,28,0.8)' }}
-                >
-                  {isDeleting ? (
-                    <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin inline" />
-                      Deleting...
-                    </>
-                  ) : (
-                    'Delete Forever'
-                  )}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <button
+            className="w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-red-500/10 text-red-400 border-2 border-red-500/30 font-semibold text-sm"
+            style={{ boxShadow: '0 2px 0 rgba(239,68,68,0.2)' }}
+            disabled={isDeleting}
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+            <span>{isDeleting ? 'Deleting...' : 'Delete Account'}</span>
+          </button>
 
           <p className="text-[11px] text-purple-300/60 mt-2 text-center">
             This will permanently remove your account and all data
           </p>
         </div>
       )}
+
+      {/* Delete Account Confirmation */}
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onCancel={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteAccount}
+        title="Delete Account?"
+        description="This will permanently delete your account and all your data including pets, progress, and achievements. This action cannot be undone."
+        confirmLabel="Delete Forever"
+        loadingLabel="Deleting..."
+        confirmClassName="bg-red-500 text-white px-3 py-2 text-xs font-bold rounded-lg"
+        confirmStyle={{ boxShadow: '0 2px 0 rgba(185,28,28,0.8)' }}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

@@ -88,27 +88,19 @@ final class StoreKitProductManager {
     // MARK: - Product Data Conversion
 
     /// Converts a product to a dictionary for JS.
-    /// Uses a device-locale price formatter so that European users see "€X,XX"
-    /// even when the sandbox/TestFlight storefront is US (which would make
-    /// `product.displayPrice` return "$X.XX").  In production the storefront
-    /// matches the real user's region so both values are identical.
+    /// Always uses `product.displayPrice` — StoreKit already formats the price
+    /// with the correct currency symbol for the user's App Store storefront.
+    /// A previous version used NumberFormatter + Locale.current, but that
+    /// applied the *device* locale's currency symbol (e.g. "$") instead of the
+    /// storefront's (e.g. "€"), causing wrong currency display on TestFlight
+    /// and for users whose device locale differs from their App Store region.
     func productToDictionary(_ product: Product) -> [String: Any] {
-        // Format price using the device's current locale — this matches the
-        // currency the user actually expects to see.
-        let localizedPrice: String = {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .currency
-            formatter.locale = Locale.current
-            return formatter.string(from: product.price as NSDecimalNumber)
-                ?? product.displayPrice
-        }()
-
         var data: [String: Any] = [
             "id": product.id,
             "displayName": product.displayName,
             "description": product.description,
             "price": product.price.description,
-            "displayPrice": localizedPrice,
+            "displayPrice": product.displayPrice,
             "type": StoreKitConverters.productTypeString(product.type)
         ]
 
