@@ -90,6 +90,15 @@ function checkAndClearExpiredTimer(): boolean {
     const elapsedMs = now - state.startTime;
     const elapsedSeconds = Math.floor(elapsedMs / 1000);
 
+    // Safety net: if session is older than 24 hours, force-expire it.
+    // No legitimate session should run this long (max countup is 6h).
+    const SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+    if (elapsedMs > SESSION_MAX_AGE_MS) {
+      const cleared = { ...state, isRunning: false, startTime: null };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleared));
+      return true;
+    }
+
     // Guard against clock drift / corrupted state
     if (elapsedSeconds < 0) {
       // Clock went backward (NTP correction, timezone change, DST, etc.)

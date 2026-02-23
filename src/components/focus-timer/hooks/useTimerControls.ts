@@ -119,6 +119,13 @@ export const useTimerControls = ({
   }, [saveTimerState, timerState.timeLeft, timerState.category, timerState.isRunning, timerState.isCountup, timerState.elapsedTime, selectedPreset.type, selectedPreset.isCountup, setDisplayTime, setShowIntentionModal, startAppBlocking, scheduleTimerCompletionNotification]);
 
   const startTimerWithIntent = useCallback(async (category: FocusCategory, taskLabel?: string) => {
+    // Guard: prevent starting a second session while one is already running
+    if (timerState.isRunning) {
+      timerLogger.warn('startTimerWithIntent: timer already running, ignoring');
+      setShowIntentionModal(false);
+      return;
+    }
+
     setShowIntentionModal(false);
     triggerHaptic('medium');
     playSoundEffect('timerStart');
