@@ -301,7 +301,13 @@ export const AppBlockingSection = ({
             <div className="flex items-center justify-center gap-2 py-3">
               <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
               <span className="text-sm text-green-300 font-medium">
-                Focus mode active — {selectedDomainsCount > 0 ? 'apps & websites' : 'apps'} are blocked
+                Focus mode active — {(() => {
+                  const hasApps = selectedAppsCount > 0 || selectedCategoriesCount > 0;
+                  const hasDomains = selectedDomainsCount > 0;
+                  if (hasApps && hasDomains) return 'apps & websites';
+                  if (hasDomains) return 'websites';
+                  return 'apps';
+                })()} are blocked
               </span>
             </div>
 

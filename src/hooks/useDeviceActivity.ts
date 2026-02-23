@@ -529,15 +529,19 @@ export const useDeviceActivity = () => {
       shieldAttempts: 0,
     }));
 
-    if (result.appsBlocked > 0 || result.categoriesBlocked > 0) {
+    if (result.appsBlocked > 0 || result.categoriesBlocked > 0 || result.domainsBlocked > 0) {
+      const parts: string[] = [];
+      if (result.appsBlocked > 0) parts.push(`${result.appsBlocked} app${result.appsBlocked !== 1 ? 's' : ''}`);
+      if (result.categoriesBlocked > 0) parts.push(`${result.categoriesBlocked} categor${result.categoriesBlocked !== 1 ? 'ies' : 'y'}`);
+      if (result.domainsBlocked > 0) parts.push(`${result.domainsBlocked} website${result.domainsBlocked !== 1 ? 's' : ''}`);
       toast.success("Focus Mode Active", {
-        description: `Blocking ${result.appsBlocked} apps and ${result.categoriesBlocked} categories`,
+        description: `Blocking ${parts.join(', ')}`,
       });
     } else if (result.success) {
-      // Native call succeeded but reported 0 apps blocked — selection may be missing
-      deviceActivityLogger.warn('startAppBlocking succeeded but 0 apps blocked — no selection data in UserDefaults?');
-      toast.warning("No Apps Blocked", {
-        description: "No apps were blocked. Try re-selecting apps in Focus Settings.",
+      // Native call succeeded but reported 0 items blocked — selection may be missing
+      deviceActivityLogger.warn('startAppBlocking succeeded but 0 items blocked — no selection data in UserDefaults?');
+      toast.warning("Nothing Blocked", {
+        description: "No apps or websites were blocked. Try re-selecting in Focus Settings.",
       });
     }
 

@@ -173,7 +173,7 @@ export const useTimerControls = ({
     if (selectedPreset.type !== 'break') {
       markBlockingActive();
       startAppBlocking().then((result) => {
-        if (result.appsBlocked > 0 || result.categoriesBlocked > 0) {
+        if (result.appsBlocked > 0 || result.categoriesBlocked > 0 || result.domainsBlocked > 0) {
           triggerHaptic('light');
         }
       }).catch((e) => {

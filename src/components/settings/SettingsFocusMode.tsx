@@ -141,9 +141,9 @@ export const SettingsFocusMode = () => {
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn(
                   "w-9 h-9 rounded-lg flex items-center justify-center",
-                  shieldPermissionGranted && shieldAppsConfigured ? "retro-level-badge" : "retro-stat-pill"
+                  shieldPermissionGranted && (shieldAppsConfigured || shieldSelectedDomains > 0) ? "retro-level-badge" : "retro-stat-pill"
                 )}>
-                  {shieldPermissionGranted && shieldAppsConfigured ? (
+                  {shieldPermissionGranted && (shieldAppsConfigured || shieldSelectedDomains > 0) ? (
                     <ShieldCheck className="w-4 h-4" />
                   ) : (
                     <Shield className="w-4 h-4 text-muted-foreground" />
@@ -153,14 +153,14 @@ export const SettingsFocusMode = () => {
                   <Label className="text-sm font-bold text-white">Focus Shield</Label>
                   <p className="text-[11px] text-purple-300/80">
                     {shieldPermissionGranted
-                      ? shieldAppsConfigured || (isPremium && shieldSelectedDomains > 0)
+                      ? shieldAppsConfigured || shieldSelectedDomains > 0
                         ? `${shieldLabel} will be blocked during focus`
                         : 'Tap to select apps to block'
                       : 'Block distracting apps via Screen Time'
                     }
                   </p>
                 </div>
-                {shieldPermissionGranted && shieldAppsConfigured && (
+                {shieldPermissionGranted && (shieldAppsConfigured || shieldSelectedDomains > 0) && (
                   <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/20 border border-green-500/30">
                     <Sparkles className="w-3 h-3 text-green-400" />
                     <span className="text-[11px] font-bold text-green-400">Active</span>
