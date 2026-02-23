@@ -53,7 +53,6 @@ export interface FocusModeSettings {
   strictMode: boolean;
   blockNotifications: boolean;
   blockedApps: BlockedApp[];
-  blockedWebsites: string[];
   allowEmergencyBypass: boolean;
   bypassCooldown: number;
 }
@@ -67,8 +66,6 @@ interface FocusStore extends FocusState {
   setEnabled: (enabled: boolean) => void;
   setStrictMode: (strict: boolean) => void;
   toggleAppBlocking: (appId: string, blocked: boolean) => void;
-  addBlockedWebsite: (website: string) => void;
-  removeBlockedWebsite: (website: string) => void;
   activateFocusMode: () => void;
   deactivateFocusMode: () => void;
   updateSettings: (settings: Partial<FocusModeSettings>) => void;
@@ -78,7 +75,6 @@ interface FocusStore extends FocusState {
 
 const defaultSettings: FocusModeSettings = {
   enabled: true, strictMode: false, blockNotifications: true, blockedApps: SUGGESTED_APPS,
-  blockedWebsites: ['instagram.com', 'tiktok.com', 'twitter.com', 'x.com', 'facebook.com'],
   allowEmergencyBypass: true, bypassCooldown: 30,
 };
 
@@ -93,13 +89,6 @@ export const useFocusStore = create<FocusStore>()(
       toggleAppBlocking: (appId, blocked) => set((s) => ({
         blockedApps: s.blockedApps.map(app => app.id === appId ? { ...app, isBlocked: blocked } : app)
       })),
-      addBlockedWebsite: (website) => {
-        const normalized = website.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
-        if (!normalized) return;
-        const { blockedWebsites } = get();
-        if (!blockedWebsites.includes(normalized)) set({ blockedWebsites: [...blockedWebsites, normalized] });
-      },
-      removeBlockedWebsite: (website) => set((s) => ({ blockedWebsites: s.blockedWebsites.filter(w => w !== website) })),
       activateFocusMode: () => set({ isFocusModeActive: true }),
       deactivateFocusMode: () => set({ isFocusModeActive: false }),
       updateSettings: (settings) => set((s) => ({ ...s, ...settings })),
@@ -110,7 +99,7 @@ export const useFocusStore = create<FocusStore>()(
       name: 'nomo_focus_mode',
       partialize: (state) => ({
         enabled: state.enabled, strictMode: state.strictMode, blockNotifications: state.blockNotifications,
-        blockedApps: state.blockedApps, blockedWebsites: state.blockedWebsites,
+        blockedApps: state.blockedApps,
         allowEmergencyBypass: state.allowEmergencyBypass, bypassCooldown: state.bypassCooldown,
       }),
       onRehydrateStorage: () => (state) => {
@@ -130,4 +119,3 @@ export const useIsFocusModeActive = () => useFocusStore((s) => s.isFocusModeActi
 export const useIsNativeBlocking = () => useFocusStore((s) => s.isNativeBlocking);
 export const useFocusModeEnabled = () => useFocusStore((s) => s.enabled);
 export const useBlockedApps = () => useFocusStore((s) => s.blockedApps);
-export const useBlockedWebsites = () => useFocusStore((s) => s.blockedWebsites);

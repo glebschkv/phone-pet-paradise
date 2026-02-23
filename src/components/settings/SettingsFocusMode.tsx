@@ -1,24 +1,32 @@
 import { useState } from 'react';
-import { Shield, Bell, BellOff, Lock, Unlock, Plus, X, Globe, Crown, AlertTriangle, ShieldCheck, Sparkles, Settings as SettingsIcon } from 'lucide-react';
+import { Shield, Bell, BellOff, Lock, Unlock, Plus, Globe, Crown, AlertTriangle, ShieldCheck, Sparkles, Settings as SettingsIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { useFocusMode, SUGGESTED_WEBSITES } from '@/hooks/useFocusMode';
+import { useFocusMode } from '@/hooks/useFocusMode';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useDeviceActivity } from '@/hooks/useDeviceActivity';
 import { Capacitor } from '@capacitor/core';
 import { PremiumSubscription } from '@/components/PremiumSubscription';
+import { STORAGE_KEY as TIMER_STORAGE_KEY } from '@/components/focus-timer/constants';
+
+/** Check if a focus timer is currently running (reads persisted state) */
+function isTimerCurrentlyRunning(): boolean {
+  try {
+    const raw = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+    return !!state.isRunning;
+  } catch { return false; }
+}
 
 export const SettingsFocusMode = () => {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const {
     settings,
     updateSettings,
-    addBlockedWebsite,
-    removeBlockedWebsite,
   } = useFocusMode();
   const { isPremium } = usePremiumStatus();
-  const [newWebsite, setNewWebsite] = useState('');
 
   // Native Focus Shield (app blocking via Screen Time)
   const {
@@ -27,6 +35,7 @@ export const SettingsFocusMode = () => {
     blockedAppsCount: shieldBlockedCount,
     selectedAppsCount: shieldSelectedApps,
     selectedCategoriesCount: shieldSelectedCategories,
+    selectedDomainsCount: shieldSelectedDomains,
     isLoading: shieldLoading,
     requestPermissions: shieldRequestPermissions,
     openSettings: shieldOpenSettings,
@@ -34,23 +43,27 @@ export const SettingsFocusMode = () => {
   } = useDeviceActivity();
   const isNativePlatform = Capacitor.isNativePlatform();
   const [hasAttemptedShieldPermission, setHasAttemptedShieldPermission] = useState(false);
+  const timerRunning = isTimerCurrentlyRunning();
 
   const shieldLabel = (() => {
-    if (shieldSelectedApps > 0 && shieldSelectedCategories > 0) {
-      return `${shieldSelectedApps} app${shieldSelectedApps !== 1 ? 's' : ''} & ${shieldSelectedCategories} group${shieldSelectedCategories !== 1 ? 's' : ''}`;
-    }
-    if (shieldSelectedCategories > 0) {
-      return `${shieldSelectedCategories} app group${shieldSelectedCategories !== 1 ? 's' : ''}`;
-    }
-    return `${shieldBlockedCount} app${shieldBlockedCount !== 1 ? 's' : ''}`;
-  })();
+    const parts: string[] = [];
 
-  const handleAddWebsite = () => {
-    if (newWebsite.trim()) {
-      addBlockedWebsite(newWebsite.trim());
-      setNewWebsite('');
+    // Apps part
+    if (shieldSelectedApps > 0 && shieldSelectedCategories > 0) {
+      parts.push(`${shieldSelectedApps} app${shieldSelectedApps !== 1 ? 's' : ''} & ${shieldSelectedCategories} group${shieldSelectedCategories !== 1 ? 's' : ''}`);
+    } else if (shieldSelectedCategories > 0) {
+      parts.push(`${shieldSelectedCategories} app group${shieldSelectedCategories !== 1 ? 's' : ''}`);
+    } else if (shieldSelectedApps > 0) {
+      parts.push(`${shieldSelectedApps} app${shieldSelectedApps !== 1 ? 's' : ''}`);
     }
-  };
+
+    // Domains part (premium only)
+    if (isPremium && shieldSelectedDomains > 0) {
+      parts.push(`${shieldSelectedDomains} website${shieldSelectedDomains !== 1 ? 's' : ''}`);
+    }
+
+    return parts.join(' & ') || `${shieldBlockedCount} app${shieldBlockedCount !== 1 ? 's' : ''}`;
+  })();
 
   return (
     <div className="space-y-4">
@@ -109,7 +122,7 @@ export const SettingsFocusMode = () => {
                 )}
                 <div>
                   <p className="text-sm font-semibold text-white">Strict Mode</p>
-                  <p className="text-[11px] text-purple-300/80">Can't quit until timer ends</p>
+                  <p className="text-[11px] text-purple-300/80">Session locked until timer ends</p>
                 </div>
               </div>
               <Switch
@@ -123,7 +136,7 @@ export const SettingsFocusMode = () => {
                 <div className="flex items-center gap-2 text-red-400">
                   <AlertTriangle className="w-3 h-3" />
                   <p className="text-[11px] font-medium">
-                    You won't be able to exit focus mode until the timer completes
+                    Focus mode stays active until the timer completes
                   </p>
                 </div>
               </div>
@@ -140,9 +153,9 @@ export const SettingsFocusMode = () => {
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn(
                   "w-9 h-9 rounded-lg flex items-center justify-center",
-                  shieldPermissionGranted && shieldAppsConfigured ? "retro-level-badge" : "retro-stat-pill"
+                  shieldPermissionGranted && (shieldAppsConfigured || shieldSelectedDomains > 0) ? "retro-level-badge" : "retro-stat-pill"
                 )}>
-                  {shieldPermissionGranted && shieldAppsConfigured ? (
+                  {shieldPermissionGranted && (shieldAppsConfigured || shieldSelectedDomains > 0) ? (
                     <ShieldCheck className="w-4 h-4" />
                   ) : (
                     <Shield className="w-4 h-4 text-muted-foreground" />
@@ -152,14 +165,14 @@ export const SettingsFocusMode = () => {
                   <Label className="text-sm font-bold text-white">Focus Shield</Label>
                   <p className="text-[11px] text-purple-300/80">
                     {shieldPermissionGranted
-                      ? shieldAppsConfigured
+                      ? shieldAppsConfigured || shieldSelectedDomains > 0
                         ? `${shieldLabel} will be blocked during focus`
                         : 'Tap to select apps to block'
                       : 'Block distracting apps via Screen Time'
                     }
                   </p>
                 </div>
-                {shieldPermissionGranted && shieldAppsConfigured && (
+                {shieldPermissionGranted && (shieldAppsConfigured || shieldSelectedDomains > 0) && (
                   <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/20 border border-green-500/30">
                     <Sparkles className="w-3 h-3 text-green-400" />
                     <span className="text-[11px] font-bold text-green-400">Active</span>
@@ -203,11 +216,107 @@ export const SettingsFocusMode = () => {
                 <div className="space-y-3">
                   <button
                     onClick={() => shieldOpenAppPicker()}
-                    className="w-full retro-arcade-btn retro-arcade-btn-purple py-2.5 px-4 text-sm"
+                    disabled={timerRunning}
+                    className={cn(
+                      "w-full retro-arcade-btn retro-arcade-btn-purple py-2.5 px-4 text-sm",
+                      timerRunning && "opacity-50 cursor-not-allowed"
+                    )}
                   >
                     <Plus className="w-3.5 h-3.5 inline mr-1.5" />
-                    {shieldAppsConfigured ? 'Change Blocked Apps' : 'Select Apps to Block'}
+                    {timerRunning ? 'Locked During Session' : (shieldAppsConfigured ? 'Change Blocked Apps' : 'Select Apps to Block')}
                   </button>
+
+                  {/* Website Blocking Section */}
+                  <div className="border-t border-purple-600/30 pt-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Globe className="w-3.5 h-3.5 text-purple-400" />
+                      <span className="text-xs font-bold text-white">Website Blocking</span>
+                      {!isPremium && (
+                        <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5"
+                          style={{
+                            background: 'linear-gradient(180deg, hsl(35 90% 55%), hsl(25 90% 50%))',
+                            border: '1px solid hsl(40 80% 65%)',
+                            color: 'white',
+                          }}>
+                          <Crown className="w-2.5 h-2.5" />
+                          Premium
+                        </span>
+                      )}
+                      {isPremium && shieldSelectedDomains > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-md bg-green-500/20 border border-green-500/30 text-[9px] font-bold text-green-400">
+                          {shieldSelectedDomains} selected
+                        </span>
+                      )}
+                    </div>
+
+                    {!isPremium ? (
+                      /* FREE USER — Premium upsell */
+                      <div className="rounded-lg p-3"
+                        style={{
+                          background: 'linear-gradient(135deg, hsl(35 80% 50% / 0.06) 0%, hsl(280 60% 50% / 0.04) 100%)',
+                          border: '1.5px dashed hsl(35 70% 50% / 0.25)',
+                        }}>
+                        <p className="text-[11px] text-purple-300/80 mb-2">
+                          Block distracting websites like Instagram, TikTok & more during focus sessions.
+                        </p>
+                        <button
+                          onClick={() => setShowPremiumModal(true)}
+                          className="w-full py-2 px-3 rounded-lg text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                          style={{
+                            background: 'linear-gradient(180deg, hsl(35 90% 55%), hsl(25 90% 50%))',
+                            border: '2px solid hsl(40 80% 65%)',
+                            boxShadow: '0 3px 0 hsl(25 80% 30%), 0 0 10px hsl(35 100% 50% / 0.2)',
+                            color: 'white',
+                            textShadow: '0 1px 0 rgba(0,0,0,0.3)',
+                          }}>
+                          <Crown className="w-3 h-3" />
+                          Go Premium to Unlock
+                        </button>
+                      </div>
+                    ) : (
+                      /* PREMIUM USER */
+                      <div className="space-y-2">
+                        {shieldSelectedDomains > 0 ? (
+                          /* Has domains configured */
+                          <>
+                            <p className="text-[11px] text-purple-300/80">
+                              {shieldSelectedDomains} website{shieldSelectedDomains !== 1 ? 's' : ''} will be blocked via Screen Time during focus.
+                            </p>
+                            <button
+                              onClick={() => shieldOpenAppPicker()}
+                              disabled={timerRunning}
+                              className={cn(
+                                "w-full retro-arcade-btn retro-arcade-btn-purple py-2 px-4 text-xs",
+                                timerRunning && "opacity-50 cursor-not-allowed"
+                              )}
+                            >
+                              <Globe className="w-3 h-3 inline mr-1" />
+                              {timerRunning ? 'Locked During Session' : 'Change Blocked Websites'}
+                            </button>
+                          </>
+                        ) : (
+                          /* No domains yet */
+                          <>
+                            <p className="text-[11px] text-purple-300/80">
+                              Select websites to block via Screen Time during focus sessions.
+                            </p>
+                            <button
+                              onClick={() => shieldOpenAppPicker()}
+                              disabled={timerRunning}
+                              className={cn(
+                                "w-full retro-arcade-btn retro-arcade-btn-purple py-2 px-4 text-xs",
+                                timerRunning && "opacity-50 cursor-not-allowed"
+                              )}
+                            >
+                              <Plus className="w-3 h-3 inline mr-1" />
+                              {timerRunning ? 'Locked During Session' : 'Select Websites to Block'}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-500/10 border border-purple-500/30">
                     <Sparkles className="w-3.5 h-3.5 text-purple-400" />
                     <p className="text-[11px] text-purple-300">

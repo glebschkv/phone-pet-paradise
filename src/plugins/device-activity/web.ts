@@ -83,6 +83,19 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
     return { success: true };
   }
 
+  /** Parse saved selection to get simulated app count */
+  private getSimulatedCounts(): { appsCount: number } {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.SELECTED_APPS);
+      if (!raw) return { appsCount: 0 };
+      const apps = JSON.parse(raw);
+      if (Array.isArray(apps)) {
+        return { appsCount: apps.filter((a: { isBlocked?: boolean }) => a.isBlocked).length };
+      }
+    } catch { /* ignore */ }
+    return { appsCount: 0 };
+  }
+
   // App blocking methods (web simulation)
   async startAppBlocking(): Promise<StartBlockingResult> {
     this.isBlocking = true;
@@ -90,12 +103,11 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
     localStorage.setItem(STORAGE_KEYS.IS_BLOCKING, 'true');
     log('App blocking started (web simulation)');
 
-    const selection = localStorage.getItem(STORAGE_KEYS.SELECTED_APPS);
-    const hasApps = !!selection;
+    const { appsCount } = this.getSimulatedCounts();
 
     return {
       success: true,
-      appsBlocked: hasApps ? 1 : 0, // Simulated count
+      appsBlocked: appsCount,
       categoriesBlocked: 0,
       domainsBlocked: 0,
       note: 'Web simulation - actual blocking only works on iOS'
@@ -115,12 +127,16 @@ export class DeviceActivityWeb extends WebPlugin implements DeviceActivityPlugin
   }
 
   async getBlockingStatus(): Promise<BlockingStatus> {
+    const { appsCount } = this.getSimulatedCounts();
     return {
       isBlocking: this.isBlocking,
       focusSessionActive: this.isBlocking,
       shieldAttempts: this.shieldAttempts,
       lastShieldAttemptTimestamp: 0,
-      hasAppsConfigured: !!localStorage.getItem(STORAGE_KEYS.SELECTED_APPS)
+      hasAppsConfigured: appsCount > 0,
+      selectedAppsCount: appsCount,
+      selectedCategoriesCount: 0,
+      selectedDomainsCount: 0,
     };
   }
 

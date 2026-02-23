@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useFocusMode, SUGGESTED_APPS, SUGGESTED_WEBSITES } from '@/hooks/useFocusMode';
+import { useFocusMode, SUGGESTED_APPS } from '@/hooks/useFocusMode';
 
 // Mock Capacitor
 vi.mock('@capacitor/core', () => ({
@@ -68,7 +68,6 @@ describe('useFocusMode', () => {
         strictMode: true,
         blockNotifications: false,
         blockedApps: [],
-        blockedWebsites: [],
         allowEmergencyBypass: false,
         bypassCooldown: 60,
       };
@@ -212,107 +211,6 @@ describe('useFocusMode', () => {
       const parsed = JSON.parse(saved!);
       const youtubeApp = parsed.blockedApps.find((a: { id: string; isBlocked: boolean }) => a.id === 'youtube');
       expect(youtubeApp?.isBlocked).toBe(true);
-    });
-  });
-
-  describe('addBlockedWebsite', () => {
-    it('should add website to blocked list', async () => {
-      const { result } = renderHook(() => useFocusMode());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const initialCount = result.current.settings.blockedWebsites.length;
-
-      act(() => {
-        result.current.addBlockedWebsite('newsite.com');
-      });
-
-      expect(result.current.settings.blockedWebsites.length).toBe(initialCount + 1);
-      expect(result.current.settings.blockedWebsites).toContain('newsite.com');
-    });
-
-    it('should normalize website URL', async () => {
-      const { result } = renderHook(() => useFocusMode());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      act(() => {
-        result.current.addBlockedWebsite('https://www.example.com/');
-      });
-
-      expect(result.current.settings.blockedWebsites).toContain('example.com');
-    });
-
-    it('should not add duplicate websites', async () => {
-      const { result } = renderHook(() => useFocusMode());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // instagram.com is in defaults
-      const initialCount = result.current.settings.blockedWebsites.length;
-
-      act(() => {
-        result.current.addBlockedWebsite('instagram.com');
-      });
-
-      expect(result.current.settings.blockedWebsites.length).toBe(initialCount);
-    });
-
-    it('should not add empty website', async () => {
-      const { result } = renderHook(() => useFocusMode());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const initialCount = result.current.settings.blockedWebsites.length;
-
-      act(() => {
-        result.current.addBlockedWebsite('');
-      });
-
-      expect(result.current.settings.blockedWebsites.length).toBe(initialCount);
-    });
-  });
-
-  describe('removeBlockedWebsite', () => {
-    it('should remove website from blocked list', async () => {
-      const { result } = renderHook(() => useFocusMode());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const initialCount = result.current.settings.blockedWebsites.length;
-
-      act(() => {
-        result.current.removeBlockedWebsite('instagram.com');
-      });
-
-      expect(result.current.settings.blockedWebsites.length).toBe(initialCount - 1);
-      expect(result.current.settings.blockedWebsites).not.toContain('instagram.com');
-    });
-
-    it('should handle non-existent website gracefully', async () => {
-      const { result } = renderHook(() => useFocusMode());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const initialCount = result.current.settings.blockedWebsites.length;
-
-      act(() => {
-        result.current.removeBlockedWebsite('nonexistent.com');
-      });
-
-      expect(result.current.settings.blockedWebsites.length).toBe(initialCount);
     });
   });
 
@@ -505,11 +403,6 @@ describe('useFocusMode', () => {
     it('should export SUGGESTED_APPS', () => {
       expect(SUGGESTED_APPS).toBeDefined();
       expect(SUGGESTED_APPS.length).toBeGreaterThan(0);
-    });
-
-    it('should export SUGGESTED_WEBSITES', () => {
-      expect(SUGGESTED_WEBSITES).toBeDefined();
-      expect(SUGGESTED_WEBSITES.length).toBeGreaterThan(0);
     });
 
     it('should have valid app structure', () => {

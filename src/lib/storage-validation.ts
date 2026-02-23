@@ -211,7 +211,6 @@ export const focusModeSchema = z.object({
   strictMode: z.boolean().default(false),
   blockNotifications: z.boolean().default(true),
   blockedApps: safeArray(blockedAppSchema, 500).default([]),
-  blockedWebsites: safeArray(safeString(500), 500).default([]),
   allowEmergencyBypass: z.boolean().default(true),
   bypassCooldown: safeNonNegativeInt.max(3600).default(300),
 });

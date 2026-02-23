@@ -45,7 +45,7 @@ export { useAuthStore, useGuestId, useIsGuestMode, useHasChosenGuestMode } from 
 export type { AuthState } from './authStore';
 
 // Focus Store
-export { useFocusStore, useIsFocusModeActive, useIsNativeBlocking, useFocusModeEnabled, useBlockedApps, useBlockedWebsites, SUGGESTED_APPS } from './focusStore';
+export { useFocusStore, useIsFocusModeActive, useIsNativeBlocking, useFocusModeEnabled, useBlockedApps, SUGGESTED_APPS } from './focusStore';
 export type { FocusModeSettings, FocusState, BlockedApp } from './focusStore';
 
 // Sound Store

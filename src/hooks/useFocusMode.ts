@@ -19,7 +19,6 @@ export interface FocusModeSettings {
   strictMode: boolean; // Can't exit focus mode until timer ends
   blockNotifications: boolean;
   blockedApps: BlockedApp[];
-  blockedWebsites: string[];
   allowEmergencyBypass: boolean;
   bypassCooldown: number; // seconds before bypass is available
 }
@@ -40,26 +39,11 @@ export const SUGGESTED_APPS: BlockedApp[] = [
   { id: 'news', name: 'News Apps', icon: '📰', bundleId: 'news', isBlocked: false },
 ];
 
-// Common distracting websites
-export const SUGGESTED_WEBSITES: string[] = [
-  'instagram.com',
-  'tiktok.com',
-  'twitter.com',
-  'x.com',
-  'facebook.com',
-  'youtube.com',
-  'reddit.com',
-  'twitch.tv',
-  'netflix.com',
-  'hulu.com',
-];
-
 const defaultSettings: FocusModeSettings = {
   enabled: true,
   strictMode: false,
   blockNotifications: true,
   blockedApps: SUGGESTED_APPS,
-  blockedWebsites: ['instagram.com', 'tiktok.com', 'twitter.com', 'x.com', 'facebook.com'],
   allowEmergencyBypass: true,
   bypassCooldown: 30,
 };
@@ -148,38 +132,6 @@ export const useFocusMode = () => {
     });
   }, [isNative]);
 
-  // Add blocked website
-  const addBlockedWebsite = useCallback((website: string) => {
-    const normalized = website.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
-    if (!normalized) return;
-
-    setSettings(prev => {
-      if (prev.blockedWebsites.includes(normalized)) return prev;
-      const newSettings = {
-        ...prev,
-        blockedWebsites: [...prev.blockedWebsites, normalized],
-      };
-      try {
-        localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
-      } catch { /* storage full */ }
-      return newSettings;
-    });
-  }, []);
-
-  // Remove blocked website
-  const removeBlockedWebsite = useCallback((website: string) => {
-    setSettings(prev => {
-      const newSettings = {
-        ...prev,
-        blockedWebsites: prev.blockedWebsites.filter(w => w !== website),
-      };
-      try {
-        localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
-      } catch { /* storage full */ }
-      return newSettings;
-    });
-  }, []);
-
   // Activate focus mode (called when timer starts)
   const activateFocusMode = useCallback(async () => {
     if (!settings.enabled) return;
@@ -187,7 +139,6 @@ export const useFocusMode = () => {
 
     focusModeLogger.debug('Focus mode activating', {
       blockedApps: settings.blockedApps.filter(a => a.isBlocked).map(a => a.name),
-      blockedWebsites: settings.blockedWebsites,
       blockNotifications: settings.blockNotifications,
     });
 
@@ -253,8 +204,6 @@ export const useFocusMode = () => {
     blockedAppsCount,
     updateSettings,
     toggleAppBlocking,
-    addBlockedWebsite,
-    removeBlockedWebsite,
     activateFocusMode,
     deactivateFocusMode,
     getBlockedApps,

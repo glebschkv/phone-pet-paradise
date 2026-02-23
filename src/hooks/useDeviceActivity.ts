@@ -21,6 +21,7 @@ interface DeviceActivityState {
   lastShieldAttemptTimestamp: number;
   selectedAppsCount: number;
   selectedCategoriesCount: number;
+  selectedDomainsCount: number;
 
   // Plugin health
   pluginAvailable: boolean;
@@ -134,6 +135,7 @@ export const useDeviceActivity = () => {
       lastShieldAttemptTimestamp: 0,
       selectedAppsCount: 0,
       selectedCategoriesCount: 0,
+      selectedDomainsCount: 0,
       pluginAvailable: true,
       pluginError: null,
     };
@@ -265,6 +267,7 @@ export const useDeviceActivity = () => {
           hasAppsConfigured: false,
           selectedAppsCount: 0,
           selectedCategoriesCount: 0,
+          selectedDomainsCount: 0,
         } as BlockingStatus,
         'getBlockingStatus'
       );
@@ -278,6 +281,7 @@ export const useDeviceActivity = () => {
         lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
         selectedAppsCount: blockingStatus.selectedAppsCount,
         selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
+        selectedDomainsCount: blockingStatus.selectedDomainsCount,
         pluginAvailable: true,
         pluginError: null,
       }));
@@ -418,6 +422,7 @@ export const useDeviceActivity = () => {
             hasAppsConfigured: false,
             selectedAppsCount: 0,
             selectedCategoriesCount: 0,
+            selectedDomainsCount: 0,
           } as BlockingStatus,
           'getBlockingStatus-afterPermission'
         );
@@ -431,6 +436,7 @@ export const useDeviceActivity = () => {
           lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
           selectedAppsCount: blockingStatus.selectedAppsCount,
           selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
+          selectedDomainsCount: blockingStatus.selectedDomainsCount,
         };
 
         setState(prev => {
@@ -523,15 +529,19 @@ export const useDeviceActivity = () => {
       shieldAttempts: 0,
     }));
 
-    if (result.appsBlocked > 0 || result.categoriesBlocked > 0) {
+    if (result.appsBlocked > 0 || result.categoriesBlocked > 0 || result.domainsBlocked > 0) {
+      const parts: string[] = [];
+      if (result.appsBlocked > 0) parts.push(`${result.appsBlocked} app${result.appsBlocked !== 1 ? 's' : ''}`);
+      if (result.categoriesBlocked > 0) parts.push(`${result.categoriesBlocked} categor${result.categoriesBlocked !== 1 ? 'ies' : 'y'}`);
+      if (result.domainsBlocked > 0) parts.push(`${result.domainsBlocked} website${result.domainsBlocked !== 1 ? 's' : ''}`);
       toast.success("Focus Mode Active", {
-        description: `Blocking ${result.appsBlocked} apps and ${result.categoriesBlocked} categories`,
+        description: `Blocking ${parts.join(', ')}`,
       });
     } else if (result.success) {
-      // Native call succeeded but reported 0 apps blocked — selection may be missing
-      deviceActivityLogger.warn('startAppBlocking succeeded but 0 apps blocked — no selection data in UserDefaults?');
-      toast.warning("No Apps Blocked", {
-        description: "No apps were blocked. Try re-selecting apps in Focus Settings.",
+      // Native call succeeded but reported 0 items blocked — selection may be missing
+      deviceActivityLogger.warn('startAppBlocking succeeded but 0 items blocked — no selection data in UserDefaults?');
+      toast.warning("Nothing Blocked", {
+        description: "No apps or websites were blocked. Try re-selecting in Focus Settings.",
       });
     }
 
@@ -539,6 +549,7 @@ export const useDeviceActivity = () => {
   }, [state.pluginAvailable]);
 
   // Stop app blocking (called when timer ends)
+  // Retries up to 3 times to ensure websites/apps are unblocked reliably.
   const stopAppBlocking = useCallback(async (): Promise<StopBlockingResult> => {
     const fallbackResult: StopBlockingResult = {
       success: false,
@@ -551,23 +562,31 @@ export const useDeviceActivity = () => {
       return fallbackResult;
     }
 
-    const { result, success } = await safePluginCall(
-      () => DeviceActivity.stopAppBlocking(),
-      fallbackResult,
-      'stopAppBlocking'
-    );
+    const MAX_RETRIES = 3;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const { result, success } = await safePluginCall(
+        () => DeviceActivity.stopAppBlocking(),
+        fallbackResult,
+        `stopAppBlocking (attempt ${attempt + 1}/${MAX_RETRIES})`
+      );
 
-    if (!success) {
-      return result;
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          isBlocking: false,
+          shieldAttempts: result.shieldAttempts,
+        }));
+        return result;
+      }
+
+      // Wait before retrying (500ms, 1s)
+      if (attempt < MAX_RETRIES - 1) {
+        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt)));
+      }
     }
 
-    setState(prev => ({
-      ...prev,
-      isBlocking: false,
-      shieldAttempts: result.shieldAttempts,
-    }));
-
-    return result;
+    deviceActivityLogger.error('stopAppBlocking failed after all retries — apps/websites may remain blocked');
+    return fallbackResult;
   }, [state.pluginAvailable]);
 
   // Get current blocking status
@@ -580,6 +599,7 @@ export const useDeviceActivity = () => {
       hasAppsConfigured: false,
       selectedAppsCount: 0,
       selectedCategoriesCount: 0,
+      selectedDomainsCount: 0,
     };
 
     if (!state.pluginAvailable) {
@@ -604,6 +624,7 @@ export const useDeviceActivity = () => {
       lastShieldAttemptTimestamp: status.lastShieldAttemptTimestamp,
       selectedAppsCount: status.selectedAppsCount,
       selectedCategoriesCount: status.selectedCategoriesCount,
+      selectedDomainsCount: status.selectedDomainsCount,
     }));
 
     return status;
@@ -670,8 +691,9 @@ export const useDeviceActivity = () => {
     if (success && result?.success) {
       const appsSelected = result.appsSelected ?? 0;
       const categoriesSelected = result.categoriesSelected ?? 0;
+      const domainsSelected = result.domainsSelected ?? 0;
       deviceActivityLogger.info(
-        `App picker done: ${appsSelected} apps, ${categoriesSelected} categories`
+        `App picker done: ${appsSelected} apps, ${categoriesSelected} categories, ${domainsSelected} domains`
       );
       // Refresh blocking status after selection change
       const { result: status } = await safePluginCall(
@@ -684,6 +706,7 @@ export const useDeviceActivity = () => {
           hasAppsConfigured: false,
           selectedAppsCount: appsSelected,
           selectedCategoriesCount: categoriesSelected,
+          selectedDomainsCount: domainsSelected,
         } as BlockingStatus,
         'getBlockingStatus-afterPicker'
       );
@@ -691,6 +714,7 @@ export const useDeviceActivity = () => {
         hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
         selectedAppsCount: status.selectedAppsCount || appsSelected,
         selectedCategoriesCount: status.selectedCategoriesCount || categoriesSelected,
+        selectedDomainsCount: status.selectedDomainsCount || domainsSelected,
       };
 
       setState(prev => {
@@ -756,6 +780,7 @@ export const useDeviceActivity = () => {
       isBlocking: false,
       selectedAppsCount: 0,
       selectedCategoriesCount: 0,
+      selectedDomainsCount: 0,
     }));
 
     // Try to clear on native if plugin is available
@@ -881,12 +906,17 @@ export const useDeviceActivity = () => {
     ? state.selectedAppsCount + state.selectedCategoriesCount
     : simulatedApps.filter(app => app.isBlocked).length;
 
+  const blockedDomainsCount = isNative
+    ? state.selectedDomainsCount
+    : 0;
+
   return {
     // State
     ...state,
     isNative,
     simulatedApps,
     blockedAppsCount,
+    blockedDomainsCount,
 
     // Permission methods
     requestPermissions,
