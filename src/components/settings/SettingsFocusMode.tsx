@@ -110,7 +110,7 @@ export const SettingsFocusMode = () => {
                 )}
                 <div>
                   <p className="text-sm font-semibold text-white">Strict Mode</p>
-                  <p className="text-[11px] text-purple-300/80">Can't quit until timer ends</p>
+                  <p className="text-[11px] text-purple-300/80">Session locked until timer ends</p>
                 </div>
               </div>
               <Switch
@@ -124,7 +124,7 @@ export const SettingsFocusMode = () => {
                 <div className="flex items-center gap-2 text-red-400">
                   <AlertTriangle className="w-3 h-3" />
                   <p className="text-[11px] font-medium">
-                    You won't be able to exit focus mode until the timer completes
+                    Focus mode stays active until the timer completes
                   </p>
                 </div>
               </div>
