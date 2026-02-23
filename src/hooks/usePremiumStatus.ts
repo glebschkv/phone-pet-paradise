@@ -3,6 +3,7 @@ import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { safeJsonParse } from '@/lib/apiUtils';
 import { logger } from '@/lib/logger';
 import { useIsGuestMode } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 
 const PREMIUM_STORAGE_KEY = 'petIsland_premium';
 const LAST_VERIFICATION_KEY = 'petIsland_premium_lastVerified';
@@ -258,8 +259,11 @@ export const usePremiumStatus = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const verificationInProgressRef = useRef(false);
 
-  // SECURITY: Guest users cannot have premium status
   const isGuestMode = useIsGuestMode();
+  const { session } = useAuth();
+  // Local-only guests (no Supabase session, e.g. offline) cannot have premium.
+  // Anonymous Supabase users DO have a session and CAN purchase premium.
+  const isLocalOnlyGuest = isGuestMode && !session;
 
   /**
    * SECURITY: Verify premium status with server
@@ -438,13 +442,13 @@ export const usePremiumStatus = () => {
   }, []);
 
   // Get effective tier (lifetime is treated as premium_plus for features)
-  // SECURITY: Guest users are always treated as free tier
-  const effectiveTier = isGuestMode ? 'free' : (state.tier === 'lifetime' ? 'lifetime' : state.tier);
+  // SECURITY: Local-only guests (no server identity) are always free tier.
+  // Anonymous Supabase users CAN have premium if they purchased a subscription.
+  const effectiveTier = isLocalOnlyGuest ? 'free' : (state.tier === 'lifetime' ? 'lifetime' : state.tier);
 
-  // SECURITY: Guest users cannot have premium status - must sign up first
-  const isPremium = !isGuestMode && (state.tier === 'premium' || state.tier === 'premium_plus' || state.tier === 'lifetime');
-  const isPremiumPlus = !isGuestMode && (state.tier === 'premium_plus' || state.tier === 'lifetime');
-  const isLifetime = !isGuestMode && state.tier === 'lifetime';
+  const isPremium = !isLocalOnlyGuest && (state.tier === 'premium' || state.tier === 'premium_plus' || state.tier === 'lifetime');
+  const isPremiumPlus = !isLocalOnlyGuest && (state.tier === 'premium_plus' || state.tier === 'lifetime');
+  const isLifetime = !isLocalOnlyGuest && state.tier === 'lifetime';
 
   // Get current tier benefits
   const getTierBenefits = useCallback(() => {
@@ -623,9 +627,9 @@ export const usePremiumStatus = () => {
    * This function is only for development/testing purposes.
    */
   const purchaseSubscription = useCallback((planId: string): { success: boolean; message: string } => {
-    // SECURITY: Guest users must sign up before purchasing
-    if (isGuestMode) {
-      logger.warn('purchaseSubscription blocked - guest users must sign up first');
+    // SECURITY: Local-only guests (no server identity) cannot purchase
+    if (isLocalOnlyGuest) {
+      logger.warn('purchaseSubscription blocked - local guest has no server identity');
       return { success: false, message: 'Please create an account to subscribe.' };
     }
 
