@@ -549,6 +549,7 @@ export const useDeviceActivity = () => {
   }, [state.pluginAvailable]);
 
   // Stop app blocking (called when timer ends)
+  // Retries up to 3 times to ensure websites/apps are unblocked reliably.
   const stopAppBlocking = useCallback(async (): Promise<StopBlockingResult> => {
     const fallbackResult: StopBlockingResult = {
       success: false,
@@ -561,23 +562,31 @@ export const useDeviceActivity = () => {
       return fallbackResult;
     }
 
-    const { result, success } = await safePluginCall(
-      () => DeviceActivity.stopAppBlocking(),
-      fallbackResult,
-      'stopAppBlocking'
-    );
+    const MAX_RETRIES = 3;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const { result, success } = await safePluginCall(
+        () => DeviceActivity.stopAppBlocking(),
+        fallbackResult,
+        `stopAppBlocking (attempt ${attempt + 1}/${MAX_RETRIES})`
+      );
 
-    if (!success) {
-      return result;
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          isBlocking: false,
+          shieldAttempts: result.shieldAttempts,
+        }));
+        return result;
+      }
+
+      // Wait before retrying (500ms, 1s)
+      if (attempt < MAX_RETRIES - 1) {
+        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt)));
+      }
     }
 
-    setState(prev => ({
-      ...prev,
-      isBlocking: false,
-      shieldAttempts: result.shieldAttempts,
-    }));
-
-    return result;
+    deviceActivityLogger.error('stopAppBlocking failed after all retries — apps/websites may remain blocked');
+    return fallbackResult;
   }, [state.pluginAvailable]);
 
   // Get current blocking status
