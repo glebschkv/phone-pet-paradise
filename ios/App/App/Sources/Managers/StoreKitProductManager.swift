@@ -52,9 +52,22 @@ final class StoreKitProductManager {
         if let storefront = await Storefront.current {
             lastStorefrontCountryCode = storefront.countryCode
             Log.storeKit.info("Storefront: \(storefront.countryCode), Device locale: \(Locale.current.identifier)")
-            for product in products {
-                Log.storeKit.debug("  \(product.id): displayPrice=\"\(product.displayPrice)\", price=\(product.price)")
+        } else {
+            // Storefront.current is nil in some TestFlight/sandbox scenarios.
+            // Fall back to the device's locale region (2-letter ISO code, e.g. "NL",
+            // "US", "DE") so the JS layer can still detect currency mismatches.
+            let fallbackRegion: String?
+            if #available(iOS 16, *) {
+                fallbackRegion = Locale.current.region?.identifier
+            } else {
+                fallbackRegion = Locale.current.regionCode
             }
+            lastStorefrontCountryCode = fallbackRegion
+            Log.storeKit.info("Storefront unavailable, using device region: \(fallbackRegion ?? "nil"), locale: \(Locale.current.identifier)")
+        }
+
+        for product in products {
+            Log.storeKit.debug("  \(product.id): displayPrice=\"\(product.displayPrice)\", price=\(product.price)")
         }
 
         Log.storeKit.success("Fetched \(products.count) products")

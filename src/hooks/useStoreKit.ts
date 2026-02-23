@@ -233,15 +233,18 @@ function _setSharedStorefront(code: string | null) {
   _storefrontListeners.forEach(fn => fn(code));
 }
 
-// ISO 3166-1 alpha-3 codes for countries whose App Store uses USD.
+// Countries whose App Store uses USD.
 // When the storefront is one of these AND displayPrice contains "$",
 // the price is correct — no mismatch.
+// Includes both ISO 3166-1 alpha-3 codes (from Storefront.current) and
+// alpha-2 codes (from Locale.current.region fallback when Storefront is nil,
+// which is common in TestFlight/sandbox).
 const USD_STOREFRONTS = new Set([
-  'USA', // United States
-  'ECU', // Ecuador
-  'SLV', // El Salvador
-  'PAN', // Panama
-  'TLS', // Timor-Leste
+  'USA', 'US', // United States
+  'ECU', 'EC', // Ecuador
+  'SLV', 'SV', // El Salvador
+  'PAN', 'PA', // Panama
+  'TLS', 'TL', // Timor-Leste
 ]);
 
 export const useStoreKit = (): UseStoreKitReturn => {
