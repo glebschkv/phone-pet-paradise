@@ -139,6 +139,17 @@ export default function Auth() {
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // GUARD: If user is an anonymous guest, signInWithPassword would create a
+    // NEW session and orphan their anonymous account's purchases/progress.
+    // Redirect them to sign-up instead, which uses updateUser() to link.
+    if (isAnonymous) {
+      toast.info('Create an account first to keep your progress', {
+        description: 'Use "Create Account" to add email & password to your guest account.',
+      });
+      setMode('signup');
+      return;
+    }
+
     if (!isSupabaseConfigured) {
       toast.error('Authentication is not available. Please try again later.');
       return;
