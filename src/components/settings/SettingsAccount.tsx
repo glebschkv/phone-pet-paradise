@@ -279,59 +279,44 @@ export const SettingsAccount = () => {
           {/* Account Status */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-900/20 border border-purple-600/30">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              isLocalOnlyGuest ? 'retro-stat-pill' : 'bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-purple-300'
+              isGuestMode ? 'retro-stat-pill' : 'bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-purple-300'
             }`}>
-              {isLocalOnlyGuest ? (
+              {isGuestMode ? (
                 <User className="w-5 h-5 text-muted-foreground" />
-              ) : isAnonymous ? (
-                <User className="w-5 h-5 text-white" />
               ) : (
                 <Mail className="w-5 h-5 text-white" />
               )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white truncate">
-                {isLocalOnlyGuest ? 'Guest Account' : isAnonymous ? 'Guest Account' : user?.email}
+                {isGuestMode ? 'Guest Account' : user?.email}
               </p>
               <p className="text-[11px] text-purple-300/80">
-                {isLocalOnlyGuest ? 'Data saved locally only' : 'Synced to cloud'}
+                {isGuestMode ? 'Not signed in — create an account to save your progress' : 'Synced to cloud'}
               </p>
             </div>
-            {isLocalOnlyGuest && (
+            {isGuestMode && (
               <span className="retro-difficulty-badge retro-difficulty-hard text-[11px]">
-                Offline
+                Guest
               </span>
             )}
           </div>
 
           {/* Guest Mode Warning */}
-          {isLocalOnlyGuest && (
+          {isGuestMode && (
             <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
               <div className="flex items-start gap-2">
                 <Shield className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-xs font-medium text-amber-300">
-                    Your progress is only saved on this device
+                    {isLocalOnlyGuest
+                      ? 'Your progress is only saved on this device'
+                      : 'You\'re signed in as a guest'}
                   </p>
                   <p className="text-[11px] text-amber-400/70 mt-1">
-                    Sign in to sync your pets and progress across devices
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Anonymous account prompt */}
-          {isAnonymous && !isLocalOnlyGuest && (
-            <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
-              <div className="flex items-start gap-2">
-                <Shield className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-medium text-cyan-300">
-                    Add an email to secure your account
-                  </p>
-                  <p className="text-[11px] text-cyan-400/70 mt-1">
-                    Your purchases are saved, but adding an email lets you sign in on other devices
+                    {isLocalOnlyGuest
+                      ? 'Sign in to sync your pets and progress across devices'
+                      : 'Create an account to keep your progress and sync across devices'}
                   </p>
                 </div>
               </div>
@@ -345,7 +330,7 @@ export const SettingsAccount = () => {
               className="w-full retro-arcade-btn retro-arcade-btn-yellow px-3 py-2.5 text-sm flex items-center justify-center gap-2"
             >
               <Mail className="w-4 h-4" />
-              <span>{isAnonymous ? 'Add Email or Sign In' : 'Sign In or Create Account'}</span>
+              <span>Sign In or Create Account</span>
             </button>
           )}
         </div>
