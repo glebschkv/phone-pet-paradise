@@ -92,11 +92,15 @@ const ConfirmDialog = ({
 };
 
 export const SettingsAccount = () => {
-  const { user, isGuestMode, signOut, session } = useAuth();
+  const { user, isGuestMode, isAnonymous, signOut, session } = useAuth();
   const navigate = useNavigate();
   const { isPremium, currentPlan, restorePurchases: restoreMock } = usePremiumStatus();
   const storeKit = useStoreKit();
   const [isSigningOut, setIsSigningOut] = useState(false);
+
+  // Local-only guests have no Supabase session (e.g. offline fallback).
+  // Anonymous Supabase users have a real session — their data IS server-synced.
+  const isLocalOnlyGuest = isGuestMode && !session;
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
@@ -288,7 +292,7 @@ export const SettingsAccount = () => {
                 {isGuestMode ? 'Guest Account' : user?.email}
               </p>
               <p className="text-[11px] text-purple-300/80">
-                {isGuestMode ? 'Data saved locally only' : 'Synced to cloud'}
+                {isGuestMode ? 'Not signed in — create an account to save your progress' : 'Synced to cloud'}
               </p>
             </div>
             {isGuestMode && (
@@ -305,17 +309,21 @@ export const SettingsAccount = () => {
                 <Shield className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-xs font-medium text-amber-300">
-                    Your progress is only saved on this device
+                    {isLocalOnlyGuest
+                      ? 'Your progress is only saved on this device'
+                      : 'You\'re signed in as a guest'}
                   </p>
                   <p className="text-[11px] text-amber-400/70 mt-1">
-                    Sign in to sync your pets and progress across devices
+                    {isLocalOnlyGuest
+                      ? 'Sign in to sync your pets and progress across devices'
+                      : 'Create an account to keep your progress and sync across devices'}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Sign In Button (for guests) */}
+          {/* Sign In / Create Account Button (for guests) */}
           {isGuestMode && (
             <button
               onClick={handleSignIn}
@@ -342,7 +350,7 @@ export const SettingsAccount = () => {
         >
           <LogOut className="w-4 h-4" />
           <span className="text-sm font-semibold">
-            {isGuestMode ? 'Exit Guest Mode' : 'Sign Out'}
+            {isLocalOnlyGuest ? 'Exit Guest Mode' : 'Sign Out'}
           </span>
         </button>
       </div>
@@ -352,18 +360,18 @@ export const SettingsAccount = () => {
         open={signOutDialogOpen}
         onCancel={() => setSignOutDialogOpen(false)}
         onConfirm={handleSignOut}
-        title={isGuestMode ? 'Exit Guest Mode?' : 'Sign Out?'}
+        title={isLocalOnlyGuest ? 'Exit Guest Mode?' : 'Sign Out?'}
         description={
-          isGuestMode
+          isLocalOnlyGuest
             ? 'Your local progress will be cleared. You can sign in or start fresh as a new guest.'
             : 'You can sign back in anytime to access your synced progress.'
         }
-        confirmLabel={isGuestMode ? 'Exit' : 'Sign Out'}
+        confirmLabel={isLocalOnlyGuest ? 'Exit' : 'Sign Out'}
         isLoading={isSigningOut}
       />
 
-      {/* Danger Zone - Delete Account (only for logged in users) */}
-      {!isGuestMode && (
+      {/* Danger Zone - Delete Account (for users with a server identity) */}
+      {!!session && (
         <div className="retro-game-card p-4 border-red-500/30">
           <div className="flex items-center gap-2 mb-3">
             <Trash2 className="w-4 h-4 text-red-400" />

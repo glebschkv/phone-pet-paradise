@@ -19,6 +19,10 @@ final class StoreKitProductManager {
     private var cachedProducts: [String: Product] = [:]
     private let lock = NSLock()
 
+    /// The storefront country code detected during the last product fetch.
+    /// Used by StoreKitPlugin to pass to JS for currency-mismatch detection.
+    private(set) var lastStorefrontCountryCode: String?
+
     // MARK: - Initialization
 
     init() {
@@ -42,9 +46,28 @@ final class StoreKitProductManager {
         }
         lock.unlock()
 
-        // Log storefront info for debugging price-currency mismatches
+        // Capture storefront info for currency-mismatch detection on the JS side.
+        // In TestFlight/sandbox, displayPrice can return USD even for non-US
+        // storefronts — the JS layer uses this code to detect and work around it.
         if let storefront = await Storefront.current {
+            lastStorefrontCountryCode = storefront.countryCode
             Log.storeKit.info("Storefront: \(storefront.countryCode), Device locale: \(Locale.current.identifier)")
+        } else {
+            // Storefront.current is nil in some TestFlight/sandbox scenarios.
+            // Fall back to the device's locale region (2-letter ISO code, e.g. "NL",
+            // "US", "DE") so the JS layer can still detect currency mismatches.
+            let fallbackRegion: String?
+            if #available(iOS 16, *) {
+                fallbackRegion = Locale.current.region?.identifier
+            } else {
+                fallbackRegion = Locale.current.regionCode
+            }
+            lastStorefrontCountryCode = fallbackRegion
+            Log.storeKit.info("Storefront unavailable, using device region: \(fallbackRegion ?? "nil"), locale: \(Locale.current.identifier)")
+        }
+
+        for product in products {
+            Log.storeKit.debug("  \(product.id): displayPrice=\"\(product.displayPrice)\", price=\(product.price)")
         }
 
         Log.storeKit.success("Fetched \(products.count) products")

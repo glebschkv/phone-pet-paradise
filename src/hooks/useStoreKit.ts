@@ -219,15 +219,37 @@ interface UseStoreKitReturn {
 // prices simultaneously.
 // ---------------------------------------------------------------------------
 let _sharedProducts: StoreKitProduct[] = [];
+let _sharedStorefrontCountryCode: string | null = null;
 const _productListeners = new Set<(products: StoreKitProduct[]) => void>();
+const _storefrontListeners = new Set<(code: string | null) => void>();
 
 function _setSharedProducts(products: StoreKitProduct[]) {
   _sharedProducts = products;
   _productListeners.forEach(fn => fn(products));
 }
 
+function _setSharedStorefront(code: string | null) {
+  _sharedStorefrontCountryCode = code;
+  _storefrontListeners.forEach(fn => fn(code));
+}
+
+// Countries whose App Store uses USD.
+// When the storefront is one of these AND displayPrice contains "$",
+// the price is correct — no mismatch.
+// Includes both ISO 3166-1 alpha-3 codes (from Storefront.current) and
+// alpha-2 codes (from Locale.current.region fallback when Storefront is nil,
+// which is common in TestFlight/sandbox).
+const USD_STOREFRONTS = new Set([
+  'USA', 'US', // United States
+  'ECU', 'EC', // Ecuador
+  'SLV', 'SV', // El Salvador
+  'PAN', 'PA', // Panama
+  'TLS', 'TL', // Timor-Leste
+]);
+
 export const useStoreKit = (): UseStoreKitReturn => {
   const [products, setProducts] = useState<StoreKitProduct[]>(_sharedProducts);
+  const [storefrontCountryCode, setStorefrontCountryCode] = useState<string | null>(_sharedStorefrontCountryCode);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(_sharedProducts.length === 0);
   const [isPurchasing, setIsPurchasing] = useState(false);
@@ -249,18 +271,26 @@ export const useStoreKit = (): UseStoreKitReturn => {
   useEffect(() => {
     mountedRef.current = true;
     // Subscribe to shared product updates from other hook instances
-    const onUpdate = (p: StoreKitProduct[]) => {
+    const onProductUpdate = (p: StoreKitProduct[]) => {
       if (mountedRef.current) setProducts(p);
     };
-    _productListeners.add(onUpdate);
+    const onStorefrontUpdate = (code: string | null) => {
+      if (mountedRef.current) setStorefrontCountryCode(code);
+    };
+    _productListeners.add(onProductUpdate);
+    _storefrontListeners.add(onStorefrontUpdate);
     // Sync with current shared state (another instance may have loaded already)
     if (_sharedProducts.length > 0 && products.length === 0) {
       setProducts(_sharedProducts);
       setIsLoading(false);
     }
+    if (_sharedStorefrontCountryCode && !storefrontCountryCode) {
+      setStorefrontCountryCode(_sharedStorefrontCountryCode);
+    }
     return () => {
       mountedRef.current = false;
-      _productListeners.delete(onUpdate);
+      _productListeners.delete(onProductUpdate);
+      _storefrontListeners.delete(onStorefrontUpdate);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -313,6 +343,13 @@ export const useStoreKit = (): UseStoreKitReturn => {
       setPluginError(null);
       setProducts(result.products);
       _setSharedProducts(result.products);
+
+      // Capture storefront country code for currency-mismatch detection
+      if (result.storefrontCountryCode) {
+        setStorefrontCountryCode(result.storefrontCountryCode);
+        _setSharedStorefront(result.storefrontCountryCode);
+        logger.debug(`Storefront country: ${result.storefrontCountryCode}`);
+      }
 
       // Log which products were loaded vs. requested so we can
       // diagnose "purchase failed" for missing products.
@@ -740,20 +777,40 @@ export const useStoreKit = (): UseStoreKitReturn => {
 
   // Get localized price from App Store.
   // On native devices, always prefer the StoreKit displayPrice (localized to
-  // user's App Store region/currency). On native, NEVER show the hardcoded USD
+  // user's App Store region/currency). On native, NEVER show the hardcoded
   // fallback — show '…' until the real price loads. Only use the fallback on
   // web where StoreKit is unavailable.
+  //
+  // Currency-mismatch workaround: In TestFlight/sandbox, StoreKit can return
+  // USD-formatted displayPrice even when the user's real storefront is non-US.
+  // When we detect a mismatch (non-USD storefront + "$" in displayPrice), we
+  // fall back to the hardcoded price which is in the app's base currency (EUR).
   const getLocalizedPrice = useCallback((iapProductId: string, fallbackPrice: string): string => {
     const product = products.find(p => p.id === iapProductId);
-    if (product?.displayPrice && product.displayPrice.trim() !== '') return product.displayPrice;
-    // On native, never show the USD fallback — it's the wrong currency for
-    // non-US users. Show placeholder until StoreKit provides the real price.
+    if (product?.displayPrice && product.displayPrice.trim() !== '') {
+      // Detect currency mismatch: storefront is non-USD but displayPrice is "$"
+      if (
+        storefrontCountryCode &&
+        !USD_STOREFRONTS.has(storefrontCountryCode) &&
+        /^\$/.test(product.displayPrice)
+      ) {
+        logger.warn(
+          `[getLocalizedPrice] Currency mismatch for "${iapProductId}": ` +
+          `storefront=${storefrontCountryCode} but displayPrice="${product.displayPrice}". ` +
+          `Using hardcoded fallback "${fallbackPrice}".`
+        );
+        return fallbackPrice;
+      }
+      return product.displayPrice;
+    }
+    // On native, never show the hardcoded fallback while products are still
+    // loading — show placeholder until StoreKit provides the real price.
     if (Capacitor.isNativePlatform()) {
       logger.debug(`[getLocalizedPrice] Product "${iapProductId}" not loaded yet (${products.length} products cached)`);
       return '…';
     }
     return fallbackPrice;
-  }, [products]);
+  }, [products, storefrontCountryCode]);
 
   // Initialize on mount — runs exactly once per hook instance.
   // Dependencies intentionally omitted to prevent the re-initialization loop

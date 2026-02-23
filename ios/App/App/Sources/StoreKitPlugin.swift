@@ -71,7 +71,13 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
             do {
                 let products = try await productManager.fetchProducts(productIds: productIds)
                 let productsData = products.map { productManager.productToDictionary($0) }
-                call.resolve(["products": productsData])
+
+                var response: [String: Any] = ["products": productsData]
+                if let countryCode = productManager.lastStorefrontCountryCode {
+                    response["storefrontCountryCode"] = countryCode
+                }
+
+                call.resolve(response)
             } catch {
                 Log.storeKit.failure("getProducts failed", error: error)
                 call.reject("Failed to fetch products: \(error.localizedDescription)", errorCode(from: error))

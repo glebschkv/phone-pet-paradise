@@ -35,7 +35,7 @@ type AuthMode = 'welcome' | 'magic-link' | 'email-password' | 'signup' | 'forgot
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { isAuthenticated, isLoading: authLoading, continueAsGuest, isGuestMode, passwordRecoveryPending, clearPasswordRecovery } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, continueAsGuest, isGuestMode, isAnonymous, passwordRecoveryPending, clearPasswordRecovery } = useAuth();
   const [mode, setMode] = useState<AuthMode>('welcome');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -103,16 +103,25 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: getRedirectUrl(),
-        },
-      });
+      if (isAnonymous) {
+        // Anonymous user linking email — use updateUser to preserve their user_id
+        const { error } = await supabase.auth.updateUser({ email });
+        if (error) {
+          recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.auth, false);
+          throw error;
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: getRedirectUrl(),
+          },
+        });
 
-      if (error) {
-        recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.auth, false);
-        throw error;
+        if (error) {
+          recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.auth, false);
+          throw error;
+        }
       }
 
       // Clear rate limit on success
@@ -129,6 +138,17 @@ export default function Auth() {
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // GUARD: If user is an anonymous guest, signInWithPassword would create a
+    // NEW session and orphan their anonymous account's purchases/progress.
+    // Redirect them to sign-up instead, which uses updateUser() to link.
+    if (isAnonymous) {
+      toast.info('Create an account first to keep your progress', {
+        description: 'Use "Create Account" to add email & password to your guest account.',
+      });
+      setMode('signup');
+      return;
+    }
 
     if (!isSupabaseConfigured) {
       toast.error('Authentication is not available. Please try again later.');
@@ -211,32 +231,53 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: getRedirectUrl(),
-        },
-      });
-
-      if (error) {
-        recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.auth, false);
-        throw error;
-      }
-
-      // Check if user already exists (Supabase returns user but with empty identities)
-      if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
-        toast.error('An account with this email already exists', {
-          description: 'Try signing in instead, or use "Forgot Password" to reset.',
+      if (isAnonymous) {
+        // Anonymous user creating an account — link email+password to their
+        // existing anonymous identity. This preserves their user_id so all
+        // purchases, coins, and progress carry over seamlessly.
+        const { error } = await supabase.auth.updateUser({
+          email,
+          password,
         });
-        setMode('email-password');
-        setIsLoading(false);
-        return;
-      }
 
-      // Clear rate limit on success — show inline confirmation
-      clearRateLimit(rateLimitKey);
-      setEmailSentTo(email);
+        if (error) {
+          recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.auth, false);
+          throw error;
+        }
+
+        // Clear rate limit on success — show inline confirmation
+        // (Supabase sends a confirmation email to verify the new address)
+        clearRateLimit(rateLimitKey);
+        setEmailSentTo(email);
+      } else {
+        // Fresh sign-up (no existing anonymous session)
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: getRedirectUrl(),
+          },
+        });
+
+        if (error) {
+          recordRateLimitAttempt(rateLimitKey, RATE_LIMIT_CONFIGS.auth, false);
+          throw error;
+        }
+
+        // Check if user already exists (Supabase returns user but with empty identities)
+        if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+          toast.error('An account with this email already exists', {
+            description: 'Try signing in instead, or use "Forgot Password" to reset.',
+          });
+          setMode('email-password');
+          setIsLoading(false);
+          return;
+        }
+
+        // Clear rate limit on success — show inline confirmation
+        clearRateLimit(rateLimitKey);
+        setEmailSentTo(email);
+      }
       setEmailSent(true);
     } catch (error: unknown) {
       const message = sanitizeErrorMessage(error);
@@ -346,9 +387,9 @@ export default function Auth() {
     }
   };
 
-  const handleGuestMode = () => {
-    // Set guest mode flag and navigate
-    continueAsGuest();
+  const handleGuestMode = async () => {
+    // Set guest mode flag (creates anonymous Supabase session) and navigate
+    await continueAsGuest();
     navigate('/');
   };
 
@@ -360,6 +401,54 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
+      // If user is anonymous, link the Apple identity to their existing account
+      // so purchases and progress are preserved.
+      if (isAnonymous) {
+        const isNativeIOS = Capacitor.getPlatform() === 'ios';
+
+        if (isNativeIOS) {
+          // Native iOS: use signInWithIdToken because linkIdentity requires
+          // an OAuth redirect which isn't available for native Apple Sign In.
+          // NOTE: signInWithIdToken may create a new user instead of linking
+          // to the anonymous one — Supabase doesn't reliably auto-link here.
+          const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
+
+          const rawNonce = crypto.randomUUID();
+          const hashedNonce = await sha256(rawNonce);
+
+          const result = await SignInWithApple.authorize({
+            clientId: 'co.nomoinc.nomo',
+            redirectURI: 'https://nomoinc.co',
+            scopes: 'email name',
+            state: crypto.randomUUID(),
+            nonce: hashedNonce,
+          });
+
+          const { error } = await supabase.auth.signInWithIdToken({
+            provider: 'apple',
+            token: result.response.identityToken,
+            nonce: rawNonce,
+          });
+
+          if (error) throw error;
+        } else {
+          // Web: use linkIdentity to associate Apple with the anonymous account
+          const { error } = await supabase.auth.linkIdentity({
+            provider: 'apple',
+            options: {
+              redirectTo: getRedirectUrl(),
+            },
+          });
+
+          if (error) throw error;
+        }
+
+        toast.success('Signed in with Apple!');
+        navigate('/');
+        return;
+      }
+
+      // Regular sign-in (not anonymous)
       const isNativeIOS = Capacitor.getPlatform() === 'ios';
 
       if (isNativeIOS) {

@@ -64,7 +64,7 @@ export interface StoreKitPlugin {
   /**
    * Get products from the App Store
    */
-  getProducts(options: { productIds: string[] }): Promise<{ products: StoreKitProduct[] }>;
+  getProducts(options: { productIds: string[] }): Promise<{ products: StoreKitProduct[]; storefrontCountryCode?: string }>;
 
   /**
    * Purchase a product.
