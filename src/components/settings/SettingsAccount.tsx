@@ -92,11 +92,15 @@ const ConfirmDialog = ({
 };
 
 export const SettingsAccount = () => {
-  const { user, isGuestMode, signOut, session } = useAuth();
+  const { user, isGuestMode, isAnonymous, signOut, session } = useAuth();
   const navigate = useNavigate();
   const { isPremium, currentPlan, restorePurchases: restoreMock } = usePremiumStatus();
   const storeKit = useStoreKit();
   const [isSigningOut, setIsSigningOut] = useState(false);
+
+  // Local-only guests have no Supabase session (e.g. offline fallback).
+  // Anonymous Supabase users have a real session — their data IS server-synced.
+  const isLocalOnlyGuest = isGuestMode && !session;
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
@@ -275,31 +279,33 @@ export const SettingsAccount = () => {
           {/* Account Status */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-900/20 border border-purple-600/30">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              isGuestMode ? 'retro-stat-pill' : 'bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-purple-300'
+              isLocalOnlyGuest ? 'retro-stat-pill' : 'bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-purple-300'
             }`}>
-              {isGuestMode ? (
+              {isLocalOnlyGuest ? (
                 <User className="w-5 h-5 text-muted-foreground" />
+              ) : isAnonymous ? (
+                <User className="w-5 h-5 text-white" />
               ) : (
                 <Mail className="w-5 h-5 text-white" />
               )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white truncate">
-                {isGuestMode ? 'Guest Account' : user?.email}
+                {isLocalOnlyGuest ? 'Guest Account' : isAnonymous ? 'Guest Account' : user?.email}
               </p>
               <p className="text-[11px] text-purple-300/80">
-                {isGuestMode ? 'Data saved locally only' : 'Synced to cloud'}
+                {isLocalOnlyGuest ? 'Data saved locally only' : 'Synced to cloud'}
               </p>
             </div>
-            {isGuestMode && (
+            {isLocalOnlyGuest && (
               <span className="retro-difficulty-badge retro-difficulty-hard text-[11px]">
-                Guest
+                Offline
               </span>
             )}
           </div>
 
           {/* Guest Mode Warning */}
-          {isGuestMode && (
+          {isLocalOnlyGuest && (
             <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
               <div className="flex items-start gap-2">
                 <Shield className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
@@ -315,14 +321,31 @@ export const SettingsAccount = () => {
             </div>
           )}
 
-          {/* Sign In Button (for guests) */}
+          {/* Anonymous account prompt */}
+          {isAnonymous && !isLocalOnlyGuest && (
+            <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
+              <div className="flex items-start gap-2">
+                <Shield className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-cyan-300">
+                    Add an email to secure your account
+                  </p>
+                  <p className="text-[11px] text-cyan-400/70 mt-1">
+                    Your purchases are saved, but adding an email lets you sign in on other devices
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sign In / Create Account Button (for guests) */}
           {isGuestMode && (
             <button
               onClick={handleSignIn}
               className="w-full retro-arcade-btn retro-arcade-btn-yellow px-3 py-2.5 text-sm flex items-center justify-center gap-2"
             >
               <Mail className="w-4 h-4" />
-              <span>Sign In or Create Account</span>
+              <span>{isAnonymous ? 'Add Email or Sign In' : 'Sign In or Create Account'}</span>
             </button>
           )}
         </div>
@@ -342,7 +365,7 @@ export const SettingsAccount = () => {
         >
           <LogOut className="w-4 h-4" />
           <span className="text-sm font-semibold">
-            {isGuestMode ? 'Exit Guest Mode' : 'Sign Out'}
+            {isLocalOnlyGuest ? 'Exit Guest Mode' : 'Sign Out'}
           </span>
         </button>
       </div>
@@ -352,18 +375,18 @@ export const SettingsAccount = () => {
         open={signOutDialogOpen}
         onCancel={() => setSignOutDialogOpen(false)}
         onConfirm={handleSignOut}
-        title={isGuestMode ? 'Exit Guest Mode?' : 'Sign Out?'}
+        title={isLocalOnlyGuest ? 'Exit Guest Mode?' : 'Sign Out?'}
         description={
-          isGuestMode
+          isLocalOnlyGuest
             ? 'Your local progress will be cleared. You can sign in or start fresh as a new guest.'
             : 'You can sign back in anytime to access your synced progress.'
         }
-        confirmLabel={isGuestMode ? 'Exit' : 'Sign Out'}
+        confirmLabel={isLocalOnlyGuest ? 'Exit' : 'Sign Out'}
         isLoading={isSigningOut}
       />
 
-      {/* Danger Zone - Delete Account (only for logged in users) */}
-      {!isGuestMode && (
+      {/* Danger Zone - Delete Account (for users with a server identity) */}
+      {!!session && (
         <div className="retro-game-card p-4 border-red-500/30">
           <div className="flex items-center gap-2 mb-3">
             <Trash2 className="w-4 h-4 text-red-400" />

@@ -671,7 +671,7 @@ export const usePremiumStatus = () => {
     dispatchSubscriptionChange(plan.tier);
 
     return { success: true, message: `Successfully subscribed to ${plan.name}!` };
-  }, [isGuestMode]);
+  }, [isLocalOnlyGuest]);
 
   // Restore purchases (for app reinstalls)
   const restorePurchases = useCallback((): { success: boolean; message: string } => {

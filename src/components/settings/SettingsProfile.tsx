@@ -20,12 +20,16 @@ const AVATAR_OPTIONS = [
 ];
 
 export const SettingsProfile = () => {
-  const { isGuestMode } = useAuth();
+  const { isGuestMode, session } = useAuth();
   const { profile, updateProfile } = useSupabaseData();
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('default');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Local-only guests (no session) can't save profiles — hide the section.
+  // Anonymous Supabase users DO have a session and can edit their profile.
+  const isLocalOnlyGuest = isGuestMode && !session;
 
   useEffect(() => {
     if (profile) {
@@ -63,7 +67,7 @@ export const SettingsProfile = () => {
 
   const currentAvatar = AVATAR_OPTIONS.find(a => a.id === selectedAvatar) || AVATAR_OPTIONS[0];
 
-  if (isGuestMode) {
+  if (isLocalOnlyGuest) {
     return null;
   }
 

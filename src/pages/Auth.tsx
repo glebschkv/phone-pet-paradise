@@ -396,8 +396,10 @@ export default function Auth() {
         const isNativeIOS = Capacitor.getPlatform() === 'ios';
 
         if (isNativeIOS) {
-          // Native iOS: use signInWithIdToken (linkIdentity doesn't support native Apple flow)
-          // This will link the Apple identity to the current anonymous user.
+          // Native iOS: use signInWithIdToken because linkIdentity requires
+          // an OAuth redirect which isn't available for native Apple Sign In.
+          // NOTE: signInWithIdToken may create a new user instead of linking
+          // to the anonymous one — Supabase doesn't reliably auto-link here.
           const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
 
           const rawNonce = crypto.randomUUID();
@@ -430,7 +432,7 @@ export default function Auth() {
           if (error) throw error;
         }
 
-        toast.success('Account created! Your progress has been saved.');
+        toast.success('Signed in with Apple!');
         navigate('/');
         return;
       }
