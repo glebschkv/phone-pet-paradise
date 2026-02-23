@@ -21,6 +21,7 @@ interface DeviceActivityState {
   lastShieldAttemptTimestamp: number;
   selectedAppsCount: number;
   selectedCategoriesCount: number;
+  selectedDomainsCount: number;
 
   // Plugin health
   pluginAvailable: boolean;
@@ -134,6 +135,7 @@ export const useDeviceActivity = () => {
       lastShieldAttemptTimestamp: 0,
       selectedAppsCount: 0,
       selectedCategoriesCount: 0,
+      selectedDomainsCount: 0,
       pluginAvailable: true,
       pluginError: null,
     };
@@ -265,6 +267,7 @@ export const useDeviceActivity = () => {
           hasAppsConfigured: false,
           selectedAppsCount: 0,
           selectedCategoriesCount: 0,
+          selectedDomainsCount: 0,
         } as BlockingStatus,
         'getBlockingStatus'
       );
@@ -278,6 +281,7 @@ export const useDeviceActivity = () => {
         lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
         selectedAppsCount: blockingStatus.selectedAppsCount,
         selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
+        selectedDomainsCount: blockingStatus.selectedDomainsCount,
         pluginAvailable: true,
         pluginError: null,
       }));
@@ -418,6 +422,7 @@ export const useDeviceActivity = () => {
             hasAppsConfigured: false,
             selectedAppsCount: 0,
             selectedCategoriesCount: 0,
+            selectedDomainsCount: 0,
           } as BlockingStatus,
           'getBlockingStatus-afterPermission'
         );
@@ -431,6 +436,7 @@ export const useDeviceActivity = () => {
           lastShieldAttemptTimestamp: blockingStatus.lastShieldAttemptTimestamp,
           selectedAppsCount: blockingStatus.selectedAppsCount,
           selectedCategoriesCount: blockingStatus.selectedCategoriesCount,
+          selectedDomainsCount: blockingStatus.selectedDomainsCount,
         };
 
         setState(prev => {
@@ -580,6 +586,7 @@ export const useDeviceActivity = () => {
       hasAppsConfigured: false,
       selectedAppsCount: 0,
       selectedCategoriesCount: 0,
+      selectedDomainsCount: 0,
     };
 
     if (!state.pluginAvailable) {
@@ -604,6 +611,7 @@ export const useDeviceActivity = () => {
       lastShieldAttemptTimestamp: status.lastShieldAttemptTimestamp,
       selectedAppsCount: status.selectedAppsCount,
       selectedCategoriesCount: status.selectedCategoriesCount,
+      selectedDomainsCount: status.selectedDomainsCount,
     }));
 
     return status;
@@ -670,8 +678,9 @@ export const useDeviceActivity = () => {
     if (success && result?.success) {
       const appsSelected = result.appsSelected ?? 0;
       const categoriesSelected = result.categoriesSelected ?? 0;
+      const domainsSelected = result.domainsSelected ?? 0;
       deviceActivityLogger.info(
-        `App picker done: ${appsSelected} apps, ${categoriesSelected} categories`
+        `App picker done: ${appsSelected} apps, ${categoriesSelected} categories, ${domainsSelected} domains`
       );
       // Refresh blocking status after selection change
       const { result: status } = await safePluginCall(
@@ -684,6 +693,7 @@ export const useDeviceActivity = () => {
           hasAppsConfigured: false,
           selectedAppsCount: appsSelected,
           selectedCategoriesCount: categoriesSelected,
+          selectedDomainsCount: domainsSelected,
         } as BlockingStatus,
         'getBlockingStatus-afterPicker'
       );
@@ -691,6 +701,7 @@ export const useDeviceActivity = () => {
         hasAppsConfigured: status.hasAppsConfigured || (result.hasSelection ?? false),
         selectedAppsCount: status.selectedAppsCount || appsSelected,
         selectedCategoriesCount: status.selectedCategoriesCount || categoriesSelected,
+        selectedDomainsCount: status.selectedDomainsCount || domainsSelected,
       };
 
       setState(prev => {
@@ -756,6 +767,7 @@ export const useDeviceActivity = () => {
       isBlocking: false,
       selectedAppsCount: 0,
       selectedCategoriesCount: 0,
+      selectedDomainsCount: 0,
     }));
 
     // Try to clear on native if plugin is available
@@ -881,12 +893,17 @@ export const useDeviceActivity = () => {
     ? state.selectedAppsCount + state.selectedCategoriesCount
     : simulatedApps.filter(app => app.isBlocked).length;
 
+  const blockedDomainsCount = isNative
+    ? state.selectedDomainsCount
+    : 0;
+
   return {
     // State
     ...state,
     isNative,
     simulatedApps,
     blockedAppsCount,
+    blockedDomainsCount,
 
     // Permission methods
     requestPermissions,

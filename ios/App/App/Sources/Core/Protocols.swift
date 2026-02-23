@@ -96,6 +96,7 @@ struct BlockingStatus {
     let hasAppsConfigured: Bool
     let selectedAppsCount: Int
     let selectedCategoriesCount: Int
+    let selectedDomainsCount: Int
 
     var asDictionary: [String: Any] {
         [
@@ -105,7 +106,8 @@ struct BlockingStatus {
             "lastShieldAttemptTimestamp": lastShieldAttemptTimestamp,
             "hasAppsConfigured": hasAppsConfigured,
             "selectedAppsCount": selectedAppsCount,
-            "selectedCategoriesCount": selectedCategoriesCount
+            "selectedCategoriesCount": selectedCategoriesCount,
+            "selectedDomainsCount": selectedDomainsCount
         ]
     }
 }

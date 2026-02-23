@@ -7,6 +7,7 @@ export interface BlockingStatus {
   hasAppsConfigured: boolean;
   selectedAppsCount: number;
   selectedCategoriesCount: number;
+  selectedDomainsCount: number;
 }
 
 // Shield attempts response

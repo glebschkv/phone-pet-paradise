@@ -22,6 +22,7 @@ export const AppBlockingSection = ({
     blockedAppsCount,
     selectedAppsCount,
     selectedCategoriesCount,
+    selectedDomainsCount,
     shieldAttempts,
     isLoading,
     requestPermissions,
@@ -35,13 +36,23 @@ export const AppBlockingSection = ({
 
   // Build a human-readable label for the blocked selection count
   const blockedLabel = (() => {
+    const parts: string[] = [];
+
+    // Apps + categories
     if (selectedAppsCount > 0 && selectedCategoriesCount > 0) {
-      return `${selectedAppsCount} app${selectedAppsCount !== 1 ? 's' : ''} & ${selectedCategoriesCount} group${selectedCategoriesCount !== 1 ? 's' : ''}`;
+      parts.push(`${selectedAppsCount} app${selectedAppsCount !== 1 ? 's' : ''} & ${selectedCategoriesCount} group${selectedCategoriesCount !== 1 ? 's' : ''}`);
+    } else if (selectedCategoriesCount > 0) {
+      parts.push(`${selectedCategoriesCount} app group${selectedCategoriesCount !== 1 ? 's' : ''}`);
+    } else if (selectedAppsCount > 0) {
+      parts.push(`${selectedAppsCount} app${selectedAppsCount !== 1 ? 's' : ''}`);
     }
-    if (selectedCategoriesCount > 0) {
-      return `${selectedCategoriesCount} app group${selectedCategoriesCount !== 1 ? 's' : ''}`;
+
+    // Domains
+    if (selectedDomainsCount > 0) {
+      parts.push(`${selectedDomainsCount} website${selectedDomainsCount !== 1 ? 's' : ''}`);
     }
-    return `${blockedAppsCount} app${blockedAppsCount !== 1 ? 's' : ''}`;
+
+    return parts.join(' & ') || `${blockedAppsCount} app${blockedAppsCount !== 1 ? 's' : ''}`;
   })();
 
   // Handle permission request
@@ -270,6 +281,12 @@ export const AppBlockingSection = ({
                 <span className="text-green-400">•</span>
                 <span>Unblocked automatically when your session ends</span>
               </div>
+              {selectedDomainsCount > 0 && (
+                <div className="flex items-start gap-2 text-xs text-white/50">
+                  <span className="text-cyan-400">•</span>
+                  <span>Selected websites are blocked in Safari</span>
+                </div>
+              )}
               <div className="flex items-start gap-2 text-xs text-white/50">
                 <span className="text-purple-400">•</span>
                 <span>Stay focused for bonus XP and coins!</span>
@@ -284,7 +301,7 @@ export const AppBlockingSection = ({
             <div className="flex items-center justify-center gap-2 py-3">
               <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
               <span className="text-sm text-green-300 font-medium">
-                Focus mode active — apps are blocked
+                Focus mode active — {selectedDomainsCount > 0 ? 'apps & websites' : 'apps'} are blocked
               </span>
             </div>
 

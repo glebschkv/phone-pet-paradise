@@ -521,7 +521,7 @@ private struct AppPickerView: View {
     var body: some View {
         NavigationView {
             FamilyActivityPicker(selection: $selection)
-                .navigationTitle("Block Apps")
+                .navigationTitle("Block Apps & Websites")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {

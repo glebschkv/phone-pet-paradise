@@ -61,6 +61,12 @@ final class AppBlockingManager: AppBlockingManaging {
            !apps.isEmpty {
             return true
         }
+        // Also check web domains on the store
+        if let store = store,
+           let domains = store.shield.webDomains,
+           !domains.isEmpty {
+            return true
+        }
         // Also check if there's a saved selection (apps picked but session not started yet)
         return userDefaults?.data(forKey: AppConfig.StorageKeys.blockedAppsSelection) != nil
     }
@@ -169,7 +175,8 @@ final class AppBlockingManager: AppBlockingManaging {
             lastShieldAttemptTimestamp: focusDataManager.lastShieldAttemptTimestamp,
             hasAppsConfigured: hasAppsConfigured,
             selectedAppsCount: selection?.applicationTokens.count ?? 0,
-            selectedCategoriesCount: selection?.categoryTokens.count ?? 0
+            selectedCategoriesCount: selection?.categoryTokens.count ?? 0,
+            selectedDomainsCount: selection?.webDomainTokens.count ?? 0
         )
     }
 
