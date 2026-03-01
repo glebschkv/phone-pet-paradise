@@ -570,10 +570,11 @@ export default function Auth() {
               className="w-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
               style={{
                 background: '#000000',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
                 borderRadius: '12px',
                 height: '50px',
                 minHeight: '44px',
+                boxShadow: '0 2px 0 rgba(0, 0, 0, 0.4)',
               }}
             >
               {isLoading ? (
