@@ -572,11 +572,8 @@ export default function Auth() {
             <button
               onClick={handleAppleSignIn}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+              className="apple-signin-btn w-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
               style={{
-                background: '#FFFFFF',
-                colorScheme: 'light',
-                WebkitAppearance: 'none',
                 border: 'none',
                 borderRadius: '12px',
                 height: '44px',

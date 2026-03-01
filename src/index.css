@@ -147,6 +147,17 @@ input, textarea, [contenteditable="true"] {
   }
 }
 
+/* Force Apple Sign-In button white in iOS dark-mode WKWebView.
+   WKWebView overrides <button> background-color as a "system color"
+   when <meta name="color-scheme" content="light dark"> is present and
+   the device is in dark mode. !important is the only way to win. */
+.apple-signin-btn {
+  background-color: #FFFFFF !important;
+  color-scheme: light !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
 @layer base {
   * {
     @apply border-border;
