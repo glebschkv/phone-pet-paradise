@@ -563,25 +563,30 @@ export default function Auth() {
 
           {/* Auth Options */}
           <div className="space-y-3">
-            {/* Apple Sign-In - Standard Apple HIG button */}
+            {/* Apple Sign-In — Apple HIG "White" style for dark backgrounds
+                Ref: https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple
+                - White bg with black logo/text per HIG on dark backgrounds
+                - Font size = 43% of button height (44px × 0.43 ≈ 19px)
+                - System font at semibold weight
+                - Corner radius customizable per HIG */}
             <button
               onClick={handleAppleSignIn}
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
               style={{
-                background: '#000000',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                background: '#FFFFFF',
+                border: 'none',
                 borderRadius: '12px',
-                height: '50px',
+                height: '44px',
                 minHeight: '44px',
               }}
             >
               {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin text-white" />
+                <Loader2 className="w-5 h-5 animate-spin text-black" />
               ) : (
-                <AppleIcon className="w-5 h-5 text-white" />
+                <AppleIcon className="w-5 h-5 text-black" />
               )}
-              <span className="text-white text-base font-medium" style={{ fontFamily: '-apple-system, SF Pro Text, system-ui, sans-serif' }}>
+              <span className="text-black font-semibold" style={{ fontFamily: '-apple-system, SF Pro Text, system-ui, sans-serif', fontSize: '19px', letterSpacing: '-0.01em' }}>
                 Sign in with Apple
               </span>
             </button>
@@ -604,7 +609,7 @@ export default function Auth() {
                 <p className="font-bold text-sm text-white">Continue with Email</p>
                 <p className="text-xs text-purple-300/60">Passwordless magic link</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-purple-400/50" />
+              <ArrowRight className="w-4 h-4 text-purple-400/70" />
             </button>
 
             <button
@@ -625,7 +630,7 @@ export default function Auth() {
                 <p className="font-bold text-sm text-white">Sign in with Password</p>
                 <p className="text-xs text-purple-300/60">Use email and password</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-purple-400/50" />
+              <ArrowRight className="w-4 h-4 text-purple-400/70" />
             </button>
 
             <div className="flex items-center gap-3 py-4">
@@ -636,7 +641,12 @@ export default function Auth() {
 
             <button
               onClick={handleGuestMode}
-              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] border-2 border-dashed border-purple-700/50 hover:border-purple-500/40"
+              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98]"
+              style={{
+                background: 'hsl(260 20% 14%)',
+                border: '2px solid hsl(260 25% 30%)',
+                boxShadow: '0 2px 0 hsl(260 20% 10%)',
+              }}
             >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center"
                 style={{ background: 'hsl(260 20% 18%)', border: '2px solid hsl(260 25% 30%)' }}
