@@ -609,7 +609,7 @@ export default function Auth() {
                 <p className="font-bold text-sm text-white">Continue with Email</p>
                 <p className="text-xs text-purple-300/60">Passwordless magic link</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-purple-400/50" />
+              <ArrowRight className="w-4 h-4 text-purple-400/70" />
             </button>
 
             <button
@@ -630,7 +630,7 @@ export default function Auth() {
                 <p className="font-bold text-sm text-white">Sign in with Password</p>
                 <p className="text-xs text-purple-300/60">Use email and password</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-purple-400/50" />
+              <ArrowRight className="w-4 h-4 text-purple-400/70" />
             </button>
 
             <div className="flex items-center gap-3 py-4">
@@ -641,7 +641,12 @@ export default function Auth() {
 
             <button
               onClick={handleGuestMode}
-              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98] border-2 border-dashed border-purple-700/50 hover:border-purple-500/40"
+              className="w-full p-4 rounded-xl flex items-center gap-4 transition-all active:scale-[0.98]"
+              style={{
+                background: 'hsl(260 20% 14%)',
+                border: '2px solid hsl(260 25% 30%)',
+                boxShadow: '0 2px 0 hsl(260 20% 10%)',
+              }}
             >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center"
                 style={{ background: 'hsl(260 20% 18%)', border: '2px solid hsl(260 25% 30%)' }}
