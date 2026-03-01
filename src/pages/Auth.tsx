@@ -572,7 +572,7 @@ export default function Auth() {
             <button
               onClick={handleAppleSignIn}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
               style={{
                 background: '#FFFFFF',
                 border: 'none',
@@ -582,9 +582,9 @@ export default function Auth() {
               }}
             >
               {isLoading ? (
-                <Loader2 className="w-[18px] h-[18px] animate-spin text-black" />
+                <Loader2 className="w-5 h-5 animate-spin text-black" />
               ) : (
-                <AppleIcon className="w-[18px] h-[18px] text-black" />
+                <AppleIcon className="w-5 h-5 text-black" />
               )}
               <span className="text-black font-semibold" style={{ fontFamily: '-apple-system, SF Pro Text, system-ui, sans-serif', fontSize: '19px', letterSpacing: '-0.01em' }}>
                 Sign in with Apple
