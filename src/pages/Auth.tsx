@@ -563,26 +563,30 @@ export default function Auth() {
 
           {/* Auth Options */}
           <div className="space-y-3">
-            {/* Apple Sign-In - Standard Apple HIG button */}
+            {/* Apple Sign-In — Apple HIG "White" style for dark backgrounds
+                Ref: https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple
+                - White bg with black logo/text per HIG on dark backgrounds
+                - Font size = 43% of button height (44px × 0.43 ≈ 19px)
+                - System font at semibold weight
+                - Corner radius customizable per HIG */}
             <button
               onClick={handleAppleSignIn}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50"
               style={{
-                background: '#000000',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
+                background: '#FFFFFF',
+                border: 'none',
                 borderRadius: '12px',
-                height: '50px',
+                height: '44px',
                 minHeight: '44px',
-                boxShadow: '0 2px 0 rgba(0, 0, 0, 0.4)',
               }}
             >
               {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin text-white" />
+                <Loader2 className="w-[18px] h-[18px] animate-spin text-black" />
               ) : (
-                <AppleIcon className="w-5 h-5 text-white" />
+                <AppleIcon className="w-[18px] h-[18px] text-black" />
               )}
-              <span className="text-white text-base font-medium" style={{ fontFamily: '-apple-system, SF Pro Text, system-ui, sans-serif' }}>
+              <span className="text-black font-semibold" style={{ fontFamily: '-apple-system, SF Pro Text, system-ui, sans-serif', fontSize: '19px', letterSpacing: '-0.01em' }}>
                 Sign in with Apple
               </span>
             </button>
