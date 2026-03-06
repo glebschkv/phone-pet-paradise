@@ -75,7 +75,7 @@ export const SettingsAbout = () => {
             className="w-full p-3 retro-stat-pill rounded-lg flex items-center gap-3 transition-all active:scale-95 text-purple-100"
           >
             <ScrollText className="w-5 h-5" />
-            <span className="text-sm font-semibold flex-1 text-left">Terms of Service</span>
+            <span className="text-sm font-semibold flex-1 text-left">Terms of Use (EULA)</span>
             <ExternalLink className="w-4 h-4 text-purple-300/60" />
           </button>
 

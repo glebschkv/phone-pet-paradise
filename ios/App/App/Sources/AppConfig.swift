@@ -26,7 +26,6 @@ enum AppConfig {
     static let appGroupIdentifier = SharedConstants.appGroupIdentifier
     static let bundleIdentifier = "co.nomoinc.nomo"
     static let appName = "NoMo Phone"
-    static let merchantIdentifier = "merchant.co.nomoinc.nomo"
 
     static var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
