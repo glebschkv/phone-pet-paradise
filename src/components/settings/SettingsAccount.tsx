@@ -59,7 +59,11 @@ const ConfirmDialog = ({
       <div className="relative retro-game-card border-2 border-purple-600/50 max-w-xs w-full p-6 space-y-4">
         <div className="space-y-2 text-center">
           <h2 className="text-base font-bold text-white">{title}</h2>
-          <p className="text-xs text-purple-300/80">{description}</p>
+          <div className="text-xs text-purple-300/80 space-y-2">
+            {description.split('\n\n').map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
@@ -404,7 +408,11 @@ export const SettingsAccount = () => {
         onCancel={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteAccount}
         title="Delete Account?"
-        description="This will permanently delete your account and all your data including pets, progress, and achievements. This action cannot be undone."
+        description={
+          isPremium
+            ? "This will permanently delete your account and all your data including pets, progress, and achievements. This action cannot be undone.\n\nYou have an active subscription. Deleting your account does not automatically cancel your subscription. Please manage your subscription in Settings > Apple ID > Subscriptions to avoid future charges."
+            : "This will permanently delete your account and all your data including pets, progress, and achievements. This action cannot be undone."
+        }
         confirmLabel="Delete Forever"
         loadingLabel="Deleting..."
         confirmClassName="bg-red-500 text-white px-3 py-2 text-xs font-bold rounded-lg"
