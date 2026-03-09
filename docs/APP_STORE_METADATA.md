@@ -12,56 +12,74 @@
 
 ## App Description (4000 characters max)
 
-**NoMo Phone** turns staying focused into an adventure. Put down your phone, earn coins, collect adorable pixel pets, and build your dream world - all while building healthier screen time habits.
+What if putting your phone down was the most rewarding part of your day?
 
-**HOW IT WORKS**
+NoMo Phone is the only focus app with FREE app blocking and 40+ collectible pixel pets. Set a timer. Lock your apps. Earn coins for every minute you stay focused — then spend them on adorable pets, new worlds, and exclusive rewards.
 
-Set a focus timer and put your phone away. NoMo detects when you're away from your screen and rewards you with coins for every minute of distraction-free time. Use your coins to unlock new pets, explore beautiful worlds, and build your collection.
+**COLLECT 40+ PIXEL PETS**
 
-**COLLECT 40+ UNIQUE PETS**
+From the cheerful Dewdrop Frog to the legendary Baby Dragon, every pet is a hand-crafted companion with unique animations, abilities, and personality. Unlock them through focus time, coins, or study milestones across 4 rarity tiers — Common, Rare, Epic, and Legendary. Bond with your favorites through play, feeding, and focus sessions to reach Bond Level 10.
 
-Discover adorable pixel-art companions across four rarity tiers: Common, Rare, Epic, and Legendary. Each pet has its own personality and animations. Bond with them, watch them grow, and earn bonus rewards as your friendship deepens.
+**EXPLORE 6 WORLDS**
 
-**EXPLORE 7 STUNNING WORLDS**
+Discover Snow, Meadow, Night, Forest, Sunset, and City — each with exclusive pets and a hand-painted backdrop. Watch your pets roam their world while you focus.
 
-Journey through Meadow, Sunset, Night, Forest, Snow, City, and Deep Ocean biomes. Each world features unique pets and breathtaking retro-inspired backgrounds for your island home.
+**FREE APP BLOCKING**
 
-**STAY MOTIVATED WITH GAMIFICATION**
+Activate Focus Shield to block distracting apps during sessions. No subscription required. Score a 25% XP bonus and 50 extra coins for Perfect Focus sessions with zero blocked app attempts.
 
-- Daily quests and weekly challenges
-- 40+ levels of progression
-- Streak system to build consistency
-- Achievement badges and milestones
-- Daily bonus rewards and surprises
-- Boss challenges with epic rewards
+**FOCUS TIMER**
 
-**FOCUS SHIELD (PREMIUM)**
+Choose from 25-minute sprints to 3-hour deep work marathons. Create custom presets for study, work, or deep focus. Earn 2 coins per minute plus completion bonuses up to 300 coins per session.
 
-Block distracting apps during focus sessions using Apple's Screen Time technology. Choose which apps to shield and stay on track with your goals.
+**STREAKS & COMBOS**
 
-**SMART FEATURES**
+Build daily streaks up to 365 days with milestone rewards at 7, 30, and 100 days. Chain sessions for combo multipliers up to 1.75x. Protect your streak with Streak Freeze tokens.
 
-- Customizable focus timer presets
-- Session notes and reflections
-- Ambient sounds (rain, forest, ocean, and more)
-- Focus analytics dashboard
-- Daily login rewards
-- Streak freeze tokens to protect your progress
+**9 BOSS CHALLENGES**
 
-**PREMIUM BENEFITS**
+Take on Focus Warrior, Deep Focus Master, Marathon Runner, Ultra Endurance, and more across 4 difficulty tiers — Normal, Hard, Extreme, and Legendary. Earn up to 3,000 coins and exclusive badges per challenge.
 
-Upgrade to Premium for:
-- 2x-4x coin multipliers
-- Exclusive pets and worlds
-- Sound mixing (layer up to 3 sounds)
-- More streak freezes
-- Focus Shield app blocking
+**DAILY REWARDS**
 
-**WHY NOMO?**
+Spin the Lucky Wheel free every day for coins, XP, streak freezes, coin boosters, and mystery boxes.
 
-Most screen time apps make you feel guilty. NoMo makes you feel rewarded. Transform phone-free time from a chore into a game you actually want to play.
+**25 AMBIENT SOUNDS**
 
-Download NoMo Phone today and start your journey to better focus - one pet at a time.
+Layer up to 3 sounds at once. White noise, rain, ocean waves, fireplace, coffee shop, binaural beats, and more. 8 sounds free, no subscription needed.
+
+**50 LEVELS & ACHIEVEMENTS**
+
+Advance through 50 levels across 6 achievement categories. Hit milestones celebrated with confetti, fireworks, and rainbow effects — plus generous coin and XP rewards at every milestone.
+
+**SHOP**
+
+Exclusive pets, premium backgrounds, coin boosters, themed bundles, and background collections. Everything earnable through focus time.
+
+**3 DAILY QUESTS**
+
+Fresh quests every day — focus goals, pet interactions, streak targets, and collection challenges. Complete all 3 for bonus rewards.
+
+No ads. No account required. Works completely offline.
+
+Whether you're studying for exams, doing deep work, or just trying to scroll less — NoMo Phone turns screen-free time into something you actually look forward to.
+
+**SUBSCRIPTION INFORMATION**
+
+NoMo Phone offers optional auto-renewable subscriptions for enhanced features:
+
+- Premium Monthly: $4.99/month
+- Premium Yearly: $39.99/year
+- Premium+ Monthly: $8.99/month
+- Premium+ Yearly: $64.99/year
+- Lifetime Access: $179.99 (one-time purchase)
+
+Premium features include increased coin and XP multipliers, additional Lucky Wheel spins, sound mixing, extra streak freezes, all timer backgrounds, and full analytics.
+
+Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Account will be charged for renewal within 24 hours prior to the end of the current period. Subscriptions may be managed and auto-renewal may be turned off in your Account Settings after purchase.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://nomoinc.co/privacy
 
 ---
 
