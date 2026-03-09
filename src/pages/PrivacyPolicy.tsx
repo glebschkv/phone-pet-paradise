@@ -140,9 +140,10 @@ const PrivacyPolicyContent = () => {
           <section className="space-y-4">
             <h3 className="text-xl font-semibold text-blue-300">Children's Privacy</h3>
             <p className="text-white/80 leading-relaxed">
-              NoMo Phone is intended for users of all ages. We do not knowingly collect
-              personal information from children under 13 without parental consent. If you
-              believe we have collected information from a child under 13, please contact us.
+              NoMo Phone is rated 12+ and is not directed at children under 13. We do not
+              knowingly collect personal information from children under 13 without verifiable
+              parental consent. If you believe we have collected information from a child
+              under 13, please contact us and we will promptly delete it.
             </p>
           </section>
 
