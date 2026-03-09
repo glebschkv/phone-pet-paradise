@@ -538,7 +538,7 @@ export const PremiumSubscription = ({ isOpen, onClose }: PremiumSubscriptionProp
                 className="text-[9px] underline"
                 style={{ color: 'hsl(260 20% 50%)' }}
               >
-                Terms of Service
+                Terms of Use (EULA)
               </button>
             </div>
           </div>

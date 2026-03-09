@@ -97,17 +97,25 @@ final class StoreKitTransactionManager {
                 do {
                     let transaction = try self?.verifyTransaction(result)
                     if let transaction = transaction {
-                        // Auto-finish background updates (renewals, etc.)
-                        // These are not from the active purchase flow.
-                        await transaction.finish()
-                        Log.storeKit.success("Transaction update finished: \(transaction.productID)")
-
+                        // Do NOT auto-finish background updates (renewals, etc.).
+                        // Instead, notify JS so it can validate with the server
+                        // and call finishTransaction after successful validation.
+                        // This ensures all transactions — including renewals —
+                        // are server-validated before being marked complete.
+                        let jwsRepresentation = result.jwsRepresentation
                         let data: [String: Any] = [
                             "productId": transaction.productID,
                             "transactionId": String(transaction.id),
-                            "purchaseDate": transaction.purchaseDate.timeIntervalSince1970
+                            "originalTransactionId": String(transaction.originalID),
+                            "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
+                            "signedTransaction": jwsRepresentation,
+                            "isBackgroundUpdate": true
                         ]
+
+                        // Store as unfinished so JS can call finishTransaction later
+                        self?.storeUnfinishedTransaction(transaction)
                         self?.transactionHandler?(data)
+                        Log.storeKit.info("Transaction update received (pending server validation): \(transaction.productID)")
                     }
                 } catch {
                     Log.storeKit.failure("Transaction verification failed", error: error)

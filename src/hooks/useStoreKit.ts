@@ -831,8 +831,35 @@ export const useStoreKit = (): UseStoreKitReturn => {
     let listenerHandle: { remove: () => void } | null = null;
 
     if (Capacitor.isNativePlatform()) {
-      StoreKit.addListener('transactionUpdated', (data) => {
+      StoreKit.addListener('transactionUpdated', async (data: Record<string, unknown>) => {
         logger.debug('Transaction updated:', data);
+
+        // Background updates (renewals, deferred purchases) now include
+        // signedTransaction so we can validate with the server before finishing.
+        if (data.isBackgroundUpdate && data.signedTransaction && data.transactionId && data.productId) {
+          logger.info('Background transaction update — validating with server:', data.productId);
+          const validationResult = await serverValidatePurchase({
+            success: true,
+            productId: data.productId as string,
+            transactionId: data.transactionId as string,
+            originalTransactionId: data.originalTransactionId as string | undefined,
+            signedTransaction: data.signedTransaction as string,
+          });
+
+          if (validationResult.success) {
+            // Server validated — finish the transaction with Apple
+            await safeStoreKitCall(
+              () => StoreKit.finishTransaction({ transactionId: data.transactionId as string }),
+              { success: false },
+              'finishTransaction (background)'
+            );
+            logger.info('Background transaction validated and finished:', data.productId);
+          } else {
+            logger.warn('Background transaction validation failed — not finishing:', data.productId);
+            // Transaction stays unfinished; Apple will retry on next launch
+          }
+        }
+
         checkSubscriptionStatus().catch((err) => {
           logger.warn('Subscription status check failed after transaction update:', err);
         });
