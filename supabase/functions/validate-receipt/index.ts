@@ -386,13 +386,17 @@ serve(async (req) => {
       throw new Error('Transaction has been revoked');
     }
 
-    // SECURITY: Reject sandbox transactions in production environment.
-    // Apple's sandbox provides valid JWS signatures, but sandbox purchases
-    // should never grant access in a production deployment.
+    // SECURITY: Reject sandbox transactions in production unless explicitly allowed.
+    // Apple uses sandbox transactions for App Store review and TestFlight testing,
+    // so ALLOW_SANDBOX must be enabled to pass review.
     const isProductionDeployment = Deno.env.get('ENVIRONMENT') !== 'development';
-    if (isProductionDeployment && transactionPayload.environment === 'Sandbox') {
+    const allowSandbox = Deno.env.get('ALLOW_SANDBOX') === 'true';
+    if (isProductionDeployment && transactionPayload.environment === 'Sandbox' && !allowSandbox) {
       console.warn('SECURITY: Sandbox transaction rejected in production');
       throw new Error('Sandbox transactions are not allowed in production');
+    }
+    if (transactionPayload.environment === 'Sandbox') {
+      console.warn('NOTICE: Processing sandbox transaction (ALLOW_SANDBOX enabled)');
     }
 
     const now = new Date();
