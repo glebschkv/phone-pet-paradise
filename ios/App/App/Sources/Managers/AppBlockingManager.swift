@@ -21,6 +21,11 @@ final class AppBlockingManager: AppBlockingManaging {
 
     // MARK: - Properties
 
+    /// Separate key for JS/web simulated app selection. This MUST NOT collide
+    /// with the native FamilyActivitySelection key (`blockedAppSelection`),
+    /// which stores binary Data from the native picker.
+    private static let simulatedAppsKey = "blockedAppsSelection_simulated"
+
     /// ManagedSettingsStore is optional because it requires the managed-settings
     /// entitlement which is only available in app extensions, not the main app.
     /// Creating ManagedSettingsStore() without the entitlement causes a crash,
@@ -105,17 +110,17 @@ final class AppBlockingManager: AppBlockingManaging {
         }
 
         do {
-            let selection = try JSONDecoder().decode(FamilyActivitySelection.self, from: selectionData)
+            let selection = try PropertyListDecoder().decode(FamilyActivitySelection.self, from: selectionData)
             return applyShields(store: store, selection: selection)
         } catch {
-            Log.blocking.warning("Failed to decode selection, continuing without shields: \(error)")
+            Log.blocking.error("Failed to decode FamilyActivitySelection: \(error)")
             return BlockingResult(
-                success: true,
+                success: false,
                 appsBlocked: 0,
                 categoriesBlocked: 0,
                 domainsBlocked: 0,
                 shieldAttempts: 0,
-                note: "Selection decode failed, no apps blocked"
+                note: "Selection decode failed: \(error.localizedDescription)"
             )
         }
     }
@@ -186,16 +191,18 @@ final class AppBlockingManager: AppBlockingManaging {
         guard let userDefaults = userDefaults else {
             throw PluginError.sharedContainerUnavailable
         }
-        userDefaults.set(data, forKey: AppConfig.StorageKeys.blockedAppsSelection)
+        userDefaults.set(data, forKey: Self.simulatedAppsKey)
         Log.blocking.info("Selection saved")
     }
 
-    /// Saves a FamilyActivitySelection as encoded Data (used by native picker)
+    /// Saves a FamilyActivitySelection as encoded Data (used by native picker).
+    /// Uses PropertyListEncoder because FamilyActivitySelection contains opaque
+    /// Apple token types that are more reliably serialized with plist format.
     func saveActivitySelection(_ selection: FamilyActivitySelection) throws {
         guard let userDefaults = userDefaults else {
             throw PluginError.sharedContainerUnavailable
         }
-        let data = try JSONEncoder().encode(selection)
+        let data = try PropertyListEncoder().encode(selection)
         userDefaults.set(data, forKey: AppConfig.StorageKeys.blockedAppsSelection)
         Log.blocking.info("Activity selection saved: \(selection.applicationTokens.count) apps, \(selection.categoryTokens.count) categories, \(selection.webDomainTokens.count) domains")
     }
@@ -205,15 +212,16 @@ final class AppBlockingManager: AppBlockingManaging {
         guard let data = userDefaults?.data(forKey: AppConfig.StorageKeys.blockedAppsSelection) else {
             return nil
         }
-        return try? JSONDecoder().decode(FamilyActivitySelection.self, from: data)
+        return try? PropertyListDecoder().decode(FamilyActivitySelection.self, from: data)
     }
 
     func loadSelection() -> String? {
-        userDefaults?.string(forKey: AppConfig.StorageKeys.blockedAppsSelection)
+        userDefaults?.string(forKey: Self.simulatedAppsKey)
     }
 
     func clearSelection() {
         userDefaults?.removeObject(forKey: AppConfig.StorageKeys.blockedAppsSelection)
+        userDefaults?.removeObject(forKey: Self.simulatedAppsKey)
         clearShields()
         Log.blocking.info("Selection cleared")
     }

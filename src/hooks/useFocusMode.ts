@@ -99,16 +99,13 @@ export const useFocusMode = () => {
         localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
       } catch { /* storage full — state still updated in-memory */ }
 
-      // Sync with native plugin
-      if (isNative) {
-        DeviceActivity.setSelectedApps({
-          selection: JSON.stringify(newSettings.blockedApps)
-        }).catch(err => focusModeLogger.error('Failed to set selected apps:', err));
-      }
+      // On native iOS, the FamilyActivityPicker is the sole source of truth
+      // for app selection — do NOT sync simulated apps to native storage,
+      // as it overwrites the native FamilyActivitySelection binary data.
 
       return newSettings;
     });
-  }, [isNative]);
+  }, []);
 
   // Toggle app blocking
   const toggleAppBlocking = useCallback((appId: string, blocked: boolean) => {
@@ -121,16 +118,12 @@ export const useFocusMode = () => {
         localStorage.setItem(FOCUS_MODE_STORAGE_KEY, JSON.stringify(newSettings));
       } catch { /* storage full — state still updated in-memory */ }
 
-      // Sync with native plugin
-      if (isNative) {
-        DeviceActivity.setSelectedApps({
-          selection: JSON.stringify(newApps)
-        }).catch(err => focusModeLogger.error('Failed to set selected apps:', err));
-      }
+      // On native iOS, the FamilyActivityPicker is the sole source of truth
+      // for app selection — do NOT sync simulated apps to native storage.
 
       return newSettings;
     });
-  }, [isNative]);
+  }, []);
 
   // Activate focus mode (called when timer starts)
   const activateFocusMode = useCallback(async () => {
