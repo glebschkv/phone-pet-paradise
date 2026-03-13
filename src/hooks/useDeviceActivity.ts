@@ -523,19 +523,21 @@ export const useDeviceActivity = () => {
       return result;
     }
 
+    const actuallyBlocking = result.appsBlocked > 0 || result.categoriesBlocked > 0 || result.domainsBlocked > 0;
+
     setState(prev => ({
       ...prev,
-      isBlocking: true,
+      isBlocking: actuallyBlocking,
       shieldAttempts: 0,
     }));
 
-    if (result.appsBlocked > 0 || result.categoriesBlocked > 0 || result.domainsBlocked > 0) {
+    if (actuallyBlocking) {
+      const totalBlocked = result.appsBlocked + result.categoriesBlocked;
       const parts: string[] = [];
-      if (result.appsBlocked > 0) parts.push(`${result.appsBlocked} app${result.appsBlocked !== 1 ? 's' : ''}`);
-      if (result.categoriesBlocked > 0) parts.push(`${result.categoriesBlocked} categor${result.categoriesBlocked !== 1 ? 'ies' : 'y'}`);
+      if (totalBlocked > 0) parts.push(`${totalBlocked} app${totalBlocked !== 1 ? 's' : ''}`);
       if (result.domainsBlocked > 0) parts.push(`${result.domainsBlocked} website${result.domainsBlocked !== 1 ? 's' : ''}`);
       toast.success("Focus Mode Active", {
-        description: `Blocking ${parts.join(', ')}`,
+        description: `Blocking ${parts.join(' & ')}`,
       });
     } else if (result.success) {
       // Native call succeeded but reported 0 items blocked — selection may be missing
@@ -857,6 +859,10 @@ export const useDeviceActivity = () => {
   const triggerHapticRef = useRef(triggerHaptic);
   triggerHapticRef.current = triggerHaptic;
 
+  // Stable ref for getBlockingStatus so the lifecycle listener can re-verify on foreground
+  const getBlockingStatusRef = useRef(getBlockingStatus);
+  getBlockingStatusRef.current = getBlockingStatus;
+
   // Handle app lifecycle events
   useEffect(() => {
     const handleAppLifecycle = (event: CustomEvent<AppLifecycleEvent>) => {
@@ -870,6 +876,11 @@ export const useDeviceActivity = () => {
         lastActiveTime: timestamp,
         shieldAttempts: attempts ?? prev.shieldAttempts,
       }));
+
+      // When returning to foreground, re-verify blocking state with native
+      if (appState === 'active') {
+        getBlockingStatusRef.current();
+      }
 
       // Trigger haptic feedback only when returning after significant time away
       if (appState === 'active' && timeAwayMinutes && timeAwayMinutes > 5) {

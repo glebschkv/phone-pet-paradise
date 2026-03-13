@@ -104,7 +104,7 @@ class MinimalSentryClient {
     this.beforeSend = options.beforeSend || null;
 
     if (!this.dsnParsed) {
-      console.warn('[MinimalSentry] Invalid DSN');
+      // Silently ignore invalid DSN — non-critical
     }
   }
 

@@ -79,11 +79,11 @@ export const CharacterUnlockModal: React.FC<CharacterUnlockModalProps> = ({
 
   if (!animal) return null;
 
-  const style = RARITY_STYLES[animal.rarity];
+  const style = RARITY_STYLES[animal.rarity] ?? RARITY_STYLES.common;
   const starCount = RARITY_STARS[animal.rarity] ?? 1;
   const isAnimating = phase === 'reveal';
   const spriteScale = animal.spriteConfig
-    ? Math.min(3, 100 / Math.max(animal.spriteConfig.frameWidth, animal.spriteConfig.frameHeight))
+    ? Math.min(3, 100 / Math.max(1, animal.spriteConfig.frameWidth, animal.spriteConfig.frameHeight))
     : 1;
 
   return (

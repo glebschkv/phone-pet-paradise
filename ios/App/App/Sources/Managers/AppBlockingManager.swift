@@ -100,7 +100,7 @@ final class AppBlockingManager: AppBlockingManaging {
         guard let selectionData = userDefaults?.data(forKey: AppConfig.StorageKeys.blockedAppsSelection) else {
             Log.blocking.info("No apps configured for blocking")
             return BlockingResult(
-                success: true,
+                success: false,
                 appsBlocked: 0,
                 categoriesBlocked: 0,
                 domainsBlocked: 0,

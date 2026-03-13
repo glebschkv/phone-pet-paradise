@@ -251,13 +251,14 @@ export const useTimerControls = ({
     cancelTimerCompletionNotification();
 
     // Unblock apps while paused — they will be re-blocked on resume
+    // Always attempt stop for work sessions (native call is a no-op if nothing is blocked)
     const isWorkSession = timerState.sessionType !== 'break';
-    if (isWorkSession && hasAppsConfigured) {
+    if (isWorkSession) {
       stopAppBlocking().catch((e) => {
         timerLogger.error('Failed to pause app blocking:', e);
       });
     }
-  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, timerState.sessionType, selectedPreset.duration, setDisplayTime, cancelTimerCompletionNotification, triggerHaptic, hasAppsConfigured, stopAppBlocking]);
+  }, [saveTimerState, timerState.startTime, timerState.sessionDuration, timerState.timeLeft, timerState.elapsedTime, timerState.isCountup, timerState.sessionType, selectedPreset.duration, setDisplayTime, cancelTimerCompletionNotification, triggerHaptic, stopAppBlocking]);
 
   const stopTimer = useCallback(async () => {
     triggerHaptic('light');

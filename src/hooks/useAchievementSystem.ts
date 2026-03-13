@@ -169,7 +169,7 @@ export const useAchievementSystem = (): AchievementSystemReturn => {
       }
 
       if (pendingUnlockQueue.current.length > 0) {
-        return pendingUnlockQueue.current.shift()!;
+        return pendingUnlockQueue.current.shift() ?? null;
       }
       return null;
     });

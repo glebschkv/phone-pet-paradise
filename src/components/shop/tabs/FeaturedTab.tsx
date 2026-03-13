@@ -360,7 +360,7 @@ export const FeaturedTab = ({
                   {pet.spriteConfig ? (
                     <SpritePreview
                       animal={pet}
-                      scale={Math.min(1.8, 56 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
+                      scale={Math.min(1.8, 56 / Math.max(1, pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
                     />
                   ) : (
                     <span className="text-3xl">{pet.emoji}</span>
