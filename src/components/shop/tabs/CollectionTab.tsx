@@ -140,7 +140,7 @@ export const CollectionTab = ({
                     {character.spriteConfig ? (
                       <SpritePreview
                         animal={character}
-                        scale={Math.min(2, 64 / Math.max(character.spriteConfig.frameWidth, character.spriteConfig.frameHeight))}
+                        scale={Math.min(2, 64 / Math.max(1, character.spriteConfig.frameWidth, character.spriteConfig.frameHeight))}
                       />
                     ) : (
                       <span className="text-4xl retro-pixel-shadow">{character.emoji}</span>

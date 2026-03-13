@@ -43,7 +43,7 @@ export const PetDetailModal = ({
 }: PetDetailModalProps) => {
   if (!pet) return null;
 
-  const rarityConf = RARITY_CONFIG[pet.rarity];
+  const rarityConf = RARITY_CONFIG[pet.rarity] ?? RARITY_CONFIG.common;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -67,7 +67,7 @@ export const PetDetailModal = ({
               <div className="mb-3 flex items-center justify-center h-[180px] overflow-hidden">
                 <SpritePreview
                   animal={pet}
-                  scale={Math.min(4, 180 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
+                  scale={Math.min(4, 180 / Math.max(1, pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
                 />
               </div>
             ) : !isUnlocked && pet.spriteConfig ? (
@@ -75,7 +75,7 @@ export const PetDetailModal = ({
                 <div style={{ filter: 'brightness(0.5) saturate(0)' }}>
                   <SpritePreview
                     animal={pet}
-                    scale={Math.min(4, 180 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
+                    scale={Math.min(4, 180 / Math.max(1, pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
                   />
                 </div>
               </div>

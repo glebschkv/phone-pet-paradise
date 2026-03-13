@@ -44,7 +44,6 @@ async function stopBlockingWithRetry(): Promise<boolean> {
   }
   // All retries failed — leave the BLOCKING_ACTIVE_KEY so the next
   // foreground resume will try again
-  console.error('[TimerExpiryGuard] Failed to stop app blocking after 3 attempts');
   return false;
 }
 

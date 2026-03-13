@@ -54,7 +54,7 @@ export const PurchaseConfirmDialog = ({
               ) : 'spriteConfig' in selectedItem && selectedItem.spriteConfig ? (
                 <SpritePreview
                   animal={selectedItem as AnimalData}
-                  scale={Math.min(2.5, 90 / Math.max((selectedItem as AnimalData).spriteConfig!.frameWidth, (selectedItem as AnimalData).spriteConfig!.frameHeight))}
+                  scale={Math.min(2.5, 90 / Math.max(1, (selectedItem as AnimalData).spriteConfig!.frameWidth, (selectedItem as AnimalData).spriteConfig!.frameHeight))}
                 />
               ) : 'previewImages' in selectedItem && (selectedItem as Bundle).previewImages ? (
                 // Background bundle preview carousel

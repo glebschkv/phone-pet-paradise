@@ -170,7 +170,7 @@ export const PetBundlePreviewCarousel = ({ petIds }: { petIds: string[] }) => {
 
   const currentPet = pets[currentIndex];
   const scale = currentPet?.spriteConfig
-    ? Math.min(2.5, 80 / Math.max(currentPet.spriteConfig.frameWidth, currentPet.spriteConfig.frameHeight))
+    ? Math.min(2.5, 80 / Math.max(1, currentPet.spriteConfig.frameWidth, currentPet.spriteConfig.frameHeight))
     : 1;
 
   return (

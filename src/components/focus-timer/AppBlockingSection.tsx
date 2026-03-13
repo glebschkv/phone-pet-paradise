@@ -34,17 +34,14 @@ export const AppBlockingSection = ({
 
   const isNativePlatform = Capacitor.isNativePlatform();
 
-  // Build a human-readable label for the blocked selection count
+  // Build a human-readable label showing total blocked items
   const blockedLabel = (() => {
     const parts: string[] = [];
 
-    // Apps + categories
-    if (selectedAppsCount > 0 && selectedCategoriesCount > 0) {
-      parts.push(`${selectedAppsCount} app${selectedAppsCount !== 1 ? 's' : ''} & ${selectedCategoriesCount} group${selectedCategoriesCount !== 1 ? 's' : ''}`);
-    } else if (selectedCategoriesCount > 0) {
-      parts.push(`${selectedCategoriesCount} app group${selectedCategoriesCount !== 1 ? 's' : ''}`);
-    } else if (selectedAppsCount > 0) {
-      parts.push(`${selectedAppsCount} app${selectedAppsCount !== 1 ? 's' : ''}`);
+    // Combine apps + categories into a single "apps" count
+    const totalApps = selectedAppsCount + selectedCategoriesCount;
+    if (totalApps > 0) {
+      parts.push(`${totalApps} app${totalApps !== 1 ? 's' : ''}`);
     }
 
     // Domains

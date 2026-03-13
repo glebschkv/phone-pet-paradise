@@ -125,7 +125,7 @@ export const BundleConfirmDialog = ({
                   />
                   <SpritePreview
                     animal={pet}
-                    scale={Math.min(2.5, 80 / Math.max(pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
+                    scale={Math.min(2.5, 80 / Math.max(1, pet.spriteConfig.frameWidth, pet.spriteConfig.frameHeight))}
                   />
                 </div>
               ) : (
