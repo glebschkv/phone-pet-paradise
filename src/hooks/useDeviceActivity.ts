@@ -740,8 +740,9 @@ export const useDeviceActivity = () => {
       // Storage full — state still updated in-memory
     }
 
-    // Also update native if on iOS (fire and forget with safe call)
-    if (state.pluginAvailable) {
+    // Only sync simulated apps on web — on native iOS, the FamilyActivityPicker
+    // is the sole source of truth and writing here would overwrite its binary data.
+    if (!isNative && state.pluginAvailable) {
       safePluginCall(
         () => DeviceActivity.setSelectedApps({ selection: JSON.stringify(apps) }),
         undefined,
